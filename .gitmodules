@@ -1,0 +1,51 @@
+[submodule "infra/inference/vllm"]
+	path = infra/inference/vllm
+	url = https://github.com/vllm-project/vllm.git
+[submodule "infra/inference/sglang"]
+	path = infra/inference/sglang
+	url = https://github.com/sgl-project/sglang.git
+[submodule "infra/inference/llama.cpp"]
+	path = infra/inference/llama.cpp
+	url = https://github.com/ggml-org/llama.cpp.git
+[submodule "infra/training/megatron-lm"]
+	path = infra/training/megatron-lm
+	url = https://github.com/NVIDIA/Megatron-LM.git
+[submodule "infra/training/deepspeed"]
+	path = infra/training/deepspeed
+	url = https://github.com/microsoft/DeepSpeed.git
+[submodule "infra/training/torchtitan"]
+	path = infra/training/torchtitan
+	url = https://github.com/pytorch/torchtitan.git
+[submodule "infra/training/nanotron"]
+	path = infra/training/nanotron
+	url = https://github.com/huggingface/nanotron.git
+[submodule "infra/post-training/openrlhf"]
+	path = infra/post-training/openrlhf
+	url = https://github.com/OpenRLHF/OpenRLHF.git
+[submodule "infra/post-training/ms-swift"]
+	path = infra/post-training/ms-swift
+	url = https://github.com/modelscope/ms-swift.git
+[submodule "infra/post-training/llama-factory"]
+	path = infra/post-training/llama-factory
+	url = https://github.com/hiyouga/LLaMA-Factory.git
+[submodule "infra/post-training/trl"]
+	path = infra/post-training/trl
+	url = https://github.com/huggingface/trl.git
+[submodule "infra/data/datatrove"]
+	path = infra/data/datatrove
+	url = https://github.com/huggingface/datatrove.git
+[submodule "infra/data/data-juicer"]
+	path = infra/data/data-juicer
+	url = https://github.com/modelscope/data-juicer.git
+[submodule "infra/deepseek/FlashMLA"]
+	path = infra/deepseek/FlashMLA
+	url = https://github.com/deepseek-ai/FlashMLA.git
+[submodule "infra/deepseek/DualPipe"]
+	path = infra/deepseek/DualPipe
+	url = https://github.com/deepseek-ai/DualPipe.git
+[submodule "infra/deepseek/EPLB"]
+	path = infra/deepseek/EPLB
+	url = https://github.com/deepseek-ai/EPLB.git
+[submodule "infra/deepseek/DeepEP"]
+	path = infra/deepseek/DeepEP
+	url = https://github.com/deepseek-ai/DeepEP.git

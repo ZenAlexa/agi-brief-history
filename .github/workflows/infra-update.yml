@@ -1,0 +1,60 @@
+name: Infra Update (Submodules + Leaderboard)
+
+on:
+  schedule:
+    - cron: '43 14 * * 1,3,5'  # 14:43 UTC Mon/Wed/Fri
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - name: Update submodules
+        run: |
+          git submodule foreach 'git fetch --depth 1 origin HEAD && git checkout FETCH_HEAD || true'
+
+      - name: Commit submodule updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No submodule updates"
+          else
+            git commit -m "chore: update submodules $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+  leaderboard-snapshot:
+    runs-on: ubuntu-latest
+    needs: update-submodules
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch leaderboard snapshot
+        run: python scripts/fetch-leaderboard.py
+
+      - name: Commit snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase
+          git add knowledge/tracking/weekly/
+          if git diff --cached --quiet; then
+            echo "No leaderboard changes"
+          else
+            git commit -m "chore: leaderboard snapshot $(date -u +%Y-%m-%d)"
+            git push
+          fi
