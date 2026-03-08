@@ -1,0 +1,658 @@
+\chapter{为什么「预测下一个词」能产生智能？}
+\label{ch:intro}
+%% ============================================================
+
+\section{一个看似简单的任务}
+
+假设你看到这样一个句子的开头：「法国的首都是\_\_\_\_」。你会毫不犹豫地填入「巴黎」。
+这个填空题看起来极其简单，但请思考一下：要正确完成这个填空，你需要具备什么？
+你需要知道法国是一个国家，首都是一个政治概念，以及巴黎与法国之间的具体关系。
+换句话说，你需要拥有\textbf{世界知识}。
+
+再看一个稍微复杂的例子：「她在得知祖母去世后感到\_\_\_\_」。
+要预测这里的词，你需要理解人类情感——失去亲人通常会带来悲伤。
+这不仅仅是语言知识，更是对人类心理和社会关系的理解。
+
+再来一个：「如果所有的猫都是动物，而 Tom 是一只猫，那么 Tom 是\_\_\_\_」。
+这里需要的是逻辑推理能力——三段论的基本形式。
+
+还有一个更微妙的例子：「他把钥匙放在桌子上，然后走进了厨房。
+几分钟后他回来拿\_\_\_\_」。要预测「钥匙」，
+模型需要维持跨越多个句子的\textbf{工作记忆}——
+记住「钥匙」这个对象及其位置，
+并在上下文发生变化后依然能够追溯引用它。
+
+最后一个：「$\int_0^1 x^2 \, dx = $\_\_\_\_」。
+这里需要的是纯粹的数学计算能力——
+理解积分符号的含义、掌握幂函数积分的规则、
+执行代入求值。
+
+这就是大语言模型（Large Language Model, LLM）训练的核心目标：
+\textbf{准确预测下一个词}。
+这个目标看似简单，实则蕴含着一个深刻的洞察——
+要在所有可能的上下文中都准确预测下一个词，
+模型必须隐式地学会语法、语义、逻辑推理、世界知识、情感理解，
+乃至数学和编程。
+
+\begin{corebox}[预测下一个词的数学形式]
+给定前 $t$ 个 token $x_1, x_2, \ldots, x_t$，
+模型学习条件概率分布：
+\[
+  P(x_{t+1} \mid x_1, x_2, \ldots, x_t)
+\]
+训练目标是最大化整个训练语料库上所有位置的对数似然：
+\[
+  \mathcal{L} = -\sum_{t=1}^{T} \log P(x_t \mid x_1, \ldots, x_{t-1})
+\]
+这个看似简单的损失函数，驱动了从 GPT-1 到 GPT-5 的全部进化。
+\end{corebox}
+
+\section{压缩即理解}
+
+信息论的创始人 Claude Shannon 在 1948 年就揭示了这个联系~\cite{shannon1948}：
+\textbf{预测和压缩是同一件事的两面}。
+如果你能完美预测一段文字的下一个字符，
+你就可以用最少的比特来编码它——这就是最优压缩。
+反过来，最优压缩器必然是最优预测器。
+
+\subsection{信息熵与交叉熵损失}
+
+Shannon 定义了信息熵（entropy）来度量信息源的不确定性：
+\begin{equation}
+  H(X) = -\sum_{x} p(x) \log_2 p(x)
+\end{equation}
+其中 $p(x)$ 是符号 $x$ 的真实概率。
+熵越高，信息源越不可预测，需要的编码位数越多。
+
+Shannon 在 1950 年的论文《Prediction and Entropy of Printed English》~\cite{shannon1950}中通过实验估算，英语的熵大约在 \textbf{0.6--1.3 bits/字符}之间。
+这意味着如果你有一个完美的英语预测器，
+每个字符平均只需要约 1 bit 来编码——
+远少于使用 ASCII 编码的 7 bits/字符。
+换句话说，英语文本有大约 75--85\% 的\textbf{冗余度}，
+而这些冗余恰恰来自语言的规律性——语法、语义、常识，
+正是模型需要学习的知识。
+
+当我们用模型 $q$ 来近似真实分布 $p$ 时，
+编码效率由\textbf{交叉熵}（cross-entropy）衡量：
+\begin{equation}
+  H(p, q) = -\sum_{x} p(x) \log_2 q(x) \geq H(p)
+\end{equation}
+交叉熵永远大于等于真实熵——差值就是 KL 散度，
+衡量模型 $q$ 与真实分布 $p$ 之间的差距。
+LLM 训练时最小化的损失函数正是交叉熵——
+\textbf{训练 LLM 本质上是在训练一个压缩器}。
+
+\subsection{困惑度：压缩效率的直觉度量}
+
+困惑度（perplexity）是交叉熵的指数形式：
+\begin{equation}
+  \mathrm{PPL} = 2^{H(p, q)}
+\end{equation}
+直觉上，困惑度表示模型在预测下一个 token 时的「平均选项数」。
+PPL $= 10$ 意味着模型在每一步平均面临 10 个等可能的选择。
+如果模型对语言有更好的理解（更好的压缩），选项数更少，PPL 更低。
+
+一个具体的数字感受：GPT-2（2019, 1.5B）在 WikiText-103 上的 zero-shot PPL 约为 37.5，
+而 GPT-3（2020）约为 20，GPT-4 级别的模型据推测可能低于 10（OpenAI 未公开具体数字）。
+PPL 的下降直接对应着模型对语言理解的提升。
+
+\subsection{Sutskever 的压缩哲学}
+
+OpenAI 的联合创始人 Ilya Sutskever 将这个思想推向了极致。
+他在多次演讲中强调：「预测下一个词的过程，就是压缩人类知识的过程。
+而足够好的压缩，本质上就是理解。」
+
+这个论断并非修辞。考虑一段关于量子力学的论文——
+如果模型能准确预测下一个词，
+它必须在某种程度上「理解」量子力学的概念和推理链。
+一个仅仅记忆了表面统计模式的模型
+（比如「量子」后面常跟「力学」）
+在面对新的推理组合时会失败。
+只有真正建立了概念之间因果关系的模型
+才能在新颖的上下文中做出正确预测。
+
+Deepmind 在 2023 年发表的研究~\cite{deletang2024language}
+将这一直觉形式化：
+他们证明足够强大的语言模型本质上是通用的数据压缩器，
+因此 next-token prediction 在理论上蕴含了强大的表示能力。
+当然，「足够强大」和「实际训练出来」之间还有巨大的鸿沟——
+但这至少为「压缩即理解」提供了理论基础。
+
+这就是整个 LLM 训练范式的哲学基础：
+我们不直接教模型「什么是知识」，
+而是通过让它预测海量文本中的下一个词，
+迫使它自发地组织和内化人类知识。
+
+\begin{keybox}[压缩--预测--理解 三位一体]
+\begin{itemize}[noitemsep]
+  \item \textbf{压缩}：用更少的 bit 表示信息 $\Leftrightarrow$ 找到数据中的规律
+  \item \textbf{预测}：准确预测下一个 token $\Leftrightarrow$ 理解上下文的结构
+  \item \textbf{理解}：建立概念之间的关系 $\Leftrightarrow$ 实现高效压缩
+  \item 三者在数学上等价：最小化交叉熵 $=$ 最大化压缩率 $=$ 最优预测
+\end{itemize}
+\end{keybox}
+
+\section{苦涩的教训}
+
+强化学习之父 Rich Sutton 在 2019 年写了一篇影响深远的短文，
+题为「苦涩的教训」（The Bitter Lesson）~\cite{sutton2019bitterlesson}。
+他的核心观点是：在 AI 研究的 70 年历史中，
+\textbf{利用计算能力的通用方法，最终总是击败人工设计的巧妙方法}。
+
+\subsection{历史佐证}
+
+\textbf{国际象棋}。1997 年，IBM 的 Deep Blue 击败了世界冠军 Kasparov。
+Deep Blue 的核心并非对国际象棋有多深刻的「理解」，
+而是每秒评估 2 亿个棋局的暴力搜索能力，
+辅以相对简单的评估函数。
+棋手们花了几十年精心设计的开局库和战术知识库，
+最终败给了摩尔定律驱动的算力增长。
+
+\textbf{围棋}。围棋的搜索空间比国际象棋大数十个数量级
+（$\sim 10^{170}$ 种合法局面），暴力搜索不再可行。
+2016 年，DeepMind 的 AlphaGo 通过深度神经网络 + 蒙特卡洛树搜索击败了李世乭。
+更惊人的是 AlphaGo Zero（2017）——
+它完全不使用人类棋谱，仅通过自我对弈学习，
+40 小时内就超越了所有使用人类知识训练的版本。
+这是对 Bitter Lesson 最戏剧化的诠释：
+\textbf{人类知识不仅不必要，甚至是一种限制}。
+
+\textbf{语音识别}。从 1970 年代到 2010 年代，
+语音识别的主流方法是隐马尔可夫模型（HMM）加上
+精心设计的声学特征（MFCC）和发音词典。
+这套系统凝聚了数十年的语言学知识。
+2012 年后，端到端的深度学习方法
+（先是 DNN-HMM 混合系统，后是纯端到端的 CTC 和 attention 模型）
+逐步取代了传统方法。
+到 2023 年，OpenAI 的 Whisper 模型
+在 68 万小时的弱标注数据上训练，
+无需任何语言学先验知识就达到了人类水平的识别精度。
+
+\textbf{机器翻译}。1990 年代，基于规则的机器翻译
+（如 Systran）需要语言学家手工编写数千条转换规则。
+2000 年代，统计机器翻译（如 Moses）用双语平行语料自动学习翻译概率。
+2014 年后，神经机器翻译（seq2seq + attention）再次颠覆了整个领域。
+到 2017 年 Transformer 出现时，
+机器翻译已经完全是一个端到端学习问题，
+不需要任何语言学知识。
+
+\textbf{计算机视觉}。2012 年之前，
+图像分类的主流方法是手工设计特征（SIFT、HOG、LBP）
+加上经典分类器（SVM）。
+AlexNet 在 ImageNet 上的胜利标志着这套范式的终结。
+此后，更深的网络（VGG、ResNet）和更多的数据
+不断推高性能，手工特征被彻底淘汰。
+
+\subsection{反面论证：人类知识的价值}
+
+Bitter Lesson 并非没有争议。
+一个重要的反面论证是：
+\textbf{正确的归纳偏置（inductive bias）能大幅提升学习效率}。
+
+卷积神经网络（CNN）内置了平移不变性和局部性的先验——
+这是人类对视觉世界的知识编码。
+正是这个先验使得 CNN 在相同数据量下
+远优于全连接网络。
+Transformer 的注意力机制本身也是一种归纳偏置——
+它假设序列中的关系可以通过内容相似度来发现。
+
+更广泛地说，
+选择正确的\textbf{架构}（CNN 用于视觉、Transformer 用于序列）
+就是一种人类知识的注入。
+Bitter Lesson 的真正含义可能不是
+「人类知识无用」，而是
+「\textbf{手工编码的领域规则}不如\textbf{通用学习算法 + 计算规模}，
+但\textbf{结构性先验}（如架构选择）仍然至关重要」。
+
+\subsection{LLM 作为 Bitter Lesson 的极致体现}
+
+LLM 的成功正是这个教训的最新、最戏剧化的例证。
+我们没有手动编程语法规则、知识库或逻辑推理引擎，
+而是选择了最简单的目标函数（预测下一个词），
+然后用数万亿的文本和数千块 GPU 进行训练。
+结果是：模型涌现出了令人惊叹的能力。
+
+但值得注意的是，Transformer 架构本身
+——注意力机制、位置编码、残差连接——
+这些设计并非「无知识」的，
+而是凝聚了深度学习社区多年的经验和直觉。
+从这个角度看，LLM 的成功是
+Bitter Lesson 和人类巧思的\textbf{结合}，
+而非简单的「规模碾压一切」。
+
+\section{涌现：大就是不同}
+
+LLM 的一个最引人入胜的现象是\textbf{涌现}（emergence）。
+当模型规模超过某个阈值时，
+会突然展现出在较小规模上完全不存在的能力。
+
+\subsection{经典涌现案例}
+
+例如，思维链推理（Chain-of-Thought, CoT）~\cite{wei2022cot}：
+小模型在被提示「让我们一步一步思考」时不会产生任何有意义的改进，
+但当模型参数超过约 60B 时，
+这个简单的提示会带来巨大的推理能力提升。
+Wei 等人在 2022 年的研究表明，
+CoT 推理能力在模型规模低于 $\sim$10B 时几乎不存在，
+在 10--100B 之间开始出现，
+在 100B 以上则表现出稳定的强大效果。
+
+算术能力的涌现更为戏剧化。
+GPT-3（175B）能做三位数加法但经常出错，
+GPT-4 则能可靠地完成多步骤数学推理。
+类比推理、代码生成、多语言翻译——
+这些能力都不是线性增长的，
+而是在模型跨越某个规模门槛时「突然出现」。
+
+这种涌现现象在物理学中有一个贴切的类比：
+\textbf{相变}（phase transition）。
+水在 99°C 和 100°C 之间发生的不是渐进变化，而是质变——
+从液态到气态。
+类似地，语言模型在某个参数规模或训练数据量的临界点上，
+可能经历从「不具备某能力」到「具备该能力」的跃迁。
+这个类比虽然直觉上吸引人，但严格性有限——
+神经网络并非热力学系统，
+「相变」是否有精确的数学对应仍是开放问题。
+
+\subsection{涌现是真实的还是度量假象？}
+
+2023 年，Schaeffer 等人~\cite{schaeffer2023mirage}
+发表了一篇引人深思的论文，题为
+「Are Emergent Abilities of Large Language Models a Mirage?」。
+他们的核心论点是：
+许多所谓的涌现可能是\textbf{评估方式的假象}。
+
+具体来说，当使用\textbf{离散}的评估指标
+（如准确率——答案要么全对要么全错）时，
+能力增长的曲线会呈现出阶梯状的「突变」。
+但如果改用\textbf{连续}的评估指标
+（如 token-level 的对数似然、Brier 分数），
+同一个模型的能力增长曲线就变得平滑了——
+不存在明显的「突变点」。
+
+这就好比考试成绩从 59 分跳到 60 分，
+在「是否及格」这个离散指标上是一个突变，
+但在连续分数上只是 1 分的平滑进步。
+
+\begin{warnbox}[涌现之争的现状]
+对涌现现象的正确理解是：
+\begin{itemize}[noitemsep]
+  \item 在\textbf{离散指标}（如 exact-match accuracy）下，涌现的阶跃特征确实存在
+  \item 在\textbf{连续指标}（如 perplexity）下，能力增长通常是平滑的
+  \item 但\textbf{实际应用}往往关心的就是离散指标（答案对不对），
+        所以涌现在应用层面是「真实」的
+  \item 大模型能做到小模型做不到的事——这一事实无可争议，
+        争议仅在于「过渡」是突变还是平滑的
+\end{itemize}
+\end{warnbox}
+
+从工程角度来说，无论涌现的「阶跃」是真实的还是度量假象，
+规模仍然是最可靠的能力提升路径——
+尽管 Scaling Laws 的回报率可能在递减。
+
+\section{从 GPT 到 DeepSeek：一部效率进化史}
+
+LLM 的历史可以粗略地分为几个阶段，
+但在进入时间线之前，
+让我们先理解一个贯穿整个历史的核心转变：
+从\textbf{特征工程}到\textbf{上下文学习}，
+从\textbf{任务专用}到\textbf{通用基础模型}。
+
+\subsection{前传：词向量与上下文表示（2013--2018）}
+
+在 Transformer 之前，自然语言处理经历了两次重要的范式转变。
+
+\textbf{Word2Vec}~\cite{mikolov2013word2vec}（2013）和 GloVe（2014）
+证明了一个惊人的事实：
+通过在大规模语料上训练词向量，
+语义关系可以被编码为向量空间中的方向。
+但这些是\textbf{静态}词向量——
+无论上下文如何，「bank」这个词只有一个表示，
+无法区分「银行」和「河岸」。
+
+\textbf{ELMo}~\cite{peters2018elmo}（2018）解决了这个问题：
+通过双向 LSTM 生成\textbf{上下文相关}的词表示。
+同一个词在不同句子中会有不同的向量。
+ELMo 的出现标志着 NLP 领域从静态表示走向动态表示，
+为后来的预训练范式铺平了道路。
+
+\subsection{架构探索期（2017--2019）}
+
+2017 年，Transformer~\cite{vaswani2017attention} 被提出，
+最初只是一个机器翻译模型。
+但它的自注意力机制带来的并行化优势
+很快引起了整个领域的注意。
+
+2018 年发生了两件大事：
+
+\textbf{GPT-1}（2018, 117M 参数）选择了\textbf{decoder-only}路线——
+单向语言模型，通过预测下一个 token 来预训练，
+再在下游任务上微调。
+它首次证明了「预训练 + 微调」范式的威力。
+
+\textbf{BERT-Large}~\cite{devlin2019bert}（2018, 110M/340M 参数）选择了\textbf{encoder-only}路线——
+双向语言模型，通过 Masked Language Model（随机遮盖 15\% 的 token 并预测）来预训练。
+BERT 在 11 项 NLP 基准上刷新了记录，
+震动了整个学界。
+
+这一阶段的模型较小，训练成本以千美元计。
+两条路线的竞争刚刚开始。
+
+\textbf{GPT-2}（2019, 1.5B 参数）是一个转折点。
+OpenAI 声称它「太危险而不能公开发布」——
+这在当时引发了激烈争议，但也将公众注意力吸引到了语言模型上。
+更重要的是，GPT-2 展示了零样本能力的雏形：
+不需要微调，仅通过提示就能完成多种任务。
+
+\subsection{规模竞赛期（2020--2022）}
+
+\textbf{GPT-3}~\cite{brown2020gpt3}（2020, 175B 参数）
+是一个划时代的模型。
+它的训练成本约 460 万美元，参数量比 GPT-2 大 100 倍。
+GPT-3 最重要的贡献是发现了\textbf{in-context learning}（上下文学习）——
+你不需要微调模型，只需在提示中给出几个示例，
+模型就能学会新任务。
+这从根本上改变了 NLP 的使用范式：
+从「训练一个任务专用模型」变成「设计好的提示给通用模型」。
+
+Google 在这一时期也没有闲着。
+\textbf{T5}（2020, 11B 参数）提出了
+「将所有 NLP 任务统一为 text-to-text」的框架——
+无论是分类、翻译还是摘要，都是输入一段文本、输出一段文本。
+\textbf{PaLM}~\cite{chowdhery2022palm}（2022, 540B 参数）
+是当时最大的密集模型，展示了规模带来的能力跃升，
+特别是在推理和多语言任务上。
+
+DeepMind 的 \textbf{Chinchilla}~\cite{hoffmann2022chinchilla}（2022, 70B 参数）
+带来了一个关键发现：之前的模型普遍\textbf{训练不足}。
+Chinchilla 定律指出，模型参数和训练数据应该等比例增长——
+一个 70B 的模型如果用足够的数据训练（1.4T tokens），
+可以超越参数量大 4 倍但数据不足的 280B 模型。
+这深刻地影响了后续所有模型的训练策略。
+
+训练成本在这一时期上升到数千万美元级别。
+
+\subsection{产品化爆发期（2023--2024）}
+
+2022 年 11 月，\textbf{ChatGPT} 的发布引发了全球性的 AI 浪潮。
+ChatGPT 本质上是 GPT-3.5 经过 RLHF（基于人类反馈的强化学习）
+~\cite{ouyang2022rlhf}微调的产物——
+技术上并非革命性突破，
+但\textbf{对话式交互}的产品形态让普通人第一次直观感受到了 AI 的能力。
+它在两个月内获得了 1 亿用户，
+创造了消费者应用增长最快的历史记录。
+
+\textbf{GPT-4}（2023）将能力推向了新高度。
+虽然 OpenAI 没有公开其架构细节，
+但广泛推测它采用了 MoE（混合专家）架构，
+总参数量可能超过 1T，但每次推理只激活其中一部分。
+GPT-4 在律师资格考试中排名前 10\%，
+能够理解图片，生成复杂代码。
+
+与此同时，开源运动蓬勃兴起。
+Meta 在 2023 年发布 \textbf{LLaMA}~\cite{touvron2023llama}（7B--65B），
+展示了较小模型经过充分训练后也能达到优秀性能。
+LLaMA 的开源引爆了整个社区——
+数百个微调版本在几周内涌现，
+从 Alpaca 到 Vicuna 到 WizardLM。
+随后的 \textbf{Llama 2}（2023）和 \textbf{Llama 3}~\cite{dubey2024llama3}（2024）
+持续提升了开源模型的水平。
+
+Google 发布了 \textbf{Gemini}~\cite{anil2023gemini}（2023），
+这是一个原生多模态模型。
+Anthropic 发布了 Claude 系列模型，
+以安全性和长上下文能力著称。
+
+中国的大模型生态也在这一时期快速发展。
+清华的 \textbf{GLM}（ChatGLM）是最早对标 ChatGPT 的中文模型之一。
+阿里巴巴的 \textbf{Qwen} 系列逐步追赶国际水平。
+\textbf{DeepSeek} 以其开放的技术报告和创新的架构设计
+赢得了全球社区的关注。
+
+2024 年 9 月，OpenAI 发布了 \textbf{o1} 预览版——
+这是第一个专用推理模型，通过在回答前进行长时间内部「思考」，
+在数学、编程和科学推理上取得了质的飞跃。
+o1 开创了\textbf{test-time compute scaling} 的新范式，
+为后续的 o3、DeepSeek-R1 以及各家模型的推理增强模式奠定了基础。
+
+训练成本达到数亿美元级别。
+
+\subsection{效率革命期（2025--2026）}
+
+2024 年末至 2025 年初，效率革命的序幕由中国团队拉开。
+\textbf{DeepSeek-V3}~\cite{deepseekv3}（2024 年 12 月）以 560 万美元的训练成本
+达到了 GPT-4 级别的性能——
+这是训练成本的\textbf{两个数量级下降}。
+MoE 架构、FP8 训练、Multi-head Latent Attention（MLA）、
+高效的 Multi-Token Prediction 以及极致的工程优化
+共同推动了这场效率革命。
+
+2025 年 1 月，\textbf{DeepSeek-R1}~\cite{deepseekr1} 在推理模型领域掀起了另一场革命。
+它证明了通过纯强化学习（不依赖于人类标注的推理数据），
+模型可以自发地学会思维链推理。
+DeepSeek-R1 在数学、代码和推理任务上达到了与 OpenAI o1 相当的水平，
+且完全开源（MIT 许可证）。
+其蒸馏版本 R1-Distill-Qwen-32B 在多个推理基准上
+甚至超越了 OpenAI o1-mini，
+以极低的参数量实现了令人瞩目的推理能力。
+
+2025 年春季迎来了一波密集发布。
+4 月，OpenAI 同时推出了 \textbf{o3} 和 \textbf{o4-mini}——
+第二代推理模型，首次实现了推理模型的工具调用能力，
+包括网页搜索、Python 代码执行和视觉推理。
+同期发布的 \textbf{GPT-4.1} 以百万 token 上下文窗口
+重新定义了长上下文处理的标杆。
+Meta 发布了 \textbf{Llama~4} 系列（Scout 和 Maverick），
+首次采用 MoE 架构并原生支持多模态，
+Scout 甚至支持 1000 万 token 的上下文窗口。
+阿里巴巴发布了 \textbf{Qwen3}~\cite{qwen2025qwen3}，
+首创「混合推理」模式——同一模型可在深度思考与快速响应之间无缝切换。
+
+5 月，Anthropic 发布了 \textbf{Claude~4}（Opus~4 和 Sonnet~4），
+在 agentic coding 和长时间自主任务上树立了新标杆。
+8 月，OpenAI 推出了划时代的 \textbf{GPT-5}——
+一个统一的系统，内置了智能路由器，
+能自动判断何时快速响应、何时调用深度推理，
+实质上将 GPT 系列和 o 系列合二为一。
+
+下半年的节奏更加紧凑：
+Anthropic 的 \textbf{Claude Sonnet~4.5}（9 月）和 \textbf{Claude Opus~4.5}（11 月）
+将 agentic coding 推向新高度；
+Google 发布 \textbf{Gemini~3}（11 月），
+以 Deep Think 模式和原生多模态能力重新加入竞争；
+DeepSeek 发布 \textbf{V3.2}（12 月），引入 Sparse Attention 机制，
+性能达到 GPT-5 水平，高计算变体 V3.2-Speciale
+在 2025 年 IMO 和 IOI 中取得金牌级表现。
+
+进入 2026 年，迭代速度进一步加快。
+Anthropic 在 2 月连续发布 \textbf{Claude Opus~4.6} 和 \textbf{Sonnet~4.6}，
+首次为 Opus 级模型提供百万 token 上下文窗口（beta）。
+Google 推出 \textbf{Gemini~3.1~Pro}（2 月），
+阿里巴巴发布 \textbf{Qwen3.5}（2 月），
+以 397B 旗舰模型和全系列小模型（0.8B--9B）覆盖从云端到边缘的全场景。
+OpenAI 则以 \textbf{GPT-5.3-Codex}（2 月）和 \textbf{GPT-5.4}（3 月）
+持续推进 agentic coding 的边界——
+GPT-5.3-Codex 甚至参与了自身的训练调试和部署。
+DeepSeek-V4 也预计将于 2026 年 3 月发布，
+以约 1T 总参数（32B 激活）和百万 token 上下文
+向闭源模型发起最强挑战。
+
+这场效率革命的意义远超技术本身。
+当训练一个 frontier 模型的成本从数亿美元降至数百万美元，
+AI 研究的参与门槛大幅降低。
+大学实验室、初创企业甚至独立研究者
+都有可能做出有意义的贡献。
+这对整个领域的健康发展至关重要——
+创新不应该被垄断在少数拥有万卡集群的机构手中。
+
+\subsection{Scaling Hypothesis 之争}
+
+贯穿这段历史的是一个核心假说：
+\textbf{Scaling Hypothesis}——
+持续增加模型规模、数据量和计算量，
+就能持续获得更强的能力。
+Kaplan 等人~\cite{kaplan2020scaling} 在 2020 年的研究
+给出了精确的幂律关系（Scaling Laws），
+为这一假说提供了实证基础。
+
+但到了 2025--2026 年，这一假说面临深刻的重构。
+
+\textbf{预训练 scaling 遭遇瓶颈}。
+Ilya Sutskever 在 NeurIPS 2024 的演讲中明确指出：
+「我们已知的预训练方式将会终结，因为我们只有一个互联网。」
+高质量文本数据正在接近耗尽——
+据估计，公开可用的高质量文本数据总量约为 10--15T tokens，
+而 frontier 模型的训练数据量已逼近这一上限。
+合成数据（synthetic data）虽然是一条出路，
+但如何避免模型在自身生成的数据上训练导致的退化
+（所谓「模型坍缩」）仍是开放问题。
+
+\textbf{Test-time compute 开辟新维度}。
+OpenAI 的 o 系列模型（o1/o3）和 DeepSeek-R1 证明了一条新路径：
+不增大模型本身，而是让模型在推理时花更多计算来「思考」。
+这本质上是将 scaling 从训练阶段转移到推理阶段。
+2025 年 NeurIPS 的教程「Scale Test-Time Compute on Modern Hardware」
+系统总结了这一范式：test-time compute 的 scaling law
+与训练阶段有本质不同——
+推理负载具有低并行度、不规则工作量和动态执行路径的特点，
+在现代硬件上的高效部署是一个独立的技术挑战。
+
+\textbf{从「规模时代」到「研究时代」}。
+一个越来越强的共识是：AI 正在从「规模时代」（Age of Scaling）
+过渡到「研究时代」（Age of Research）——
+单纯增加 GPU 集群和数据量的策略回报递减，
+突破需要来自架构创新（如 DeepSeek 的 MLA 和 Sparse Attention）、
+训练方法创新（如纯 RL 训练推理能力）、
+以及数据工程创新（如 agentic task synthesis pipeline）。
+Meta 的 Llama~4 Behemoth（2T 参数）的延期发布
+就是「更大不一定更好」的一个注脚——
+内部评估发现它未必显著优于前代模型，
+促使 Meta 转向更注重架构效率的策略。
+
+但 scaling 并未「死亡」——它在\textbf{变形}。
+DeepSeek-V3.2 通过 scalable RL 框架
+在后训练阶段 scale compute 至 GPT-5 水平；
+GPT-5 将推理和生成统一在一个模型中自动路由计算资源；
+Qwen3 的混合推理模式让用户动态控制思考深度。
+「规模」的含义已经从
+「更大的模型」扩展到了一个多维空间：
+更多的训练数据、更好的数据质量、
+更高效的架构、更智能的后训练、
+更多的推理时计算——
+以及这些维度之间的最优分配。
+
+\section{2026 年的格局}
+
+截至 2026 年 3 月，LLM 领域已经形成了多极竞争的格局，
+闭源与开源的边界日益模糊。
+
+\subsection{闭源阵营}
+
+\textbf{OpenAI} 在 2025 年完成了从 GPT 系列到统一模型的转型。
+GPT-5（2025 年 8 月）将生成模型（GPT 系列）和推理模型（o 系列）
+统一为单一系统，内置智能路由器自动分配计算资源。
+后续的 GPT-5.1、5.2、5.3-Codex（2026 年 2 月）和 GPT-5.4（2026 年 3 月）
+以每隔数周的节奏迭代，GPT-5.3-Codex 甚至参与了自身的训练调试。
+此前的 o3/o4-mini（2025 年 4 月）开创了推理模型的工具调用能力，
+已在 GPT-5 发布后从 ChatGPT 主界面退役，但仍可通过 API 访问。
+
+\textbf{Anthropic} 以 Claude 系列在 agentic coding 领域建立了强势地位。
+Claude~4（2025 年 5 月）率先展示了长时间自主编程能力，
+Claude Sonnet~4.5（2025 年 9 月）和 Opus~4.5（2025 年 11 月）持续领先，
+2026 年 2 月的 \textbf{Claude Opus~4.6} 和 \textbf{Sonnet~4.6}
+在 Terminal-Bench~2.0 和 Humanity's Last Exam 上取得最高分，
+首次为 Opus 级模型提供百万 token 上下文窗口。
+Claude 的 extended thinking 模式提供了一种不同于 o 系列的推理增强路径——
+在通用模型中按需激活深度推理，而非训练独立的推理专用模型。
+
+\textbf{Google} 以 Gemini~2.5~Pro（2025 年 3 月）重新加入竞争，
+Gemini~3（2025 年 11 月）引入 Deep Think 模式和原生多模态，
+\textbf{Gemini~3.1~Pro}（2026 年 2 月）
+进一步提升了复杂推理和 agentic 能力，
+以 1M token 上下文窗口覆盖代码库级别的分析任务。
+
+\subsection{开源阵营的历史性追赶}
+
+2025--2026 年，开源模型首次在质量上真正逼近甚至超越闭源模型。
+
+\textbf{DeepSeek} 是这场追赶的先锋。
+V3（2024 年 12 月）以 560 万美元达到 GPT-4 水平~\cite{deepseekv3}；
+R1（2025 年 1 月）以纯 RL 训练达到 o1 水平~\cite{deepseekr1}；
+V3.2（2025 年 12 月）通过 Sparse Attention 和 scalable RL
+达到 GPT-5 水平，其高计算变体在 2025 年 IMO 和 IOI 中
+取得金牌级表现。
+即将发布的 \textbf{V4}（预计 2026 年 3 月）
+以约 1T 总参数、32B 激活参数和百万 token 上下文，
+目标是成为开源模型对闭源的最强挑战。
+
+\textbf{Meta} 的 Llama~4（2025 年 4 月）
+发布了 Scout 和 Maverick 两款 MoE 多模态模型，
+其中 Scout 支持高达 1000 万 token 的上下文窗口。
+但旗舰级 Behemoth（2T 参数）因内部评估显示其
+未必显著优于前代而反复延期，至今未发布，
+成为「更大不一定更好」的典型案例。
+
+\textbf{阿里巴巴} 的 Qwen3~\cite{qwen2025qwen3}（2025 年 4 月）
+首创混合推理模式，旗舰 Qwen3-235B-A22B 在多项基准上与 DeepSeek-R1 持平。
+2026 年 2 月发布的 \textbf{Qwen3.5} 以 397B 旗舰模型为核心，
+采用 Gated DeltaNet 混合架构（3:1 线性/全注意力比例），
+支持 201 种语言和 262K 上下文，
+并推出 0.8B--9B 全系列小模型覆盖边缘场景——
+其中 Qwen3.5-9B 在多项基准上超越前代 Qwen3-30B。
+
+\subsection{关键趋势}
+
+\textbf{推理模型的普及与融合}。
+从 OpenAI o1/o3 到 DeepSeek-R1，
+再到 GPT-5 的内置推理路由和 Claude 的 extended thinking，
+「慢速思考」已从独立的推理模型范式
+演变为通用模型的标准能力。
+Qwen3 的 \texttt{/think} 和 \texttt{/no\_think} 切换，
+以及 Gemini~3 的 Deep Think 模式，
+都体现了同一趋势：用户可按需控制推理深度，
+在响应速度与推理质量之间灵活权衡。
+
+\textbf{多模态的原生化}。
+当前的 frontier 模型普遍支持文本、图片、音频甚至视频的理解和生成。
+Llama~4 和 Qwen3.5 从架构层面原生支持多模态，
+不再是在文本模型上「外挂」视觉编码器。
+纯文本 LLM 正在被多模态大模型取代——
+但 Transformer 架构和预训练范式的核心不变。
+
+\textbf{Agentic AI 的成熟}。
+2026 年的模型不再仅仅是问答工具，
+而是能够自主执行复杂工作流的 agent。
+从 Claude Code 的多小时自主编程到 GPT-5.3-Codex 参与自身开发，
+从 Gemini~3.1~Pro 的高级工具使用到 Qwen3.5 的自主 agent 能力，
+AI 正在从「助手」演进为「同事」。
+
+这些成就背后有一个共同的故事：
+更聪明的训练方法、更高效的架构设计、更精细的数据工程。
+本文将完整地讲述这个故事——
+从数据采集到模型部署，
+从 Transformer 的数学原理到分布式训练的工程实践，
+从预训练的计算规模定律到后训练的强化学习技巧。
+
+我们的旅程从最基础的构件开始：Transformer 架构。
+
+
+%% ============================================================
+%% NEW REFERENCES (to be added to refs.bib):
+%% shannon1950 = Shannon, Claude E. "Prediction and Entropy of Printed English." Bell System Technical Journal, 30(1):50--64, 1951 (presented 1950).
+%% deletang2024language = Delétang, Grégoire et al. "Language Modeling Is Compression." arXiv:2309.10668, 2023 (published ICLR 2024).
+%% wei2022cot = Wei, Jason et al. "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models." NeurIPS 2022.
+%% schaeffer2023mirage = Schaeffer, Rylan et al. "Are Emergent Abilities of Large Language Models a Mirage?" NeurIPS 2023.
+%% mikolov2013word2vec = Mikolov, Tomas et al. "Efficient Estimation of Word Representations in Vector Space." arXiv:1301.3781, 2013.
+%% peters2018elmo = Peters, Matthew E. et al. "Deep Contextualized Word Representations." NAACL 2018.
+%%
+%% --- Added 2026-03-08 ---
+%% deepseekv32 = DeepSeek-AI. "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models." arXiv:2512.02556, 2025.
+%% qwen2025qwen35 = Qwen Team. "Qwen3.5 Technical Report." Alibaba Cloud, 2026.
+%% openai2025gpt5 = OpenAI. "Introducing GPT-5." openai.com, August 2025.
+%% openai2025o3 = OpenAI. "Introducing OpenAI o3 and o4-mini." openai.com, April 2025.
+%% anthropic2025claude4 = Anthropic. "Introducing Claude 4." anthropic.com, May 2025.
+%% anthropic2026opus46 = Anthropic. "Introducing Claude Opus 4.6." anthropic.com, February 2026.
+%% google2025gemini3 = Google DeepMind. "A New Era of Intelligence with Gemini 3." blog.google, November 2025.
+%% google2026gemini31 = Google DeepMind. "Gemini 3.1 Pro: A Smarter Model for Your Most Complex Tasks." blog.google, February 2026.
+%% meta2025llama4 = Meta AI. "The Llama 4 Herd." ai.meta.com, April 2025.
+%% ============================================================

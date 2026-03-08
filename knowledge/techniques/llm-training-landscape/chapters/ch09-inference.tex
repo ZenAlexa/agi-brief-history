@@ -1,0 +1,1204 @@
+\chapter{推理优化——让模型跑得更快}
+\label{ch:inference}
+%% ============================================================
+
+训练完成后，模型需要服务用户。
+在推理阶段，挑战从「如何训练更好的模型」
+转变为「如何让好模型跑得更快、更便宜」。
+
+\section{推理的根本瓶颈}
+
+在讨论具体的优化技术之前，
+我们需要先理解 LLM 推理的\textbf{根本瓶颈}——
+只有抓住瓶颈，才能理解为什么每种优化手段有效。
+
+LLM 推理分为两个截然不同的阶段：
+
+\textbf{Prefill 阶段}（首 token 生成前）：
+模型接收用户的完整输入（prompt），
+\textbf{并行}计算所有输入 token 的 KV 值。
+这个阶段是\textbf{计算瓶颈}的——
+因为有大量 token 需要同时处理，
+GPU 的计算单元（CUDA core / Tensor Core）被充分利用。
+Prefill 的耗时决定了 \textbf{TTFT}（Time To First Token，首 token 延迟）。
+
+\textbf{Decode 阶段}（逐 token 生成）：
+模型每次只生成\textbf{一个} token，
+但每生成一个 token，都需要读取\textbf{整个模型的权重}。
+这个阶段是\textbf{内存带宽瓶颈}的——
+GPU 的计算能力远远没有被用满，
+大部分时间花在等待从 HBM（高带宽显存）读取权重。
+Decode 的速度决定了 \textbf{ITL}（Inter-Token Latency，token 间延迟）。
+
+\begin{whybox}[为什么 Decode 是内存带宽瓶颈？]
+以一个 70B 参数的模型（BF16 精度）为例。
+每生成一个 token，需要读取全部权重：
+$70 \times 10^9 \times 2\,\text{bytes} = 140\,\text{GB}$。
+但一个 token 的计算量只有约 $70 \times 10^9$ 次乘加运算（multiply-add）。
+
+H100 GPU 的 HBM 带宽是 3.35\,TB/s，
+读取 140\,GB 需要 $140 / 3350 \approx 42\,\text{ms}$。
+H100 的 BF16 算力是 989\,TFLOPS，
+$70 \times 10^9$ 次运算只需要 $0.07\,\text{ms}$。
+
+\textbf{计算比内存读取快 600 倍}——
+GPU 99.8\% 的时间在等待数据从显存搬运到计算单元。
+这就是为什么 LLM decode 阶段是内存带宽瓶颈的。
+\end{whybox}
+
+理解了这个瓶颈，一个关键的杠杆就浮现出来：\textbf{batch size}。
+如果同时处理 $B$ 个请求，
+每次读取权重后可以为 $B$ 个 token 做计算。
+读取成本不变，但有效计算量增加了 $B$ 倍。
+
+存在一个\textbf{临界 batch size}：
+\begin{equation}
+  B_{\text{critical}} = \frac{\text{计算能力 (FLOPS)}}{\text{内存带宽 (bytes/s)} \times \text{算术强度}}
+\end{equation}
+当 $B < B_{\text{critical}}$ 时，推理受内存带宽限制；
+当 $B > B_{\text{critical}}$ 时，推理变为计算瓶颈。
+对于 H100，临界 batch size 大约在 150--300 之间
+（取决于模型架构和序列长度）。
+
+在生产环境中，还需要在三个指标之间做权衡：
+\begin{itemize}[noitemsep]
+  \item \textbf{TTFT}（首 token 延迟）：用户等待第一个字出现的时间。
+        对交互体验影响最大。取决于 prefill 速度。
+  \item \textbf{ITL}（token 间延迟）：两个输出 token 之间的间隔。
+        决定了「打字速度」感受。取决于 decode 速度。
+  \item \textbf{Throughput}（吞吐量）：每秒处理的总 token 数。
+        决定了服务成本。可以通过增大 batch size 提升，
+        但会牺牲 TTFT 和 ITL。
+\end{itemize}
+
+这三个指标往往相互矛盾：
+增大 batch size 提升吞吐量，但增加了每个请求的延迟。
+推理框架的核心任务就是在这三者之间找到最优平衡。
+
+
+\section{量化：精度换速度}
+
+量化的核心思想是：
+模型推理时的大部分计算不需要训练时那么高的数值精度。
+将权重和/或激活从高精度（FP16/BF16）
+转换为低精度（INT8、INT4 甚至 FP4），
+可以显著减少内存占用和计算时间。
+
+\subsection{量化基础}
+
+量化的本质是将连续（或高精度离散）的数值
+映射到有限数量的离散级别（discrete levels）。
+对称线性量化公式：
+\begin{equation}
+  x_q = \mathrm{round}\!\left(\frac{x}{s}\right), \quad
+  s = \frac{\max(|x|)}{2^{b-1} - 1}
+\end{equation}
+其中 $s$ 是缩放因子，$b$ 是目标位宽，
+$x_q$ 是量化后的整数值。
+解量化时，$\hat{x} = x_q \cdot s$。
+
+非对称量化增加了一个零点（zero-point）参数 $z$：
+\begin{equation}
+  x_q = \mathrm{round}\!\left(\frac{x - x_{\min}}{s}\right), \quad
+  s = \frac{x_{\max} - x_{\min}}{2^b - 1}, \quad
+  z = \mathrm{round}\!\left(\frac{-x_{\min}}{s}\right)
+\end{equation}
+非对称量化能更好地处理分布不对称的权重，
+但增加了计算开销（解量化需要额外的加法）。
+
+常用的数值格式各有优劣：
+\begin{itemize}[noitemsep]
+  \item \textbf{INT8}：8-bit 整数。256 个级别，覆盖 $[-128, 127]$。
+        精度损失几乎为零，是最安全的量化选择。
+  \item \textbf{FP8（E4M3/E5M2）}：8-bit 浮点。
+        E4M3 有更高的精度（3-bit 尾数），E5M2 有更大的动态范围（5-bit 指数）。
+        H100 原生支持 FP8 运算。
+  \item \textbf{INT4}：4-bit 整数。仅 16 个级别，
+        需要精巧的量化策略来控制精度损失。
+  \item \textbf{NF4}（Normal Float 4）：QLoRA~\cite{dettmers2023qlora} 提出的 4-bit 格式。
+        16 个量化级别不是均匀分布的，
+        而是按照标准正态分布的分位数分布——
+        因为预训练后的权重近似正态分布，
+        这种非均匀量化能最大化信息保留。
+  \item \textbf{NVFP4}：NVIDIA Blackwell 架构原生支持的 4-bit 浮点格式。
+        采用 1-bit 符号 + 2-bit 指数 + 1-bit 尾数的结构，
+        相比 INT4 保留了更好的动态范围。
+        B200 GPU 的 NVFP4 Tensor Core 算力
+        达到 FP8 的 $2\times$，
+        使得 4-bit 推理在数据中心场景中首次变得实用。
+\end{itemize}
+
+\subsection{Post-Training Quantization（PTQ）}
+
+PTQ 在训练完成后直接对权重进行量化，无需重新训练。
+最简单的方法是 Round-to-Nearest（RTN）——
+直接将每个权重四舍五入到最近的量化级别。
+RTN 对于 INT8 通常效果不错，
+但在 INT4 及以下位宽时精度损失明显。
+原因是量化误差在层间\textbf{累积}——
+一层的量化误差会影响下一层的输入分布，
+导致误差逐层放大。
+
+\textbf{GPTQ}~\cite{frantar2022gptq} 使用二阶信息（Hessian 矩阵）来最小化量化误差。
+核心思想是：量化一个权重时，
+利用 Hessian 信息调整同一行中\textbf{尚未量化}的权重，
+来补偿量化引入的误差。
+GPTQ 逐列处理权重矩阵：
+量化第 $i$ 列后，根据 Hessian 的逆矩阵
+调整第 $i+1$ 到第 $n$ 列的未量化权重。
+这使得整行的\textbf{总输出}
+尽可能接近未量化时的输出。
+GPTQ 通常只需要一小批校准数据（128 条样本）
+和几分钟的计算时间，就能完成整个模型的量化。
+
+具体而言，GPTQ 源自 OBQ（Optimal Brain Quantization）算法。
+对于权重矩阵 $W$ 的每一行 $w$，
+目标是找到量化后的 $\hat{w}$ 使得输出误差最小：
+\begin{equation}
+  \min_{\hat{w}} \| W x - \hat{W} x \|^2
+  = \min_{\hat{w}} (w - \hat{w})^T H (w - \hat{w})
+\end{equation}
+其中 $H = X X^T$ 是校准数据上的 Hessian 矩阵。
+当量化第 $i$ 列时，剩余列的最优调整量为：
+\begin{equation}
+  \delta_F = -\frac{w_i - \mathrm{quant}(w_i)}{H_{ii}^{-1}} \cdot (H^{-1})_{:,i}
+\end{equation}
+这个公式的含义是：根据 Hessian 的逆（衡量每个权重的敏感度），
+将第 $i$ 列的量化误差\textbf{分摊}到后续未量化的列上。
+敏感度低的权重承担更多补偿，敏感度高的权重保持更精确。
+
+GPTQ 的关键创新在于发现\textbf{列的处理顺序}
+对最终精度的影响远小于预期——
+这使得可以固定一个处理顺序（而不是贪心搜索最优顺序），
+将时间复杂度从 $O(d^3 \cdot n)$ 降低到 $O(d \cdot n^2)$，
+使得量化一个 175B 的模型只需要约 4 GPU-hours。
+
+\textbf{AWQ}（Activation-Aware Weight Quantization）~\cite{lin2024awq}
+发现了一个关键洞察：
+\textbf{并非所有权重同等重要}。
+少数权重（约 1\%）对模型输出的影响远超其他权重——
+这些权重对应的激活值特别大。
+AWQ 通过激活值的大小来识别这些「显著权重」（salient weights），
+对它们施加更大的缩放因子以保护精度，
+同时让不重要的权重承受更大的量化误差。
+
+AWQ 的核心操作是引入一个 per-channel 的缩放因子 $s$：
+\begin{equation}
+  Q(w \cdot s) \cdot \frac{x}{s} \approx w \cdot x
+\end{equation}
+对于显著通道（激活值大的通道），$s > 1$，
+使得权重被放大后量化精度更高；
+对于不重要的通道，$s \leq 1$，允许更大的量化误差。
+缩放因子 $s$ 通过在校准数据上搜索最优值来确定。
+
+AWQ 在 INT4 量化下通常优于 GPTQ，
+因为它把有限的精度预算花在了刀刃上。
+在实践中，AWQ 搭配 Marlin 高性能 kernel
+可以在 H200 上达到 741 tok/s（Qwen2.5-32B），
+超过 FP16 的 461 tok/s。
+
+\textbf{SmoothQuant}~\cite{xiao2023smoothquant} 解决的是\textbf{激活值量化}的难题。
+权重的分布通常比较平滑，容易量化；
+但激活值中存在大量\textbf{离群值}（outliers）——
+个别通道的值可能比其他通道大 100 倍。
+这些离群值让量化极为困难：
+为了覆盖最大值，缩放因子必须设得很大，
+导致其他正常值的量化精度严重降低。
+
+SmoothQuant 的解法很优雅：
+在矩阵乘法 $Y = XW$ 中，引入一个对角矩阵 $\mathrm{diag}(s)$：
+\begin{equation}
+  Y = XW = (X \cdot \mathrm{diag}(s)^{-1}) \cdot (\mathrm{diag}(s) \cdot W)
+  = \hat{X} \hat{W}
+\end{equation}
+选择合适的 $s$，
+可以将激活中的离群值「转移」到权重上——
+$\hat{X}$ 变得平滑容易量化，
+$\hat{W}$ 虽然变大了一些，但权重本身分布均匀，仍然可以量化。
+数学上这是等价变换，不改变计算结果。
+
+\subsection{Quantization-Aware Training（QAT）}
+
+QAT 在训练过程中模拟量化效果：
+前向传播时使用量化后的权重计算，
+反向传播时用直通估计器（Straight-Through Estimator, STE）
+近似 round 操作的梯度（round 函数本身梯度为零）。
+模型在训练中就学会了适应量化误差，
+因此 QAT 的精度通常优于 PTQ，
+但代价是需要额外的训练步骤（通常是原始训练的 5--10\%）。
+
+对于 INT8 和 FP8，PTQ 已经足够好，
+QAT 的收益不大；
+但对于 INT4 及以下位宽，QAT 的优势变得明显。
+
+\subsection{量化的质量--大小权衡}
+
+\begin{keybox}[量化位宽 vs.\ 精度损失经验法则]
+\begin{itemize}[noitemsep]
+  \item \textbf{FP8 / INT8}：近乎无损。
+        大多数基准测试上精度损失 $<0.5\%$。
+        数据中心部署的标准选择。
+  \item \textbf{INT4（好的量化方法）}：1--3\% 的精度损失。
+        对大多数实际应用可以接受。
+        消费级 GPU 的最佳平衡点。
+  \item \textbf{INT4（简单 RTN）}：3--8\% 的精度损失。
+        质量明显下降，不推荐。
+  \item \textbf{NVFP4（Blackwell 原生）}：1--2\% 精度损失，
+        吞吐量达到 FP8 的 $2\times$。
+        数据中心新一代标准。
+  \item \textbf{INT3 / INT2}：显著退化。
+        目前技术下仅适用于极端资源受限场景。
+        研究活跃但尚未成熟。
+\end{itemize}
+\end{keybox}
+
+\begin{keybox}[量化方法速查（2026 年初）]
+\begin{itemize}[noitemsep]
+  \item \textbf{数据中心 GPU（H100/H200）}：FP8，近零精度损失
+  \item \textbf{Blackwell GPU（B200）}：NVFP4，$2.3\times$ 吞吐提升
+  \item \textbf{消费级 GPU + 高吞吐}：AWQ + Marlin kernel
+  \item \textbf{消费级 GPU + 兼容性}：GPTQ + BitBLAS kernel
+  \item \textbf{CPU / Apple Silicon}：GGUF Q4\_K\_M（llama.cpp / Ollama）
+  \item \textbf{微调}：QLoRA（4-bit 量化权重 + LoRA 适配器）
+\end{itemize}
+\end{keybox}
+
+一个反直觉的发现：\textbf{量化不仅节省内存，还能提升速度}。
+在 H200 上对 Qwen2.5-32B 的实测中，
+AWQ 4-bit + Marlin kernel 的吞吐量达到 741 tok/s，
+反而超过了 FP16 的 461 tok/s。
+这是因为 LLM 推理是\textbf{内存带宽瓶颈}的——
+瓶颈不是计算，而是从显存中读取权重。
+更小的权重意味着更少的内存读取，因此更快。
+
+\begin{table}[H]
+\centering\small
+\caption{INT4 量化方法在 H200 上的实测对比（Qwen2.5-32B-Instruct）}
+\begin{tabularx}{\linewidth}{l c c c X}
+\toprule
+\textbf{方法} & \textbf{Perplexity} & \textbf{HumanEval} & \textbf{吞吐 (tok/s)} & \textbf{特点} \\
+\midrule
+FP16 基线 & 6.28 & 85.4\% & 461 & 参考基准 \\
+GPTQ-INT4 & 6.42 & 82.9\% & 624 & Hessian 优化，通用性好 \\
+AWQ-INT4 & 6.33 & 84.1\% & 741 (Marlin) & 激活感知，质量最佳 \\
+GGUF Q4\_K\_M & 6.38 & 83.5\% & --- & CPU/Apple 首选 \\
+BitsAndBytes & 6.51 & 81.7\% & 398 & 简单易用，QLoRA 标配 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{量化方法的选择决策}
+
+面对多种量化方法，选择的核心考量是\textbf{目标硬件}和\textbf{精度要求}：
+
+\textbf{GPTQ vs AWQ}：
+两者都是 PTQ 方法，都针对 INT4 优化。
+GPTQ 通过 Hessian 信息补偿量化误差，
+对所有权重一视同仁地优化；
+AWQ 则识别出关键权重给予优先保护。
+在大多数基准上 AWQ 精度略优于 GPTQ，
+且量化速度更快（AWQ 不需要计算完整的 Hessian 逆）。
+但 GPTQ 的生态更成熟，在更多推理框架中有优化的 kernel 支持。
+
+\textbf{GPU 量化 vs GGUF}：
+GPTQ 和 AWQ 产生的模型需要 GPU 推理框架（vLLM、TensorRT-LLM）；
+GGUF 格式面向 llama.cpp 生态，
+支持 CPU、Apple Silicon Metal、CUDA 和 Vulkan 多种后端。
+如果目标是在 MacBook 上运行模型，GGUF 是唯一实用的选择。
+如果目标是数据中心高吞吐部署，AWQ + Marlin 是最优选。
+
+
+\section{GGUF K-Quant：层级量化的艺术}
+
+对于在消费级硬件上运行 LLM 的用户，
+llama.cpp 的 GGUF 格式是事实标准。
+其中最受欢迎的 Q4\_K\_M 格式使用了精巧的\textbf{层级量化}。
+
+\subsection{为什么需要分块量化？}
+
+最简单的量化方式是\textbf{per-tensor 量化}——
+整个权重矩阵共享一个缩放因子。
+问题是：如果矩阵中有个别极大的值，
+缩放因子被迫设得很大，
+导致大多数小值被量化到零或极少的几个级别，精度严重损失。
+
+\textbf{Block quantization}（分块量化）
+将权重矩阵切分为固定大小的块（block），
+每个块独立计算缩放因子和零点。
+块大小通常为 32--256 个权重。
+这样每个块内的值分布更加均匀，
+量化精度远好于全局量化。
+代价是额外存储每个块的元数据（缩放因子和零点），
+但这个开销通常只有 0.5--1 bit/weight。
+
+\subsection{K-Quant 的两级结构}
+
+GGUF 的 K-quant 采用两级量化结构：
+\begin{enumerate}[noitemsep]
+  \item 层的权重被切分为 \textbf{super-block}（如 256 个权重一组），
+        每组配一个 FP16 缩放因子。
+  \item 每个 super-block 内部包含多个 \textbf{sub-block}（如 32 个权重一组），
+        各自独立计算缩放因子并量化权重。
+  \item sub-block 的缩放因子本身被\textbf{二次量化}（6-bit），
+        由 super-block 级别的 FP16 缩放因子覆盖。
+\end{enumerate}
+
+这种层级结构让量化误差被控制在更小的局部范围内，
+避免了全局量化中「大值吃掉小值」的问题。
+二次量化是一个巧妙的设计：
+sub-block 的缩放因子本身也是数值，也可以被量化。
+用 6-bit 量化缩放因子几乎不损失精度，
+但节省了大量存储——
+如果每个缩放因子都用 FP16 存储，
+256 个权重中有 8 个 FP16 缩放因子（$8 \times 16 / 256 = 0.5$ bit/weight），
+而二次量化将这个开销降低到约 0.25 bit/weight。
+
+\subsection{K-Quant 变体}
+
+GGUF 提供了一系列 K-Quant 变体，
+命名规则是 \texttt{Q\{bits\}\_K\_\{size\}}：
+\begin{itemize}[noitemsep]
+  \item \texttt{Q2\_K}：2-bit 量化。模型极小但质量较差。
+  \item \texttt{Q3\_K\_S / Q3\_K\_M / Q3\_K\_L}：3-bit 量化的小/中/大变体。
+        后缀 S/M/L 指的不是块大小，而是\textbf{混合精度策略的激进程度}——
+        L 变体对更多敏感层使用更高位宽。
+  \item \texttt{Q4\_K\_S / Q4\_K\_M}：4-bit 量化。
+        Q4\_K\_M 是最流行的选择，在质量和大小间取得了最佳平衡。
+  \item \texttt{Q5\_K\_S / Q5\_K\_M}：5-bit 量化。接近 FP16 质量。
+  \item \texttt{Q6\_K}：6-bit 量化。几乎无损。
+  \item \texttt{Q8\_0}：8-bit 量化。完全无损，但大小是 Q4\_K\_M 的两倍。
+\end{itemize}
+
+\subsection{混合精度策略}
+
+Q4\_K\_M 中的 ``M'' 代表 Medium 精度变体，
+使用\textbf{混合精度策略}：
+对质量影响最大的层（attention 的 Q/K/V 和 FFN 的 down\_proj）
+使用 Q6\_K（6-bit），
+其余层使用 Q4\_K（4-bit）。
+这仅多出 $\sim$0.2 bits/weight 的存储成本，
+但将 perplexity 增量从 0.1149 降低到 0.0535——
+质量提升约 2$\times$。
+
+这个设计背后的洞察是：
+\textbf{不同层对量化误差的敏感度差异巨大}。
+注意力层的 Q/K/V 直接影响「模型关注什么」，
+量化误差会在 softmax 中被放大；
+而 FFN 的 up\_proj 和 gate\_proj 对微小的数值误差
+有更强的容忍度。
+通过对敏感层分配更多比特，
+可以用极小的额外成本获得显著的质量提升。
+
+此外，模型的\textbf{第一层和最后几层}通常也更敏感：
+第一层负责将 token embedding 投影到模型的内部表示空间，
+最后几层负责将内部表示转换为 token 概率分布。
+这两端的量化误差会直接影响输入理解和输出质量，
+没有后续层来「纠正」误差。
+
+\subsection{llama.cpp 与 GGUF 格式}
+
+llama.cpp 之所以成为本地推理的事实标准，
+有几个关键原因：
+\begin{itemize}[noitemsep]
+  \item \textbf{纯 C/C++ 实现}，无 Python 依赖，
+        可以在任何平台（Linux、macOS、Windows、甚至手机）上编译运行。
+  \item \textbf{GGUF 文件格式}是自包含的——
+        一个文件包含模型权重、分词器、超参数和元数据。
+        不需要额外的配置文件或依赖。
+  \item \textbf{CPU 推理优化}：利用 AVX2/AVX-512（x86）
+        和 NEON（ARM）指令集加速量化矩阵乘法。
+  \item \textbf{GPU offloading}：可以将部分层放在 GPU 上，
+        实现 CPU--GPU 混合推理——
+        即使 GPU 显存不够放下整个模型，
+        也能利用 GPU 加速最耗时的层。
+  \item \textbf{Apple Silicon 原生支持}：
+        通过 Metal API 利用 Apple M 系列芯片的 GPU 和 ANE（Neural Engine），
+        在 MacBook 上实现高效推理。
+\end{itemize}
+
+Ollama 在 llama.cpp 之上提供了更友好的用户体验——
+一条 \texttt{ollama run llama3} 命令就能下载和运行模型，
+对非技术用户极为便利。
+但 Ollama 在高并发场景下的性能远不及专业推理框架——
+在 128 并发请求的压力测试中，
+Ollama 的吞吐量仅为 484 tok/s，
+约为 vLLM 或 SGLang 的 $1/10$。
+
+
+\section{Flash Attention 与内存高效注意力}
+
+标准的注意力计算需要将完整的 $n \times n$ 注意力矩阵
+写入 GPU 的高带宽显存（HBM），
+内存复杂度为 $O(n^2)$。
+当序列长度 $n$ 达到数万甚至数十万时，
+注意力矩阵本身就可能耗尽所有显存。
+
+Flash Attention~\cite{dao2022flashattention}
+通过\textbf{分块计算}（tiling）和\textbf{重计算}（recomputation）策略，
+避免将完整的注意力矩阵写入 HBM，
+将注意力计算的内存复杂度从 $O(n^2)$ 降低到 $O(n)$。
+核心思想是：将 $Q$、$K$、$V$ 矩阵分成小块，
+每次只在 GPU 的片上 SRAM（速度比 HBM 快约 $10\times$）中
+计算一个子块的注意力，
+逐块累积结果，始终不将完整的 $n \times n$ 矩阵写回 HBM。
+
+Flash Attention 2~\cite{dao2023flashattention2}
+进一步优化了 GPU 线程块的工作分配，
+减少了非矩阵乘法运算（如 softmax 的归一化），
+在 A100 上实现了接近理论峰值 72\% 的计算利用率。
+Flash Attention 3~\cite{shah2024flashattention3}
+针对 H100 的异步执行和 FP8 支持做了进一步优化。
+
+这一技术同时加速了训练和推理，
+是现代 LLM 部署的标配优化——
+几乎所有主流推理框架（vLLM、SGLang、TensorRT-LLM）
+和训练框架（Megatron-LM、DeepSpeed）都已集成 Flash Attention。
+
+
+\section{KV Cache：空间换时间}
+
+\subsection{为什么需要 KV Cache？}
+
+LLM 的文本生成是自回归的——每次生成一个 token。
+生成第 $t$ 个 token 时，
+注意力机制需要计算它与前面所有 $t-1$ 个 token 的关系。
+如果每次都重新计算所有位置的 $K$ 和 $V$，
+生成一个长度为 $T$ 的序列需要
+$O(T^2)$ 的注意力计算——因为第 $t$ 步需要 $O(t)$ 的计算。
+
+\textbf{KV cache} 将之前位置计算过的 $K$ 和 $V$ 向量缓存起来，
+每次只需计算新 token 的 $Q$，
+与缓存的 $K, V$ 做注意力运算。
+这将每步的新增计算量从 $O(t)$ 降到 $O(1)$（不含缓存读取），
+总复杂度从 $O(T^2)$ 降到 $O(T)$。
+
+\subsection{KV Cache 的内存开销}
+
+KV cache 的大小计算：
+\begin{equation}
+  \mathrm{KV\ cache\ size} = 2 \times n_{\mathrm{layers}}
+  \times n_{\mathrm{kv\_heads}} \times d_{\mathrm{head}}
+  \times \mathrm{seq\_len} \times \mathrm{batch\_size}
+  \times \mathrm{bytes}
+\end{equation}
+
+以 LLaMA 3-70B 为例（80 层、8 个 KV 头、128 维头维度），
+在 BF16 精度下，\textbf{单个请求}处理 4096 个 token 的 KV cache：
+\begin{equation}
+  2 \times 80 \times 8 \times 128 \times 4096 \times 2\,\text{bytes}
+  = 1.34\,\text{GB}
+\end{equation}
+
+如果上下文长度增加到 128K：
+$2 \times 80 \times 8 \times 128 \times 131072 \times 2 \approx 42\,\text{GB}$——
+单个请求的 KV cache 就超过了一张 A100 40GB 的全部显存。
+
+当并发服务数百个请求时，KV cache 可能占用大部分 GPU 显存。
+这使得 KV cache 的管理成为推理系统的核心挑战之一。
+
+\subsection{PagedAttention}
+
+vLLM~\cite{kwon2023vllm} 引入了 \textbf{PagedAttention}——
+借鉴操作系统的虚拟内存分页机制，
+将 KV cache 分成固定大小的「页」（page），
+按需分配和回收。
+
+传统的 KV cache 管理为每个请求预分配一块\textbf{连续}内存，
+大小等于最大可能的序列长度。
+问题在于：
+\begin{itemize}[noitemsep]
+  \item \textbf{内部碎片}：大多数请求不会用满预分配的空间。
+        如果预分配 2048 个 token 的空间，
+        但请求只生成了 200 个 token，
+        90\% 的内存被浪费了。
+  \item \textbf{外部碎片}：请求的生命周期不同，
+        内存中出现大量不连续的空闲区域，
+        无法分配给新请求。
+\end{itemize}
+
+PagedAttention 的解决方案与操作系统的虚拟内存如出一辙：
+\begin{enumerate}[noitemsep]
+  \item 将 GPU 显存分成固定大小的\textbf{物理页}（block），
+        每页存储固定数量 token 的 KV 值（如 16 个 token）。
+  \item 每个请求维护一个\textbf{页表}（page table），
+        将逻辑位置映射到物理页。
+  \item KV cache \textbf{不需要连续存储}——
+        同一个请求的 KV 可以分散在不同的物理页中。
+  \item 按需分配：请求生成新 token 时，才分配新的物理页。
+\end{enumerate}
+
+这种设计将内存浪费从 60--80\% 降低到接近 0\%，
+使得 vLLM 可以在相同的 GPU 上服务 2--4$\times$ 更多的并发请求。
+
+\subsection{KV Cache 压缩}
+
+除了更好的内存管理，还可以从\textbf{减少 KV cache 本身的大小}入手：
+
+\textbf{GQA}（Grouped-Query Attention）~\cite{ainslie2023gqa}
+在模型架构层面减小 KV cache。
+标准 MHA 中每个 query head 有独立的 K/V head；
+GQA 让多个 query head \textbf{共享}同一组 K/V head。
+LLaMA 3-70B 使用 64 个 query head 和 8 个 KV head（8:1 共享），
+KV cache 直接缩小到 MHA 的 $1/8$。
+
+\textbf{MLA}（Multi-head Latent Attention）
+是 DeepSeek-V2/V3~\cite{deepseekv3} 提出的更激进的方案。
+MLA 将 K 和 V 联合压缩到一个低秩表示 $c_t$：
+\begin{equation}
+  c_t = W^{DKV} [k_t; v_t], \quad
+  [k_t; v_t] = W^{UKV} c_t
+\end{equation}
+其中 $c_t$ 的维度远小于原始 K/V 的拼接。
+只需要缓存 $c_t$ 而不是完整的 K 和 V，
+KV cache 大小可以压缩到原来的 $1/10$ 甚至更小。
+
+\textbf{KV cache 量化}是另一条路径：
+将 KV cache 从 BF16 量化到 INT8 甚至 INT4。
+最新的研究表明，KV cache 对量化的耐受度
+甚至高于权重——INT4 KV cache 的精度损失通常可以忽略不计。
+这是因为 KV cache 中的数值分布比权重更集中、更平滑。
+在 vLLM 中，开启 FP8 KV cache 量化只需一个配置参数，
+即可将 KV cache 内存减半，几乎不影响输出质量。
+
+\textbf{KV cache 驱逐}（eviction）策略
+在 KV cache 超出显存容量时发挥作用。
+核心思想是：并非所有历史 token 的 KV 都同等重要。
+通过注意力分数来评估每个 token 的「重要性」，
+驱逐最不重要的 token 的 KV cache。
+典型的策略包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{Window attention}：只保留最近 $W$ 个 token 的 KV，
+        丢弃更早的 token。简单但可能丢失关键的早期信息。
+  \item \textbf{H2O}（Heavy-Hitter Oracle）：
+        保留累积注意力分数最高的 token（``heavy hitters''）
+        加上最近的窗口。这些 heavy hitters 只占少数 token
+        但集中了大部分的注意力权重。
+  \item \textbf{EvicPress}~\cite{feng2024evicpress}：
+        联合优化压缩和驱逐决策，
+        在多层存储（GPU HBM、CPU DRAM、SSD）之间
+        动态调度 KV cache，最小化平均生成延迟。
+\end{itemize}
+
+\textbf{跨层 KV cache 共享}（Cross-layer KV sharing）
+是一个新兴的研究方向。
+观察表明，相邻 transformer 层的 KV 表示
+具有很高的余弦相似度——
+这意味着可以让多层共享同一组 KV cache，
+而不是每层独立存储。
+CommonKV~\cite{wang2025commonkv} 利用 SVD 分解
+实现相邻层参数共享，
+在不需要重新训练的情况下将 KV cache 压缩 2--4$\times$。
+这种方法与量化和驱逐策略\textbf{正交}——
+可以叠加使用，实现更极致的压缩。
+
+\subsection{Prefix Caching}
+
+在生产环境中，许多请求共享相同的\textbf{系统 prompt}
+（system prompt）——例如「你是一个有帮助的 AI 助手……」。
+如果每个请求都重新计算系统 prompt 的 KV cache，
+是巨大的浪费。
+
+\textbf{Prefix caching} 将共享前缀的 KV cache 缓存起来复用：
+第一个请求计算完系统 prompt 的 KV cache 后，
+后续所有使用相同系统 prompt 的请求直接复用，
+只需要计算用户特定输入部分的 KV cache。
+
+对于典型的 API 服务（系统 prompt 占输入的 50--80\%），
+prefix caching 可以将 prefill 计算量减少 50--80\%，
+TTFT 显著降低。
+vLLM 支持自动 prefix caching，
+SGLang 则通过 RadixAttention 实现了更灵活的\textbf{树形}前缀复用——
+不仅支持线性前缀，还能处理分支对话树结构。
+
+\begin{whybox}[Prefix caching 为什么对多轮对话如此重要？]
+在多轮对话中，每一轮都需要将完整的对话历史作为输入。
+第 $N$ 轮对话的输入包含前 $N-1$ 轮的所有内容。
+不使用 prefix caching 时，每一轮都需要重新计算
+所有历史内容的 KV cache——
+第 10 轮对话的 prefill 成本是第 1 轮的 10 倍。
+
+使用 prefix caching 后，每一轮只需计算\textbf{新增}内容的 KV，
+之前所有轮次的 KV cache 直接复用。
+在 SGLang 的基准测试中，
+多轮对话场景下 prefix caching 将 TTFT 降低了 5--10$\times$。
+\end{whybox}
+
+
+\section{推测解码：小模型辅助大模型}
+
+\subsection{核心洞察}
+
+推测解码~\cite{leviathan2023speculative}
+利用了一个观察：大部分 token 是「容易」的——
+大模型和小模型对它们的预测一致。
+只有少数「难」的 token 需要大模型的判断力。
+
+Decode 阶段的瓶颈不是计算而是内存带宽——
+不管生成一个 token 还是同时验证 $k$ 个 token，
+读取模型权重的成本几乎相同
+（因为 $k$ 通常很小，额外的计算量可以忽略）。
+推测解码正是利用了这个特性。
+
+\subsection{算法流程}
+
+\textbf{流程}：
+\begin{enumerate}[noitemsep]
+  \item 用一个小的草稿模型（draft model，如 1B 参数）
+        快速自回归生成 $k$ 个候选 token。
+        由于模型很小，这一步很快。
+  \item 将这 $k$ 个 token 一次性送入大模型做\textbf{并行验证}。
+        大模型在一次前向传播中同时计算所有 $k$ 个位置的概率分布。
+  \item 从前到后逐个检查：
+        如果草稿模型的 token 被接受，继续检查下一个；
+        如果某个位置被拒绝，
+        从大模型在该位置的分布中重新采样，
+        丢弃后续所有草稿 token。
+\end{enumerate}
+
+关键在于第 2 步：验证 $k$ 个 token 只需要一次前向传播
+（因为可以并行计算），而不是 $k$ 次。
+如果草稿模型的接受率是 80\%，
+每次验证 5 个 token，
+平均每次前向传播产生 4 个有效 token——
+接近 $4\times$ 的加速。
+
+\subsection{数学保证}
+
+推测解码最重要的性质是：
+它是\textbf{数学上无损的}——
+最终输出的概率分布与直接使用大模型\textbf{完全等价}。
+
+接受/拒绝机制使用了一种修正的\textbf{拒绝采样}（rejection sampling）。
+设草稿模型在位置 $i$ 的分布为 $q(x)$，
+目标大模型的分布为 $p(x)$。
+对于草稿 token $x_i$：
+
+\textbf{接受概率}：
+\begin{equation}
+  P(\text{accept } x_i) = \min\!\left(1,\, \frac{p(x_i)}{q(x_i)}\right)
+\end{equation}
+
+\textbf{拒绝后的重采样分布}：
+当 $x_i$ 被拒绝时，从修正分布中重新采样：
+\begin{equation}
+  p'(x) = \frac{\max(0,\, p(x) - q(x))}{\sum_{x'} \max(0,\, p(x') - q(x'))}
+\end{equation}
+
+\begin{whybox}[为什么这个过程保证输出分布不变？]
+对于任意 token $x$，被最终选中的总概率等于：
+\begin{align}
+  P(\text{select } x) &= q(x) \cdot \min\!\left(1, \frac{p(x)}{q(x)}\right) + P(\text{reject}) \cdot p'(x) \\
+  &= \min(q(x), p(x)) + \left(1 - \sum_{x'} \min(q(x'), p(x'))\right) \cdot \frac{\max(0, p(x) - q(x))}{Z}
+\end{align}
+其中 $Z = \sum_{x'} \max(0, p(x') - q(x')) = 1 - \sum_{x'} \min(q(x'), p(x'))$。
+代入化简后恰好等于 $p(x)$。
+
+这个证明的关键在于：
+$\sum \min(q, p) + \sum \max(0, p-q) = \sum p = 1$——
+被接受的概率质量和被拒绝后重采样的概率质量
+加起来恰好等于目标分布 $p$。
+\end{whybox}
+
+这意味着推测解码是\textbf{免费的加速}——
+不牺牲任何输出质量。
+
+\subsection{加速比分析}
+
+推测解码的加速比取决于两个关键因素：
+\textbf{接受率} $\alpha$ 和\textbf{草稿长度} $k$。
+
+设每次草稿生成 $k$ 个 token，每个 token 的接受率为 $\alpha$。
+每次验证循环中，期望被接受的 token 数为：
+\begin{equation}
+  \mathbb{E}[\text{accepted tokens}] = \sum_{i=1}^{k} \alpha^i = \frac{\alpha(1 - \alpha^k)}{1 - \alpha}
+\end{equation}
+加上拒绝后重采样的 1 个 token，
+每次循环产生的有效 token 数约为 $\frac{1 - \alpha^{k+1}}{1 - \alpha}$。
+
+设草稿模型的推理时间为 $t_d$，大模型的推理时间为 $t_v$，
+加速比为：
+\begin{equation}
+  \text{Speedup} = \frac{\frac{1 - \alpha^{k+1}}{1 - \alpha}}{k \cdot t_d + t_v} \cdot t_v
+\end{equation}
+
+当 $t_d \ll t_v$（草稿模型远小于目标模型）且 $\alpha$ 较高时，
+加速比接近 $\frac{1}{1-\alpha}$。
+例如 $\alpha = 0.8$ 时理论加速比约 $5\times$，
+实际中由于草稿模型开销和内存管理，
+通常实现 2--3$\times$ 的端到端加速。
+
+\subsection{草稿模型选择与进化}
+
+草稿模型的选择直接影响接受率和加速比：
+
+\textbf{同族小模型}：最常用。
+例如 Llama 3 8B 为 Llama 3 70B 做草稿。
+词表和训练分布相似，接受率通常 70--85\%。
+NVIDIA 在 H200 上展示了
+用同族小模型实现 3.6$\times$ 吞吐量提升的结果。
+
+\textbf{EAGLE 系列}~\cite{li2024eagle}：
+将目标模型最后一层的隐状态
+输入一个轻量级的自回归头来生成草稿。
+EAGLE 考虑了 token 间的依赖关系，
+生成的草稿通常比独立预测头更准确。
+
+EAGLE-2 引入了\textbf{动态草稿长度}——
+根据上下文的可预测性自适应调整
+每次验证的候选 token 数量。
+在「容易预测」的上下文中生成更多候选（如 8--10 个），
+在「难预测」的上下文中减少候选（如 2--3 个），
+避免浪费验证计算。
+
+EAGLE-3~\cite{li2025eagle3} 进一步突破了性能瓶颈。
+它放弃了 EAGLE 的特征预测范式，
+改为直接预测 token，
+并通过\textbf{多层特征融合}（training-time test 技术）
+从目标模型的多个中间层提取信息。
+这使得草稿模型能充分受益于训练数据规模的增加——
+EAGLE 和 EAGLE-2 在增加训练数据时提升有限，
+EAGLE-3 则表现出持续的改善。
+在推理模型（如 DeepSeek-R1、QwQ）上，
+EAGLE-3 实现了 2--4$\times$ 的加速。
+
+\textbf{Medusa}~\cite{cai2024medusa}：在目标模型的最后一层之上
+添加多个轻量级\textbf{预测头}（prediction head），
+每个头预测不同位置的下一个 token。
+多个头并行工作，类似于同时生成多个候选。
+优点是不需要单独的草稿模型，
+但需要额外训练预测头，
+且由于各头独立预测，无法捕捉 token 间的依赖。
+
+\textbf{Self-speculative decoding}（自推测解码）：
+使用目标模型自身的\textbf{前几层}作为草稿模型。
+不需要额外加载一个小模型，节省显存。
+
+LayerSkip~\cite{elhoushi2024layerskip} 是这一方向的代表。
+通过在训练中使用特殊的 dropout 策略
+（早期层的 dropout 率低，后期层的 dropout 率高），
+使得模型在只使用前几层时就能产生合理的预测。
+推理时，使用前 $L/3$ 层作为草稿，
+完整的 $L$ 层作为验证。
+由于草稿和验证共享同一模型的权重，
+无需额外的模型内存，
+在内存受限场景下特别有吸引力。
+
+CLaSp~\cite{chen2025clasp}（In-Context Layer Skip）
+进一步改进了自推测解码，
+不需要专门的训练——
+通过分析上下文来动态决定跳过哪些层，
+使得任何现有模型都可以直接使用自推测解码。
+
+\textbf{HeteroSpec} 代表了推测解码的最新趋势——\textbf{自适应策略}。
+通过输出分布的\textbf{熵}来判断当前上下文的难度：
+低熵（高确定性）上下文使用更激进的推测（更多候选 token），
+高熵（高不确定性）上下文使用保守的推测（更少候选）。
+使用决策树将推测路径分为「快车道」和「慢车道」，
+实现了 4.24$\times$ 的加速，超过 EAGLE-3。
+
+\begin{keybox}[推测解码方法速查（2026 年初）]
+\begin{itemize}[noitemsep]
+  \item \textbf{同族小模型}：最成熟，生态最好。
+        vLLM 和 TensorRT-LLM 原生支持。2--3$\times$ 加速。
+  \item \textbf{EAGLE-3}：质量最高的轻量级草稿。
+        需要训练草稿头。2--4$\times$ 加速。
+  \item \textbf{Medusa}：无需独立草稿模型。
+        多头并行预测。1.5--2.5$\times$ 加速。
+  \item \textbf{LayerSkip / CLaSp}：自推测，零额外内存。
+        适合内存受限场景。1.5--2$\times$ 加速。
+  \item \textbf{HeteroSpec}：自适应策略，当前最快。
+        需要熵估计开销。3--4$\times$ 加速。
+\end{itemize}
+\end{keybox}
+
+实际加速通常在 2--3$\times$ 之间。
+加速比取决于接受率——
+接受率越高，每次验证产生的有效 token 越多。
+对于代码生成等「可预测性高」的任务，加速比更大；
+对于创意写作等「随机性高」的任务，加速比较小。
+在推理模型（reasoning models）的 thinking token 生成中，
+推测解码的加速效果尤为显著——
+因为推理过程中的许多步骤是结构化的、可预测的。
+
+
+\section{Continuous Batching：提升服务吞吐}
+
+\subsection{Static Batching 的问题}
+
+传统的推理服务（static batching）
+将一批请求一起处理，等所有请求都生成完毕后才开始下一批。
+问题是：不同请求的生成长度差异很大——
+一个请求生成 10 个 token 就结束了，
+另一个可能需要 2000 个 token。
+短请求必须等待长请求完成，GPU 利用率很低。
+
+假设一个 batch 有 8 个请求，
+最短的生成 50 个 token，最长的生成 2000 个 token。
+7 个短请求在前 50--200 步就完成了，
+但它们的「位置」一直被占据到第 2000 步。
+GPU 在 batch 后期有 80--90\% 的计算能力处于空闲状态。
+
+\subsection{Iteration-Level Scheduling}
+
+\textbf{Continuous batching}（又称 iteration-level batching）
+解决了这个问题。
+核心思想是：在\textbf{每一步}（每生成一个 token）
+都重新审视当前 batch 的组成——
+\begin{enumerate}[noitemsep]
+  \item 检查是否有请求刚刚生成了 EOS token（结束标记）。
+        如果有，将它从 batch 中移除。
+  \item 检查等待队列中是否有新请求。
+        如果有空位，立刻将新请求加入 batch。
+  \item 对当前 batch 中的所有请求执行一步 decode。
+\end{enumerate}
+
+GPU 永远在满负荷工作，
+不存在「等待最慢请求」的空闲时间。
+在高并发场景下，
+continuous batching 可以将吞吐量提升 2--5$\times$。
+
+\subsection{Chunked Prefill}
+
+Continuous batching 还有一个微妙的问题：
+当一个新请求加入 batch 时，它需要先经过 prefill 阶段
+（处理其完整的 prompt）。
+如果 prompt 很长（比如 32K tokens），
+这次 prefill 会阻塞整个 batch 的 decode 步骤，
+导致其他正在 decode 的请求出现\textbf{卡顿}（ITL 突增）。
+
+\textbf{Chunked prefill} 解决了这个问题：
+将长 prompt 切成固定大小的块（如 512 tokens），
+每步只处理一个块。
+prefill 分散在多步中完成，
+不会阻塞其他请求的 decode。
+vLLM 和 SGLang 都支持 chunked prefill。
+
+\subsection{Prefix-Aware Batching}
+
+在支持 prefix caching 的系统中，
+调度器可以进一步优化：
+将共享相同前缀的请求\textbf{分组在同一个 batch} 中。
+这样可以最大化 prefix cache 的命中率，
+减少重复的 KV cache 计算。
+
+SGLang 的 RadixAttention 维护了一棵\textbf{基数树}（radix tree）
+来管理所有已缓存的前缀。
+当新请求到来时，调度器在基数树中查找最长匹配前缀，
+只需要计算未匹配的部分。
+对于多轮对话场景（每轮都共享之前的对话历史），
+这种优化效果尤为显著。
+
+
+\section{推理服务架构}
+
+\subsection{推理框架对比}
+
+\begin{table}[H]
+\centering\small
+\caption{主流推理框架对比（2026 年初）}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{框架} & \textbf{核心特性} \\
+\midrule
+\textbf{vLLM} & PagedAttention, Continuous Batching, Chunked Prefill, Prefix Caching,
+  Speculative Decoding, 支持 disaggregated serving。Python-first，生态最丰富，
+  社区最活跃（1969+ 贡献者）。
+  适合数据中心通用部署。
+  H100 吞吐约 12,500 tok/s（Llama 3.1 8B）。 \\
+\textbf{SGLang} & RadixAttention（树形 prefix caching），Chunked Pipeline Parallelism
+  （1M token TTFT 降低 81\%），结构化生成（grammar-constrained decoding）。
+  H100 吞吐约 16,200 tok/s——比 vLLM 快 29\%。
+  多轮对话场景再快 10--20\%。
+  适合复杂 prompt 工程和 DeepSeek 模型部署。 \\
+\textbf{TensorRT-LLM} & NVIDIA 原生优化, FP8/NVFP4 支持, In-flight Batching,
+  最高单卡性能。C++ 核心，配置复杂但性能极致。
+  适合 NVIDIA GPU 上的高性能生产部署。 \\
+\textbf{LMDeploy} & TurboMind C++ 引擎，
+  H100 吞吐约 16,100 tok/s，与 SGLang 持平。
+  量化模型部署性能最优。
+  适合需要极致量化推理的场景。 \\
+\textbf{llama.cpp} & CPU/混合推理, GGUF 量化, Metal/CUDA/Vulkan 加速。
+  纯 C/C++，无依赖，单文件模型格式。
+  消费级硬件和边缘设备首选。 \\
+\textbf{MLC-LLM} & 跨平台部署（iOS、Android、浏览器）。
+  WebGPU 支持——可以在浏览器中运行 LLM。
+  适合移动端和嵌入式场景。 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+选择推理框架时需要考虑几个维度：
+\begin{itemize}[noitemsep]
+  \item \textbf{目标硬件}：NVIDIA GPU → vLLM / SGLang / TensorRT-LLM；
+        Apple Silicon → llama.cpp；移动端 → MLC-LLM。
+  \item \textbf{性能 vs.\ 易用性}：TensorRT-LLM 性能最高但配置复杂；
+        vLLM 平衡了两者；SGLang 在多轮对话和 DeepSeek 上最优；
+        llama.cpp 和 Ollama 最简单。
+  \item \textbf{特殊需求}：结构化输出 → SGLang；
+        浏览器部署 → MLC-LLM；多模态 → vLLM。
+  \item \textbf{成本}：SGLang 比 vLLM 吞吐高 29\%，
+        百万日请求场景下月省约 \$15,000 GPU 成本。
+\end{itemize}
+
+\subsection{Disaggregated Serving：分离 Prefill 和 Decode}
+
+传统的推理框架将 prefill 和 decode 放在同一组 GPU 上执行。
+但这两个阶段的计算特性截然不同：
+\begin{itemize}[noitemsep]
+  \item \textbf{Prefill} 是计算密集型——大量 token 并行计算，
+        GPU 算力被充分利用。
+  \item \textbf{Decode} 是内存带宽密集型——逐 token 生成，
+        GPU 大部分时间在等待内存读取。
+\end{itemize}
+
+将两者混合在同一组 GPU 上会互相干扰：
+长 prompt 的 prefill 会阻塞其他请求的 decode（ITL 突增），
+大量 decode 请求又会延迟新 prompt 的 prefill（TTFT 增加）。
+
+\textbf{Disaggregated serving}（分离式推理）
+将 prefill 和 decode 分配到\textbf{不同的 GPU 节点}：
+\begin{itemize}[noitemsep]
+  \item \textbf{Prefill 节点}：处理输入 prompt，生成 KV cache，
+        然后将 KV cache 传输到 decode 节点。
+        适合使用计算能力强的 GPU。
+  \item \textbf{Decode 节点}：接收 KV cache，逐 token 生成输出。
+        适合使用内存带宽大的 GPU。
+\end{itemize}
+
+\begin{corebox}[DeepSeek 的分离式推理架构]
+DeepSeek 在其 V3/R1 推理系统中
+采用了大规模的分离式架构。
+根据 2025 年 2 月 Open Source Week 披露的信息：
+
+\begin{itemize}[noitemsep]
+  \item Prefill 节点和 decode 节点的比例约为 1:4——
+        decode 阶段占用了绝大部分的 GPU 资源。
+  \item 跨节点的 KV cache 传输通过高速互联（NVLink/InfiniBand）完成，
+        传输延迟被控制在毫秒级。
+  \item 得益于 MLA 的 KV cache 压缩，
+        需要传输的数据量远小于传统 MHA 架构，
+        使得分离式架构的通信开销可控。
+  \item 每个 H800 节点的吞吐量
+        达到甚至超过同等活跃参数量（$\sim$37B）的稠密模型——
+        这证明了 MoE + MLA + 分离式架构的组合效果。
+\end{itemize}
+\end{corebox}
+
+Mooncake~\cite{qin2024mooncake} 进一步提出了
+\textbf{KVCache-Centric}（以 KV cache 为中心）的分离式架构。
+其核心创新是将 KV cache 视为独立的资源进行管理，
+而不是绑定到特定的 GPU。
+KV cache 可以存储在 GPU HBM、CPU DRAM 或 SSD 上，
+调度器根据实时负载动态决定 KV cache 的存放位置。
+Mooncake 还引入了\textbf{预测性早期拒绝}（Early Rejection）——
+在请求到达时就预估系统是否能满足 SLO，
+如果无法满足则提前拒绝，避免浪费计算资源。
+
+vLLM v0.11 也引入了 disaggregated serving 支持，
+配合 Wide Expert Parallel（Wide-EP）实现了
+DeepSeek-R1 在 H200 集群上 2,200 tok/s/GPU 的吞吐。
+
+\subsection{Dual-Batch 与异步调度}
+
+\textbf{Dual-batch}（双批次重叠）是 vLLM 和 SGLang 中的一项
+前沿优化技术。
+核心思想是将 prefill 和 decode 的计算
+在时间维度上\textbf{重叠}——
+在 GPU 执行一批 decode 的同时，
+异步准备下一批 prefill 的数据。
+这消除了 prefill 和 decode 之间的空闲间隙，
+进一步提升了 GPU 利用率。
+
+\textbf{异步调度}（async scheduling）
+则将调度决策从 GPU 计算路径中移出。
+传统调度器在每步计算前同步决定 batch 组成，
+引入了几毫秒的调度延迟。
+异步调度器在 CPU 上持续运行，
+在 GPU 计算当前步的同时准备好下一步的 batch，
+使得调度开销几乎为零。
+
+
+\section{模型蒸馏：大模型教小模型}
+
+\subsection{知识蒸馏的基本原理}
+
+知识蒸馏（Knowledge Distillation）的核心思想是：
+用一个大的\textbf{教师模型}（teacher）的输出
+来训练一个小的\textbf{学生模型}（student）。
+相比让学生模型直接在原始数据上训练，
+教师模型的输出包含了更丰富的信息——
+不仅告诉学生「正确答案是什么」，
+还通过概率分布中的\textbf{暗知识}（dark knowledge）
+告诉学生「其他答案为什么不对，但有多接近正确」。
+
+标准的知识蒸馏使用带温度的 softmax：
+\begin{equation}
+  p_i^{(\tau)} = \frac{\exp(z_i / \tau)}{\sum_j \exp(z_j / \tau)}
+\end{equation}
+其中 $\tau$ 是温度参数。$\tau > 1$ 时，
+概率分布变得更「平滑」，
+各类别之间的相对概率差异更加明显——
+这正是暗知识的来源。
+
+蒸馏损失函数通常是两部分的加权和：
+\begin{equation}
+  \mathcal{L} = \alpha \cdot \tau^2 \cdot \mathrm{KL}(p_{\text{teacher}}^{(\tau)} \| p_{\text{student}}^{(\tau)})
+  + (1 - \alpha) \cdot \mathcal{L}_{\text{CE}}(y, p_{\text{student}})
+\end{equation}
+第一项让学生模仿教师的概率分布，
+第二项保证学生在原始任务上的准确性。
+$\tau^2$ 因子是为了补偿高温 softmax 的梯度缩放。
+
+\subsection{LLM 蒸馏的实践}
+
+在 LLM 时代，蒸馏有几种具体形式：
+
+\textbf{Logits 蒸馏}：
+让学生模型直接匹配教师模型在每个 token 位置的完整概率分布。
+这是信息量最大的蒸馏方式，
+但需要访问教师模型的 logits——
+对于闭源模型（如 GPT-4）无法使用。
+
+\textbf{Sequence-level 蒸馏}（或称 data distillation）：
+用教师模型生成大量高质量的训练数据，
+然后在这些数据上对学生模型做 SFT。
+这是最常用的方式，因为只需要教师模型的\textbf{输出文本}，
+不需要 logits。
+Stanford Alpaca~\cite{taori2023alpaca} 首次展示了
+用 GPT-3.5 生成的数据训练 LLaMA 7B 的效果——
+学生模型在很多任务上达到了教师的 80--90\% 水平。
+
+\textbf{Chain-of-Thought 蒸馏}：
+教师模型不仅提供答案，还提供推理过程。
+学生模型同时学习「怎么推理」和「推理出什么」。
+这在数学和代码任务上效果尤为显著——
+学生模型从教师的推理链中学到了\textbf{结构化的思考方式}。
+
+\subsection{DeepSeek-R1 的蒸馏实验}
+
+DeepSeek-R1~\cite{deepseekr1} 的蒸馏结果
+是目前 LLM 蒸馏最令人印象深刻的案例。
+DeepSeek 团队用 R1（671B MoE）作为教师模型，
+生成了包含完整推理链的 800K 条训练数据，
+然后对多个开源基础模型进行 SFT 蒸馏。
+
+\begin{table}[H]
+\centering\small
+\caption{DeepSeek-R1 蒸馏模型性能}
+\begin{tabularx}{\linewidth}{l c c c X}
+\toprule
+\textbf{蒸馏模型} & \textbf{AIME} & \textbf{MATH-500} & \textbf{LiveCodeBench} & \textbf{备注} \\
+\midrule
+R1-Distill-Qwen-1.5B & 28.9\% & 83.9\% & 16.9\% & 手机端可运行 \\
+R1-Distill-Qwen-7B & 55.5\% & 92.8\% & 37.6\% & 消费级 GPU \\
+R1-Distill-Qwen-14B & 69.7\% & 93.9\% & 53.1\% & 单卡 \\
+R1-Distill-Qwen-32B & 72.6\% & 94.3\% & 57.2\% & 性能/成本最优 \\
+R1-Distill-Llama-70B & 70.0\% & 94.5\% & 57.5\% & 接近教师水平 \\
+\midrule
+\textit{R1 教师（671B MoE）} & \textit{79.8\%} & \textit{97.3\%} & \textit{65.9\%} & \textit{参考} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+几个关键发现：
+
+\textbf{蒸馏比直接 RL 更高效}。
+在相同基础模型上，
+蒸馏得到的推理能力\textbf{显著优于}
+直接用 GRPO 做 RL 训练。
+例如 Qwen2.5-32B 直接 RL 训练在 AIME 上达到 47.0\%，
+但用 R1 蒸馏后达到 72.6\%——差距巨大。
+这表明强大教师模型的推理链
+包含了通过 RL 从零学习难以获得的信息。
+
+\textbf{小模型可以「学会」远超其自身能力的推理}。
+R1-Distill-Qwen-7B 在 MATH-500 上达到 92.8\%，
+而同规模的 Qwen2.5-7B（未蒸馏）只有约 70\%。
+蒸馏将一个 7B 模型的数学推理能力
+提升到了接近 70B 未蒸馏模型的水平。
+
+\textbf{再蒸馏}（re-distillation）可以进一步提升质量。
+Mobius Labs 的实验表明，
+用更大的蒸馏模型（如 R1-Distill-70B）
+对更小的模型（如 R1-Distill-14B）进行二次 logits 蒸馏，
+在多个基准上还能获得 2--5\% 的提升，
+且成本极低（仅 \$3--\$18 的 GPU 成本）。
+
+\subsection{蒸馏的局限性}
+
+蒸馏并非万能：
+\begin{itemize}[noitemsep]
+  \item \textbf{能力天花板}：学生模型的性能受限于教师模型。
+        如果教师在某个领域不够好，学生也学不好。
+  \item \textbf{遗忘问题}：过度蒸馏可能导致学生模型
+        在教师未覆盖的领域退化。
+  \item \textbf{分布差异}：如果学生模型的预训练数据分布
+        与教师模型差异很大，蒸馏效果会打折扣。
+  \item \textbf{推理能力 vs.\ 知识}：蒸馏擅长传递推理\textbf{能力}
+        （如 CoT 推理的模式），但不擅长传递\textbf{知识}
+        （如具体的事实记忆）——
+        因为知识需要参数容量来存储，小模型的参数有限。
+\end{itemize}
+
+
+\section{推理优化的整体思路}
+
+回顾整个推理优化领域，
+可以归纳出一个清晰的思维框架：
+所有优化都在解决同一个根本问题——
+\textbf{LLM 推理是内存带宽瓶颈的，而非计算瓶颈的}。
+
+在自回归生成过程中，
+每生成一个 token，需要读取\textbf{整个模型的权重}
+（因为每个 token 都要经过所有层），
+但只做少量的计算（一个 token 的矩阵乘法）。
+GPU 的计算能力远未被充分利用——
+大部分时间花在等待从显存读取权重。
+
+理解了这个瓶颈，所有优化手段都变得清晰：
+\begin{itemize}[noitemsep]
+  \item \textbf{量化}减少每次需要读取的数据量
+        （4-bit 权重是 16-bit 的 $1/4$ 大小），
+        直接缓解带宽瓶颈。
+  \item \textbf{Continuous batching} 增加每次读取权重后
+        处理的 token 数量——
+        读一次权重，同时处理 100 个请求的 token，
+        提高计算与内存访问的比率。
+  \item \textbf{推测解码}减少需要调用大模型的次数——
+        小模型的权重更小，读取更快；
+        大模型一次验证多个 token，减少总读取次数。
+  \item \textbf{KV cache}避免重复读取和计算
+        之前位置的 KV 值。
+  \item \textbf{PagedAttention}减少 KV cache 的内存浪费，
+        允许在固定显存下服务更多并发请求。
+  \item \textbf{Prefix caching} 消除共享前缀的重复计算，
+        在生产环境中大幅降低 TTFT。
+  \item \textbf{Disaggregated serving} 分离 prefill 和 decode，
+        让每种 GPU 只做它最擅长的工作。
+  \item \textbf{蒸馏}从根本上减小模型大小，
+        用一个 7B 模型替代 70B 模型来服务大部分请求。
+\end{itemize}
+
+从这个角度看，推理优化的未来方向也很明确：
+任何能减少「每 token 需要读取的数据量」
+或「增加每次读取后完成的有效工作」的技术，
+都值得关注。
+NVIDIA Blackwell 的 NVFP4 支持、
+更大的片上 SRAM、更高带宽的 HBM4——
+硬件和软件都在向同一个方向努力：
+打破内存带宽的瓶颈。
+
+
+%% ============================================================
+%% NEW REFERENCES
+%% ============================================================
+% NEW REF: lin2024awq = Lin, Ji, et al. "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration." MLSys 2024.
+% NEW REF: xiao2023smoothquant = Xiao, Guangxuan, et al. "SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models." ICML 2023.
+% NEW REF: li2024eagle = Li, Yuhui, et al. "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty." ICML 2024.
+% NEW REF: li2025eagle3 = Li, Yuhui, et al. "EAGLE-3: Scaling up Inference Acceleration of Large Language Models via Training-Time Test." arXiv:2503.01840, 2025.
+% NEW REF: cai2024medusa = Cai, Tianle, et al. "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads." ICML 2024.
+% NEW REF: elhoushi2024layerskip = Elhoushi, Mostafa, et al. "LayerSkip: Enabling Early Exit Inference and Self-Speculative Decoding." ACL 2024.
+% NEW REF: chen2025clasp = Chen, Longze, et al. "CLaSp: In-Context Layer Skip for Self-Speculative Decoding." arXiv:2505.24196, 2025.
+% NEW REF: feng2024evicpress = Feng, Shaoting, et al. "EvicPress: Joint KV-Cache Compression and Eviction for Efficient LLM Serving." arXiv:2512.14946, 2024.
+% NEW REF: wang2025commonkv = Wang, Yixuan, et al. "CommonKV: Compressing KV Cache with Cross-layer Parameter Sharing." arXiv:2508.16134, 2025.
+% NEW REF: qin2024mooncake = Qin, Ruoyu, et al. "Mooncake: A KVCache-Centric Disaggregated Architecture for LLM Serving." arXiv:2407.00079, 2024.

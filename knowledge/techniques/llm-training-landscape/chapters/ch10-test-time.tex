@@ -1,0 +1,897 @@
+\chapter{推理时计算缩放——用更多思考换更好答案}
+\label{ch:ttc}
+%% ============================================================
+
+传统的 LLM 使用方式是：
+输入一个问题，模型立刻给出答案。
+但 OpenAI 的 o1 系列和 DeepSeek-R1 开创了一种新范式：
+\textbf{让模型在回答之前先「思考」}——
+生成大量的推理过程（thinking tokens），
+然后才给出最终答案。
+
+\section{核心洞察}
+
+\begin{corebox}[推理时计算的颠覆性影响]
+作为一个粗略的估计：
+\textbf{7B 模型 + 100$\times$ 推理计算 $\approx$ 70B 模型标准推理}
+（基于 Snell et al.\ (2024)~\cite{snell2024scaling} 的研究）。
+这意味着你可以用一个便宜的小模型，
+通过投入更多推理计算来获得与大模型相当的质量。
+这彻底改变了「模型大小 = 能力」的等式。
+\end{corebox}
+
+传统的范式是\textbf{训练时缩放}（train-time scaling）：
+投入更多计算来训练更大的模型，
+推理时每个问题使用固定的计算量。
+Scaling Laws 描述的就是这种范式。
+
+推理时计算缩放代表了一种\textbf{互补的范式}：
+模型大小固定，
+但根据问题的难度动态调整推理时的计算量。
+简单问题快速回答（几个 token 的思考），
+复杂问题深度推理（数千个 token 的思考）。
+
+这两种范式的关系可以类比为人类学习和思考的区别：
+训练时缩放相当于\textbf{学更多年}（更多教育），
+推理时缩放相当于\textbf{想更久}（更深思考）。
+一个博士可能比一个本科生知道更多（训练时缩放），
+但本科生如果花足够多的时间仔细思考，
+在某些具体问题上也可能得到更好的答案（推理时缩放）。
+
+\begin{whybox}[为什么推理时缩放可能比训练时缩放更高效？]
+Snell et al.\ (2024) 的研究给出了一个关键发现：
+对于许多具体问题，
+将计算预算花在推理阶段比花在扩大模型更具\textbf{计算效率}。
+
+直觉解释：
+训练时扩大模型，所有问题都受益于更多的参数——
+但简单问题本来就能做对，额外的参数是浪费。
+推理时缩放允许\textbf{按需分配}——
+简单问题快速回答节省计算，
+难的问题多花时间保证质量。
+这种动态分配本质上是一种更优的计算资源配置。
+
+类比：
+训练时缩放像「给所有学生都上博士课程」——
+对已经懂的学生是浪费；
+推理时缩放像「允许每个学生根据题目难度决定思考时间」——
+更灵活，更高效。
+\end{whybox}
+
+
+\section{推理时缩放的数学框架}
+
+\subsection{Snell et al.\ 的计算最优缩放理论}
+
+Snell et al.~\cite{snell2024scaling} 的核心贡献是建立了
+推理时计算的\textbf{缩放法则}（scaling law），
+回答了一个关键问题：
+给定固定的推理计算预算 $C$，
+如何\textbf{最优分配}来最大化性能？
+
+他们分析了两种缩放机制：
+
+\textbf{机制一：基于验证器的搜索}。
+生成 $N$ 个候选回答，
+用 Process Reward Model（PRM）评分，
+选择最优。
+性能提升可以建模为：
+\begin{equation}
+  P(\text{correct} \mid N, \text{PRM}) = f(N, q_{\text{PRM}})
+\end{equation}
+其中 $q_{\text{PRM}}$ 是验证器的质量，
+$N$ 是候选数量。
+关键发现是：\textbf{PRM 质量比候选数量更重要}。
+一个好的 PRM + 少量候选（$N = 4$）
+通常优于一个差的 PRM + 大量候选（$N = 256$）。
+
+\textbf{机制二：自适应分布更新}。
+根据具体问题动态调整模型的回答策略。
+对于推理模型，这体现为
+根据问题难度生成不同长度的推理链。
+
+\textbf{最优分配}的核心结论是：
+\begin{equation}
+  \text{Optimal strategy}(C, d) = \begin{cases}
+    \text{少量深度推理} & \text{如果 } d \text{ 高（难题）} \\
+    \text{多次浅层尝试} & \text{如果 } d \text{ 低（简单题）} \\
+    \text{放弃推理时缩放} & \text{如果 } d \text{ 极低或极高}
+  \end{cases}
+\end{equation}
+其中 $d$ 是问题的难度。
+这个结论有重要的实践意义：
+\begin{itemize}[noitemsep]
+  \item 对于「模型本来就能做对」的简单问题，
+        额外的推理计算几乎没有收益——直接回答即可。
+  \item 对于「中等难度」的问题，推理时缩放的收益最大——
+        相当于用计算换取了更大模型的效果。
+  \item 对于「远超模型能力」的极难问题，
+        再多的推理计算也无济于事——
+        模型不具备必要的知识或推理能力。
+\end{itemize}
+
+\begin{whybox}[推理时缩放的数学等价性]
+Snell et al.\ 的一个惊人发现是\textbf{计算等价性}：
+一个较小的模型（如 Llama 3.1 8B）
+通过最优的推理时计算分配，
+可以在某些问题上匹配甚至超过
+一个大 14$\times$ 的模型（Llama 3.1 70B）的性能。
+
+形式化地说，对于难度为 $d$ 的问题集合，
+存在一个推理计算预算 $C^*(d)$ 使得：
+\begin{equation}
+  \text{Acc}(\text{小模型}, C^*(d)) \geq \text{Acc}(\text{大模型}, C_0)
+\end{equation}
+其中 $C_0$ 是标准推理的基线计算量。
+当 $C^*(d) < C_{\text{train}}$（训练大模型的额外成本摊到推理上）时，
+推理时缩放就是更经济的选择。
+
+但这个等价性不是\textbf{普适}的——
+它高度依赖问题难度。
+对于极难的问题，没有任何推理计算量
+能让小模型匹配大模型。
+这就是为什么推理时缩放是训练时缩放的\textbf{互补}而非\textbf{替代}。
+\end{whybox}
+
+\subsection{三种 Scaling Laws 的统一视角}
+
+到 2026 年，LLM 领域已经形成了
+\textbf{三种 scaling laws} 的统一框架：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{预训练缩放}（Kaplan 2020, Chinchilla 2022）：
+        更多的参数 $\times$ 更多的数据 $\times$ 更多的训练计算
+        → 更好的基础能力。
+        描述的是\textbf{模型知识}的缩放。
+  \item \textbf{后训练缩放}（RL、RLHF、SFT）：
+        更多的对齐训练 → 更好地遵循指令和推理。
+        描述的是\textbf{模型行为}的缩放。
+  \item \textbf{推理时缩放}（Snell 2024, o1/R1）：
+        更多的推理计算 → 在具体问题上更好的表现。
+        描述的是\textbf{问题求解}的缩放。
+\end{enumerate}
+
+这三种缩放在\textbf{效率前沿}上各有优势：
+预训练缩放适合需要广泛知识的场景，
+后训练缩放适合需要特定行为模式的场景，
+推理时缩放适合需要深度推理的特定问题。
+2026 年的趋势是同时优化这三个维度——
+所谓的\textbf{效率缩放}（efficiency scaling），
+目标是用 \$1M 的总成本达到以前需要 \$100M 的效果。
+
+\textbf{Budget forcing}（预算强制）
+是推理时缩放的一个实用技术：
+根据问题的难度\textbf{预先分配}不同的计算预算。
+简单问题限制 thinking tokens 在 256 以内，
+中等问题分配 2K--8K，
+困难问题分配 16K--64K。
+这避免了模型在简单问题上「过度思考」浪费资源，
+也保证了困难问题有足够的推理深度。
+
+
+\section{三种策略}
+
+推理时计算缩放有三种基本策略，
+各自适用于不同的场景。
+
+\subsection{策略一：扩展推理链（Sequential Scaling）}
+
+\textbf{顺序缩放}让模型在内部进行长链推理——
+分解问题、逐步推导、自我验证、纠正错误。
+DeepSeek-R1~\cite{deepseekr1} 的 thinking tokens 就是这种策略。
+每个 thinking token 都是在「推理计算」上的投资。
+模型可能生成数千个 thinking token，
+但最终答案的质量远高于直接回答。
+
+一个典型的推理过程可能是这样的：
+模型先分析问题结构，
+然后尝试一种解法，
+发现行不通后自我纠正（``wait, that's not right...''），
+换一种方法，
+验证中间结果，
+最终得到答案。
+这种\textbf{自我对话和纠错能力}
+是 RL 训练的产物，不是人类预先编程的。
+
+\textbf{思维链推理}（Chain-of-Thought, CoT）
+是顺序缩放的基础形式。
+即使不是专门训练的推理模型，
+简单地在 prompt 中加上
+``Let's think step by step'' 就能提升推理质量。
+但专门训练的推理模型（如 R1、o1）
+的推理深度和自我纠错能力远超简单的 CoT prompting。
+
+\textbf{训练推理模型}的核心方法是
+GRPO~\cite{shao2024grpo}（Group Relative Policy Optimization）
+配合\textbf{结果导向奖励}（outcome-based reward）。
+训练过程不告诉模型「如何推理」，
+只告诉它「答案对不对」——
+模型必须自己发现有效的推理策略来最大化奖励。
+这种纯粹由 RL 驱动的训练方式解释了为什么
+R1 会自发地「发明」推理策略：
+它不是在模仿人类的推理范例，
+而是在\textbf{发现}最大化奖励的行为模式。
+
+顺序缩放的一个微妙之处是\textbf{推理长度与质量}的关系。
+并非越长的推理越好——
+模型有时会陷入无意义的循环重复，
+或者在简单问题上过度展开推理链。
+DeepSeek-R1 的训练中观察到，
+模型在 RL 早期会出现 ``overthinking'' 现象——
+推理链越来越长但答案并没有变好。
+通过调整奖励函数（对过长的推理施加轻微惩罚），
+可以让模型学会在合适的深度停止思考。
+
+\subsection{策略二：并行采样与 Best-of-N（Parallel Scaling）}
+
+\textbf{并行缩放}对同一个问题生成 $N$ 个独立的回答，
+然后用多数投票或奖励模型选最好的。
+这相当于「三个臭皮匠赛过诸葛亮」——
+即使每个回答独立看不够好，
+通过聚合多个独立的回答可以得到更可靠的结果。
+
+\subsubsection{Best-of-N 采样}
+
+\textbf{Best-of-N 采样}是最简单的并行缩放实现：
+生成 $N$ 个回答，
+用奖励模型（Reward Model, RM）选择分数最高的那个。
+
+数学上，Best-of-N 的效果可以用\textbf{序统计量}分析。
+设每个回答的奖励分数 $r_i$ 独立同分布于某分布 $F(r)$。
+$N$ 个样本的最大值 $r_{(N)}$ 的期望为：
+\begin{equation}
+  \mathbb{E}[r_{(N)}] = \int_{-\infty}^{\infty} r \cdot N \cdot F(r)^{N-1} \cdot f(r)\, dr
+\end{equation}
+当 $F$ 是正态分布 $\mathcal{N}(\mu, \sigma^2)$ 时，
+$\mathbb{E}[r_{(N)}]$ 近似为：
+\begin{equation}
+  \mathbb{E}[r_{(N)}] \approx \mu + \sigma \cdot \Phi^{-1}\!\left(\frac{N}{N+1}\right)
+\end{equation}
+其中 $\Phi^{-1}$ 是标准正态分布的分位数函数。
+
+这意味着 Best-of-N 的收益是\textbf{对数缩放}的：
+从 $N=1$ 到 $N=4$，质量提升显著；
+从 $N=16$ 到 $N=64$，提升已经很小；
+到 $N=256$，几乎无法进一步提升。
+计算成本线性增长但收益对数递减，
+所以实践中 $N = 4$--$16$ 是最优的性价比区间。
+
+\begin{warnbox}[Best-of-N 的陷阱：奖励黑客]
+Best-of-N 的质量\textbf{严重依赖}奖励模型的质量。
+如果奖励模型是训练目标的不完美代理
+（这几乎总是如此），
+过大的 $N$ 会导致\textbf{奖励黑客}（reward hacking）——
+模型生成的回答获得了高奖励分数，
+但实际质量并不好，甚至更差。
+这是因为大 $N$ 给了模型更多机会
+发现奖励模型的弱点并加以利用。
+
+\textbf{正则化 Best-of-N}（RBoN）~\cite{ichihara2025rbon}
+通过在目标函数中加入正则项来缓解这个问题：
+\begin{equation}
+  x^* = \arg\max_{x \in \{x_1, \ldots, x_N\}} \left[ R(x) - \beta \cdot \mathrm{KL}(q \| p_{\text{ref}}) \right]
+\end{equation}
+正则项惩罚偏离参考分布过远的回答，
+防止奖励黑客。
+\end{warnbox}
+
+\subsubsection{多数投票与自一致性}
+
+\textbf{多数投票}（Majority Voting / Self-Consistency）~\cite{wang2023selfconsistency}
+更适合有\textbf{可验证答案}的问题（如数学题）：
+生成 $N$ 个推理过程和答案，
+选择出现次数最多的答案。
+直觉是：即使每次推理的中间步骤不同，
+正确答案更有可能被多次「发现」。
+
+数学分析很清晰：
+如果单次回答正确的概率是 $p$，
+$N$ 次独立采样中至少有一次正确的概率是：
+\begin{equation}
+  P(\text{at least one correct}) = 1 - (1-p)^N
+\end{equation}
+当 $p = 0.3$（单次正确率 30\%）时，
+$N = 10$ 次采样就有 $1 - 0.7^{10} \approx 97\%$ 的概率
+至少得到一个正确答案。
+但从 $N = 10$ 到 $N = 100$，
+概率只从 97\% 提升到 99.99\%——
+\textbf{收益急剧递减}。
+
+多数投票比 Best-of-N 更\textbf{鲁棒}，
+因为它不依赖可能有偏的奖励模型——
+它依赖的是「正确答案比错误答案更一致」这个假设。
+但它只适用于答案可以\textbf{精确比较}的场景
+（数学、选择题、代码输出），
+不适用于开放式文本生成。
+
+\subsubsection{奖励模型引导搜索}
+
+更高级的并行缩放策略结合了
+奖励模型的评估能力和搜索算法。
+
+\textbf{Weighted majority voting}：
+不是简单地数每个答案出现的次数，
+而是用奖励模型对每个推理链打分，
+然后按分数加权投票。
+这结合了自一致性（答案频率）
+和质量评估（奖励分数）的优点。
+
+\textbf{LE-MCTS}（Language model Ensemble with MCTS）~\cite{park2025lemcts}：
+将多个 LLM 的推理步骤视为
+MCTS 中不同的行动选择。
+在每一步推理中，选择哪个 LLM 来生成下一步
+由 UCB（Upper Confidence Bound）策略决定，
+由 PRM 提供每一步的评分。
+这实现了\textbf{步骤级别}的模型集成，
+比简单的输出级别集成更加精细。
+
+并行缩放的优点是实现极其简单、可线性扩展、
+而且每个独立样本可以并行生成，延迟不增加（只增加吞吐需求）。
+缺点是效率低——大部分生成是浪费的，
+而且对于需要深度推理的问题，
+100 次浅层思考可能不如 1 次深度思考。
+
+\subsection{策略三：搜索（Search / Tree of Thought）}
+
+\textbf{搜索}将推理过程视为一棵\textbf{树}，
+每个节点是一个中间推理步骤，
+每条边是一步推理。
+通过系统性地探索多条推理路径，
+可以避免单条路径的死胡同。
+
+\textbf{Tree of Thought}（ToT）
+是最直观的实现：
+在推理的每个关键步骤，
+生成多个候选的下一步，
+评估每个候选的质量，
+选择最有希望的继续展开。
+
+\textbf{MCTS}（Monte Carlo Tree Search）
+将 AlphaGo 的搜索算法引入语言推理：
+从根节点（问题）出发，
+通过选择（Selection）、扩展（Expansion）、
+模拟（Simulation）、回传（Backpropagation）
+四个步骤反复迭代，
+逐步构建推理树并找到最优路径。
+
+搜索的关键组件是\textbf{评估函数}——
+如何判断一个中间推理步骤的质量？
+这里引入了 \textbf{Process Reward Model}（PRM）的概念：
+与传统的 Outcome Reward Model（ORM，只评分最终答案）不同，
+PRM 对\textbf{每个推理步骤}打分。
+这提供了更细粒度的信号——
+不仅知道最终答案对不对，
+还知道从哪一步开始出了问题。
+PRM 使得搜索可以\textbf{及早剪枝}错误的推理路径，
+大幅提高搜索效率。
+
+\begin{whybox}[ORM vs PRM：粗粒度 vs 细粒度奖励]
+考虑一个数学问题的 5 步推理过程，
+其中第 3 步出了错误。
+
+\textbf{ORM}只看最终答案：答案错了 → 整个推理链得低分。
+但 ORM 不知道前 2 步是对的，
+导致在搜索中可能丢弃那些「前半部分优秀」的推理路径。
+
+\textbf{PRM}对每一步评分：
+Step 1: 0.95, Step 2: 0.92, Step 3: 0.15, Step 4: 0.10, Step 5: 0.08。
+PRM 清晰地定位了错误在 Step 3，
+搜索算法可以保留 Step 1--2 的推理，
+只从 Step 3 开始尝试新的方向。
+
+PRM 的训练更困难——
+需要\textbf{步骤级别}的标注，
+而不是简单的「答案对不对」。
+但其提供的细粒度信号
+使得搜索效率提升数个数量级。
+Snell et al.\ 的实验表明，
+PRM 引导的 beam search 在相同计算预算下
+比 ORM 引导的 Best-of-N 高出 10--20\% 的准确率。
+\end{whybox}
+
+\textbf{AlphaProof} 和 \textbf{AlphaGeometry 2}
+是搜索策略的极致展示：
+在 2024 年国际数学奥林匹克（IMO）中，
+AlphaProof 与 AlphaGeometry 2 联合解出了 6 道题中的 4 道
+（其中 AlphaProof 解决了代数和数论题，
+AlphaGeometry 2 解决了几何题），
+达到了银牌水平。
+AlphaProof 使用 Gemini 模型将自然语言转换为 Lean 4 形式化语言，
+再通过类似 AlphaZero 的强化学习方法进行证明搜索。
+每一步都可以被\textbf{机器验证}（proof checker），
+消除了幻觉的可能性。
+
+\textbf{Beam search over reasoning chains}
+是一种更轻量的搜索方法：
+类似于传统的 beam search，
+维护 $B$ 条最有希望的推理链，
+每步扩展每条链，保留总分最高的 $B$ 条。
+PRM 提供每一步的评分。
+这比完整的 MCTS 计算量更小，
+但仍然比纯顺序推理有显著的质量提升。
+
+\subsection{三种策略的对比}
+
+\begin{keybox}[推理时计算策略对比]
+\begin{itemize}[noitemsep]
+  \item \textbf{顺序缩放}：一次深度思考。
+        优势——推理深度高，适合需要多步推导的问题。
+        劣势——单次推理可能走进死胡同。
+  \item \textbf{并行缩放}：$N$ 次独立思考。
+        优势——实现简单，可并行，延迟不增加。
+        劣势——效率低，收益递减，可能遭受奖励黑客。
+  \item \textbf{搜索}：系统性探索推理树。
+        优势——可以回溯，避免死胡同，理论上最优。
+        劣势——需要 PRM，计算量大，实现复杂。
+\end{itemize}
+经验法则：低难度问题用并行缩放，
+中高难度用顺序缩放，
+极高难度（数学竞赛、形式化证明）用搜索。
+\end{keybox}
+
+\subsection{混合缩放（Hybrid Scaling）}
+
+\textbf{混合缩放}结合并行和顺序——
+并行生成多个推理链，
+每条链内部是顺序推理，最后取最优。
+ThreadWeaver（2025 年提出）就是这种方法，
+实现了 $1.53\times$ 的延迟降低同时保持准确率。
+
+实践中最有效的配置通常是混合的：
+让推理模型生成 $N$（通常 4--16）个独立的长推理链，
+然后用多数投票或奖励模型选最优。
+这同时利用了「深度思考」和「多样性」的优势。
+
+
+\section{DeepSeek-R1：从零开始学会推理}
+
+DeepSeek-R1~\cite{deepseekr1} 是推理时缩放领域的里程碑。
+它首次证明了\textbf{纯粹的强化学习}（无需人类推理示范）
+就能让模型自发地发展出复杂的推理能力。
+
+\subsection{R1-Zero：从 RL 中涌现的推理}
+
+在 R1 的完整训练之前，
+DeepSeek 团队先进行了一个大胆的实验：
+在 DeepSeek-V3-Base 上\textbf{直接}应用 GRPO RL 训练，
+\textbf{不使用任何 SFT 数据}。
+这个模型被称为 \textbf{DeepSeek-R1-Zero}。
+
+R1-Zero 的训练设计极其简洁：
+\begin{itemize}[noitemsep]
+  \item \textbf{奖励信号}：只有两类——
+        数学题答案是否正确（accuracy reward），
+        和输出格式是否符合要求（format reward）。
+        没有过程奖励（PRM），没有人类偏好。
+  \item \textbf{训练数据}：数学、代码和逻辑推理题，
+        全部有\textbf{可验证}的正确答案。
+  \item \textbf{优化算法}：GRPO——
+        对每个问题生成一组回答，
+        根据组内相对排名计算优势函数，
+        不需要单独的价值网络或奖励模型。
+\end{itemize}
+
+\subsection{``Aha Moment''——模型的顿悟时刻}
+
+R1-Zero 训练过程中出现了令研究者震惊的现象。
+在 RL 训练到一定阶段后，
+模型自发地开始展现出一系列
+\textbf{从未在训练数据中出现过}的推理行为：
+
+\begin{corebox}[DeepSeek-R1 的 ``Aha Moment'']
+在训练中期的某次评估中，
+模型在解数学题时写下了这样的推理过程：
+
+\textit{``Wait, wait. Wait. That's an aha moment.
+I can actually solve this by re-reading the problem
+and approaching it differently...
+Let me reconsider what I assumed earlier...''}
+
+这不是人类编写的推理模板——
+模型自己「发明」了自我反思和重新审视的策略。
+这个时刻被 DeepSeek 团队称为 ``aha moment''，
+因为它标志着模型从简单的模式匹配
+跃迁到了\textbf{元认知}层面的推理。
+\end{corebox}
+
+具体而言，R1-Zero 自发发展出了以下推理策略：
+
+\textbf{回溯}（Backtracking）：
+模型在推理链中发现前面的方向不对时，
+主动放弃当前路径，回退到更早的步骤重新推导。
+这是一种典型的搜索行为——
+模型学会了在推理树中「剪枝」和「回溯」。
+
+\textbf{自我验证}（Self-verification）：
+模型在得出中间结论后，
+会主动检验该结论的正确性——
+例如将答案代回原方程验证，
+或用不同方法重新推导检查一致性。
+这模拟了数学家的证明检查过程。
+
+\textbf{分类讨论}（Case analysis）：
+面对多种可能情况的问题，
+模型学会了系统性地枚举每种情况，
+逐一分析，最后综合得出结论。
+
+\textbf{反证法}（Proof by contradiction）：
+在某些逻辑推理问题中，
+模型会假设结论不成立，
+推导出矛盾，从而证明结论成立。
+
+这些策略的涌现具有深远的意义：
+它表明复杂的推理能力\textbf{不需要}显式的人类教学，
+可以通过适当的 RL 训练从模型中自然涌现。
+这与 AlphaGo Zero 的启示一致——
+在有可验证奖励信号的领域，
+RL 能够发现人类未曾想到的策略。
+
+\subsection{R1 的完整训练流程}
+
+R1-Zero 虽然展现了令人兴奋的推理涌现，
+但存在两个严重的问题：
+\begin{itemize}[noitemsep]
+  \item \textbf{可读性差}：输出混合多种语言，
+        推理链混乱难读，对用户不友好。
+  \item \textbf{非推理任务退化}：
+        在日常对话、翻译等不需要推理的任务上
+        表现明显下降。
+\end{itemize}
+
+DeepSeek-R1 的完整训练分为四个阶段：
+
+\textbf{阶段一：冷启动 SFT}。
+收集少量高质量的推理示范数据（数千条），
+对基础模型做 SFT。
+这一步不是为了教模型推理——
+而是为了稳定后续 RL 训练的起点，
+避免 R1-Zero 中的格式混乱问题。
+
+\textbf{阶段二：推理导向 RL}。
+在冷启动模型上做 GRPO RL 训练，
+使用数学、代码和逻辑题的可验证奖励。
+这是推理能力形成的核心阶段。
+
+\textbf{阶段三：拒绝采样 + 通用 SFT}。
+用阶段二的模型生成大量推理链，
+通过拒绝采样保留高质量的输出（约 800K 条），
+混合通用的 SFT 数据（日常对话、翻译等），
+做一轮全面的 SFT。
+这一步恢复了模型在非推理任务上的能力。
+
+\textbf{阶段四：全场景 RL}。
+在所有类型的任务上做最终的 RL 训练，
+使用混合的奖励信号
+（可验证任务用规则奖励，开放式任务用奖励模型），
+进一步提升整体质量和对齐度。
+
+\subsection{R1 vs o1/o3：两条不同的路径}
+
+DeepSeek-R1 和 OpenAI 的 o1/o3 系列
+代表了推理时缩放的两条不同路径：
+
+\begin{table}[H]
+\centering\small
+\caption{DeepSeek-R1 vs OpenAI o 系列对比}
+\begin{tabularx}{\linewidth}{l X X}
+\toprule
+\textbf{维度} & \textbf{DeepSeek-R1} & \textbf{OpenAI o1/o3} \\
+\midrule
+\textbf{核心方法} & GRPO RL + 可验证奖励。不需要单独的奖励模型。 & RL + 详细的 PRM。使用复杂的奖励建模系统。 \\
+\textbf{推理过程} & 完全可见。用户可以看到完整的 thinking tokens。 & 隐藏。用户只看到最终答案（部分摘要可见）。 \\
+\textbf{开源} & 模型权重完全开源，训练方法论在论文中详细公开。 & 完全闭源，仅通过 API 提供服务。 \\
+\textbf{基础架构} & 671B MoE（37B 活跃参数），基于 DeepSeek-V3。 & 未公开。推测基于 GPT-4 级别架构。 \\
+\textbf{蒸馏} & 提供 1.5B 到 70B 的完整蒸馏系列。 & 无官方蒸馏，o3-mini 作为轻量版本。 \\
+\textbf{性能（AIME 2024）} & 79.8\% & o1: 83.3\%, o3-mini (high): 87.3\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+o3-mini 是一个值得关注的案例：
+它在多个数学基准（如 AIME）上\textbf{超过}了 o1，
+同时成本只有 o1 的 $1/14$（\$1.10/\$4.40 vs \$15/\$60 per M tokens）。
+这证明了推理时缩放中
+\textbf{算法效率的提升}可以同时提高质量和降低成本。
+
+2025 年 4 月，OpenAI 发布了 o3 和 o4-mini，
+标志着推理模型的又一次飞跃。
+o3 和 o4-mini 引入了\textbf{工具使用}能力——
+它们可以在推理过程中自主决定
+搜索网页、执行代码、分析图像，
+将工具调用和推理无缝结合。
+这代表了从「纯思考」到「思考 + 行动」的范式转变。
+
+
+\section{工具增强推理}
+
+2025--2026 年，推理模型的一个重要演进方向是
+将\textbf{外部工具}集成到推理过程中。
+模型不再仅仅依赖内部推理——
+而是可以在思考过程中调用工具来辅助推理。
+
+\subsection{代码执行作为推理工具}
+
+最自然的工具增强推理是\textbf{代码执行}。
+在解决数学或数据分析问题时，
+模型可以编写代码来精确计算中间结果，
+而不是依赖自然语言推理（容易出现算术错误）。
+
+典型的流程是：
+\begin{enumerate}[noitemsep]
+  \item 模型分析问题，决定使用代码来辅助计算。
+  \item 在 thinking 过程中生成 Python 代码。
+  \item 代码在沙箱环境中执行，返回结果。
+  \item 模型将执行结果纳入后续推理链。
+\end{enumerate}
+
+这解决了 LLM 推理中最臭名昭著的弱点之一：
+\textbf{算术错误}。
+LLM 通过自然语言做多步算术时，
+每一步都有累积误差的风险。
+而代码执行保证了计算的\textbf{精确性}。
+OpenAI 的 o3/o4-mini 原生支持
+在推理过程中执行 Python 代码——
+这使得它们在需要精确计算的数学和科学问题上
+表现显著优于仅用自然语言推理的模型。
+
+\subsection{搜索与检索增强推理}
+
+推理过程中的\textbf{检索增强}（Retrieval-Augmented Reasoning）
+让模型在思考时可以搜索外部知识。
+当模型在推理中遇到不确定的事实性问题时，
+它可以暂停推理、搜索相关信息、
+然后基于检索到的事实继续推理。
+
+这与传统的 RAG（Retrieval-Augmented Generation）不同：
+\begin{itemize}[noitemsep]
+  \item \textbf{传统 RAG}：在生成\textbf{之前}检索一次，
+        将检索结果作为上下文输入模型。
+  \item \textbf{推理中检索}：在推理\textbf{过程中}多次检索，
+        每次检索都基于当前推理状态的需要。
+        检索和推理交替进行，形成「思考 → 搜索 → 思考」的循环。
+\end{itemize}
+
+这种交互式检索在需要综合多源信息的推理任务中
+效果尤为显著——
+例如法律案例分析（需要检索多个先例）
+或科学文献综述（需要交叉引用多篇论文）。
+
+\subsection{多步 Agent 推理}
+
+\textbf{Agent 推理}是工具增强推理的最完整形式。
+推理模型不仅可以思考和使用单个工具，
+还可以\textbf{规划}和\textbf{编排}多步骤的工作流。
+
+Claude Opus 4.6 的 extended thinking
+允许模型在一个统一的推理过程中
+思考、调用工具、分析工具返回的结果、
+再继续思考——
+整个过程是一个\textbf{连贯的}推理链，
+而不是分离的「思考步骤」和「工具调用步骤」。
+
+OctoTools~\cite{lu2025octotools} 提出了一个
+可扩展的 agent 推理框架。
+通过\textbf{工具卡片}（tool card）机制，
+模型可以在无需额外训练的情况下
+集成新的工具——
+每张工具卡片描述了工具的功能、输入/输出格式
+和使用时机。
+模型通过阅读工具卡片来决定何时使用什么工具。
+实验表明，即使是最强的 LLM + 完善的 agent 工作流，
+在复杂的跨论文科学推理任务上
+准确率也仅有 38.78\%，
+困难子集上更是低至 18.47\%——
+这表明工具增强推理仍有巨大的改进空间。
+
+\begin{keybox}[工具增强推理的层次]
+\begin{itemize}[noitemsep]
+  \item \textbf{Level 0——纯推理}：
+        模型仅用自然语言推理，不使用任何外部工具。
+        CoT、R1-Zero 属于这一层次。
+  \item \textbf{Level 1——单工具推理}：
+        模型在推理中使用单一工具（如代码执行器）。
+        o3 的 Python 执行属于这一层次。
+  \item \textbf{Level 2——多工具推理}：
+        模型在推理中编排多个工具（代码、搜索、API 调用）。
+        o3/o4-mini 的完整工具使用属于这一层次。
+  \item \textbf{Level 3——Agent 推理}：
+        模型规划多步骤工作流，
+        包括子任务分解、工具编排、结果验证、
+        和基于中间结果的动态调整。
+        Claude 的 extended thinking + tool use 属于这一层次。
+\end{itemize}
+\end{keybox}
+
+
+\section{推理模型的部署经济学}
+
+推理时计算缩放正在深刻重塑 AI 的经济学。
+推理需求预计将大幅超过训练需求（据行业估计可达百倍量级）。
+GPT-4 等效性能的成本从 2022 年的 \$20/M tokens
+降至 2026 年的 \$0.40/M tokens——
+$1000\times$ 的下降，主要来自推理优化。
+
+但推理模型也带来了新的成本挑战：
+DeepSeek-R1 在回答一个数学问题时
+可能生成 10,000+ 个 thinking token，
+然后才给出 100 个 token 的答案。
+thinking token 虽然不展示给用户，
+但同样需要计算和内存资源。
+
+\subsection{何时使用推理时缩放}
+
+推理时缩放不是万灵药——
+对于不同类型的任务，性价比差异巨大：
+
+\textbf{高价值场景}（值得投入 10--100$\times$ 推理计算）：
+\begin{itemize}[noitemsep]
+  \item 数学证明和竞赛题——答案可验证，推理深度直接决定正确率。
+  \item 代码 bug 修复和系统设计——错误成本高，
+        多花 \$0.10 的推理费用可以避免 \$10,000 的生产事故。
+  \item 法律和医疗分析——高风险决策，准确性比延迟更重要。
+  \item 科学研究中的假设生成——需要深度推理和创造性思考。
+\end{itemize}
+
+\textbf{低价值场景}（标准推理即可）：
+\begin{itemize}[noitemsep]
+  \item 日常聊天和问答——首次回答通常就足够好。
+  \item 翻译和摘要——任务结构明确，不需要深度推理。
+  \item 简单的分类和提取——模型直觉足够准确。
+\end{itemize}
+
+\subsection{路由与预算管理}
+
+这催生了\textbf{推理预算管理}的概念：
+对于简单问题，限制 thinking token 的数量以节省成本；
+对于困难问题，分配更多的推理预算以保证质量。
+
+\textbf{难度路由}（Difficulty Routing）
+是一种经济高效的方案：
+使用一个轻量级的分类器（甚至是 prompt-based 的判断）
+评估问题的难度，
+将简单问题路由到标准模型（快且便宜），
+将困难问题路由到推理模型（慢但准确）。
+好的路由器可以将 80\% 的请求用便宜的方式处理，
+只对 20\% 真正需要深度推理的问题投入额外计算。
+
+\begin{corebox}[可配置的推理预算：行业实践]
+Claude Opus 4.6 支持可配置的 thinking budget，
+允许开发者通过 API 设置任意的 \texttt{budget\_tokens} 参数
+来控制推理深度。
+这将推理时缩放从「全有或全无」
+变成了\textbf{连续可调}的维度——
+开发者可以根据任务需求和成本预算
+在延迟、质量和成本之间做精细的权衡。
+
+Qwen3~\cite{qwen2025qwen3} 走了另一条路：
+在单个模型中统一 thinking 和 non-thinking 模式。
+用户可以根据需要在两种模式间切换——
+简单问题直接回答（non-thinking），
+复杂问题开启深度推理（thinking）——
+不需要部署两个不同的模型。
+
+Google Gemini 2.5/3 引入了\textbf{动态思考模式}——
+模型根据问题复杂度自动调整推理深度，
+无需用户手动控制。
+Flash 版本提供快速推理，Pro 版本提供深度推理，
+两者共享同一架构但分配不同的计算预算。
+\end{corebox}
+
+\subsection{共享推理的可能性}
+
+对于多个用户问相似的难题（如热门的面试编程题），
+可以缓存和复用推理过程。
+一个用户的深度推理结果可以被后续用户共享，
+避免重复计算。
+这类似于 prefix caching 的思想，
+但扩展到了推理链（reasoning chain）层面。
+这在教育和客服场景中有巨大的潜力。
+
+\subsection{成本模型}
+
+一个推理模型回答一个数学问题的成本构成：
+\begin{itemize}[noitemsep]
+  \item \textbf{标准回答}（无 thinking）：
+        $\sim$500 输出 token，成本 $\sim$\$0.001。
+  \item \textbf{浅层推理}（1K thinking tokens）：
+        $\sim$1500 总 token，成本 $\sim$\$0.003。
+  \item \textbf{深度推理}（10K thinking tokens）：
+        $\sim$10500 总 token，成本 $\sim$\$0.02。
+  \item \textbf{Best-of-16 + 深度推理}：
+        $\sim$168K 总 token，成本 $\sim$\$0.30。
+\end{itemize}
+
+深度推理的成本是标准回答的 20 倍，
+Best-of-16 + 深度推理是 300 倍。
+但如果问题本身的价值足够高
+（一道竞赛题的解答、一个关键 bug 的修复），
+这个成本仍然极为合算。
+
+关键在于\textbf{匹配推理投入和问题价值}——
+用 \$0.30 的推理计算来回答「今天天气怎么样」是浪费，
+用 \$0.001 的快速回答来解数学竞赛题是不足。
+好的推理时计算系统需要\textbf{自适应}地分配资源。
+
+
+\section{推理模型的前沿与未来}
+
+\subsection{从推理到行动：Agent 范式}
+
+2026 年的一个核心趋势是
+推理模型从「思考者」进化为「行动者」。
+传统推理模型只在\textbf{文本空间}中推理；
+新一代模型在\textbf{行动空间}中推理——
+它们可以规划行动序列、执行工具调用、
+观察结果、调整计划。
+
+这种「推理 + 行动」的范式
+本质上是将推理时缩放应用于更广阔的问题空间。
+不再只是「想更久」，
+而是「想更久，并且在想的过程中做实验来验证想法」。
+
+\subsection{效率缩放：做更多、花更少}
+
+2026 年行业的核心议题不再是「更大的模型」，
+而是\textbf{效率缩放}——
+用更少的计算达到同等甚至更好的效果。
+这体现在多个层面：
+\begin{itemize}[noitemsep]
+  \item \textbf{蒸馏}：
+        R1 的 7B 蒸馏模型在 MATH-500 上达到 92.8\%，
+        接近 70B 级别——
+        1/10 的参数，1/10 的推理成本。
+  \item \textbf{混合推理模式}：
+        Qwen3 的 thinking/non-thinking 统一架构
+        让一个模型适应所有场景，
+        避免了部署两套模型的开销。
+  \item \textbf{推理预算自适应}：
+        根据问题难度动态分配计算，
+        80\% 的简单请求用最少的计算完成。
+  \item \textbf{推理链缓存}：
+        复用相似问题的推理过程，
+        避免重复的深度推理计算。
+\end{itemize}
+
+\subsection{开放的问题}
+
+推理时缩放仍有多个\textbf{未解决的问题}：
+
+\textbf{如何训练更好的 PRM？}
+PRM 的质量决定了搜索策略的上限，
+但获取步骤级别的训练数据极为昂贵。
+自动化的 PRM 训练（如通过 MCTS 回溯自动标注）
+是一个活跃的研究方向。
+
+\textbf{推理时缩放有没有「上限」？}
+Snell et al.\ 表明，在极难的问题上，
+增加推理计算的收益会趋近于零。
+但目前尚不清楚这个上限在哪里，
+以及更好的推理策略能否推高这个上限。
+
+\textbf{推理能力能否泛化？}
+在数学和代码上训练的推理能力
+能否迁移到法律推理、医学诊断或科学发现？
+现有证据表明迁移是有限的——
+推理的\textbf{形式}可以迁移（如回溯、验证），
+但\textbf{领域知识}不能自动获得。
+
+\textbf{什么是推理的本质？}
+当前的推理模型是否真的在「推理」，
+还是只是在做更复杂的模式匹配？
+这个哲学问题对实践也有影响——
+如果只是模式匹配，那么在训练分布外的问题上
+推理能力会急剧下降。
+
+这些问题的答案将决定
+推理时缩放能走多远，
+以及它最终能否像预训练缩放那样
+带来持续的、可预测的性能提升。
+
+
+%% ============================================================
+%% NEW REFERENCES
+%% ============================================================
+% NEW REF: wang2023selfconsistency = Wang, Xuezhi, et al. "Self-Consistency Improves Chain of Thought Reasoning in Language Models." ICLR 2023.
+% NEW REF: ichihara2025rbon = Ichihara, Yuki, et al. "Evaluation of Best-of-N Sampling Strategies for Language Model Alignment." TMLR 2025.
+% NEW REF: park2025lemcts = Park, Sungjin, et al. "Ensembling Large Language Models with Process Reward-Guided Tree Search for Better Complex Reasoning." NAACL 2025.
+% NEW REF: lu2025octotools = Lu, Pan, et al. "OctoTools: An Agentic Framework with Extensible Tools for Complex Reasoning." arXiv:2502.11271, 2025.

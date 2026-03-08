@@ -1,0 +1,1749 @@
+\chapter{预训练——从随机噪声到语言理解}
+\label{ch:pretrain}
+%% ============================================================
+
+准备好了数据和模型架构，下一步就是预训练——
+这是整个 LLM 训练流程中计算量最大、成本最高的阶段。
+预训练的目标很简单：让模型学会预测下一个 token。
+但实现这个「简单」目标所需的工程规模，
+超乎大多数人的想象。
+
+\section{训练目标：下一个 Token 预测}
+
+LLM 的预训练使用\textbf{因果语言模型}（Causal Language Model）目标：
+给定前面的所有 token，预测下一个 token。
+
+形式化地，给定一个 token 序列 $x_1, x_2, \ldots, x_T$，
+模型的训练损失是：
+\begin{equation}
+  \mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T}
+  \log P_\theta(x_t \mid x_1, x_2, \ldots, x_{t-1})
+  \label{eq:lm-loss}
+\end{equation}
+这就是交叉熵损失——对数似然的负数，再对序列长度取平均。
+模型被要求在每个位置输出一个词表大小的概率分布，
+正确 token 的概率越高，损失越低。
+
+\subsection{交叉熵、似然与 KL 散度的三位一体}
+
+\cref{eq:lm-loss} 看起来是一个「工程选择」，
+但它背后有深刻的信息论基础。
+让我们逐步拆解这三个等价视角。
+
+\textbf{第一视角：最大化对数似然。}
+给定训练语料库中的所有句子，
+我们希望找到参数 $\theta$ 使得模型「最可能生成」这些句子。
+对于单个序列 $\mathbf{x} = (x_1, \ldots, x_T)$，
+自回归分解给出的联合概率为：
+\begin{equation}
+  P_\theta(\mathbf{x})
+  = \prod_{t=1}^{T} P_\theta(x_t \mid x_{<t})
+  \label{eq:autoregressive-decomp}
+\end{equation}
+取对数得到 $\log P_\theta(\mathbf{x}) = \sum_{t=1}^T \log P_\theta(x_t \mid x_{<t})$。
+最大化这个对数似然等价于最小化 \cref{eq:lm-loss}——
+两者仅差一个负号和一个常数 $1/T$。
+
+\textbf{第二视角：最小化 KL 散度。}
+设 $P_{\mathrm{data}}$ 是训练数据的真实分布，
+$P_\theta$ 是模型的分布。
+我们可以写出 KL 散度：
+\begin{equation}
+  D_{\mathrm{KL}}(P_{\mathrm{data}} \| P_\theta)
+  = \mathbb{E}_{P_{\mathrm{data}}} \left[
+    \log \frac{P_{\mathrm{data}}(\mathbf{x})}{P_\theta(\mathbf{x})}
+  \right]
+  = H(P_{\mathrm{data}}, P_\theta) - H(P_{\mathrm{data}})
+\end{equation}
+其中 $H(P_{\mathrm{data}}, P_\theta)$ 是交叉熵，
+$H(P_{\mathrm{data}})$ 是数据本身的熵（常数，不依赖 $\theta$）。
+因此，\textbf{最小化交叉熵 $\Leftrightarrow$ 最小化 KL 散度
+$\Leftrightarrow$ 最大化对数似然}。
+
+这三条路殊途同归，但直觉各不相同：
+对数似然视角说的是「让模型尽可能生成训练数据」；
+KL 散度视角说的是「让模型分布尽可能接近真实分布」；
+交叉熵视角说的是「让模型需要的平均编码长度最短」——
+最终都指向同一个优化目标。
+
+\textbf{第三视角：交叉熵的信息论解读。}
+交叉熵 $H(P_{\mathrm{data}}, P_\theta)$ 可以理解为：
+如果真实数据来自 $P_{\mathrm{data}}$，
+但你使用模型 $P_\theta$ 来编码，
+平均每个 token 需要多少比特。
+好的语言模型 = 好的压缩器——
+这正是 Shannon 信息论的核心洞察。
+当模型完美时（$P_\theta = P_{\mathrm{data}}$），
+交叉熵等于数据本身的熵，即理论上的最优编码长度。
+
+\subsection{Teacher Forcing}
+
+训练时，模型在预测第 $t$ 个 token 时
+使用的是\textbf{真实的}前 $t-1$ 个 token 作为条件，
+而不是模型自己之前生成的 token。
+这种策略叫做 \textbf{Teacher Forcing}。
+
+为什么不用模型自己的输出？
+因为训练初期模型几乎是随机的，
+如果用它自己的（错误的）预测作为后续的输入，
+错误会指数级累积——
+第 1 步预测错了，第 2 步基于错误输入预测更错，
+第 3 步更加离谱。
+这种「误差传播」会让训练完全无法收敛。
+
+Teacher Forcing 通过「强制纠正」解决了这个问题：
+不管模型第 $t-1$ 步预测得多差，
+第 $t$ 步的输入始终是正确的 $x_{t-1}$。
+这让每个位置的预测问题相互独立，
+梯度信号清晰且有效。
+
+代价是训练和推理之间存在分布偏移
+（exposure bias）——
+训练时模型总看到正确的前文，
+推理时只能看到自己可能不正确的生成结果。
+但在实践中，大规模预训练后这个问题的影响很小，
+因为模型已经足够准确，
+推理时的自回归生成很少偏离正轨。
+
+\subsection{因果遮盖 vs 双向遮盖}
+
+\textbf{因果遮盖}（Causal Masking）是 decoder-only 模型
+（GPT 系列、LLaMA、DeepSeek 等）的核心机制：
+在 Attention 计算中，
+位置 $t$ 只能看到位置 $1$ 到 $t$ 的信息。
+这通过一个下三角矩阵实现：
+\begin{equation}
+  \mathrm{Attn}(Q, K, V) = \mathrm{softmax}\left(
+    \frac{QK^\top}{\sqrt{d}} + M
+  \right) V, \quad
+  M_{ij} = \begin{cases} 0 & i \geq j \\ -\infty & i < j \end{cases}
+\end{equation}
+$M$ 中的 $-\infty$ 在 softmax 后变成 0，
+确保未来位置的信息不会泄漏到当前位置。
+
+\textbf{双向遮盖}（Bidirectional Masking）则允许每个位置
+看到序列中的所有其他位置——
+这就是 BERT~\cite{devlin2019bert} 使用的方式。
+双向模型在理解任务上有天然优势：
+要判断一个句子的情感，当然应该同时看到前后文。
+
+那为什么 decoder-only 最终赢了？
+三个关键原因：
+\begin{enumerate}[noitemsep]
+  \item \textbf{生成能力}：因果遮盖天然支持自回归生成。
+        双向模型无法逐步生成文本，因为它需要看到「未来」。
+  \item \textbf{训练效率}：因果语言模型在每个位置都有预测目标，
+        即每个 token 都贡献一个损失信号。
+        BERT 的 MLM 只遮盖 15\% 的 token，
+        85\% 的计算量没有直接贡献于训练目标。
+  \item \textbf{Scaling 效果}：GPT-3~\cite{brown2020gpt3}
+        和后续工作证明，在足够大的规模下，
+        单向因果模型的理解能力并不逊于双向模型——
+        通过预测下一个 token，模型被迫\textbf{隐式地}理解上下文。
+\end{enumerate}
+
+\begin{whybox}[为什么不用 BERT 的 MLM（遮盖语言模型）？]
+BERT~\cite{devlin2019bert} 使用遮盖语言模型：
+随机遮盖 15\% 的 token，让模型预测被遮盖的部分。
+这是\textbf{双向}的——模型同时看到被遮盖位置的前后文。
+这对理解任务（如问答、分类）很有帮助，
+但有一个致命缺陷：它无法用于\textbf{生成}文本。
+生成需要自回归过程——逐词生成，
+每次只能看到前面已生成的内容。
+因果语言模型天然支持这种自回归生成，
+而且 GPT-3~\cite{brown2020gpt3} 证明了
+单方向的因果模型在规模足够大时，
+理解能力也不逊于双向模型。
+因此，所有现代 LLM 都选择了因果语言模型。
+\end{whybox}
+
+\subsection{Prefix Language Modeling}
+
+值得一提的是一种折中方案：
+\textbf{Prefix Language Modeling}（前缀语言模型）。
+它将输入序列分为两部分：
+\textbf{前缀}（prefix）部分使用双向注意力（互相可见），
+\textbf{生成}（generation）部分使用因果注意力（只看前文）。
+
+Google 的 PaLM~\cite{chowdhery2022palm} 和 U-PaLM 都支持这种模式。
+前缀部分通常是任务描述或上下文，
+模型可以充分利用双向信息来理解它；
+生成部分则自回归地产出答案。
+
+这种设计试图兼得两者的优势：
+前缀的双向理解 + 生成的自回归能力。
+但在实践中，纯因果模型（decoder-only）的简洁性和 Scaling 效果
+使它成为了事实标准——
+额外的复杂性带来的收益不足以改变整个行业的选择。
+
+\section{Scaling Laws：计算的经济学}
+\label{sec:scaling-laws}
+
+\subsection{Kaplan Scaling Laws（2020）}
+
+2020 年，OpenAI 发现了一个改变整个领域的定律~\cite{kaplan2020scaling}：
+LLM 的性能（以损失值衡量）与模型大小、数据量和计算量
+之间存在\textbf{精确的幂律关系}。
+
+\begin{equation}
+  L(N) \approx \left(\frac{N_c}{N}\right)^{\alpha_N}, \quad
+  L(D) \approx \left(\frac{D_c}{D}\right)^{\alpha_D}, \quad
+  L(C) \approx \left(\frac{C_c}{C}\right)^{\alpha_C}
+  \label{eq:scaling}
+\end{equation}
+其中 $N$ 是模型参数量，$D$ 是训练数据量（token 数），
+$C$ 是总计算量（FLOP），
+$\alpha$ 和下标 $c$ 是经验常数。
+
+Kaplan 等人拟合出的指数值为：
+$\alpha_N \approx 0.076$，$\alpha_D \approx 0.095$，
+$\alpha_C \approx 0.050$。
+
+这些数字意味着什么？
+以 $\alpha_N = 0.076$ 为例：
+模型参数量每增加 \textbf{10 倍}，
+损失值下降约 $10^{-0.076} \approx 0.84$，即下降 16\%。
+这听起来不多，但在对数坐标下，
+这条直线\textbf{没有拐点}——
+不存在「增大模型就不管用了」的天花板。
+从 100M 到 1B 到 10B 到 100B，
+每增大 10 倍，损失都稳定下降约 16\%。
+
+$\alpha_C = 0.050$ 的含义则更直接：
+计算量（FLOP）每增加 10 倍，
+损失下降约 $10^{-0.05} \approx 0.89$，即 11\%。
+这给了整个行业巨大的信心：
+只要你愿意投入足够的计算，就能造出更好的模型。
+
+Kaplan 论文的另一个关键发现是：
+当计算预算固定时，应该\textbf{优先增大模型、少用数据}。
+他们认为参数量比数据量更重要——
+$N$ 的增长速度应该快于 $D$。
+这直接影响了 GPT-3 的设计选择：
+175B 参数，但仅用 300B token 训练。
+
+\begin{keybox}[Scaling Laws 的直觉类比]
+想象你在装修一间房子：
+\begin{itemize}[noitemsep]
+  \item \textbf{模型参数量 $N$} $\approx$ 房子的面积——更大的房子能放更多东西。
+  \item \textbf{训练数据量 $D$} $\approx$ 装修材料的数量——更多材料让房子更完善。
+  \item \textbf{计算量 $C$} $\approx$ 装修工人的工时——预算总是有限的。
+\end{itemize}
+Kaplan 说：如果预算有限，先买大房子，材料少一点也行。
+Chinchilla 说：不对，大房子配太少的材料是浪费——
+房子面积和材料应该等比例增长。
+\end{keybox}
+
+\subsection{Chinchilla 定律（2022）}
+
+2022 年，DeepMind 对 Scaling Laws 进行了重要修正~\cite{hoffmann2022chinchilla}。
+Kaplan 等人认为应该优先增大模型、少用数据，
+而 Chinchilla 论文证明：
+\textbf{对于给定的计算预算，模型参数量和训练数据量应该等比例增长}。
+
+具体而言，Chinchilla 定律建议每个参数大约需要 20 个 token 的训练数据。
+这意味着一个 70B 参数的模型应该在约 1.4T token 上训练——
+远多于 GPT-3（175B 参数但仅 300B token）所使用的数据量。
+Chinchilla（70B 参数，1.4T token）在几乎所有基准测试上超越了 GPT-3。
+
+Chinchilla 的核心发现可以更精确地表述为：
+对于固定的计算预算 $C$，
+最优的参数量 $N^*$ 和数据量 $D^*$ 满足：
+\begin{equation}
+  N^* \propto C^{0.50}, \quad D^* \propto C^{0.50}
+  \label{eq:chinchilla-optimal}
+\end{equation}
+也就是说，计算预算翻倍时，
+$N$ 和 $D$ 应该\textbf{各增长} $\sqrt{2} \approx 1.41$ 倍。
+这与 Kaplan 的结论截然不同——
+Kaplan 建议把大部分增量预算花在增大模型上，
+Chinchilla 则说应该均分。
+
+这个修正的影响是深远的。
+按 Chinchilla 的标准，GPT-3 被严重「欠训练」了：
+175B 参数的最优训练数据量应该是约 $175 \times 20 = 3.5$T token，
+而 GPT-3 仅用了 300B token——差了超过 10 倍。
+换句话说，如果把训练 GPT-3 的计算量换成训练一个
+更小但更充分训练的模型（如 70B 配 1.4T token），
+性能反而更好。
+
+\subsection{后 Chinchilla 时代：过训练策略}
+\label{sec:overtraining}
+
+Chinchilla 定律回答的是「给定训练预算，如何最优地分配」。
+但它有一个隐含假设：
+它优化的是给定训练计算预算下的最优模型。
+这忽略了一个现实：\textbf{训练是一次性的，推理是永久的}。
+
+考虑两种方案：
+\begin{itemize}[noitemsep]
+  \item 方案 A：训练一个 70B 模型（Chinchilla 最优），1.4T token。
+  \item 方案 B：训练一个 7B 模型，14T token（按 Chinchilla 过训练 10 倍）。
+\end{itemize}
+两者的训练计算量接近（$C \approx 6ND$），
+但方案 B 的模型小 10 倍——
+部署时每次推理的成本只有方案 A 的 $\sim$10\%。
+如果这个模型要服务亿万用户，
+方案 B 的总成本（训练 + 推理）可能远低于方案 A。
+
+Meta 的 LLaMA~\cite{touvron2023llama} 系列开创了这一思路：
+\begin{itemize}[noitemsep]
+  \item LLaMA-1 7B：1T token（Chinchilla 建议约 140B token，过训练 $\sim$7$\times$）
+  \item LLaMA 2 7B：2T token（过训练 $\sim$14$\times$）
+  \item LLaMA 3 8B~\cite{dubey2024llama3}：15T token（过训练 $\sim$100$\times$）
+\end{itemize}
+
+DeepSeek-V3~\cite{deepseekv3} 正是基于这个思想：
+671B 总参数（MoE 架构下每个 token 仅激活 37B），
+在 14.8T token 上训练——远超 Chinchilla 最优数据量。
+如果按 Chinchilla 的 20:1 比例，37B 活跃参数只需约 740B token，
+实际用了 14.8T，过训练了约 20 倍。
+这种「过训练」（over-training）策略使得模型在部署时极具成本优势。
+
+\begin{corebox}[推理经济学：为什么「过训练」更划算]
+假设训练成本为 $C_{\mathrm{train}}$，
+模型每天推理 $Q$ 次查询，
+每次推理成本正比于活跃参数量 $N_{\mathrm{active}}$，
+模型服务周期为 $T$ 天。
+总成本 =
+$C_{\mathrm{train}} + Q \cdot T \cdot f(N_{\mathrm{active}})$。
+
+对于广泛部署的模型（$Q \cdot T$ 极大），
+推理项主导总成本——
+此时减小 $N_{\mathrm{active}}$（即使需要增加 $C_{\mathrm{train}}$）
+几乎总是有利的。
+这就是 Chinchilla 最优不等于部署最优的根本原因。
+\end{corebox}
+
+\subsection{``Chinchilla is Dead''：推理感知的 Scaling Laws}
+\label{sec:inference-aware-scaling}
+
+2024--2025 年，学术界和工业界对 Chinchilla 定律展开了深入的反思，
+甚至出现了 ``Chinchilla is Dead'' 的说法。
+核心论点是：\textbf{Chinchilla 只优化了训练成本，
+完全忽略了推理成本}——
+而对于被广泛部署的模型，推理成本远超训练成本。
+
+Sardana 等人~(2024) 在 ICML 上发表了% NEW REF: sardana2024inference = Beyond Chinchilla-Optimal: Accounting for Inference in Language Model Scaling Laws, Sardana et al., ICML 2024
+形式化的\textbf{推理感知 Scaling Laws}。
+他们将总成本建模为训练与推理的加权和：
+\begin{equation}
+  C_{\mathrm{total}} = C_{\mathrm{train}}(N, D)
+  + R \cdot C_{\mathrm{inference}}(N)
+  \label{eq:inference-aware}
+\end{equation}
+其中 $R$ 是模型生命周期内的总推理请求量。
+当 $R$ 较大时（即模型被广泛部署），
+最优策略是训练\textbf{更小的模型、用更多数据}——
+这正是 LLaMA 系列和 DeepSeek 系列的做法。
+Sardana 等人的分析表明，对于每天服务数百万查询的模型，
+最优参数量可能只有 Chinchilla 最优的 $1/5$ 到 $1/10$，
+但需要 $5\times$ 到 $50\times$ 的训练数据。
+
+Bian 等人~(2025) 进一步将\textbf{模型架构}纳入 Scaling Laws 的考量。% NEW REF: bian2025inference = Scaling Inference-Efficient Language Models, Bian et al., arXiv 2025
+他们发现，参数量相同的模型因架构差异
+（如层数 vs 宽度、GQA vs MHA、FFN 比例等）
+推理延迟最多相差 $3.5\times$。
+这意味着 Scaling Laws 不应只优化参数量和数据量，
+还应该\textbf{共同优化架构设计}。
+
+\subsection{数据受限的 Scaling Laws 与合成数据}
+\label{sec:data-constrained}
+
+当高质量自然数据趋于耗尽时，
+传统 Scaling Laws 的 ``无限数据'' 假设不再成立。
+
+Muennighoff 等人~(2023) 的研究表明，% NEW REF: muennighoff2023scaling = Scaling Data-Constrained Language Models, Muennighoff et al., NeurIPS 2023
+重复数据的价值递减但不为零——
+数据重复 4 次的效果大约等价于使用 $4^{0.6} \approx 2.3$ 倍的去重数据。
+超过约 4 个 epoch 后，重复的边际收益急剧下降。
+
+这个问题催生了\textbf{合成数据 Scaling Laws} 的研究。
+Qin 等人~(2025) 提出了 SynthLLM 框架，% NEW REF: qin2025synthllm = Scaling Laws of Synthetic Data for Language Models, Qin et al., arXiv 2025
+首次系统地研究了合成数据的 scaling 行为。
+他们发现：（1）朴素地扩大合成数据量存在严重的收益递减——
+模型会过拟合于合成数据的分布偏差；
+（2）通过``精心练习''（deliberate practice）策略，
+即动态生成针对模型弱点的合成数据，
+可以显著改善合成数据的 scaling 效率。
+Microsoft 基于 SynthLLM 的实验表明，
+经过精心设计的合成数据可以有效突破``数据墙''，
+为模型提供接近真实数据质量的训练信号。
+
+\subsection{Scaling Laws 的新方向（2025--2026）}
+
+Scaling Laws 的研究仍在快速发展。
+几个值得关注的方向：
+
+\textbf{下游任务的 Scaling Laws}。
+Held 等人~(2025) 提出了\textbf{相对 Scaling Laws}，% NEW REF: held2025relative = Relative Scaling Laws for LLMs, Held et al., arXiv 2025
+不再用绝对的损失值来描述 scaling 行为，
+而是预测模型之间的\textbf{相对性能差异}。
+这种方法对不同评估基准的尺度变化更鲁棒。
+Zhang 等人~(2026) 进一步提出了\textbf{规范性 Scaling Laws}，% NEW REF: zhang2026prescriptive = Prescriptive Scaling Reveals the Evolution of Language Model Capabilities, Zhang et al., arXiv 2026
+基于 5000+ 个模型评估数据点，
+估计给定预训练计算预算所能达到的下游准确率上界。
+他们发现，随着后训练技术（RLHF、推理时计算等）的进步，
+同样预训练预算对应的能力边界在持续上移——
+这意味着 Scaling Laws 不是静态的，
+它们会随着整个技术栈的进步而``演化''。
+
+\textbf{推理时计算的 Scaling Laws}。
+OpenAI 的 o1/o3 系列模型开辟了另一条 scaling 路径：
+不增加模型参数，
+而是在推理时投入更多计算（如更长的思维链、更多的采样和验证）。
+这引出了一个新的权衡维度：
+\textbf{训练时计算 vs 推理时计算}。
+对于某些推理密集型任务（数学、编程），
+在推理时使用更多计算的回报可能高于
+同等计算量用于增大模型。
+
+\subsection{Scaling Laws 的局限性}
+
+尽管 Scaling Laws 是 LLM 领域最重要的实证发现之一，
+它们有几个重要的局限性：
+
+\textbf{不能预测涌现能力}（Emergent Capabilities）。
+Scaling Laws 告诉你损失值会随规模平滑下降，
+但不会告诉你模型在什么规模下突然学会了
+思维链推理（Chain-of-Thought）、
+上下文学习（In-Context Learning）或者代码生成。
+这些能力似乎在某个规模阈值之后「突然出现」——
+而这在平滑的幂律曲线上是看不到的。
+
+\textbf{仅预测训练损失，不预测下游任务性能}。
+训练损失（perplexity）的改善不一定线性地转化为
+具体任务（如数学推理、代码生成）上的性能提升。
+你可能需要将损失从 2.5 降到 2.3 才能看到数学能力的跳跃，
+但从 2.3 降到 2.1 对数学帮助不大，
+反而让诗歌写作能力有了飞跃。
+
+\textbf{数据质量不在公式中}。
+Scaling Laws 假设数据质量恒定，
+但实际上数据质量可能比数据数量更重要。
+Phi-2（2.7B）在精选的「教科书级」数据上训练，
+在部分基准测试上超过了 25$\times$ 大的模型。
+
+\textbf{「苦涩的教训」}。
+Rich Sutton 的经典文章~\cite{sutton2019bitterlesson}
+总结了 AI 研究 70 年的规律：
+利用\textbf{更多计算}的方法，长期来看总是赢——
+那些依赖人类知识和巧妙特征工程的方法，
+短期内可能有效，但最终会被暴力扩展的方法超越。
+Scaling Laws 是这个「苦涩教训」的数学表述。
+
+\section{分布式训练：为什么需要数千块 GPU？}
+
+让我们做一个简单的计算来理解为什么单块 GPU 远远不够。
+
+一个 70B 参数的模型：
+\begin{itemize}[noitemsep]
+  \item \textbf{模型权重}：$70 \times 10^9 \times 2$ bytes (BF16) $= 140$\,GB
+  \item \textbf{优化器状态}（Adam）：每个参数需要 12 bytes
+        （FP32 参数副本 4 bytes + 一阶动量 4 bytes + 二阶动量 4 bytes）$= 840$\,GB
+  \item \textbf{梯度}：$140$\,GB
+  \item \textbf{激活值}：取决于 batch size 和序列长度，通常 100+\,GB
+\end{itemize}
+总计约 \textbf{1,220+\,GB}——
+而一块 H100 GPU 只有 80\,GB 显存。
+即使是最新的 H200（141\,GB），单块也放不下。
+
+这就是为什么分布式训练是必须的。
+现代 LLM 训练使用多种并行策略的组合。
+
+\subsection{数据并行（Data Parallelism）}
+
+最简单的并行方式：每块 GPU 持有完整的模型副本，
+处理不同的数据批次，然后同步梯度。
+
+\begin{lstlisting}[caption={Distributed Data Parallel in PyTorch}]
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+# Each GPU gets the same model
+model = LLM().to(local_rank)
+model = DDP(model, device_ids=[local_rank])
+
+for batch in dataloader:
+    loss = model(batch)
+    loss.backward()
+    # Gradients are automatically all-reduced across GPUs
+    optimizer.step()
+\end{lstlisting}
+
+问题是：每块 GPU 都要放下完整模型。
+对于 70B+ 的模型，这不可行。
+
+\textbf{梯度同步}是数据并行的核心操作。
+所有 GPU 需要在反向传播后将梯度「平均化」，
+确保每块 GPU 上的模型更新一致。
+最常用的算法是 \textbf{Ring AllReduce}：
+$N$ 块 GPU 组成一个环，
+每块 GPU 向下一块发送自己的梯度切片、
+接收上一块的梯度切片，经过 $2(N-1)$ 步通信后，
+所有 GPU 都拥有了完整的平均梯度。
+Ring AllReduce 的通信量与 GPU 数量 $N$ 无关
+（每块 GPU 发送和接收的数据量约为 $2 \cdot \frac{M}{N} \cdot (N-1) \approx 2M$，
+其中 $M$ 是梯度总大小），
+因此能很好地扩展到大规模集群。
+
+\textbf{大 Batch 训练的挑战。}
+数据并行天然地扩大了有效 batch size——
+$N$ 块 GPU 每块处理 $B$ 个样本，有效 batch size 为 $NB$。
+但大 batch 带来两个问题：
+（1）学习率需要相应调整，否则收敛速度会下降——
+通常使用线性缩放规则（linear scaling rule）：
+$\mathrm{lr}_{\mathrm{effective}} = \mathrm{lr}_{\mathrm{base}} \times N$；
+（2）过大的 batch 可能让模型陷入尖锐的极小值
+（sharp minima），泛化性变差。
+这就是为什么大 batch 训练几乎总是需要
+\textbf{学习率预热}（warmup）——
+让模型在初期用较小的步长探索参数空间。
+
+\subsection{ZeRO 与 FSDP：分片数据并行}
+
+DeepSpeed 的 ZeRO 优化~\cite{rajbhandari2020zero}
+和 PyTorch 的 FSDP 解决了这个问题：
+将模型的参数、梯度和优化器状态\textbf{分片}到不同 GPU 上，
+每块 GPU 只持有 $1/N$ 的模型状态。
+计算时，通过 All-Gather 临时收集需要的参数；
+反向传播后，通过 Reduce-Scatter 分发梯度。
+
+ZeRO 分为三个阶段，每个阶段分片的内容不同，
+对应不同的内存节省和通信开销：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{ZeRO-1}：只分片优化器状态。
+  \item \textbf{ZeRO-2}：分片优化器状态 + 梯度。
+  \item \textbf{ZeRO-3 / FSDP}：分片一切，包括模型参数。
+\end{itemize}
+
+让我们用一个 \textbf{10B 参数模型在 8 块 GPU 上}的例子
+来量化每个阶段的内存节省：
+
+\begin{center}
+\begin{tabular}{lrrr}
+  \hline
+  \textbf{组件} & \textbf{无 ZeRO} & \textbf{每块 GPU 需存储} & \textbf{Bytes/param} \\
+  \hline
+  模型参数（BF16） & 20\,GB & 每 GPU 全量 & 2 \\
+  梯度（BF16） & 20\,GB & 每 GPU 全量 & 2 \\
+  优化器状态（FP32） & & & \\
+  \quad 参数副本 & 40\,GB & 每 GPU 全量 & 4 \\
+  \quad 一阶动量 $m$ & 40\,GB & 每 GPU 全量 & 4 \\
+  \quad 二阶动量 $v$ & 40\,GB & 每 GPU 全量 & 4 \\
+  \hline
+  \textbf{总计} & \textbf{160\,GB} & & 16 \\
+  \hline
+\end{tabular}
+\end{center}
+
+\textbf{ZeRO-1}：只分片优化器状态（120\,GB $\to$ 15\,GB/GPU），
+每块 GPU 仍需 20+20+15 = \textbf{55\,GB}。
+节省 $\sim$3$\times$。
+
+\textbf{ZeRO-2}：分片优化器 + 梯度（120+20 = 140\,GB $\to$ 17.5\,GB/GPU），
+每块 GPU 需 20+17.5 = \textbf{37.5\,GB}。
+节省 $\sim$4$\times$。
+
+\textbf{ZeRO-3}：分片一切（160\,GB $\to$ 20\,GB/GPU），
+每块 GPU 需 \textbf{20\,GB}。
+节省 $\sim$8$\times$（$= N$）。
+
+PyTorch 的 FSDP（Fully Sharded Data Parallel）
+本质上等价于 ZeRO Stage 3。
+它将每个层的参数分片到所有 GPU，
+前向传播时通过 All-Gather 临时收集完整参数，
+计算完成后立即释放其他 GPU 的参数；
+反向传播时同样 All-Gather 收集、计算梯度后
+通过 Reduce-Scatter 将梯度分片回各 GPU。
+这样每块 GPU 在任何时刻只持有一层的完整参数
+加上 $1/N$ 的总模型状态，实现了极致的内存效率。
+
+\subsection{张量并行（Tensor Parallelism）}
+
+将单个矩阵运算拆分到多块 GPU 上。
+例如，一个 $[d, 4d]$ 的 FFN 权重矩阵可以沿列切分到 4 块 GPU，
+每块计算 $[d, d]$ 的子矩阵乘法，
+然后通过 All-Reduce 合并结果。
+
+Megatron-LM 定义了两种切分方式：
+
+\textbf{列并行}（Column Parallel）：
+将权重矩阵 $W \in \mathbb{R}^{d \times kd}$ 沿列切分为
+$W = [W_1, W_2, \ldots, W_k]$，
+每块 GPU $i$ 计算 $Y_i = XW_i$。
+由于激活函数（如 GeLU）是逐元素操作，
+可以在切分后独立应用，不需要通信。
+最终通过 All-Reduce 合并结果。
+
+\textbf{行并行}（Row Parallel）：
+将权重矩阵沿行切分为 $W = [W_1; W_2; \ldots; W_k]^T$，
+输入也对应切分。
+每块 GPU 计算部分结果后通过 All-Reduce 求和。
+
+Megatron-LM 的巧妙之处在于
+将 FFN 层的第一个线性层做列并行、
+第二个线性层做行并行——
+这样两层之间不需要额外通信，
+只在最终输出时做一次 All-Reduce。
+
+\textbf{Attention 头的切分}也是张量并行的一部分。
+Multi-Head Attention 天然地将头分配到不同 GPU：
+如果有 32 个头、4 块 GPU，
+每块 GPU 处理 8 个头的 $Q$、$K$、$V$ 投影和 Attention 计算，
+最终通过 All-Reduce 合并输出。
+
+张量并行要求 GPU 之间有极高带宽的通信
+（每次前向和反向传播都需要同步），
+因此通常只在同一节点内的 GPU 之间使用（通过 NVLink 连接）。
+跨节点的 InfiniBand（即使是 800\,Gb/s）也远不如
+节点内 NVLink（H100 提供 900\,GB/s 双向带宽）。
+这就是为什么张量并行的度数通常等于
+单节点内的 GPU 数量（DGX H100 为 8）。
+
+\subsection{流水线并行（Pipeline Parallelism）}
+
+将模型的不同层分配到不同 GPU 上，
+数据像流水线一样依次通过各 GPU。
+GPU 1 处理第 1--10 层，GPU 2 处理第 11--20 层，以此类推。
+
+\textbf{流水线气泡问题}是核心挑战：
+如果不做特殊处理，当 GPU 1 在处理前向传播时，
+GPU 2--4 在等待 GPU 1 的输出；
+当 GPU 4 在做反向传播时，GPU 1--3 在等待。
+在简单的流水线调度中，气泡率为 $(P-1)/M$，
+其中 $P$ 是流水线阶段数，$M$ 是 micro-batch 数。
+
+\textbf{GPipe}~通过将一个 mini-batch 切分为 $M$ 个 micro-batch
+来减少气泡：多个 micro-batch 依次进入流水线，
+让各 GPU 尽可能保持忙碌。
+但 GPipe 仍然需要先完成所有前向再开始所有反向。% NEW REF: gpipe = GPipe: Efficient Training of Giant Neural Networks using Pipeline Parallelism, Huang et al., NeurIPS 2019
+
+\textbf{1F1B}（One Forward, One Backward）调度更进一步：
+每完成一个 micro-batch 的前向传播，
+立即开始另一个 micro-batch 的反向传播。
+这种交错调度减少了内存峰值
+（不需要同时保存所有 micro-batch 的激活值），
+同时保持了流水线的利用率。
+
+\textbf{Megatron-LM 的交错调度}（Interleaved Schedule）
+进一步减少气泡：每个 GPU 不只负责连续的层，
+而是负责多个不连续的层段（virtual pipeline stages）。
+例如，4 块 GPU、32 层的模型，
+传统方式是 GPU 1 = 层 1--8，GPU 2 = 层 9--16，...；
+交错方式是 GPU 1 = 层 1--4 和 17--20，
+GPU 2 = 层 5--8 和 21--24，以此类推。
+这使得前向和反向的路径更短，气泡更小。
+
+DeepSeek 的 DualPipe 技术进一步优化了流水线调度——
+将前向和反向计算交错排列，
+使得一个 micro-batch 的前向与另一个 micro-batch 的反向
+可以在不同 GPU 上并行进行，
+将流水线气泡率降低到约 3\%（传统方法通常 20\%+）。
+
+\subsection{专家并行（Expert Parallelism）}
+
+对于 MoE 模型（详见\cref{ch:moe}），
+不同的专家分布在不同的 GPU 上。
+当一个 token 被路由到某个专家时，
+它需要通过 All-to-All 通信发送到对应的 GPU，
+计算完成后再发送回来。
+
+\textbf{All-to-All 通信}是专家并行独有的通信模式。
+与数据并行的 AllReduce（每块 GPU 发送和接收相同大小的数据）不同，
+All-to-All 的通信量取决于路由决策——
+如果某个专家特别「热门」，
+持有该专家的 GPU 会收到不成比例的大量 token。
+这就是为什么 MoE 的负载均衡（\cref{ch:moe}）如此重要。
+
+\textbf{容量因子}（Capacity Factor）是一个实用的工程参数：
+它规定每个专家最多能处理 $\mathrm{CF} \times \frac{T}{E}$ 个 token
+（$T$ = 总 token 数，$E$ = 专家数，$\mathrm{CF}$ 通常取 1.0--1.5）。
+超出容量的 token 会被\textbf{丢弃}（token dropping），
+直接跳过 MoE 层，使用残差连接的输出。
+训练时适度的 token dropping 对质量影响不大，
+但它保证了计算和通信的负载是有界的。
+DeepSeek 通过无辅助损失的负载均衡
+大幅减少了 token dropping 的发生。
+
+DeepSeek 开发的 DeepEP 库专门优化了这种通信模式。
+
+\subsection{上下文并行（Context Parallelism）}
+
+当序列长度超过单块 GPU 能处理的范围时
+（例如 128K 或更长的上下文），
+需要将序列本身拆分到多块 GPU 上——
+这就是上下文并行。
+
+\textbf{Ring Attention} 是最著名的方案：
+将长序列的 $Q$、$K$、$V$ 切分到 $P$ 块 GPU 上，
+每块 GPU 持有序列的 $1/P$ 段。
+$K$ 和 $V$ 在 GPU 之间以环形方式传递——
+每个 step 中，GPU $i$ 计算自己的 $Q$ 与当前 $K$、$V$ 的注意力，
+同时将 $K$、$V$ 发送给下一块 GPU。
+经过 $P$ 步后，每块 GPU 都计算了与所有位置的注意力。
+通信可以与计算完全重叠，效率很高。
+
+\textbf{Ulysses}（DeepSpeed-Ulysses）采用了不同的切分策略：
+它沿着\textbf{注意力头}的维度切分序列——
+每块 GPU 处理所有位置但只处理部分头。
+前向传播时通过 All-to-All 通信交换数据，
+使得每块 GPU 获得完整的头信息。
+Ulysses 对 Grouped-Query Attention（GQA）友好，
+通信量更小，适合中等长度的序列。
+
+\subsection{多维并行组合}
+\label{sec:5d-parallelism}
+
+实际训练中，这些并行策略是组合使用的。
+DeepSeek-V3 的训练使用了\textbf{多维并行}：
+\begin{enumerate}[noitemsep]
+  \item \textbf{DP}（数据并行）：不同 GPU 组处理不同数据。
+  \item \textbf{TP}（张量并行）：节点内 GPU 拆分矩阵运算。
+  \item \textbf{PP}（流水线并行）：不同节点处理不同层。
+  \item \textbf{SP}（序列并行）：拆分长序列的归一化和 Dropout 操作
+        （SP 通常与 TP 配合使用，
+        在 TP 切分的基础上沿序列维度分摊非张量并行操作的内存，
+        因此有时不被视为独立的并行维度）。
+  \item \textbf{EP}（专家并行）：MoE 的专家分布在不同 GPU 上。
+\end{enumerate}
+
+在 2048 块 H800 GPU 上协调这五个维度，是一项极其复杂的工程挑战。
+
+让我们具体看一个例子来理解这些并行维度如何组合。
+假设我们有 2048 块 GPU，训练一个 671B MoE 模型
+（如 DeepSeek-V3），一种可能的配置是：
+\begin{itemize}[noitemsep]
+  \item \textbf{TP = 4}：每 4 块 GPU 协同处理一个层内的矩阵运算
+        （通过 NVLink 连接，带宽最高）。
+  \item \textbf{PP = 8}：模型的不同层分布在 8 个流水线阶段
+        （跨节点通信，使用 InfiniBand）。
+  \item \textbf{EP = 4}：256 个 MoE 专家分布在 4 个专家并行组
+        （需要 All-to-All 通信）。
+  \item \textbf{DP = 16}：剩余的 $2048 / (4 \times 8 \times 4) = 16$ 份
+        用于数据并行（最简单的通信模式）。
+\end{itemize}
+
+这意味着系统被组织成一个四维网格：
+$16 \times 8 \times 4 \times 4 = 2048$。
+每一个维度对通信带宽和延迟有不同的要求，
+这决定了它们在物理拓扑中的位置——
+TP 在节点内（NVLink），
+PP 在节点间但延迟敏感，
+EP 需要高带宽但可以容忍一定延迟，
+DP 对带宽和延迟最宽容。
+
+另一个参考点是 \textbf{LLaMA 3 405B}~\cite{dubey2024llama3}
+在 16384 块 H100 GPU 上的配置，使用了 \textbf{4D 并行}：
+TP = 8，CP = 16，PP = 16，DP = 8
+（$8 \times 16 \times 16 \times 8 = 16{,}384$）。
+这里 TP = 8 对应 DGX H100 节点的 8 块 GPU
+（全部通过 NVLink 连接），
+CP = 16（Context Parallelism）用于支持 128K 长上下文训练，
+将序列拆分到 16 块 GPU 上以分摊 KV cache 内存，
+PP = 16 将 126 层分为 16 个阶段（每阶段约 8 层），
+DP = 8 提供数据并行度以维持足够的全局 batch size
+（约 16M token per batch）。
+
+\subsection{通信--计算重叠}
+
+分布式训练的效率不仅取决于「如何拆分计算」，
+更取决于「如何隐藏通信开销」。
+理想状态是：当 GPU A 在计算时，
+GPU B 在同时发送上一步的结果——
+通信完全被计算「遮盖」，
+总时间等于纯计算时间。
+
+实现这一点需要精细的调度。
+以 ZeRO-3 / FSDP 为例：
+当 GPU 在计算第 $i$ 层的前向传播时，
+它可以提前发起第 $i+1$ 层参数的 All-Gather 请求。
+等第 $i$ 层计算完毕，第 $i+1$ 层的参数已经准备好了，
+GPU 可以无缝开始第 $i+1$ 层的计算。
+反向传播时同理：完成第 $i$ 层的梯度后，
+立即发起 Reduce-Scatter，
+同时开始第 $i-1$ 层的梯度计算。
+
+\textbf{梯度分桶}（Gradient Bucketing）是另一个关键优化。
+PyTorch DDP 不会等所有梯度计算完毕后再发起 AllReduce——
+它将参数分成多个「桶」（bucket），
+每个桶的梯度计算完毕后立即开始 AllReduce。
+反向传播是从最后一层开始的，
+所以最后一层的梯度最先准备好——
+当中间层还在做反向计算时，
+最后几层的梯度已经在通信了。
+好的分桶策略可以让通信和计算几乎完全重叠。
+
+DeepEP 的 Low-Latency 模式更进一步——
+它使用 GPU 硬件的 hook 机制
+将通信操作从 GPU 的 SM（Streaming Multiprocessor）中完全卸载，
+通信不占用任何计算资源，
+实现了真正的零开销通信。
+
+DeepSeek 的 \textbf{DualPipe} 将通信--计算重叠
+推广到了流水线并行的维度。
+传统的 1F1B 调度中，
+前向的通信（接收上一阶段的激活值）和计算是串行的；
+DualPipe 将流水线的前向和反向
+拆分为更细粒度的「通信阶段」和「计算阶段」，
+让来自不同 micro-batch 的通信和计算在时间上交错。
+其核心思想是：当 GPU 在为 micro-batch $A$ 做计算时，
+同时为 micro-batch $B$ 做通信——
+因为计算密集用的是 SM，通信密集用的是 NVLink/IB 控制器，
+两者可以并行而不冲突。
+这让 DeepSeek-V3 在 2048 块 H800 上
+实现了仅 $\sim$3\% 的流水线气泡率。
+
+\subsection{训练框架演进（2025--2026）}
+
+分布式训练框架在 2025--2026 年经历了重要的融合与进化。
+
+\textbf{Megatron-FSDP}
+是 NVIDIA 在 2025 年推出的新一代分布式训练方案，% NEW REF: megatronfsdp = Megatron-FSDP: Performance-oriented FSDP for Megatron-LM, NVIDIA, 2025
+将 Megatron-LM 的高性能张量并行
+与 PyTorch FSDP 的灵活分片数据并行统一到同一个框架中。
+它保留了 Megatron-LM 在 TP/PP 上的成熟优化
+（如 TransformerEngine 的 FP8 支持、
+交错流水线调度），同时利用 FSDP 的自动参数分片
+替代了手写的 ZeRO 实现。
+核心特性包括：
+\begin{itemize}[noitemsep]
+  \item 与 PyTorch DTensor 原生兼容的检查点机制，
+        支持跨不同并行配置的检查点迁移。
+  \item 针对 GB200 NVL72 系统的优化——
+        利用 Blackwell 的 NVLink 5.0（1800\,GB/s 双向）
+        和 NVSwitch 4.0 的全互联拓扑。
+  \item 对 MoE 架构的一等支持，
+        包括专家并行与 FSDP 分片的协同。
+\end{itemize}
+
+\textbf{veScale-FSDP} 是字节跳动在 2026 年发布的另一个重要方案，% NEW REF: vescale2026 = veScale-FSDP: Flexible and High-Performance FSDP at Scale, Wang et al., arXiv 2026
+解决了标准 FSDP 在\textbf{非逐元素优化器}
+（如 Muon、Shampoo）和
+\textbf{块级量化训练}（如 FP8/FP4 的 block scaling）
+上的兼容性问题。
+传统 FSDP 将参数展平为一维张量后分片，
+这破坏了矩阵级优化器所需的二维结构信息。
+veScale-FSDP 通过结构感知的分片策略保留了参数的原始形状，
+使得 Muon 等矩阵级优化器可以与 FSDP 无缝集成——
+这对于 Kimi K2、Gemini 等使用 Muon 优化器的前沿模型尤为重要。
+
+\subsection{十万卡级别的训练集群}
+\label{sec:100k-gpu}
+
+2025--2026 年，训练集群的规模跨入了\textbf{十万卡}量级。
+
+\textbf{xAI Colossus} 是目前最大的单站点 AI 训练集群。
+2025 年中期上线时配备了约 100,000 块 NVIDIA H100 GPU，
+仅用 122 天就从零建成。
+到 2026 年 1 月，Colossus 扩展到 555,000 块 GPU，
+总功耗达 2\,GW（相当于两个中型核电站），
+硬件投入约 180 亿美元。
+这个集群用于训练 Grok 系列模型，
+其规模已经\textbf{远超}此前任何已知的训练配置——
+Meta 训练 LLaMA 3 405B 使用了 16,384 块 H100，
+DeepSeek-V3 仅用了 2,048 块 H800。
+
+在如此规模下运行面临全新的工程挑战：
+\begin{itemize}[noitemsep]
+  \item \textbf{故障率}：假设单块 GPU 的年故障率为 5\%，
+        100K GPU 集群中每天平均有
+        $100000 \times 0.05 / 365 \approx 14$ 块 GPU 发生故障。
+        系统必须支持\textbf{弹性训练}——
+        在不中断整体训练的情况下隔离故障节点并重新分配计算。
+  \item \textbf{检查点开销}：100K GPU 的模型状态可能达到数十 TB，
+        频繁保存检查点的 I/O 开销不容忽视。
+        异步检查点写入和分布式文件系统（如 Lustre、DAOS）
+        是必需的基础设施。
+  \item \textbf{网络拓扑}：十万卡级别的集群不可能用单一的
+        Fat-Tree 拓扑——交换机数量和布线复杂度都不允许。
+        xAI 使用了多层 Rail-Optimized + Fat-Tree 混合拓扑，
+        并在软件层面根据通信模式动态选择路由路径。
+\end{itemize}
+
+\subsection{Blackwell 架构的训练表现}
+
+NVIDIA Blackwell 架构（B200/GB200）在 2025 年下半年
+进入规模化部署，MLPerf Training v5.0/v5.1 基准测试
+提供了第一批公开的性能数据。
+
+\textbf{GB200 NVL72} 是 Blackwell 的旗舰训练系统：
+72 块 B200 GPU 通过第五代 NVLink 全互联
+（1.8\,TB/s 双向带宽），
+形成一个共享显存池（72 $\times$ 192\,GB $=$ 13.8\,TB）。
+在 MLPerf Training v5.1 中，
+5,120 块 Blackwell GPU 将 LLaMA 3.1 405B 的训练时间
+压缩到\textbf{约 10 分钟}——
+相比 Hopper 架构实现了每 GPU $2.2\times$--$2.6\times$ 的加速。
+
+Blackwell 的关键训练加速来自：
+\begin{enumerate}[noitemsep]
+  \item \textbf{FP4 硬件原生支持}：
+        B200 的第五代 Tensor Core
+        原生支持 FP4（NVFP4 格式）矩阵乘法，
+        理论 FLOPS 是 FP8 的 $2\times$（9\,PFLOPS FP4 vs 4.5\,PFLOPS FP8）。
+  \item \textbf{NVLink 5.0}：
+        双向带宽从 H100 的 900\,GB/s 提升到 1800\,GB/s，
+        直接缓解了张量并行的通信瓶颈。
+  \item \textbf{HBM3e 升级}：
+        192\,GB 显存 + 8\,TB/s 带宽，
+        使得更大的 batch size 和更长的序列成为可能。
+\end{enumerate}
+
+\section{混合精度训练}
+
+\subsection{数值格式详解}
+
+传统的神经网络训练使用 32 位浮点数（FP32）。
+但研究发现，大多数训练计算可以用更低精度完成而不损失质量。
+理解不同的数值格式是混合精度训练的基础。
+
+IEEE 浮点数的表示为：
+$(-1)^s \times 2^{e - \mathrm{bias}} \times (1 + m)$，
+其中 $s$ 是符号位，$e$ 是指数，$m$ 是尾数。
+不同格式的区别在于分配给指数和尾数的位数：
+
+\begin{center}
+\begin{tabular}{lccccl}
+  \hline
+  \textbf{格式} & \textbf{总位数} & \textbf{符号} & \textbf{指数} & \textbf{尾数}
+  & \textbf{数值范围} \\
+  \hline
+  FP32 & 32 & 1 & 8 & 23 & $\sim 10^{\pm 38}$ \\
+  FP16 & 16 & 1 & 5 & 10 & $\sim 6.5 \times 10^4$ \\
+  BF16 & 16 & 1 & 8 & 7 & $\sim 10^{\pm 38}$ \\
+  FP8 E4M3 & 8 & 1 & 4 & 3 & $\sim 448$ \\
+  FP8 E5M2 & 8 & 1 & 5 & 2 & $\sim 57344$ \\
+  \hline
+\end{tabular}
+\end{center}
+
+\textbf{BF16}（Brain Float 16）有 8 位指数和 7 位尾数。
+关键洞察：指数位数与 FP32 完全相同，
+因此数值范围也完全相同（$\sim 10^{38}$）。
+代价是尾数从 23 位减少到 7 位——
+精度大约等于 $2^{-7} \approx 0.78\%$ 的相对误差。
+但在训练中，随机梯度下降本身就是一个噪声过程，
+0.78\% 的精度损失几乎可以忽略。
+
+\textbf{FP16}（半精度）有 5 位指数和 10 位尾数。
+它的精度比 BF16 更高（$2^{-10} \approx 0.1\%$ 相对误差），
+但数值范围只到 $\sim 65504$。
+这在训练中是致命的：loss spike 时梯度可能达到 $10^5$ 量级，
+直接溢出为 \texttt{inf}，导致训练崩溃。
+
+\begin{whybox}[为什么 BF16 优于 FP16？]
+FP16 的数值范围只到 $\sim 65504$，
+在训练中很容易溢出（loss spike 时梯度可能非常大）。
+BF16 的范围与 FP32 相同，几乎不会溢出。
+虽然 BF16 的精度（7 位尾数 vs.\ 10 位）稍低于 FP16，
+但这在训练中影响很小，
+因为随机梯度下降本身就是一个「噪声」过程。
+BF16 是 Google TPU 原生支持的格式，
+NVIDIA 从 A100 开始也全面支持 BF16。
+现在所有主流 LLM 的预训练都使用 BF16。
+\end{whybox}
+
+\subsection{FP16 的 Loss Scaling}
+
+如果必须使用 FP16 训练
+（例如在不支持 BF16 的旧硬件上），
+需要 \textbf{Loss Scaling} 来避免梯度下溢。
+
+问题在于：
+FP16 能表示的最小正规格化数约为 $6 \times 10^{-5}$，
+但训练后期很多梯度的量级在 $10^{-7}$ 到 $10^{-8}$，
+这些梯度在 FP16 中会被截断为 0（下溢）。
+解决办法是在计算损失时乘以一个大的缩放因子 $S$
+（通常 $S = 2^{16}$ 或更大），
+使得反向传播中的梯度整体放大 $S$ 倍，
+避免下溢。
+在更新参数前再除以 $S$ 恢复真实的梯度值。
+
+动态 Loss Scaling（Dynamic Loss Scaling）
+自动调整 $S$：
+每 $K$ 步，如果没有梯度溢出就增大 $S$；
+如果检测到 \texttt{inf} 或 \texttt{NaN}，就减小 $S$ 并跳过这步更新。
+
+BF16 不需要 Loss Scaling，因为它的数值范围与 FP32 相同——
+这是 BF16 被广泛采用的另一个重要原因。
+
+\subsection{AMP：自动混合精度}
+
+PyTorch 的 AMP（Automatic Mixed Precision）
+是混合精度训练的标准实现。
+核心思想是：
+\begin{itemize}[noitemsep]
+  \item \textbf{前向传播}：在低精度（BF16/FP16）下进行，减少内存和加速计算。
+  \item \textbf{主权重}（Master Weights）：在 FP32 下维护一份完整精度的参数副本。
+  \item \textbf{梯度更新}：在 FP32 下进行——将低精度梯度累加到 FP32 主权重上。
+\end{itemize}
+
+为什么需要 FP32 主权重？
+因为参数更新通常很小（$\mathrm{lr} \times \mathrm{grad} \sim 10^{-7}$），
+如果直接在 BF16 中更新，
+$\mathrm{param} + \delta$ 可能等于 $\mathrm{param}$——
+更新被精度「吃掉」了。
+FP32 的高精度确保了微小的更新不会丢失。
+
+\subsection{FP8：DeepSeek 的突破}
+
+DeepSeek-V3 是首个完全使用 FP8 精度进行端到端训练的大规模模型~\cite{deepseekv3}。
+FP8 有两种变体：E4M3（4 位指数 + 3 位尾数，用于前向）
+和 E5M2（5 位指数 + 2 位尾数，用于反向梯度）。
+
+为什么前向用 E4M3、反向用 E5M2？
+前向传播中，激活值的数值分布相对集中，
+4 位指数的范围（$\sim 448$）通常够用，
+多一位尾数（3 vs 2）带来的精度提升更有价值。
+反向传播中，梯度的数值范围波动更大，
+5 位指数的更大范围（$\sim 57344$）更重要，
+牺牲一位尾数是可接受的。
+
+核心挑战在于精度。FP8 的 3 位尾数只能表示 8 个不同的值——
+直接用于矩阵乘法会导致严重的累积误差。
+DeepSeek 的解决方案是\textbf{细粒度量化}：
+将权重矩阵切成 $128 \times 128$ 的小块，
+每个小块有独立的缩放因子；
+激活值则以 $1 \times 128$ 的粒度量化。
+
+为什么要用 $128 \times 128$ 的块？
+因为同一个矩阵中，不同区域的数值分布可能差异很大——
+如果用整个矩阵的统一缩放因子，
+数值小的区域会被压缩到 FP8 的最低几个值，
+丢失大量信息。
+块级缩放让每个小块有自己的「标尺」，
+大幅提高了量化的保真度。
+
+再加上每 4 次 WGMMA 操作后强制 FP32 累加，
+将累积误差控制在可接受范围内。
+WGMMA（Warp Group Matrix Multiply-Accumulate）是
+NVIDIA Hopper 架构（H100）引入的 Tensor Core 指令——
+FP8 的乘法在 Tensor Core 中完成，
+但部分和定期累加到 FP32 寄存器中，
+防止小数值被大数值「淹没」。
+
+FP8 训练将显存需求减半，吞吐量提升 30--40\%。
+PyTorch 原生的 \texttt{torchao.float8} 包
+在 2K H200 集群上验证了 1.34--1.43$\times$ 的训练加速。
+
+\begin{warnbox}[FP8 训练的稳定性挑战]
+FP8 训练并非无风险。
+DeepSeek-V3 的技术报告提到，
+FP8 训练在某些条件下会出现更频繁的 loss spike，
+尤其是在训练早期模型参数分布还不稳定时。
+关键的稳定化措施包括：
+\begin{enumerate}[noitemsep]
+  \item 训练早期（前几千步）使用 BF16 预热，之后切换到 FP8。
+  \item 对归一化层（RMSNorm）和 Attention 的 softmax
+        始终保持 FP32/BF16——这些操作对精度极为敏感。
+  \item 动态缩放因子的更新需要延迟——
+        使用上一步的统计量来设定当前步的缩放因子，
+        避免缩放因子的震荡。
+\end{enumerate}
+\end{warnbox}
+
+\textbf{$\mu$nit Scaling} 是 2025 年提出的一种简化 FP8 训练的方法。% NEW REF: narayan2025munit = $\mu$nit Scaling: Simple and Scalable FP8 LLM Training, Narayan et al., 2025
+传统 FP8 训练需要精心调节动态缩放因子（dynamic scaling factors），
+而 $\mu$nit Scaling 通过系统化的参数初始化和梯度归一化
+\textbf{完全消除了动态缩放的需要}——
+FP8 训练变得和 BF16 训练一样简单，
+无需额外的超参数调节。
+它还支持跨模型宽度的超参数迁移（hyperparameter transfer），
+小模型上调好的超参数可以直接用于大模型。
+
+\subsection{FP4：下一个精度前沿}
+\label{sec:fp4-training}
+
+FP4 训练是 2025--2026 年低精度训练的最新前沿。
+FP4 仅用 4 位表示一个浮点数——
+1 位符号 + 2 位指数 + 1 位尾数（E2M1 格式），
+仅能表示 $\{0, 0.5, 1, 1.5, 2, 3, 4, 6\}$ 的有限集合
+（加上对应的负数）。
+直接用如此粗糙的精度训练似乎不可能——
+但 2025 年的研究证明了它的可行性。
+
+\textbf{Quartet}（NeurIPS 2025）证明了% NEW REF: quartet2025 = Quartet: Native FP4 Training Can Be Optimal for Large Language Models, Castro et al., NeurIPS 2025
+\textbf{原生 FP4 训练}在理论和实验上都可以接近 BF16 的质量。
+关键技巧是\textbf{随机舍入}（Stochastic Rounding, SR）：
+将 BF16 数值量化到 FP4 时，
+不是简单地取最近值（Round to Nearest），
+而是以概率正比于距离进行随机选择。
+例如，$1.3$ 有 70\% 的概率被量化为 $1$、
+30\% 的概率被量化为 $1.5$——
+期望值恰好是 $1.3$，量化是\textbf{无偏}的。
+这保证了梯度估计的无偏性，是收敛的关键。
+
+\textbf{NVFP4} 是 NVIDIA 为 Blackwell 架构设计的
+专有 FP4 格式。% NEW REF: nvfp4_2026 = Pretraining Large Language Models with NVFP4, NVIDIA, arXiv 2026
+与标准 E2M1 不同，NVFP4 使用了优化后的编码方案，
+在相同的 4 位预算下提供更好的精度分布。
+在 MLPerf Training v5.1 的 LLaMA 3.1 405B 基准测试中，
+使用 NVFP4 的 Blackwell GPU 实现了
+相比 FP8 Hopper 进一步 $1.5\times$--$2\times$ 的训练加速，
+且模型质量与 BF16 基线无显著差异。
+
+\textbf{OCP Microscaling（MX）格式}是另一条重要路线。% NEW REF: mx2025 = An Empirical Study of Microscaling Formats for Low-Precision LLM Training, Yang et al., Meta, 2025
+Open Compute Project 定义了一组块级微缩放格式：
+每 32 个元素共享一个 E8M0 的缩放因子（8 位指数），
+单个元素使用 FP8、FP6 或 FP4 表示。
+MXFP4 相比 BF16 实现了 $3.76\times$ 的内存/传输压缩，
+$2.73\times$ 的运行时开销降低。
+
+Tseng 等人~(2025) 在 AISTATS 上发表了% NEW REF: tseng2025mxfp4 = Training LLMs with MXFP4, Tseng et al., AISTATS 2025
+首个接近无损的 MXFP4 训练配方。
+他们发现直接对 MXFP4 使用随机舍入会导致
+高方差（来自块级异常值），损害收敛。
+解决方案是在量化前应用\textbf{随机 Hadamard 变换}——
+将权重和激活值旋转到一个均匀分布的空间中，
+理论上界了量化方差，显著改善了训练稳定性。
+
+\begin{center}
+\begin{tabular}{lcccl}
+  \hline
+  \textbf{精度} & \textbf{位宽} & \textbf{相对 BF16 加速}
+  & \textbf{内存节省} & \textbf{成熟度（2026 年）} \\
+  \hline
+  BF16 & 16 bit & $1\times$ & $1\times$ & 工业标准 \\
+  FP8 (E4M3/E5M2) & 8 bit & $1.3$--$1.5\times$ & $2\times$ & 广泛采用 \\
+  MXFP4 & 4 bit & $2$--$3\times$$^\dagger$ & $\sim$4$\times$ & 实验阶段 \\
+  NVFP4 (Blackwell) & 4 bit & $2$--$3\times$ & $\sim$4$\times$ & 早期部署 \\
+  \hline
+\end{tabular}
+
+\small $^\dagger$\,需要原生 MXFP4 硬件支持（Blackwell），
+在 H100 上通过 fake-quantization 模拟则无加速。
+\end{center}
+
+\section{完整的训练循环}
+
+理解了分布式训练和混合精度之后，
+让我们看一个简化但完整的 LLM 预训练循环：
+
+\begin{lstlisting}[caption={Simplified LLM pre-training loop}]
+import torch
+from torch.distributed import init_process_group
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+# Initialize distributed training
+init_process_group(backend="nccl")
+local_rank = int(os.environ["LOCAL_RANK"])
+torch.cuda.set_device(local_rank)
+
+# Create model with BF16 precision
+model = LLM(vocab_size=128000, d_model=4096, n_layers=32)
+model = model.to(dtype=torch.bfloat16, device=local_rank)
+model = DDP(model, device_ids=[local_rank])
+
+# Optimizer: AdamW with weight decay
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=3e-4,             # Peak learning rate
+    betas=(0.9, 0.95),   # Adam betas
+    weight_decay=0.1,    # L2 regularization
+)
+
+# Learning rate scheduler: warmup + cosine decay
+scheduler = CosineAnnealingWithWarmup(
+    optimizer,
+    warmup_steps=2000,      # Gradually increase LR
+    total_steps=1000000,    # Total training steps
+    min_lr=3e-5,            # 10% of peak LR
+)
+
+# Training loop
+for step, batch in enumerate(dataloader):
+    tokens = batch["input_ids"].to(local_rank)  # (B, T)
+
+    # Forward pass
+    logits = model(tokens[:, :-1])  # Predict next tokens
+
+    # Cross-entropy loss
+    loss = F.cross_entropy(
+        logits.reshape(-1, logits.size(-1)),  # (B*T, V)
+        tokens[:, 1:].reshape(-1),            # (B*T,)
+    )
+
+    # Backward pass
+    loss.backward()
+
+    # Gradient clipping (prevent exploding gradients)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+
+    # Update weights
+    optimizer.step()
+    scheduler.step()
+    optimizer.zero_grad()
+
+    # Logging and checkpointing
+    if step % 100 == 0:
+        print(f"Step {step}, Loss: {loss.item():.4f}")
+    if step % 5000 == 0:
+        save_checkpoint(model, optimizer, step)
+\end{lstlisting}
+
+这段代码展示了预训练的核心循环。几个关键细节值得注意：
+
+\textbf{AdamW 优化器}一直是 LLM 预训练的标准选择
+（尽管 2025 年出现了强有力的挑战者——详见 \cref{sec:new-optimizers}）。
+它结合了 Adam 的自适应学习率
+（每个参数有独立的学习率，基于梯度的一阶和二阶动量）
+和权重衰减（L2 正则化，防止参数过大）。
+$\beta_1 = 0.9$ 和 $\beta_2 = 0.95$ 是经过大量实验确定的标准值——
+$\beta_2$ 比 Adam 原始论文的 0.999 更小，
+因为 LLM 训练中数据分布不断变化，
+需要更快地「遗忘」旧的梯度统计量。
+
+\textbf{AdamW 与 Adam 的区别}值得展开。
+原始的 Adam 将权重衰减作为 L2 正则项加到损失函数中：
+$\tilde{L} = L + \frac{\lambda}{2}\|w\|^2$，
+这导致权重衰减和自适应学习率之间存在耦合——
+当某个参数的梯度很小（Adam 会给它更大的有效学习率）时，
+L2 正则的效果也会被放大，行为不直观。
+AdamW 将权重衰减\textbf{解耦}：
+$w_{t+1} = (1 - \lambda \eta) w_t - \eta \hat{m}_t / \sqrt{\hat{v}_t}$，
+直接在参数更新步骤中减去 $\lambda \eta w_t$。
+这使得权重衰减的行为更加可预测，
+在 LLM 训练中几乎所有团队都使用 AdamW 而非 Adam。
+
+\textbf{学习率调度}是训练稳定性的关键。
+预热阶段（warmup）从一个很小的学习率（甚至为零）
+线性增加到峰值学习率。
+这是因为训练初期，模型参数是随机初始化的，
+大的学习率可能导致参数剧烈震荡。
+预热让模型先「稳住」，找到一个合理的参数区域，
+再以正常速率优化。
+之后使用余弦退火（cosine annealing）逐渐降低学习率，
+帮助模型在训练后期收敛到更平坦的最小值——
+平坦的最小值通常泛化性更好。
+
+还有一种日益流行的替代方案：
+\textbf{WSD}（Warmup--Stable--Decay）调度。
+它将训练分为三个阶段：
+短暂的线性 warmup $\to$
+长时间的恒定学习率（stable phase）$\to$
+最后阶段快速衰减到最小值。
+WSD 的优势在于 stable phase 中学习率恒定，
+更易于在不同长度的训练中复用超参数；
+而且可以在 stable phase 的任意时刻保存检查点，
+之后从该检查点开始 decay 阶段——
+这为「继续训练」（continual pretraining）提供了极大的灵活性。
+
+\textbf{交叉熵损失}中的 \texttt{tokens[:, :-1]} 和
+\texttt{tokens[:, 1:]} 体现了因果语言模型的核心：
+输入是位置 $1$ 到 $T-1$ 的 token，
+目标是位置 $2$ 到 $T$ 的 token。
+模型在每个位置预测下一个 token，
+损失衡量预测的概率分布与真实 token 之间的差距。
+
+\textbf{梯度累积}（Gradient Accumulation）
+是上面代码中没有显式展示但实际训练中不可或缺的技巧。
+当 GPU 显存不足以容纳期望的 batch size 时，
+可以将一个大 batch 拆成多个 micro-batch，
+每个 micro-batch 的梯度累加起来，
+达到一定步数后再执行一次 \texttt{optimizer.step()}。
+效果等价于用更大的 batch 训练，
+但内存只需一个 micro-batch 的量：
+
+\begin{lstlisting}[caption={Gradient accumulation}]
+accumulation_steps = 8  # Effective batch = 8 * micro_batch_size
+
+for step, batch in enumerate(dataloader):
+    loss = model(batch) / accumulation_steps  # Scale loss
+    loss.backward()  # Gradients accumulate in .grad
+
+    if (step + 1) % accumulation_steps == 0:
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        optimizer.step()
+        optimizer.zero_grad()
+\end{lstlisting}
+
+注意损失需要除以 \texttt{accumulation\_steps}——
+因为 \texttt{loss.backward()} 会累加梯度，
+如果不缩放，累积后的梯度是 $K$ 个 micro-batch 梯度的\textbf{和}
+而非\textbf{平均}，等价于用了更大的学习率。
+
+\section{优化器的演进：超越 AdamW}
+\label{sec:new-optimizers}
+
+AdamW 统治 LLM 预训练长达 5 年（2019--2024），
+但 2025 年出现了真正的挑战者——
+\textbf{Muon 优化器}。
+
+\subsection{Muon：矩阵正交化的动量}
+
+Muon（\textbf{Mo}ment\textbf{U}m \textbf{O}rthogonalized
+by \textbf{N}ewton-Schulz）% NEW REF: muon2025 = Muon is Scalable for LLM Training, Jordan et al., arXiv 2025
+是一种\textbf{矩阵感知}的优化器。
+AdamW 对每个参数独立地维护一阶/二阶动量，
+将参数矩阵当作展平的向量处理，忽略了矩阵结构。
+Muon 则在参数的\textbf{矩阵空间}中工作：
+
+核心步骤是对累积动量矩阵 $M$ 进行
+\textbf{Newton-Schulz 正交化}：
+\begin{equation}
+  M_{\mathrm{orth}} = \mathrm{NS}_k(M)
+  \quad \text{s.t.} \quad M_{\mathrm{orth}}^\top M_{\mathrm{orth}} \approx I
+\end{equation}
+其中 $\mathrm{NS}_k$ 是 $k$ 步 Newton-Schulz 迭代
+（通常 $k = 5$--$10$），
+将动量矩阵投影到最近的正交矩阵上。
+这等价于取动量的\textbf{极分解}中的正交部分——
+保留梯度的方向信息，丢弃尺度信息。
+
+为什么正交化有帮助？直觉上，
+正交更新确保了参数空间中
+各方向被均匀探索，避免了 Adam 在某些方向上
+因自适应学习率的缩放而``停滞''的问题。
+实验表明，Muon 在相同的训练 FLOP 下
+可以达到 AdamW $1.5\times$--$2\times$ 的收敛速度——
+即相同质量的模型只需\textbf{一半的训练计算量}。
+
+\textbf{Muon 的工业级采用}在 2025 年迅速扩展：
+\begin{itemize}[noitemsep]
+  \item Moonshot AI 的 \textbf{Kimi K2}（1T 参数 MoE）
+        使用了 Muon 的改进版 \textbf{MuonClip}，
+        在 15.5T token 的训练中实现了``零 loss spike''。
+  \item PyTorch 2.10 将 Muon 纳入了官方优化器库。
+  \item DeepSeek、Meta、OpenAI 等多家实验室
+        被报道在内部实验中采用了 Muon 或其变体。
+\end{itemize}
+
+\textbf{MuonClip} 是 Kimi K2 团队对 Muon 的工程改进：% NEW REF: kimik2 = Kimi K2: Open Agentic Intelligence, Kimi Team, arXiv 2025
+在 Muon 的基础上加入了\textbf{QK-clip 稳定性技巧}——
+当 Attention 的 $QK^\top$ 值超过阈值时，
+对 $Q$ 和 $K$ 的梯度进行裁剪。
+这解决了 Muon 在超大规模训练中偶尔出现的
+注意力分数爆炸问题。
+
+\subsection{其他值得关注的优化器}
+
+\textbf{Sophia}（Second-order Clipped Stochastic Optimization）
+使用了廉价的 Hessian 对角线估计来设定逐参数的裁剪阈值。
+理论上它利用了二阶信息
+（参数更新的步长与该参数的损失曲率成反比），
+但避免了完整 Hessian 的巨大计算开销。
+早期实验声称训练速度是 Adam 的 $2\times$，
+但后续的大规模复现研究表明
+其优势在大模型上不如预期明显。
+
+\textbf{SOAP}（Spectral-regularized Adam with Projection）
+和 \textbf{Shampoo} 属于\textbf{预条件}
+（preconditioning）优化器家族，
+它们维护参数梯度的 Kronecker 积近似来逼近完整的 Fisher 信息矩阵。
+这类方法在理论上更优雅，但计算和内存开销较大。
+
+Wen 等人~(2025) 在斯坦福的一项系统性基准测试中% NEW REF: wen2025optimizers = Fantastic Pretraining Optimizers and Where to Find Them, Wen et al., arXiv 2025
+评估了 11 种优化器在标准化的 LLM 预训练场景下的表现。
+使用三阶段坐标下降的严格超参数调优后，
+他们的关键发现是：
+\begin{enumerate}[noitemsep]
+  \item \textbf{Muon 是最强的挑战者}——
+        在 1B--8B 规模下一致性地优于 AdamW。
+  \item \textbf{公平对比至关重要}——
+        很多``新优化器优于 Adam'' 的结论
+        源于对 Adam 超参数的不充分调优。
+        当给予 Adam 同等的调优预算后，差距大幅缩小。
+  \item Shampoo 和 SOAP 在小规模实验中表现优异，
+        但在大规模下的工程成本（额外的矩阵分解操作）
+        部分抵消了优化效果。
+\end{enumerate}
+
+\begin{keybox}[优化器选择指南（2026 年）]
+\begin{center}
+\begin{tabular}{lccl}
+  \hline
+  \textbf{优化器} & \textbf{内存/参数} & \textbf{收敛速度}
+  & \textbf{适用场景} \\
+  \hline
+  AdamW & 12 bytes & $1\times$（基线） & 通用、成熟、风险最低 \\
+  Muon & $\sim$8 bytes & $1.5$--$2\times$ & 大规模预训练，需 FSDP 支持 \\
+  MuonClip & $\sim$8 bytes & $1.5$--$2\times$ & 超大规模 MoE 训练 \\
+  Sophia & 12 bytes & $\sim$1.3$\times$ & 实验性，大规模收益不确定 \\
+  \hline
+\end{tabular}
+\end{center}
+\end{keybox}
+
+\section{多 Token 预测}
+\label{sec:mtp}
+
+传统的因果语言模型在每个位置只预测\textbf{一个}下一个 token。
+\textbf{多 Token 预测}（Multi-Token Prediction, MTP）% NEW REF: mtp2024 = Better \& Faster Large Language Models via Multi-token Prediction, Gloeckle et al., ICML 2024
+训练模型同时预测未来的 $K$ 个 token，
+通过引入 $K-1$ 个轻量级的预测头来实现。
+
+\subsection{为什么多 Token 预测有用？}
+
+MTP 的动机有三个层面：
+
+\textbf{更丰富的训练信号}。
+标准的 next-token 预测只提供``下一个词是什么''的反馈。
+MTP 同时要求模型预测第 2、3、...、$K$ 个未来 token，
+迫使模型在更深层次上\textbf{规划}——
+要准确预测第 3 个 token，
+模型必须对未来的语义走向有一个隐式的``计划''。
+这种更长视野的训练信号让模型学到了更好的表示。
+
+\textbf{采样效率}。
+每个训练样本（序列）提供的有效梯度信号
+增加了 $K$ 倍——不增加前向计算量
+（因为预测头非常轻量），
+却让每个 token 的``教学价值''大幅提升。
+
+\textbf{推理加速}。
+训练好的 MTP 头可以直接用于推理阶段的
+\textbf{推测解码}（Speculative Decoding）：
+额外的预测头生成候选 token，
+主模型验证后一次性接受多个 token，
+减少了自回归生成的总步数。
+
+\subsection{DeepSeek-V3 的 MTP 实现}
+
+DeepSeek-V3~\cite{deepseekv3} 使用了 $K = 2$ 的 MTP
+（即预测未来 2 个 token）。
+其实现架构是\textbf{顺序式}的——
+每个额外的预测头不仅接收主模型的隐状态，
+还接收\textbf{前一个}预测头的输出。
+具体而言，第 $k$ 个 MTP 头的输入为：
+\begin{equation}
+  \mathbf{h}_t^{(k)} = \mathrm{FFN}^{(k)}\bigl(
+    \mathrm{Concat}\bigl[\mathbf{h}_t^{(0)},\;
+    \mathrm{Embed}(\hat{x}_{t+k-1})\bigr]
+  \bigr)
+  \label{eq:mtp-head}
+\end{equation}
+其中 $\mathbf{h}_t^{(0)}$ 是主模型在位置 $t$ 的隐状态，
+$\hat{x}_{t+k-1}$ 是前一个头预测的 token 的嵌入。
+$\mathrm{FFN}^{(k)}$ 是一个轻量级的前馈网络（通常只有一层）。
+
+训练损失是主预测头和辅助预测头的加权和：
+\begin{equation}
+  \mathcal{L}_{\mathrm{MTP}} = \mathcal{L}_{\mathrm{NTP}}
+  + \sum_{k=1}^{K-1} \lambda_k \cdot \mathcal{L}_{\mathrm{NTP}}^{(k)}
+  \label{eq:mtp-loss}
+\end{equation}
+其中 $\lambda_k$ 是辅助头的损失权重（通常 $\lambda_1 = 0.3$）。
+\textbf{推理时丢弃辅助头}——
+MTP 是一种纯训练时的技巧，不增加推理的计算成本
+（除非用于推测解码，此时辅助头反而\textbf{加速}推理）。
+
+DeepSeek-V3 的实验表明，MTP 带来了
+$\sim$0.5\% 的训练损失改善（在 14.8T token 训练结束时），
+这听起来很小，但在前沿模型中
+每 0.1\% 的损失改善都对应着显著的下游任务性能提升。
+
+\subsection{MTP 训练课程}
+
+Aynetdinov \& Akbik~(2025)% NEW REF: aynetdinov2025mtp = Pre-Training Curriculum for Multi-Token Prediction in Language Models, Aynetdinov \& Akbik, ACL 2025
+在 ACL 2025 上提出了 MTP 的\textbf{训练课程}策略：
+不是从训练一开始就使用 MTP，
+而是先用标准的 NTP 训练一段时间让模型建立基础能力，
+之后再引入 MTP 辅助头。
+他们发现这种``渐进式''引入在小模型上
+可以显著改善 MTP 的效果——
+因为训练早期模型的预测非常不准确，
+多 token 预测的信号噪声比太低，
+反而可能干扰主模型的学习。
+
+\section{训练稳定性}
+
+训练一个数十亿参数的模型数周到数月，
+过程中不出任何问题是不现实的。
+训练不稳定通常表现为\textbf{loss spike}——
+损失值突然跳升，如果不处理可能导致训练完全崩溃。
+
+\subsection{Loss Spike：原因与应对}
+
+Loss spike 的成因多种多样，常见的包括：
+
+\textbf{数据质量问题}是最常见的原因。
+训练数据中混入了乱码、极长的重复文本、
+或格式异常的文档，
+这些异常数据会产生异常大的梯度，
+导致参数在一步之内偏离到不正常的区域。
+LLaMA 3~\cite{dubey2024llama3} 的训练日志显示，
+他们通过仔细的数据清洗将 loss spike 的频率降低了 90\%。
+
+\textbf{学习率过高}是另一个常见原因，
+尤其是在训练初期 warmup 不够充分时。
+模型在高学习率下跨过了损失景观中的「悬崖」（loss cliff），
+参数跳到了一个完全不同的区域，
+损失急剧上升。
+
+\textbf{数值不稳定}也是重要原因。
+在低精度训练中（FP16/FP8），
+某些中间计算可能超出数值范围。
+例如 Attention 计算中 $QK^\top / \sqrt{d}$ 的值可能很大，
+softmax 的指数运算进一步放大，导致溢出。
+Flash Attention~\cite{dao2022flashattention} 通过在线 softmax
+（逐块计算并维护最大值）缓解了这个问题。
+
+\textbf{应对策略}：
+\begin{enumerate}[noitemsep]
+  \item \textbf{检查点回滚}：发现 loss spike 后，
+        回退到最近的正常检查点重新开始。
+        这要求频繁保存检查点
+        （通常每 500--1000 步保存一次，
+        同时保留最近 3--5 个检查点）。
+  \item \textbf{跳过异常 batch}：
+        检测到梯度范数异常大的 batch 直接跳过，
+        不执行参数更新。
+  \item \textbf{临时降低学习率}：
+        发现 loss 异常上升后，临时将学习率降低 2--10 倍，
+        让模型恢复稳定，再逐渐恢复正常学习率。
+  \item \textbf{提高数值精度}：
+        对关键操作（归一化、softmax）始终使用 FP32。
+\end{enumerate}
+
+\subsection{梯度裁剪}
+
+常用的稳定性措施包括：
+\textbf{梯度裁剪}将梯度的全局 L2 范数限制在某个阈值内：
+\begin{equation}
+  \mathbf{g} \leftarrow \begin{cases}
+    \mathbf{g} & \|\mathbf{g}\| \leq \tau \\
+    \tau \cdot \frac{\mathbf{g}}{\|\mathbf{g}\|} & \|\mathbf{g}\| > \tau
+  \end{cases}
+  \label{eq:grad-clip}
+\end{equation}
+其中 $\tau$ 通常设为 1.0。
+这意味着每步参数更新的方向保持不变，
+但如果梯度「太大」，步长会被缩放回安全范围。
+全局范数裁剪（而非逐参数裁剪）的优势在于
+保持了不同参数梯度之间的相对比例关系。
+
+\subsection{权重衰减与 AdamW}
+
+权重衰减（Weight Decay）是 LLM 训练中
+普遍使用的正则化手段，典型值为 $\lambda = 0.1$。
+它的效果是持续地将参数向零「拉回」——
+在每步更新中，参数先衰减 $(1 - \lambda \eta)$ 倍，
+然后再按梯度方向更新。
+
+直觉上，权重衰减防止了任何单个参数变得「过大」——
+如果某个参数对损失的贡献不大（梯度接近零），
+权重衰减会把它逐渐压到接近零；
+只有对损失有显著贡献的参数才能「抵抗」衰减而保持非零值。
+这是一种隐式的特征选择。
+
+值得注意的是，权重衰减通常\textbf{不应用于偏置项和归一化参数}——
+这些参数的量级本身就不大，
+衰减它们反而会损害模型表达能力。
+
+\subsection{真实案例：大规模训练的挑战}
+
+大规模训练中的不稳定性不是理论上的担忧——
+它们在实践中反复出现：
+
+\textbf{PaLM}~\cite{chowdhery2022palm} 在 6144 块 TPU v4 上训练时
+经历了 20 多次 loss spike。
+Google 的解决方案是：
+每次 spike 发生后，回滚到 spike 前约 100 步的检查点，
+\textbf{跳过当时的数据 batch}，然后继续训练。
+他们发现大多数 spike 与特定数据 batch 相关——
+同样的数据 batch 在不同训练阶段都会引发 spike。
+
+\textbf{OPT-175B} 的训练日志~是公开可查的，% NEW REF: zhang2022opt = OPT: Open Pre-trained Transformer Language Models, Zhang et al., arXiv 2022
+记录了一段混乱的训练过程：
+硬件故障、loss spike、超参数手动调整、
+训练中途改变学习率等。
+这份真实的训练日志被社区戏称为「OPT 训练日记」，
+它生动地展示了大模型训练远非「设置好超参数后等结果」
+那么简单——
+它更像是一场需要 24/7 值守的「手术」。
+
+\textbf{DeepSeek-V3}~\cite{deepseekv3} 的训练过程
+则是一个正面案例——
+整个 14.8T token 的训练过程中\textbf{没有发生过}
+不可恢复的 loss spike 或需要回滚的情况。
+这得益于他们精心设计的训练基础设施
+（FP8 细粒度量化、无辅助损失的负载均衡、
+DualPipe 调度等）以及严格的数据质量控制。
+
+\section{硬件基础设施}
+
+\subsection{GPU 选择与代际跃升}
+
+2025--2026 年的主力训练 GPU 是 NVIDIA H100 和 H200。
+这几代 GPU 的性能跃升幅度堪称惊人：
+
+\begin{center}
+\begin{tabular}{lrrrr}
+  \hline
+  & \textbf{A100} & \textbf{H100} & \textbf{H200} & \textbf{B200} \\
+  \hline
+  显存 & 80\,GB HBM2e & 80\,GB HBM3 & 141\,GB HBM3e & 192\,GB HBM3e \\
+  显存带宽 & 2.0\,TB/s & 3.35\,TB/s & 4.8\,TB/s & 8.0\,TB/s \\
+  BF16 算力$^\dagger$ & 312\,TFLOPS & 989\,TFLOPS & 989\,TFLOPS & 2.25\,PFLOPS$^\ddagger$ \\
+  FP8 算力$^\dagger$ & -- & 1979\,TFLOPS & 1979\,TFLOPS & 4.5\,PFLOPS$^\ddagger$ \\
+  NVLink & 600\,GB/s & 900\,GB/s & 900\,GB/s & 1800\,GB/s \\
+  架构 & Ampere & Hopper & Hopper & Blackwell \\
+  \hline
+\end{tabular}
+
+\small
+$^\dagger$\,Dense Tensor Core TFLOPS（不含稀疏加速）。
+启用结构化稀疏（2:4 sparsity）后理论峰值翻倍，
+但训练中通常不使用结构化稀疏。
+$^\ddagger$\,B200 数据来自 NVIDIA 官方规格表（SXM 版本），
+实际训练吞吐量取决于软件生态成熟度。
+\end{center}
+
+从 A100 到 H100，BF16 算力提升了 $\sim$3.2$\times$，
+得益于 Hopper 架构引入的第四代 Tensor Core。
+H100 还新增了 FP8 支持，进一步翻倍。
+H200 保持与 H100 相同的计算芯片，
+但将显存升级到 141\,GB HBM3e——
+这意味着可以在\textbf{不减少 GPU 数量}的情况下
+放下更大的模型或使用更大的 batch size。
+B200（Blackwell）则是全面升级：
+192\,GB 显存、4.5 PFLOPS FP8 算力、
+1800\,GB/s NVLink，甚至支持 FP4 精度。
+
+Google 的 TPU（Tensor Processing Unit）是另一个重要的训练加速器。
+TPU v5e 和 v6e 在 Google Cloud 上可用，
+Gemini 系列模型就是在 TPU 上训练的。
+TPU 的核心优势在于极高的芯片间互联带宽
+和与 Google 基础设施的深度集成。
+
+DeepSeek 使用的是 H800——H100 的中国出口限制版本，
+NVLink 带宽从 900\,GB/s 降到 400\,GB/s，
+跨节点互联也受到限制。
+但 DeepSeek 通过出色的软件优化
+（如 DeepEP 的通信--计算重叠策略、DualPipe 的流水线调度）
+不仅弥补了硬件限制，
+甚至在某些效率指标上超越了使用无限制 H100 的西方实验室。
+这充分说明了软件工程的力量——
+在硬件被限制的情况下，
+聪明的算法和精细的系统优化可以带来巨大的效率提升。
+
+\subsection{互联网络：数据中心的「神经系统」}
+
+训练集群的网络拓扑至关重要。
+不同层级的通信有不同的带宽和延迟特征：
+
+\textbf{GPU 间通信（节点内）}：
+NVLink 是 NVIDIA 的专有互联协议，
+H100 提供 900\,GB/s 的双向带宽（每方向 450\,GB/s）。
+8 块 H100 通过 NVSwitch 全互联——
+任意两块 GPU 之间都有 900\,GB/s 的带宽，
+不存在带宽瓶颈。
+NVSwitch 充当 GPU 之间的「交换机」，
+支持 All-Reduce、All-Gather 等集合通信操作的硬件加速。
+
+\textbf{节点间通信}：
+InfiniBand（IB）是高性能计算的标准互联。
+NDR（Next Data Rate）标准提供 400\,Gb/s（50\,GB/s），
+XDR 提供 800\,Gb/s（100\,GB/s）。
+RoCE（RDMA over Converged Ethernet）是以太网上的 RDMA 方案，
+成本更低但性能和稳定性略逊于 IB。
+
+\textbf{网络拓扑设计}直接影响训练效率。
+传统的 \textbf{Fat-Tree} 拓扑保证了任意两个节点间
+等带宽的通信路径，但成本极高
+（需要大量高端交换机）。
+\textbf{Rail-Optimized} 拓扑是一种更经济的替代方案：
+每个节点的第 $i$ 块 GPU 连接到同一个 rail 交换机，
+同一 rail 上的 GPU 之间通信最快。
+这种拓扑与张量并行（节点内，NVLink）+
+数据并行（同 rail 跨节点，IB）的组合特别契合。
+
+\subsection{集群设计与成本}
+
+一个典型的 DGX H100 系统包含 8 块 H100 GPU，
+售价约 $\$$250K--$\$$300K（约 $\$$30K--$\$$37K per GPU）。
+
+训练一个 frontier LLM 需要多少钱？
+
+Meta 的 LLaMA 3-405B~\cite{dubey2024llama3}
+使用 16384 块 H100 GPU 训练了约 54 天，
+仅 GPU 租赁成本估计超过 1 亿美元。
+而 DeepSeek-V3 仅用 2048 块 H800，
+训练 2 个月，成本约 560 万美元——
+性能相当，成本降低了 \textbf{约 20 倍}。
+
+这个巨大的成本差距来自 MoE 架构（每个 token 只激活 5.5\% 的参数）、
+FP8 训练（减少内存和计算需求）以及高效的工程实现。
+它证明了：在 LLM 训练中，
+\textbf{聪明的工程设计可以弥补（甚至超越）硬件优势}。
+
+\textbf{云端 vs 自建}的经济学也值得考量。
+按云端 H100 的典型租价 $\sim$$\$$2--3/GPU·hour 计算，
+16384 块 GPU 训练 54 天的成本约为
+$16384 \times 54 \times 24 \times \$2.5 \approx \$53$M。
+自建集群的前期投入更大
+（16K H100 的硬件成本约 $\$$500M，加上电力、冷却、机房等），
+但如果集群能持续运行多个训练任务，
+长期来看单次训练的分摊成本更低。
+这就是为什么 Meta、Google、DeepSeek 等
+频繁训练模型的机构都选择自建——
+而初创公司或偶尔训练的团队更倾向于云端租用。
+
+\subsection{GPU 利用率：最重要的效率指标}
+
+在大规模训练中，
+最关键的效率指标是 \textbf{MFU}
+（Model FLOPs Utilization，模型浮点运算利用率）——
+实际的计算吞吐量占 GPU 理论峰值的百分比。
+
+更精确地定义：
+\begin{equation}
+  \mathrm{MFU} = \frac{\text{模型每步的理论 FLOP 数} / \text{每步实际耗时}}
+                      {\text{GPU 理论峰值 FLOPS} \times \text{GPU 数量}}
+  \label{eq:mfu}
+\end{equation}
+
+分子是「如果所有计算资源都用于模型计算，
+每秒能做多少 FLOP」；
+分母是硬件的理论上限。
+MFU 衡量的是「有多少算力真正用在了模型计算上」，
+其余部分被通信等待、内存访问、流水线气泡等「浪费」了。
+
+理想的 MFU 是 100\%，但实际中远达不到。
+原因包括：通信等待时间、内存带宽瓶颈、
+流水线气泡、数据加载延迟等。
+典型的 MFU 值：
+\begin{itemize}[noitemsep]
+  \item \textbf{优秀}：50--60\%（如 PaLM 在 6144 TPU 上达到 57\%）
+  \item \textbf{良好}：40--50\%（大多数精心优化的训练任务）
+  \item \textbf{一般}：30--40\%（较大的通信开销或未优化的配置）
+  \item \textbf{差}：$<$30\%（严重的瓶颈或配置问题）
+\end{itemize}
+
+LLaMA 3~\cite{dubey2024llama3} 报告的 MFU 为 38--43\%
+（16384 块 H100 GPU）。
+这个数字看起来不高，但考虑到 16K GPU 的规模
+以及 DP+TP+PP 三维并行的通信开销，
+已经是非常出色的工程成就。
+
+每提升 1\% 的 MFU，在 2048 块 GPU 的训练中
+可以节省约 1\% 的训练时间——
+对于两个月的训练周期，这意味着节省了约 15 小时的 GPU 时间，
+换算成成本是数万美元。
+这就是为什么基础设施工程师对每一个百分点都精打细算。
+
+
+%% ============================================================
+% NEW REF: muennighoff2023scaling = Scaling Data-Constrained Language Models, Muennighoff et al., NeurIPS 2023
+% NEW REF: gpipe = GPipe: Efficient Training of Giant Neural Networks using Pipeline Parallelism, Huang et al., NeurIPS 2019
+% NEW REF: zhang2022opt = OPT: Open Pre-trained Transformer Language Models, Zhang et al., arXiv 2022
+%% --- NEW REFERENCES (March 2026 update) ---
+% NEW REF: sardana2024inference = Beyond Chinchilla-Optimal: Accounting for Inference in Language Model Scaling Laws, Sardana et al., ICML 2024
+% NEW REF: bian2025inference = Scaling Inference-Efficient Language Models, Bian et al., arXiv 2025
+% NEW REF: qin2025synthllm = Scaling Laws of Synthetic Data for Language Models, Qin et al., arXiv 2025
+% NEW REF: held2025relative = Relative Scaling Laws for LLMs, Held et al., arXiv 2025
+% NEW REF: zhang2026prescriptive = Prescriptive Scaling Reveals the Evolution of Language Model Capabilities, Zhang et al., arXiv 2026
+% NEW REF: megatronfsdp = Megatron-FSDP: Performance-oriented FSDP for Megatron-LM, NVIDIA, 2025
+% NEW REF: vescale2026 = veScale-FSDP: Flexible and High-Performance FSDP at Scale, Wang et al., arXiv 2026
+% NEW REF: narayan2025munit = mu-nit Scaling: Simple and Scalable FP8 LLM Training, Narayan et al., 2025
+% NEW REF: quartet2025 = Quartet: Native FP4 Training Can Be Optimal for Large Language Models, Castro et al., NeurIPS 2025
+% NEW REF: nvfp4_2026 = Pretraining Large Language Models with NVFP4, NVIDIA, arXiv 2026
+% NEW REF: mx2025 = An Empirical Study of Microscaling Formats for Low-Precision LLM Training, Yang et al., Meta, 2025
+% NEW REF: tseng2025mxfp4 = Training LLMs with MXFP4, Tseng et al., AISTATS 2025
+% NEW REF: muon2025 = Muon is Scalable for LLM Training, Jordan et al., arXiv 2025
+% NEW REF: kimik2 = Kimi K2: Open Agentic Intelligence, Kimi Team, arXiv 2025
+% NEW REF: wen2025optimizers = Fantastic Pretraining Optimizers and Where to Find Them, Wen et al., arXiv 2025
+% NEW REF: mtp2024 = Better & Faster Large Language Models via Multi-token Prediction, Gloeckle et al., ICML 2024
+% NEW REF: aynetdinov2025mtp = Pre-Training Curriculum for Multi-Token Prediction in Language Models, Aynetdinov & Akbik, ACL 2025

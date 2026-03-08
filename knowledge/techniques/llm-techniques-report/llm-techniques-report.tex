@@ -1,0 +1,589 @@
+\documentclass[
+  customlatinfont = macos,
+]{hkustthesis}
+
+\usepackage{hkust-cjk}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage[most]{tcolorbox}
+
+% Extra colors for tcolorbox highlights
+\definecolor{moeBg}{HTML}{EEF2FF}
+\definecolor{moeBorder}{HTML}{6366F1}
+\definecolor{quantBg}{HTML}{F0FDF4}
+\definecolor{quantBorder}{HTML}{22C55E}
+\definecolor{longBg}{HTML}{FFF7ED}
+\definecolor{longBorder}{HTML}{F97316}
+\definecolor{ttcBg}{HTML}{FDF2F8}
+\definecolor{ttcBorder}{HTML}{EC4899}
+\definecolor{synthBg}{HTML}{F5F3FF}
+\definecolor{synthBorder}{HTML}{8B5CF6}
+\definecolor{mergeBg}{HTML}{ECFDF5}
+\definecolor{mergeBorder}{HTML}{10B981}
+
+\newtcolorbox{insightbox}[2][]{
+  colback=#2Bg, colframe=#2Border,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=10pt, after skip=10pt,
+}
+
+\hkustsetup{
+  info = {
+    degree        = {mphil},
+    title         = {Open-Source LLM Core Techniques: A Deep Dive},
+    author        = {Ziming Wang},
+    school        = {Academy of Interdisciplinary Studies},
+    department    = {Division of Integrative Systems and Design},
+    program       = {Technology Innovation and Entrepreneurship},
+    supervisor    = {},
+    submit-month  = {March 2026},
+    submit-date   = {7 March 2026},
+    defend-date   = {},
+    city          = {Hong Kong},
+  }
+}
+
+\addbibresource{refs.bib}
+\emergencystretch=2em
+
+\begin{document}
+
+\frontmatter
+\tableofcontents
+
+\mainmatter
+
+%% ============================================================
+\chapter{Mixture of Experts (MoE)}
+\label{ch:moe}
+%% ============================================================
+
+MoE 架构已成为 2026 年所有 frontier 开源模型的标准选择。
+其核心价值在于以极低的训练成本获得同等质量的模型：
+DeepSeek-V3 以 \$5.6M 的成本训练了 671B 参数模型，
+而西方同级别模型的训练成本高达数亿美元~\cite{deepseekv3}.
+
+\section{工作原理}
+
+对于每个输入 token，MoE 层的处理流程如下：
+\begin{enumerate}[noitemsep]
+  \item \textbf{路由}：一个学习到的线性门控网络计算每个专家的分数。
+  \item \textbf{选择}：Top-K 选择激活 $K$ 个专家（通常 $K=2$ 或 $K=8$）。
+  \item \textbf{并行计算}：被选中的专家独立处理 token。
+  \item \textbf{加权聚合}：按路由权重对专家输出求和。
+\end{enumerate}
+
+相比于 dense 模型，MoE 使得总参数量远大于每个 token 实际激活的参数量。
+例如 DeepSeek-V3 总参数 671B，但每个 token 仅激活 37B（$\sim$5.5\%）。
+
+\section{模型格局（截至 2026 年 3 月）}
+
+\begin{table}[H]
+\centering\small
+\caption{主要 MoE 模型对比}
+\label{tab:moe-models}
+\begin{tabularx}{\linewidth}{l r r r r r}
+\toprule
+\textbf{模型} & \textbf{总参数} & \textbf{活跃参数} & \textbf{专家数} & \textbf{Top-K} & \textbf{上下文} \\
+\midrule
+DeepSeek-V4       & $\sim$1T & 32B & 256+ & TBD & 1M \\
+DeepSeek-V3       & 671B & 37B & 256+1 shared & 8 & 128K \\
+Mistral Large 3   & 675B & 41B & MoE & --- & 256K \\
+LLaMA 4 Maverick  & $\sim$400B & 17B & 128 & custom & 1M \\
+Qwen3-235B        & 235B & 22B & 128 & 8 & 256K \\
+GPT-OSS-120B      & 117B & 5.1B & MoE+MXFP4 & --- & --- \\
+LLaMA 4 Scout     & 109B & 17B & 16 & custom & 10M \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+关键趋势：专家数量从 Mixtral 的 8 个猛增到 DeepSeek 的 256 个。
+更细粒度的专家意味着更灵活的组合路由——
+$\binom{256}{8} \approx 4.4 \times 10^{9}$ 种组合，
+相比 $\binom{8}{2} = 28$ 种，组合空间扩大了 $10^{8}$ 倍。
+
+\section{DeepSeek 三大创新}
+
+\subsection{细粒度专家（Fine-Grained Experts）}
+
+DeepSeek 使用 256 个路由专家加 1 个共享专家。
+每个路由专家仅为标准 FFN 的 1/32 大小，
+共享专家处理所有 token 以捕获通用知识：
+\begin{equation}
+  \mathbf{y} = \mathrm{SharedExpert}(\mathbf{x})
+  + \sum_{i \in \mathrm{TopK}} g_i \cdot \mathrm{Expert}_i(\mathbf{x})
+  \label{eq:moe-output}
+\end{equation}
+其中 $g_i$ 为路由权重，TopK 选取 8 个专家。
+
+\subsection{Auxiliary-Loss-Free 负载均衡}
+
+传统方法在训练目标中加入辅助损失 $L_{\mathrm{balance}}$
+以惩罚专家利用率不均衡：
+\begin{equation}
+  L_{\mathrm{total}} = L_{\mathrm{LM}} + \alpha \cdot L_{\mathrm{balance}}
+\end{equation}
+这引入了根本矛盾：$\alpha$ 太大损害模型质量，太小则专家坍缩。
+
+\begin{insightbox}[DeepSeek 的方案：Bias-Based Balancing]{moe}
+不加辅助损失，而是给每个专家的路由分数加一个 \textbf{不参与反向传播} 的偏置项 $b_i$：
+\[
+  \mathrm{score}_i = \mathrm{softmax}\!\bigl(W_{\mathrm{router}} \cdot \mathbf{x} + b_i\bigr)
+\]
+偏置 $b_i$ 由简单启发式规则在每步更新：
+专家过载则 $b_i \gets b_i - \gamma$，
+空闲则 $b_i \gets b_i + \gamma$（$\gamma \approx 10^{-3}$）。
+由于 $b_i$ 不在计算图内，语言建模梯度完全不受干扰。
+2025 年芝加哥大学的理论论文证明该方法等价于
+一步一迭代的原始--对偶分配问题求解，
+具有单调改进保证和对数遗憾界。
+\end{insightbox}
+
+\subsection{DeepEP：专用 All-to-All 通信库}
+
+MoE 需要跨 GPU 分发 token 到对应专家（all-to-all dispatch）。
+DeepEP 提供两种模式：
+
+\begin{table}[H]
+\centering\small
+\caption{DeepEP 两种内核模式}
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{模式} & \textbf{用途} & \textbf{技术特点} \\
+\midrule
+Normal（高吞吐） & 训练 + prefill & NVLink + RDMA 混合，SM 数量可控 \\
+Low-Latency      & 推理 decode  & Hook-based 通信--计算重叠，不消耗 SM 资源 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{源码关键路径}
+
+MoE 前向传播的完整流程可在以下开源项目中追踪：
+
+\begin{table}[H]
+\centering\small
+\caption{各框架 MoE 核心代码文件}
+\label{tab:moe-code}
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{框架} & \textbf{组件} & \textbf{关键路径} \\
+\midrule
+vLLM & 路由器 & \texttt{layers/fused\_moe/router/fused\_topk\_router.py} \\
+vLLM & 融合内核 & \texttt{layers/fused\_moe/fused\_moe.py} (79KB, Triton) \\
+vLLM & DeepEP 后端 & \texttt{deepep\_ht\_prepare\_finalize.py} \\
+Megatron & 路由器 & \texttt{moe/router.py} (TopKRouter) \\
+Megatron & Token 调度 & \texttt{moe/token\_dispatcher.py} \\
+Megatron & 负载均衡损失 & \texttt{moe/moe\_utils.py} \\
+DeepSpeed & 分片 MoE & \texttt{moe/sharded\_moe.py} \\
+TorchTitan & EP 并行 & \texttt{distributed/expert\_parallel.py} (DTensor) \\
+Nanotron & Grouped GEMM & \texttt{src/nanotron/nn/moe.py} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+%% ============================================================
+\chapter{Quantization（量化）}
+\label{ch:quantization}
+%% ============================================================
+
+量化通过降低模型精度来减少内存占用、提高推理速度，
+同时控制质量损失在可接受范围内。
+
+\section{方法选择矩阵}
+
+\begin{insightbox}[量化方法速查]{quant}
+\begin{itemize}[noitemsep]
+  \item \textbf{数据中心 GPU (H100/H200)}：FP8（vLLM/TRT-LLM），近零精度损失
+  \item \textbf{Blackwell GPU (B200/RTX 5090)}：NVFP4，$2.3\times$ 吞吐提升
+  \item \textbf{消费级 GPU + 高吞吐}：AWQ + Marlin kernel，741 tok/s（超过 FP16 的 461）
+  \item \textbf{CPU / Apple Silicon}：GGUF Q4\_K\_M（llama.cpp / Ollama）
+  \item \textbf{微调}：BitsAndBytes NF4（QLoRA）
+\end{itemize}
+\end{insightbox}
+
+\section{H200 实测对比}
+
+在 H200 GPU 上对 Qwen2.5-32B-Instruct 进行 4-bit 量化的实测结果如
+\cref{tab:quant-bench} 所示。
+
+\begin{table}[H]
+\centering\small
+\caption{H200 上 Qwen2.5-32B 各量化方法对比~\cite{jarvislabs-quant}}
+\label{tab:quant-bench}
+\begin{tabularx}{\linewidth}{l r r r}
+\toprule
+\textbf{方法} & \textbf{Perplexity} & \textbf{HumanEval} & \textbf{吞吐 (tok/s)} \\
+\midrule
+FP16 Baseline  & 6.56 & 56.1\% & 461 \\
+Marlin-AWQ     & 6.84 & 51.8\% & \textbf{741} \\
+BitsAndBytes   & \textbf{6.67} & 51.8\% & 168 \\
+GGUF Q4\_K\_M  & 6.74 & 51.8\% & 93 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+AWQ + Marlin 内核在 4-bit 下吞吐量反超 FP16（741 vs.\ 461 tok/s）。
+这是因为更小的模型减少了内存带宽瓶颈——
+量化不仅节省内存，还能提升推理速度。
+
+\section{GGUF K-Quant 深度解析}
+
+GGUF 的 K-quant 采用两级层级量化（hierarchical quantization）：
+
+\begin{enumerate}[noitemsep]
+  \item 层权重被切分为 \textbf{super-block}（如 256 个权重），
+        配一个 FP16 缩放因子。
+  \item 每个 super-block 内部包含多个 \textbf{sub-block}（如 32 个权重），
+        各自独立计算缩放因子并量化权重。
+  \item Sub-block 的缩放因子本身被\textbf{二次量化}（6-bit），
+        由 super-block 级别的 FP16 缩放因子覆盖。
+\end{enumerate}
+
+\texttt{Q4\_K\_M} 命名含义：4-bit 精度 / K-quant 方法 / Medium 精度变体。
+``M'' 表示混合精度策略：attention 层的 Q/K/V 和 FFN down\_proj 使用 Q6\_K，
+其余层使用 Q4\_K。仅多 $\sim$0.2 bpw，perplexity 增量从 0.1149 降至 0.0535。
+
+\begin{table}[H]
+\centering\small
+\caption{GGUF 量化格式对比（基于 LLaMA 7B）}
+\label{tab:gguf}
+\begin{tabularx}{\linewidth}{l r r r}
+\toprule
+\textbf{格式} & \textbf{有效 bpw} & \textbf{7B 大小} & \textbf{PPL $\Delta$} \\
+\midrule
+Q8\_0 & 8.0 & 6.7\,GB & +0.0004 \\
+Q6\_K & 6.0 & 5.15\,GB & +0.0044 \\
+Q5\_K\_M & 5.1 & 4.45\,GB & +0.0142 \\
+\rowcolor{quantBg}
+\textbf{Q4\_K\_M} & \textbf{4.5} & \textbf{3.80\,GB} & \textbf{+0.0535} \\
+Q3\_K\_M & 3.3 & 3.06\,GB & +0.2437 \\
+Q2\_K & 2.5 & 2.67\,GB & +0.8698 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{FP8 训练时量化}
+
+DeepSeek-V3 是首个 FP8 端到端训练的大规模模型~\cite{deepseekv3}。核心技术包括：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{细粒度块级量化}：权重每 $128 \times 128$ 子矩阵独立缩放，
+        激活每 $1 \times 128$ 子向量独立缩放。
+  \item \textbf{高精度累加}：FP8 Tensor Core 仅提供 14-bit 精度，
+        DeepSeek 通过 4 次连续 WGMMA 操作后加入 FP32 累加器解决此问题。
+  \item \textbf{PyTorch 原生支持}：\texttt{torchao.float8} 的 rowwise recipe
+        在 2K H200 集群上实现 1.34--1.43$\times$ 训练加速。
+\end{enumerate}
+
+
+%% ============================================================
+\chapter{Long Context（长上下文）}
+\label{ch:long-context}
+%% ============================================================
+
+\section{上下文长度排行}
+
+\begin{table}[H]
+\centering\small
+\caption{当前最长上下文窗口模型}
+\label{tab:long-ctx}
+\begin{tabularx}{\linewidth}{l r X}
+\toprule
+\textbf{模型} & \textbf{上下文} & \textbf{关键技术} \\
+\midrule
+LLaMA 4 Scout    & 10M  & iRoPE（RoPE + NoPE 交替层） \\
+Grok-4-fast       & 2M   & 未公开 \\
+Gemini 3 Pro      & 1M   & Sparse MoE \\
+Claude 4.5 Sonnet & 1M   & 未公开 \\
+DeepSeek-V4       & 1M   & MLA + DSA \\
+Qwen2.5-1M        & 1M   & YaRN + 渐进式预训练 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{核心技术演进}
+
+\subsection{YaRN（Yet Another RoPE extensioN）}
+
+RoPE 在训练长度之外会"外推失败"，位置编码进入未见过的频率空间。
+YaRN 整合了三个关键创新：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{NTK-By-Parts}：将频率维度分为三组——
+        低频不动（保留原始模式）、中频 NTK-aware 缩放、高频激进缩放。
+  \item \textbf{Temperature Scaling}：
+        在 softmax 中加入温度参数，短序列保持原始行为，长序列时稳定注意力分布。
+  \item \textbf{最小微调}：仅需原始预训练数据的极小比例即可实现巨大的上下文扩展。
+\end{enumerate}
+
+目前 Qwen、DeepSeek、LLaMA 等主流模型均使用 YaRN 变体进行上下文扩展。
+
+\subsection{iRoPE（Meta，LLaMA 4）}
+
+LLaMA 4 交替使用两种注意力层：
+\begin{itemize}[noitemsep]
+  \item \textbf{RoPE 层}：带位置编码，捕捉局部上下文和相对位置。
+  \item \textbf{NoPE 层}：无位置偏置，关注纯语义关系。
+\end{itemize}
+
+NoPE 层天然不受序列长度限制，
+而 RoPE 层通过 temperature scaling 在推理时泛化到超出训练长度，
+共同支撑了 LLaMA 4 Scout 的 10M token 上下文窗口。
+
+\subsection{Ring Attention}
+
+将长序列分割到多个 GPU 上，设备排列成环形拓扑，
+KV block 在设备间循环传递。
+每个设备计算自己持有的 query 与当前可见 KV 的注意力，
+通信与计算重叠以隐藏传输延迟。
+内存复杂度从 $O(n^2)$ 降为每设备 $O(n)$。
+
+\section{Context Rot：最重要的研究发现}
+
+\begin{insightbox}[Chroma 2025 年实证研究：18 个 frontier 模型]{long}
+\textbf{所有模型都随输入长度增加而性能下降，即使远未达到上下文窗口上限。}
+\begin{itemize}[noitemsep]
+  \item \textbf{U 型曲线}：模型对序列开头和结尾的信息关注度最高，
+        中间信息的检索准确度下降超过 30\%。
+  \item \textbf{反直觉发现}：有结构的上下文比打乱的上下文更难检索——
+        模型在有逻辑的干扰信息中更容易"迷路"。
+  \item \textbf{核心结论}：Context engineering（如何组织上下文）
+        比 context length（能塞多少）更重要。
+\end{itemize}
+\end{insightbox}
+
+\section{推理框架的长上下文支持}
+
+\textbf{vLLM} 提供 PagedAttention（KV cache 分页管理）、
+Continuous Batching、Chunked Prefill 和 Prefix Caching。
+
+\textbf{SGLang} 的 Chunked Pipeline Parallelism（2026 年 1 月发布）
+在 DeepSeek-V3.1 上实测实现 $3.31\times$ prefill 吞吐提升，
+Qwen3-235B 处理 1M token 的 TTFT 从 55.5s 降至 10.5s（降低 81\%）。
+
+
+%% ============================================================
+\chapter{Test-Time Compute（推理时计算缩放）}
+\label{ch:ttc}
+%% ============================================================
+
+\section{核心洞察}
+
+\begin{insightbox}[推理时计算的颠覆性影响]{ttc}
+\textbf{7B 模型 + 100$\times$ 推理计算 $\approx$ 70B 模型标准推理。}
+推理需求预计 2026 年超过训练需求 118 倍。
+GPT-4 等效性能成本从 2022 年 \$20/M tokens 降至 2026 年 \$0.40/M tokens
+（$1000\times$ 下降）。
+\end{insightbox}
+
+\section{三种策略}
+
+\begin{table}[H]
+\centering\small
+\caption{推理时计算缩放的三种策略}
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{策略} & \textbf{方法} & \textbf{代表} \\
+\midrule
+Parallel   & 采样 $N$ 个答案取共识 & Best-of-N, Majority Vote \\
+Sequential & 链式推理，逐步验证   & DeepSeek-R1 thinking tokens \\
+Hybrid     & 并行 + 顺序结合     & ThreadWeaver ($1.53\times$ 延迟降低) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{推理模型格局}
+
+\begin{table}[H]
+\centering\small
+\caption{主要推理模型对比（2026 年初）}
+\label{tab:reasoning-models}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{模型} & \textbf{特点} \\
+\midrule
+DeepSeek-R1-0528 & 671B MoE, AIME 87.5\%, 开源 MIT \\
+Qwen3            & 统一 thinking/non-thinking 模式，单模型两种用法 \\
+o3/o4-mini       & 首个推理 + 全工具访问，ARC-AGI 87\%+ \\
+Claude Opus 4.6  & 可配置 thinking budget (32K/64K tokens) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{GRPO vs.\ REINFORCE++ vs.\ PPO}
+
+这三种算法是训练推理模型的核心 RL 方法。
+
+\textbf{GRPO}（Group Relative Policy Optimization）的核心思想是
+消除 PPO 中的 critic network，使用组内采样估算 advantage：
+\begin{equation}
+  A_i = \frac{R_i - \mathrm{mean}(\{R_j\})}{\mathrm{std}(\{R_j\})}
+  \label{eq:grpo-advantage}
+\end{equation}
+\begin{equation}
+  J_{\mathrm{GRPO}} = \mathbb{E}\!\left[
+    \min\!\left(\frac{\pi_\theta}{\pi_{\mathrm{old}}} A_i,\;
+    \mathrm{clip}\!\left(\frac{\pi_\theta}{\pi_{\mathrm{old}}},\,1\!\pm\!\epsilon\right) A_i\right)
+  \right] - \beta \cdot D_{\mathrm{KL}}(\pi_\theta \| \pi_{\mathrm{ref}})
+  \label{eq:grpo-objective}
+\end{equation}
+
+\begin{table}[H]
+\centering\small
+\caption{三种 RL 算法对比}
+\label{tab:rl-compare}
+\begin{tabularx}{\linewidth}{l X X X}
+\toprule
+\textbf{维度} & \textbf{PPO} & \textbf{GRPO} & \textbf{REINFORCE++} \\
+\midrule
+Advantage 估计 & Critic network $V(s)$ & 组内 reward 均值/标准差 & 组内均值 + batch-level 标准差 \\
+内存需求 & 4 份模型副本 & 3 份（无 critic），内存减半 & 同 GRPO \\
+稳定性 & 最稳定 & 存在 reward collapse & 更鲁棒 \\
+可扩展性 & 70B+ 极难 & 可行 & 可行 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+2026 年共识：GRPO 最流行（DeepSeek-R1 验证），
+REINFORCE++ 更稳定（逐步替代），
+PPO 在 70B+ 因内存限制几乎不可行。
+
+\section{DeepSeek-R1 蒸馏管线}
+
+DeepSeek-R1 的完整训练经历五个阶段：
+\begin{enumerate}[noitemsep]
+  \item \textbf{Base}：DeepSeek-V3-Base（671B MoE 预训练模型）。
+  \item \textbf{纯 RL}：使用 GRPO 训练 $\to$ R1-Zero。
+        自然涌现 chain-of-thought、自我验证、aha moments。
+  \item \textbf{Cold-start SFT + 二轮 RL}：先用精选数据做 SFT，再做第二轮 RL $\to$ R1。
+  \item \textbf{蒸馏}：R1 生成 $\sim$800K 推理 trace，
+        SFT 训练小模型 $\to$ R1-Distill-Qwen-1.5B/7B/14B/32B,
+        R1-Distill-Llama-8B/70B。
+  \item \textbf{对齐}：安全对齐和行为稳定。
+\end{enumerate}
+
+开源复现项目 HuggingFace Open-R1 (19.9K stars)
+完整实现了上述三阶段方法。
+
+
+%% ============================================================
+\chapter{Synthetic Data（合成数据）}
+\label{ch:synthetic}
+%% ============================================================
+
+合成数据已成为 frontier 模型训练的标准组件。
+2026 年的共识策略是\textbf{合成 + 精选人类数据的混合方法}。
+
+\section{前沿模型的合成数据策略}
+
+\begin{table}[H]
+\centering\small
+\caption{前沿模型的合成数据使用方式}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{模型} & \textbf{策略} \\
+\midrule
+Phi-4 (Microsoft) & 仅 140 万精选样本 SFT，证明数据质量 $>$ 数据规模 \\
+Qwen3             & 36T tokens 含大量用 Qwen2.5-Math/Coder 生成的领域合成数据 \\
+DeepSeek-R1       & 纯 RL 训练推理能力，再用 R1 推理 trace 蒸馏到小模型 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{最优合成--真实数据比例}
+
+Meta FAIR 训练超过 1000 个 LLM 的大规模研究得出核心结论：
+\begin{insightbox}[Meta FAIR 研究结论]{synth}
+预训练最优比例：$\sim$30\% 合成 + $\sim$70\% 真实数据，可加速训练 5--10$\times$。
+\begin{itemize}[noitemsep]
+  \item 单轮 rephrased 合成数据不会导致 model collapse。
+  \item 递归生成和纯 textbook 风格数据会导致 collapse。
+  \item 8B 参数的生成器产出效果不亚于更大模型。
+\end{itemize}
+\end{insightbox}
+
+\section{Model Collapse 风险}
+
+在合成数据上递归训练会导致模型"遗忘"数据分布的尾部，
+逐代性能退化。缓解策略是始终混入精选的人类/网络数据，
+典型比例为 50--80\% 合成 + 20--50\% 人类数据。
+
+
+%% ============================================================
+\chapter{Model Merging（模型合并）}
+\label{ch:merging}
+%% ============================================================
+
+模型合并将多个微调后的模型组合成一个，
+无需额外训练。仅用 CPU（无需 GPU）即可通过 MergeKit 实现。
+
+\section{核心方法}
+
+\begin{table}[H]
+\centering\small
+\caption{模型合并方法对比}
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{方法} & \textbf{原理} & \textbf{备注} \\
+\midrule
+SLERP          & 球面线性插值 & 两个模型平滑混合 \\
+TIES-Merging   & 修剪 + 符号选举 + 合并 & 处理参数冲突 \\
+DARE           & 丢弃 90--99\% task vector 权重 & 极致稀疏化 \\
+Task Arithmetic & 加减 task vector & 简单而有效 \\
+进化式合并      & 进化算法搜索最优配置 & 2025 年最大突破 (Sakana AI) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+2025 年的最大突破来自 Sakana AI 的\textbf{进化式模型合并}，
+发表于 Nature Machine Intelligence，
+使用进化算法搜索最优合并配置（层级、权重系数），
+已集成到 MergeKit 中。
+
+MergeKit（Arcee AI，6.8K stars）是该领域无可争议的标准工具，
+CPU 即可运行。NeurIPS 2024 举办了正式的 LLM Merging Competition，
+标志着模型合并已从实验技术进入主流。
+
+
+%% ============================================================
+\chapter{推荐学习路径与资源}
+\label{ch:resources}
+%% ============================================================
+
+\begin{table}[H]
+\centering\small
+\caption{按主题推荐的核心阅读资源}
+\label{tab:resources}
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{主题} & \textbf{优先级} & \textbf{资源} \\
+\midrule
+MoE & 必读 & Cameron Wolfe: nanoMoE (手写 PyTorch 实现) \\
+MoE & 必读 & Sebastian Raschka: Big LLM Architecture Comparison \\
+MoE & 推荐 & Shirley Li: DeepSeek-V3 Explained (8 篇系列) \\
+\midrule
+量化 & 必读 & JarvisLabs: vLLM 量化完全指南 (H200 实测) \\
+量化 & 必读 & Colfax Research: DeepSeek FP8 训练 \\
+量化 & 推荐 & llama.cpp PR \#1684 (K-quant 原始实现) \\
+\midrule
+长上下文 & 必读 & Chroma: Context Rot (18 模型实证) \\
+长上下文 & 必读 & Aman Arora: How LLMs Scaled from 512 to 2M Context \\
+长上下文 & 推荐 & LMSYS: SGLang Pipeline Parallelism \\
+\midrule
+推理计算 & 必读 & Lilian Weng: Why We Think \\
+推理计算 & 必读 & The Illustrated GRPO \\
+推理计算 & 推荐 & Cameron Wolfe: GRPO++ \\
+\midrule
+合成数据 & 推荐 & Meta FAIR: 1000+ LLM 合成数据实验 \\
+模型合并 & 推荐 & Maxime Labonne: Merge Models with MergeKit \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\printbibliography[heading=bibintoc,title=References]
+
+\end{document}

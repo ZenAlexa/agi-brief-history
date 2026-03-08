@@ -1,0 +1,993 @@
+\chapter{团队与组织——谁在训练这些模型？}
+\label{ch:org}
+%% ============================================================
+
+训练一个 frontier LLM 不仅是技术挑战，
+更是一个复杂的组织工程。
+它需要多个专业团队的紧密协作，
+每个团队都面临独特的技术和管理挑战。
+一个常见的误解是认为 LLM 训练的核心是算法研究——
+事实上，工程执行占据了整个工作量的 80\% 以上。
+
+\section{核心团队}
+
+\subsection{数据团队：被低估的英雄}
+
+数据团队是 LLM 训练中最被低估、但影响力最大的团队。
+一个在业界广泛流传的经验法则是：
+数据工程占据了整个训练工作量的 60--80\%。
+模型架构可以从论文中复制，训练框架可以用开源工具，
+但高质量的数据流水线必须从零构建。
+
+数据团队的核心角色包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{数据管道工程师}（Data Pipeline Engineers）：
+        构建和维护从网页爬取到最终训练数据的全流程基础设施。
+        这包括爬虫集群管理、数据清洗 pipeline（通常基于 Spark 或 Dask 构建）、
+        去重系统（MinHash + LSH 在 PB 级数据上的高效实现）、
+        以及数据版本管理（类似 Git LFS 但针对 TB 级数据集的版本控制）。
+        这些工程师需要同时精通分布式系统和 NLP。
+  \item \textbf{数据质量分析师}（Data Quality Analysts）：
+        定义和维护数据过滤标准——什么样的文本是「高质量」的？
+        这不是一个纯技术问题。
+        perplexity 过低可能意味着模板化文本，过高可能意味着乱码。
+        重复率、特殊字符比例、段落结构完整性——
+        每一个过滤规则都需要在大量样本上验证，
+        确保不会误杀有价值的数据。
+  \item \textbf{语言学家}（Linguists）：
+        对于多语言模型，语言学家的角色至关重要。
+        分词器的设计需要考虑不同语言的形态学特征（中文的字/词粒度、
+        日语的假名与汉字混合、阿拉伯语的从右到左书写和词根系统）。
+        语言学家还负责评估不同语言的数据质量标准——
+        适用于英语的 perplexity 过滤阈值不能直接套用到中文。
+  \item \textbf{标注管理者}（Annotation Managers）：
+        协调人类标注员团队，管理标注质量。
+        在 SFT 和 RLHF 阶段，高质量的人类标注数据是稀缺资源。
+        标注管理者需要设计标注指南、培训标注员、
+        建立质量控制流程（inter-annotator agreement 监控、
+        抽样审核、异常检测），
+        并在成本和质量之间寻找平衡。
+\end{itemize}
+
+在一个主要 AI 实验室中，数据团队的规模通常在 10--30 人。
+DeepSeek 在其技术报告~\cite{deepseekv3}中披露了
+对数据配比的大量实验——网页、代码、学术论文、数学文本的最优比例
+是通过在小模型上进行数百次 proxy 实验确定的。
+这种工作量是纯算法研究无法覆盖的。
+
+\begin{whybox}[为什么「数据质量 > 数据数量」？]
+FineWeb~\cite{penedo2024fineweb} 的实验表明，
+经过精细过滤的 1.3T tokens 数据集训练出的模型，
+在多个基准测试上优于使用 4T tokens 低质量数据训练的模型。
+直觉解释是：低质量数据不仅「浪费」了训练步数，
+还可能引入噪声模式（如 HTML 标签、广告文本、机器翻译痕迹），
+这些模式在推理时会以微妙的方式降低输出质量。
+这就是为什么数据团队的工作如此关键。
+\end{whybox}
+
+\subsection{基础设施团队：让数千块 GPU 协同工作}
+
+基础设施（Infra）团队负责 GPU 集群的管理与优化。
+这个团队面临的核心挑战可以用一个数字概括：
+在一个 16,384 块 GPU 的集群中，
+假设每块 GPU 每天的故障率为 0.1\%，
+那么平均每天会发生 $16384 \times 0.001 \approx 16$ 次 GPU 故障。
+这意味着\textbf{平均每 90 分钟就有一块 GPU 出问题}。
+
+Infra 团队的核心职责包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{集群管理与任务调度}：
+        使用 SLURM（传统 HPC 集群的标配）或 Kubernetes
+        管理训练任务的调度。
+        关键挑战是资源隔离——当多个训练任务共享集群时，
+        如何确保网络带宽不互相干扰？
+        如何在节点故障时自动重新调度而不中断其他任务？
+  \item \textbf{故障检测与自动恢复}：
+        这是 Infra 团队最核心的能力。
+        自动检测 GPU 故障（CUDA error、ECC 错误、NVLink 断开）、
+        网络故障（InfiniBand/RoCE 链路中断）、
+        存储故障（NFS/Lustre 挂载点失效）。
+        检测到故障后，系统需要自动隔离故障节点、
+        将训练任务迁移到备用节点、
+        从最近的 checkpoint 恢复训练——整个过程最好在 5--10 分钟内完成。
+  \item \textbf{Checkpoint 管理}：
+        对于 70B 参数的模型，每个完整训练 checkpoint 的大小约为
+        $70 \times 10^9 \times 8 = 560\,\mathrm{GB}$
+        （包含 BF16 参数、FP32 master weights 和 Adam 优化器状态 $m$/$v$，
+        详见附录）。
+        如果每 1000 步保存一次，保留最近 10 个 checkpoint，
+        就需要 5.6\,TB 的高速存储空间。
+        Infra 团队需要设计 checkpoint 的写入策略
+        （异步写入，不阻塞训练）和存储架构
+        （通常使用 Lustre 或 GPFS 这样的并行文件系统，
+        提供数十 GB/s 的聚合带宽）。
+  \item \textbf{网络监控与优化}：
+        分布式训练的通信量巨大。
+        在 tensor parallelism 中，
+        每个 forward 和 backward pass 都需要 all-reduce 操作。
+        Infra 团队需要监控网络拓扑中的热点、
+        检测慢节点（stragglers）、
+        优化 NCCL 的通信参数（如环形 vs.\ 树形 all-reduce、
+        通信与计算的重叠度）。
+\end{itemize}
+
+\begin{corebox}[DeepSeek 的基础设施智慧]
+DeepSeek~\cite{deepseekv3} 在 H800 集群（受出口管制限制，
+NVLink 带宽低于 H100）上训练 V3 模型，
+通过软件层面的创新弥补了硬件劣势：
+DualPipe 通过更精细的计算-通信重叠减少了 pipeline bubble，
+DeepEP 则为 MoE 的 expert parallelism
+设计了专用的 all-to-all 通信内核。
+他们实现了 ``zero irrecoverable loss spikes''，
+即整个训练过程中没有一次不可恢复的 loss 异常——
+这需要极其成熟的容错基础设施。
+\end{corebox}
+
+\subsection{预训练研究团队：训练的「配方师」}
+
+预训练研究团队负责回答一系列关键问题：
+模型应该多大（多少层？多少注意力头？多大的 hidden dimension？）；
+训练应该怎么做（学习率多少？batch size 多大？warmup 多长？数据怎么混合？）。
+
+这个团队的工作方法是\textbf{先在小规模上验证，再推广到大规模}。
+典型的工作流程：
+
+\begin{enumerate}[noitemsep]
+  \item 在 1B--7B 的 proxy model 上做超参数搜索，
+        每组实验训练数小时到数天。
+  \item 利用 Scaling Laws~\cite{kaplan2020scaling,hoffmann2022chinchilla}
+        将小规模的最优配方推算到目标规模（如 70B 或 671B）。
+  \item 在目标规模上做少量验证实验（训练数千步，
+        观察 loss 曲线是否符合预期）。
+  \item 确认配方后启动完整训练，通常持续数周到数月。
+\end{enumerate}
+
+「训练配方」（training recipe）是每个实验室的核心知识资产。
+它包括但不限于：
+\textbf{学习率调度}（cosine decay 的起点、终点和 warmup 步数）、
+\textbf{batch size 调度}（从小 batch 逐渐增大，
+还是全程使用固定 batch size？）、
+\textbf{数据配比调度}（训练前期多用网页数据建立通用能力，
+后期增加代码和数学数据提升推理能力）、
+\textbf{长上下文扩展策略}（何时从 4K 切换到 128K，
+RoPE 频率基数如何调整）。
+
+LLaMA 3~\cite{dubey2024llama3} 的训练报告
+详细披露了他们的训练配方：
+学习率峰值 $1.5 \times 10^{-4}$，
+cosine 衰减到峰值的 $1/30$，
+warmup 8000 步，batch size 从 4M tokens 逐步增加到 16M tokens。
+这些数字看似简单，但每一个都是大量实验的结果。
+
+\subsection{后训练/对齐团队：定义「好」的含义}
+
+后训练团队的工作是将一个「博学但不可控」的 base model
+转变为一个「有用、无害、诚实」的 assistant。
+这是整个训练流程中最依赖人类判断的环节。
+
+核心职责包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{RLHF/DPO 训练管道}：
+        设计和实现偏好优化的训练流程。
+        收集人类偏好数据（A 回答 vs.\ B 回答，哪个更好？），
+        训练 reward model 或直接使用 DPO/GRPO 优化。
+        关键挑战是偏好数据的一致性——
+        不同标注员对「更好」的定义可能不一致。
+  \item \textbf{Constitutional AI 设计}：
+        受 Anthropic~\cite{bai2022constitutional} 启发，
+        一些团队使用 AI 自身来生成和评估训练数据，
+        基于一组预定义的「宪法原则」。
+        这减少了对人类标注的依赖，
+        但需要精心设计原则体系——
+        什么是「有害的」？什么程度的帮助是「过度的」？
+  \item \textbf{Red teaming 与安全评估}：
+        组建专业的红队，系统性地测试模型的安全边界。
+        红队会尝试越狱攻击（jailbreaking）、
+        提示注入（prompt injection）、
+        社会工程学手段（伪装成合法用户请求危险信息）。
+        每一个发现的漏洞都需要通过额外的对齐训练来修复，
+        然后再次测试——这是一个持续的迭代过程。
+  \item \textbf{推理能力训练}：
+        对于 reasoning model（如 DeepSeek-R1~\cite{deepseekr1}），
+        后训练团队需要设计 RL 训练流程，
+        让模型学会长链推理（chain-of-thought）、
+        自我验证和错误修正。
+        这需要精心设计的 reward signal——
+        数学问题可以用答案正确性作为 reward，
+        但开放性问题的 reward 设计要困难得多。
+\end{itemize}
+
+\begin{warnbox}[对齐的核心困难]
+后训练团队面临的最根本挑战是：
+\textbf{「有用、无害、诚实」这三个目标之间存在张力。}
+过度追求无害会导致模型过度拒绝合理请求（over-refusal）；
+过度追求有用会导致模型协助有害行为；
+过度追求诚实会导致模型在不确定时拒绝给出有用的近似回答。
+找到这三者的平衡点，本质上是一个价值观设计问题，
+没有唯一正确的答案。
+\end{warnbox}
+
+\subsection{评估团队：度量你所关心的}
+
+评估团队的工作是回答一个看似简单但极其困难的问题：
+\textbf{模型到底有多好？}
+
+核心职责包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Benchmark 套件管理}：
+        维护覆盖多个能力维度的评估基准集合——
+        数学推理（MATH、GSM8K）、代码生成（HumanEval、SWE-bench）、
+        知识问答（MMLU）、指令遵循（IFEval）、
+        长文本理解、多语言能力等。
+        每个 benchmark 都需要持续维护——
+        防止数据泄露（训练数据中包含了测试集）、
+        更新过时的题目、处理评估格式变化。
+  \item \textbf{内部评估管道}：
+        构建自动化的评估基础设施。
+        每次生成新的 checkpoint，
+        系统需要自动在数十个 benchmark 上运行评估，
+        生成对比报告。这本身就需要大量 GPU 资源——
+        对 70B 模型在 MMLU 的 14K+ 题目上做推理
+        可能需要数小时。
+        高效的评估管道（如 lm-evaluation-harness 或 Lighteval）
+        和评估集群的合理调度至关重要。
+  \item \textbf{人类评估与 A/B 测试}：
+        Benchmark 分数不能完全反映用户体验。
+        评估团队还需要组织人类评估——
+        让真实用户或专业评估者对比不同版本的模型输出，
+        给出偏好判断。
+        Chatbot Arena（LMSYS）的 Elo 评分系统
+        是目前最受认可的人类评估方法。
+  \item \textbf{评估的局限性}：
+        评估团队最重要的认知是：
+        \textbf{没有完美的评估}。
+        模型可能在所有现有 benchmark 上表现优异，
+        但在真实场景中出现令人意外的失败。
+        评估团队需要持续设计新的评估方法，
+        特别是针对 benchmark 无法捕捉的能力
+        （如长期规划、常识推理、文化理解）。
+\end{itemize}
+
+\subsection{推理/部署团队：连接模型与用户}
+
+推理/部署团队负责将训练好的模型变成用户可以使用的产品。
+这个团队的工作直接决定了用户体验和运营成本。
+
+核心职责包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{服务架构设计}：
+        API 网关 → 负载均衡器 → 推理集群 → 模型注册中心。
+        需要处理突发流量（某个功能在社交媒体上火了，
+        请求量可能在数分钟内增长 10 倍）、
+        优雅降级（部分节点故障时不影响整体可用性）、
+        自动扩缩容（根据负载动态调整推理服务器数量）。
+  \item \textbf{延迟与成本优化}：
+        用户期望的首 token 延迟（TTFT）通常在 500ms 以内，
+        生成速度期望在 30--100 tokens/s。
+        同时，推理成本直接影响定价和利润。
+        部署团队需要在量化级别（FP8 vs.\ INT4）、
+        批处理策略（continuous batching 的 max batch size）、
+        缓存策略（prefix caching 的命中率优化）
+        之间找到最优平衡。
+  \item \textbf{SLA 管理}：
+        商业 API 需要保证 99.9\% 以上的可用性
+        （每月最多 43 分钟停机）。
+        这需要多区域部署、灰度发布（新版本先在小流量上验证）、
+        自动回滚机制。
+  \item \textbf{滥用检测}：
+        监控异常使用模式——大量请求尝试绕过安全限制、
+        token farming（批量生成内容）、API key 泄露等。
+        需要实时的异常检测系统和响应流程。
+\end{itemize}
+
+\section{组织模式：从实验室到公司}
+
+观察最成功的 LLM 团队，
+一个共同特点是\textbf{研究与工程的深度融合}——
+写论文的人和写训练代码的人往往是同一批人。
+但不同组织在规模、文化和战略上有显著差异。
+
+\subsection{主要玩家深度解析}
+\label{sec:org-labs}
+
+\textbf{OpenAI}（2026 年初已超过 7,000 人）
+经历了 AI 领域最戏剧化的组织演变。
+从 2015 年的非营利研究实验室，到 2019 年的 ``capped profit'' 混合结构，
+再到 2025 年底正式转型为营利性公司——
+每一步都伴随着巨大的争议。
+微软累计投资超过 130 亿美元，
+而 2025 年 OpenAI 在日本软银领投下完成了 400 亿美元的融资，
+估值达到 3,000 亿美元。
+组织上，OpenAI 在 2025--2026 年经历了显著的人才流动：
+联合创始人 Ilya Sutskever 离开创立了 Safe Superintelligence Inc.（SSI），
+多位安全团队核心成员出走。
+CEO Sam Altman 将 2025 年 8 月任命前 Instagram 负责人
+Fidji Simo 为 COO 并在 2026 年 2 月升任 CEO（应用）,
+自己则转为专注 AGI 研究和战略。
+OpenAI 的组织高度垂直整合——
+从基础研究（GPT 系列、o 系列推理模型）到消费产品（ChatGPT，月活超 4 亿）、
+到企业 API、到硬件（自研芯片计划与 Broadcom 合作），
+全部在一个屋檐下。
+内部团队结构包括：
+\textbf{Foundation Model} 团队（预训练与 scaling）、
+\textbf{Post-Training} 团队（RLHF、推理训练）、
+\textbf{Safety Systems} 团队（红队与对齐）、
+\textbf{Applied AI/ChatGPT} 团队（产品工程）、
+以及新成立的 \textbf{Deep Research} 团队（长链推理与信息综合）。
+
+\textbf{Anthropic}（2025 年约 1,500 人，2026 年持续快速增长）
+由前 OpenAI 研究副总裁 Dario Amodei 和他的姐姐 Daniela Amodei 于 2021 年创立，
+核心使命是 AI 安全研究。
+Anthropic 的技术路线以 Constitutional AI~\cite{bai2022constitutional} 为基石——
+用 AI 自身而非纯人工来完成对齐工作。
+在 Claude 模型系列中，Anthropic 展现了独特的产品策略：
+2025 年推出了 Claude 3.7 Sonnet（首个混合推理模型，
+同时支持快速回答和 extended thinking 深度推理），
+2026 年初发布了 Claude Opus 4 和 Claude Sonnet 4（代号 Kryptonite 和 Borealis），
+在编程和推理任务上取得了领先地位。
+组织特点是安全团队在决策中有异常大的话语权——
+新能力的部署需要通过 Responsible Scaling Policy（RSP）评估，
+模型在发布前需要通过一系列 AI Safety Levels（ASL）评估。
+Anthropic 在 2025 年完成了 Google、Salesforce 和
+Amazon 领投的多轮融资，估值超过 600 亿美元。
+值得注意的产品创新包括：
+Claude Code（CLI 级别的自主编程 Agent）、
+Computer Use（通过截图和键鼠操作桌面应用）、
+以及 Model Context Protocol（MCP，Agent 工具交互的开放标准）。
+
+\textbf{Google DeepMind}（数千人，是规模最大的 AI 研究组织）
+2023 年由 Google Brain 和 DeepMind 合并而成，
+由 Demis Hassabis 领导。
+拥有最多的计算资源（数十万块 TPU 组成的超级集群）
+和最大的研究团队，
+但组织规模也带来了协调成本。
+Gemini 系列是其旗舰产品：
+Gemini 2.0 Flash（2024 年底）引入了原生工具使用和代码执行，
+Gemini 2.5 Pro（2025 年初）成为首个在 LMSYS Chatbot Arena 登顶的 Google 模型，
+而 Gemini 3（预计 2026 年中发布）
+将进一步推进原生多模态和长上下文能力。
+Google DeepMind 的独特优势是
+\textbf{端到端的基础设施控制}——
+从芯片设计（TPU）到网络架构到训练框架（JAX/Flax）
+到云服务（Google Cloud）再到消费产品
+（Gemini App、Google Search 的 AI Overviews），
+全栈自研。
+但合并后的组织需要持续在「学术自由」（DeepMind 的传统）
+和「产品交付」（Google 的商业需求）之间寻找平衡。
+多个产品团队（Gemini App、Workspace AI、Cloud AI）
+有时会出现内部竞争。
+
+\textbf{Meta FAIR 及 GenAI 团队}（合计 1,000+ 人）
+Mark Zuckerberg 做出了 AI 行业最大胆的战略选择：
+将 LLaMA~\cite{touvron2023llama,dubey2024llama3} 系列开源。
+这不是慈善——开源是一种竞争策略：
+当你的模型成为行业标准，围绕它的生态系统（工具、微调模型、应用）
+就成为你的护城河。Meta 不靠卖 API 赚钱，
+而是通过 AI 能力提升其广告和社交产品的收入。
+LLaMA 4 系列（2025 年 4 月发布，包括 Scout 109B/17B-active
+和 Maverick 400B/17B-active）采用了 MoE 架构，
+是 Meta 开源的首个 MoE 模型。
+组织上，Meta AI 分为两个核心部门：
+FAIR（Fundamental AI Research，基础研究）
+和 GenAI（生成式 AI 产品工程）。
+Yann LeCun 仍担任 Chief AI Scientist，
+负责 FAIR 的长期研究方向。
+
+\textbf{DeepSeek}（约 150--200 名核心研究员和工程师）
+背靠量化对冲基金幻方量化（High-Flyer Capital），
+DeepSeek 是「小团队大影响」的典范。
+他们用不到 Meta FAIR 十分之一的人员，
+在 DeepSeek-V3~\cite{deepseekv3} 和 R1~\cite{deepseekr1}
+上达到了 GPT-4 级别的性能。
+关键因素：极致的工程效率（MLA、DeepEP 等创新）、
+扁平的组织结构（减少管理层级，加速决策）、
+以及量化基金背景带来的对效率的极度重视。
+DeepSeek 的团队结构高度集成——
+没有独立的「数据团队」「Infra 团队」「研究团队」的明确边界，
+研究员同时负责算法设计和底层系统优化。
+创始人梁文锋（Wenfeng Liang）的管理风格
+强调技术深度和第一性原理思考，
+团队成员大多来自顶尖高校和量化行业。
+2025 年 1 月 DeepSeek-R1 的发布
+（被称为 ``China's Sputnik moment''）
+引发了全球对中国 AI 能力的重新评估。
+
+\textbf{Mistral}（约 600--700 人，2025 年）
+欧洲最重要的 AI 公司，创始团队来自 Google DeepMind 和 Meta。
+Mixtral~\cite{jiang2024mixtral} 证明了
+一个精干的团队可以在 MoE 架构上做出出色的工作。
+Mistral 的策略是专注于效率——
+不追求最大的模型，而是在给定规模下做到最好。
+2025 年，Mistral 推出了 Mistral Large 2 和 Pixtral（多模态），
+同时为欧洲企业提供了符合 EU AI Act 合规要求的定制部署方案，
+这成为其在欧洲市场的重要竞争优势。
+
+\textbf{其他值得关注的组织}：
+\textbf{xAI}（Elon Musk 创立，2024 年部署了超过 10 万块 H100 组成的
+``Colossus'' 集群，推出了 Grok 3 系列模型）；
+\textbf{阿里巴巴通义}（Qwen 系列，特别是 Qwen 3
+在开源多语言模型中表现突出~\cite{qwen2025qwen3}）；
+\textbf{AI2}（Allen Institute for AI，OLMo 系列是
+真正意义上的完全开源模型——数据、代码、权重全部公开）；
+\textbf{Cohere}（专注企业市场，Command R+ 系列针对 RAG 和企业搜索优化）。
+
+\begin{keybox}[「小团队，大影响」的启示]
+DeepSeek（150--200 名研究员）的成功揭示了一个重要规律：
+在 LLM 开发中，
+\textbf{团队的工程文化和技术深度
+比纯粹的人员规模更重要}。
+小团队的优势包括：
+（1）更快的决策速度——没有多层审批，
+实验想法从提出到验证可以在数天内完成；
+（2）更强的 ownership——每个人负责更大的模块，
+减少了沟通开销和责任模糊；
+（3）更高的人才密度——小团队可以只招最优秀的人，
+大团队不可避免地需要大量普通工程师做基础工作。
+Mistral 在 2023 年创立初期也以 50--80 人的精干团队
+产出了 Mixtral 等有影响力的模型，
+印证了同样的规律。
+但随着商业化需求增长，Mistral 已扩展至 600--700 人（2025 年），
+说明规模化终究是从研究到产品的必经之路。
+一个有趣的对比：OpenAI 的 7,000+ 人产出了 GPT-4o/o3，
+DeepSeek 的 200 人产出了 V3/R1——
+在核心模型质量上，两者差距远小于团队规模的差距。
+\end{keybox}
+
+\section{训练成本的演变：2024--2026}
+\label{sec:training-cost}
+
+训练 frontier LLM 的成本正在快速上升，
+但效率的提升也同样惊人。
+理解这个双重趋势对于评估 AI 行业的可持续性至关重要。
+
+\subsection{成本的量级}
+
+截至 2026 年初，已知的训练成本估算如下：
+
+\begin{table}[H]
+\centering\small
+\caption{Frontier 模型训练成本估算（2024--2026）}
+\begin{tabularx}{\linewidth}{l l l X}
+\toprule
+\textbf{模型} & \textbf{训练时间} & \textbf{估算成本} & \textbf{备注} \\
+\midrule
+GPT-4 (2023) & $\sim$3 个月 & \$78M--100M+ &
+  早期估算；含 A100 集群的 GPU 租赁成本 \\
+Gemini Ultra (2023) & 数月 & \$191M（估算） &
+  使用 Google 自有 TPU v4 集群 \\
+LLaMA 3 405B (2024) & $\sim$54 天 & \$60M--100M（估算） &
+  16,384 块 H100，Meta 自有集群 \\
+DeepSeek-V3 (2024) & $\sim$2 个月 & \$5.5M（GPU 租赁） &
+  2,048 块 H800；不含前期研发成本 \\
+GPT-5 / Orion (2025) & 数月 & \$300M--500M（传闻） &
+  未经官方确认 \\
+下一代 frontier (2026) & --- & \$500M--1B+ &
+  行业预估；含多轮训练 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+DeepSeek-V3 报告的 \$5.5M 成本
+是 AI 行业的一个标志性数字——
+它证明了通过工程创新，
+训练成本可以比同等性能的竞品低一个数量级。
+但需要注意，这个数字仅包含最终训练的 GPU 租赁成本，
+不包含数据处理、前期实验、后训练和人员成本。
+完整的端到端成本可能在 \$20M--30M 左右。
+
+\subsection{成本的构成}
+
+训练一个 frontier LLM 的总成本可以分解为：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{GPU 计算}（50--70\%）：
+        这是最大的成本项。
+        以 2026 年初的价格，
+        NVIDIA H100 的云端租赁价格约为 \$2.00--3.50/GPU$\cdot$小时，
+        新一代 B200 约为 \$4.00--6.00/GPU$\cdot$小时。
+        一次使用 8,192 块 H100 训练 60 天的成本：
+        $8192 \times 60 \times 24 \times 2.50 \approx \$29.5M$。
+  \item \textbf{数据获取与处理}（5--15\%）：
+        网页爬取基础设施、数据标注
+        （高质量 SFT 数据的标注成本约 \$15--50/对话）、
+        数据清洗的计算成本。
+  \item \textbf{人员}（15--25\%）：
+        AI 研究员的年薪在硅谷通常为 \$300K--800K
+        （含股权），顶尖人才超过 \$1M。
+        一个 30 人的核心训练团队的年人员成本可达 \$15M--20M。
+  \item \textbf{基础设施}（5--10\%）：
+        网络设备、存储系统、电力和冷却。
+        一个大规模 GPU 集群的年度电力成本可达数百万美元。
+  \item \textbf{失败的实验}（不确定）：
+        这是最难量化但可能占比很高的成本。
+        训练到一半发现数据质量问题、
+        超参数配置不佳导致 loss 不收敛——
+        这些失败的尝试消耗的计算资源有时比最终成功的训练还多。
+\end{enumerate}
+
+\begin{corebox}[2026 年的成本趋势]
+两个相反的力量正在塑造训练成本的走向：
+\textbf{向上的力量}——模型规模和训练数据量的持续增长，
+以及推理模型的 RL 训练需要更多的计算；
+\textbf{向下的力量}——更高效的架构
+（MoE 的稀疏激活将 FLOPs 降低 5--10 倍）、
+更好的硬件（B200 的 FP8 性能是 H100 的 2.5 倍，单位算力价格持续下降）、
+更聪明的训练方法（如 DeepSeek 的各种工程优化）。
+净效果是：训练同等质量模型的成本在下降，
+但 frontier 的定义不断被推高，
+所以绝对成本仍在上升。
+行业中流传一个说法：
+``Training costs are dropping 10x per year for the same quality,
+but we keep raising the bar 10x per year.''
+\end{corebox}
+
+\subsection{云端 vs.\ 自建集群的经济学}
+\label{sec:cloud-vs-onprem}
+
+选择使用云服务商的 GPU 还是自建集群，
+是每个 AI 团队面临的关键战略决策。
+
+\textbf{云端（Cloud）的优势}：
+无需前期资本支出（CapEx），
+按使用量付费（OpEx），
+弹性伸缩（训练完成后释放资源），
+以及云服务商提供的托管服务
+（网络配置、故障自动替换、存储管理）。
+主要的云 GPU 提供商包括
+AWS（P5 instances with H100/H200, Trn2 instances with Trainium2）、
+Google Cloud（A3 with H100, Cloud TPU v5p/v6e）、
+Microsoft Azure（ND H100/H200 instances）
+和 CoreWeave（GPU 密集型专用云）。
+2026 年初，spot instance 价格可以将 H100 成本降低至
+\$1.20--1.80/GPU$\cdot$小时，
+但 spot instances 可能被中断，
+对于需要持续运行数周的预训练任务不太适用。
+
+\textbf{自建集群（On-Premise）的优势}：
+长期来看成本更低——
+Deloitte 的研究表明，大规模持续使用场景下
+自建可以实现云端 60--70\% 的成本。
+一块 H100 SXM 的采购价约为 \$25,000--35,000，
+如果使用 3 年，每 GPU$\cdot$小时的折旧成本仅约 \$1.00--1.30
+（不含电力、冷却、运维人员成本）。
+此外，自建集群可以完全控制网络拓扑、
+存储架构和安全策略——对于处理高度敏感数据的组织至关重要。
+
+\textbf{关键的交叉点}：
+根据 2026 年的 TCO（Total Cost of Ownership）分析，
+当 GPU 利用率持续超过 60--70\% 且使用时间超过 18--24 个月时，
+自建集群的经济性通常优于云端。
+这就是为什么 Meta、Google、Tesla（xAI）等大型玩家
+都选择自建——他们的 GPU 几乎 24/7 满载运行。
+而初创公司和学术团队通常选择云端——
+他们的使用是间歇性的，且无法承担前期的资本投入。
+
+\textbf{混合策略}正在成为主流：
+许多中型 AI 公司采用 ``base on-prem + burst to cloud'' 的策略——
+自建一个满足日常需求的基础集群，
+在需要大规模训练时临时租用云 GPU 扩展容量。
+
+\begin{table}[H]
+\centering\small
+\caption{云端 vs.\ 自建集群：关键对比（2026 年）}
+\begin{tabularx}{\linewidth}{l X X}
+\toprule
+\textbf{维度} & \textbf{云端} & \textbf{自建} \\
+\midrule
+前期投入 & 极低 & 数百万--数千万美元 \\
+单 GPU 成本/小时 & \$2.00--6.00（按需） & \$1.00--1.80（含运维） \\
+弹性 & 分钟级扩缩容 & 数月的采购周期 \\
+维护 & 服务商负责 & 需要专业运维团队 \\
+数据安全 & 受限于服务商政策 & 完全自主 \\
+3 年 TCO（1000 GPU） & \$52M--105M & \$35M--55M \\
+适合谁 & 初创、学术、间歇性使用 & 大型实验室、持续训练 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{开源训练框架生态}
+
+不同的团队可以选择不同的训练框架，
+各有侧重。
+
+\subsection{预训练框架}
+
+\begin{table}[H]
+\centering\small
+\caption{主流 LLM 预训练框架对比}
+\begin{tabularx}{\linewidth}{l l l X}
+\toprule
+\textbf{框架} & \textbf{维护方} & \textbf{规模} & \textbf{核心优势} \\
+\midrule
+Megatron-LM & NVIDIA & 产业级 &
+  最成熟的 3D 并行实现（TP + PP + DP），
+  大多数主要实验室的训练起点 \\
+DeepSpeed   & Microsoft & 产业级 &
+  ZeRO 优化器~\cite{rajbhandari2020zero}，
+  MoE 支持，与 HuggingFace 集成良好 \\
+PyTorch FSDP & Meta (PyTorch) & 中大规模 &
+  原生 PyTorch API，使用门槛低，
+  但在超大规模上不如 Megatron 优化彻底 \\
+TorchTitan  & Meta (PyTorch) & 中大规模 &
+  LLaMA 训练的参考实现，
+  基于 DTensor 分布式原语 \\
+Nanotron    & HuggingFace & 研究级 &
+  代码简洁可读，适合理解训练流程，
+  教学和研究用途 \\
+LitGPT      & Lightning AI & 中小规模 &
+  易用的训练框架，
+  支持多种模型架构，上手快 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Megatron-LM} 是大规模预训练的事实标准。
+它实现了完整的 3D parallelism（tensor、pipeline、data parallelism），
+以及 sequence parallelism 和 expert parallelism 等扩展。
+几乎所有训练过 100B+ 模型的团队都在 Megatron 的基础上构建。
+它的缺点是代码复杂度高、学习曲线陡峭——
+但对于需要在数千块 GPU 上稳定运行数月的训练任务，
+没有更可靠的选择。
+
+\textbf{DeepSpeed} 的核心贡献是 ZeRO 优化器，
+它通过分片 optimizer states、gradients 和 parameters
+大幅降低了每块 GPU 的内存需求。
+DeepSpeed-Chat 提供了完整的 RLHF 训练流程支持。
+在微调场景下，DeepSpeed 的 ZeRO-Offload
+甚至允许在单块 GPU 上微调数十亿参数的模型
+（通过将部分状态 offload 到 CPU 内存）。
+
+\textbf{PyTorch FSDP}（Fully Sharded Data Parallel）
+是 PyTorch 原生的分布式训练方案，
+概念上类似于 DeepSpeed ZeRO Stage 3。
+它的优势是与 PyTorch 生态无缝集成，
+对于已有 PyTorch 代码库的团队迁移成本最低。
+
+\subsection{后训练/微调框架}
+
+对于后训练（SFT/RLHF/DPO），
+生态系统更加多样化：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{TRL}（HuggingFace）：
+        集成 SFT、DPO、PPO、GRPO 训练，
+        与 Transformers 和 PEFT 无缝对接。
+        社区最活跃，文档最完善。
+  \item \textbf{OpenRLHF}：
+        专注于 RLHF/GRPO 训练，
+        支持 Ray + vLLM 的大规模分布式 RL。
+        在需要将训练规模扩展到数百块 GPU 时，
+        OpenRLHF 的分布式 RL 架构更有优势。
+  \item \textbf{LLaMA-Factory}：
+        一键式微调工具，支持 100+ 模型，
+        提供 Web UI 和命令行两种方式。
+        特别适合快速实验和原型验证。
+  \item \textbf{ms-swift}（阿里巴巴 ModelScope）：
+        覆盖 SFT、RL、推理、部署的全流程工具链。
+        与中国的模型生态（Qwen、通义千问等）集成最好。
+  \item \textbf{Axolotl}：
+        微调专用工具，支持多种方法
+        （LoRA~\cite{hu2021lora}、QLoRA~\cite{dettmers2023qlora}、
+        full fine-tuning、FSDP）。
+        配置文件驱动，灵活度高。
+  \item \textbf{Unsloth}：
+        专注于极致的微调速度和内存优化。
+        通过手写 Triton kernel 和自定义 autograd，
+        在相同硬件上可以比标准实现快 2--5 倍。
+\end{itemize}
+
+\section{开源社区生态：从工具到运动}
+\label{sec:opensource-ecosystem}
+
+开源 LLM 不仅是一种技术选择，
+更是一场改变 AI 领域权力结构的运动。
+2025--2026 年，开源社区的成熟度和影响力达到了新的高度。
+
+\subsection{HuggingFace：ML 领域的 GitHub}
+
+HuggingFace 已经成为 ML 领域的核心基础设施，
+类似于 GitHub 之于软件开发。
+截至 2026 年初，其平台托管了超过 100 万个模型和
+30 万个数据集，月活跃用户超过 500 万。
+
+其生态系统包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Model Hub}：托管数十万个预训练模型，
+        支持一行代码下载和使用。
+        模型卡（Model Card）标准化了模型文档，
+        包括训练数据、评估结果、已知限制和许可证信息。
+  \item \textbf{Datasets}：标准化的数据集托管和加载，
+        覆盖数千个 NLP/CV 数据集。
+        FineWeb（15T tokens 的高质量网页数据）
+        和 FineWeb-Edu（教育质量过滤的子集）
+        是 HuggingFace 对开源训练数据的重要贡献。
+  \item \textbf{Transformers 库}：
+        统一的 API 支持几乎所有主流模型架构，
+        是学术界和工业界最广泛使用的 NLP 库。
+        新模型发布后通常在数天内就会被集成。
+  \item \textbf{TRL + PEFT}：
+        后训练和参数高效微调的标准工具。
+        TRL 在 2025 年加入了 GRPO 支持，
+        使得复现 DeepSeek-R1 的训练流程成为可能。
+  \item \textbf{SmolLM 系列}：
+        HuggingFace 自研的小模型家族
+        （135M、360M、1.7B 参数），
+        展示了数据质量在小模型训练中的关键作用。
+        SmolLM2~\cite{allal2025smollm2} 通过精心策划的训练数据
+        （Cosmopedia 合成教科书、FineWeb-Edu、Stack 代码数据）
+        在同等规模下达到了领先性能。
+  \item \textbf{Open LLM Leaderboard}：
+        自动化的模型评估排行榜，
+        是社区衡量模型质量的重要参考。
+        2025 年升级为 v2 版本，
+        引入了更难的评估基准（GPQA、MUSR、BBH）
+        以应对模型能力的快速提升。
+  \item \textbf{Spaces}：
+        免费托管模型 demo 的平台，
+        研究者可以零成本展示自己的工作。
+\end{itemize}
+
+HuggingFace 的核心贡献是\textbf{降低了 ML 的准入门槛}。
+在 HuggingFace 之前，使用一个新模型需要：
+阅读论文 → 找到作者的 GitHub repo → 配置环境 → 下载权重
+→ 编写推理代码。
+在 HuggingFace 之后，这简化为三行 Python 代码。
+
+\subsection{本地推理生态}
+
+llama.cpp 和 GGUF 格式的出现
+创造了一个完整的本地推理生态系统。
+llama.cpp 使用纯 C/C++ 实现，
+支持 CPU、Apple Silicon（Metal）、CUDA、Vulkan 等多种后端，
+使得在没有 NVIDIA GPU 的消费级硬件上运行 LLM 成为可能。
+
+\textbf{Ollama} 和 \textbf{LM Studio}
+进一步将本地推理的门槛降到了非技术用户可及的水平——
+一键安装、一键下载模型、开箱即用的聊天界面。
+这使得「人人都能在自己的电脑上运行 AI」
+从技术理想变成了现实。
+
+社区围绕量化模型建立了活跃的生态：
+模型发布后通常在数小时内就会出现
+GGUF 格式的各种量化版本
+（Q2\_K、Q4\_K\_M、Q5\_K\_S、Q8\_0 等），
+用户可以根据自己的硬件条件选择合适的量化级别。
+
+\subsection{社区模型：百花齐放}
+
+开源社区的模型产出已经形成了一个完整的层次结构：
+
+\textbf{第一梯队：实验室级开源}——
+DeepSeek-V3/R1（MIT 许可证）、
+LLaMA 4~\cite{dubey2024llama3}（Llama 许可证）、
+Qwen 3~\cite{qwen2025qwen3}（Apache 2.0）、
+Gemma 3（Google，开放权重）。
+这些模型的质量已经接近甚至达到闭源模型的水平。
+
+\textbf{第二梯队：完全开源}——
+OLMo 2（AI2，数据+代码+权重全部公开）、
+SmolLM2（HuggingFace，完整训练流程可复现~\cite{allal2025smollm2}）、
+MAP-Neo（M-A-P 社区，7B 全开源 bilingual 模型）。
+这些项目的核心价值不在于模型性能的绝对领先，
+而在于\textbf{可复现性}——
+研究者可以在完全相同的条件下重复实验。
+
+\textbf{第三梯队：社区微调}——
+基于第一梯队的 base model，
+社区产出了大量针对特定场景的微调模型。
+仅在 HuggingFace 上，
+基于 LLaMA 的微调模型就超过 10 万个。
+这种长尾效应使得开源生态的实际影响力
+远超任何单一模型。
+
+\begin{whybox}[开源 LLM 的「飞轮效应」]
+开源 LLM 生态形成了一个自我强化的飞轮：
+更好的模型 → 更多的用户 → 更多的微调和改进
+→ 更活跃的社区 → 更好的工具和基础设施
+→ 更低的使用门槛 → 更多的用户 → \ldots
+HuggingFace、llama.cpp、Ollama 等工具的成功
+证明了这个飞轮的力量。
+一个关键观察是：
+开源模型的性能与闭源模型的差距
+从 2023 年的「代际差距」
+缩小到 2025--2026 年的「几个月的差距」——
+DeepSeek-R1 在某些数学推理任务上
+甚至超越了同期的闭源竞品。
+\end{whybox}
+
+\subsection{Chatbot Arena：社区驱动的评估}
+
+LMSYS 的 Chatbot Arena 是开源社区
+对 LLM 评估最重要的贡献之一。
+它使用类似于国际象棋 Elo 评分的系统，
+让真实用户对不同模型的回答进行盲评。
+由于评估者不知道哪个回答来自哪个模型，
+且样本量足够大（数百万次投票），
+Chatbot Arena 的排名被认为是
+最能反映真实用户偏好的评估方法——
+比任何单一 benchmark 都更可信。
+
+\section{从论文到产品：被低估的工程挑战}
+
+在学术界和媒体报道中，
+人们往往关注算法创新和基准测试分数，
+而忽略了将 LLM 从实验室推向产品所需的大量工程工作。
+
+\subsection{训练基础设施的可靠性}
+
+在 2048 块 GPU 上训练两个月，
+意味着 $2048 \times 60 \times 24 = 295$ 万 GPU$\cdot$小时。
+如果每块 GPU 每天有 0.1\% 的故障率，
+那么平均每小时会有 $\sim$2 块 GPU 出现故障。
+训练系统必须能够自动检测故障、
+隔离故障节点、从最近的检查点恢复训练。
+DeepSeek-V3~\cite{deepseekv3} 的训练报告强调他们实现了
+``zero irrecoverable loss spikes''——
+这不是运气，而是精心设计的容错机制的结果。
+
+\subsection{调试分布式训练}
+
+当 loss 在第 50,000 步突然发散，而你用了 4096 块 GPU，
+怎么找到 bug？
+这是分布式训练中最令人恐惧的场景之一。
+可能的原因：某块 GPU 的 ECC 内存错误导致梯度异常；
+某个数据 shard 包含异常样本（如超长文本或乱码）；
+通信超时导致部分梯度丢失；
+甚至可能是浮点数非确定性——
+相同的 checkpoint 在不同的 GPU 配置下恢复训练，
+可能产生不同的 loss 曲线。
+
+实践中的调试策略包括：
+详尽的日志系统（记录每一步的 loss、gradient norm、
+learning rate、每块 GPU 的计算时间）；
+``canary'' 训练（在小集群上用相同配方并行运行，
+比较 loss 曲线是否一致）；
+以及最重要的——\textbf{可重现性}，
+或者更准确地说，对不可重现性的接受和管理。
+
+\subsection{数据管道的效率}
+
+2048 块 GPU 的训练每秒消耗数百万 token，
+数据加载不能成为瓶颈。
+这需要高效的数据格式（如 memory-mapped 二进制文件）、
+多级缓存（SSD → CPU 内存 → GPU 内存）
+和异步预取（在 GPU 计算时提前准备下一批数据）。
+
+\subsection{评估的自动化}
+
+每次 checkpoint 需要在数十个基准测试上评估，
+每个测试可能需要数百到数千次推理调用。
+这本身就需要大量 GPU 资源。
+高效的评估管道（如 lm-evaluation-harness）
+和评估集群的合理调度至关重要。
+
+\subsection{人的因素}
+
+最后一个常被忽略的挑战是\textbf{人}。
+一次 frontier model 的训练可能消耗数千万美元的计算资源。
+如果训练在第六周因为一个 bug 失败而需要重启，
+这不仅是经济损失，也是巨大的心理压力。
+负责训练的工程师需要 7$\times$24 小时 on-call——
+凌晨 3 点收到 loss spike 的告警是常态。
+燃尽（burnout）是 LLM 训练团队面临的真实挑战。
+
+这些工程挑战解释了为什么
+只有少数组织能够成功训练 frontier LLM——
+即使算法和数据都是公开的，
+将它们在大规模上可靠地运行仍然是一项极其困难的工程任务。
+
+
+%% ============================================================
+%% BibTeX entries referenced in this chapter
+%% (to be added to the main .bib file)
+%%
+%% @article{deepseekv3,
+%%   title   = {{DeepSeek-V3} Technical Report},
+%%   author  = {DeepSeek-AI},
+%%   journal = {arXiv preprint arXiv:2412.19437},
+%%   year    = {2024},
+%% }
+%%
+%% @article{deepseekr1,
+%%   title   = {{DeepSeek-R1}: Incentivizing Reasoning Capability in {LLMs} via Reinforcement Learning},
+%%   author  = {DeepSeek-AI},
+%%   journal = {arXiv preprint arXiv:2501.12948},
+%%   year    = {2025},
+%% }
+%%
+%% @article{penedo2024fineweb,
+%%   title   = {{FineWeb}: decanting the web for the finest text data at scale},
+%%   author  = {Penedo, Guilherme and Kydl{\'\i}{\v{c}}ek, Hynek and {Ben Allal}, Loubna and others},
+%%   journal = {arXiv preprint arXiv:2406.17557},
+%%   year    = {2024},
+%% }
+%%
+%% @article{kaplan2020scaling,
+%%   title   = {Scaling Laws for Neural Language Models},
+%%   author  = {Kaplan, Jared and McCandlish, Sam and Henighan, Tom and others},
+%%   journal = {arXiv preprint arXiv:2001.08361},
+%%   year    = {2020},
+%% }
+%%
+%% @article{hoffmann2022chinchilla,
+%%   title   = {Training Compute-Optimal Large Language Models},
+%%   author  = {Hoffmann, Jordan and Borgeaud, Sebastian and Mensch, Arthur and others},
+%%   journal = {arXiv preprint arXiv:2203.15556},
+%%   year    = {2022},
+%% }
+%%
+%% @article{dubey2024llama3,
+%%   title   = {The {Llama 3} Herd of Models},
+%%   author  = {Dubey, Abhimanyu and Jauhri, Abhinav and Pandey, Abhinav and others},
+%%   journal = {arXiv preprint arXiv:2407.21783},
+%%   year    = {2024},
+%% }
+%%
+%% @article{bai2022constitutional,
+%%   title   = {Constitutional {AI}: Harmlessness from {AI} Feedback},
+%%   author  = {Bai, Yuntao and Kadavath, Saurav and Kundu, Sandipan and others},
+%%   journal = {arXiv preprint arXiv:2212.08073},
+%%   year    = {2022},
+%% }
+%%
+%% @article{touvron2023llama,
+%%   title   = {{LLaMA}: Open and Efficient Foundation Language Models},
+%%   author  = {Touvron, Hugo and Lavril, Thibaut and Izacard, Gautier and others},
+%%   journal = {arXiv preprint arXiv:2302.13971},
+%%   year    = {2023},
+%% }
+%%
+%% @article{rajbhandari2020zero,
+%%   title   = {{ZeRO}: Memory Optimizations Toward Training Trillion Parameter Models},
+%%   author  = {Rajbhandari, Samyam and Rasley, Jeff and Ruwase, Olatunji and He, Yuxiong},
+%%   journal = {arXiv preprint arXiv:1910.02054},
+%%   year    = {2019},
+%% }
+%%
+%% @article{hu2021lora,
+%%   title   = {{LoRA}: Low-Rank Adaptation of Large Language Models},
+%%   author  = {Hu, Edward J and Shen, Yelong and Wallis, Phillip and others},
+%%   journal = {arXiv preprint arXiv:2106.09685},
+%%   year    = {2021},
+%% }
+%%
+%% @article{dettmers2023qlora,
+%%   title   = {{QLoRA}: Efficient Finetuning of Quantized Language Models},
+%%   author  = {Dettmers, Tim and Pagnoni, Artidoro and Holtzman, Ari and Zettlemoyer, Luke},
+%%   journal = {arXiv preprint arXiv:2305.14314},
+%%   year    = {2023},
+%% }
+%%
+%% @article{jiang2024mixtral,
+%%   title   = {Mixtral of Experts},
+%%   author  = {Jiang, Albert Q and Sablayrolles, Alexandre and Roux, Antoine and others},
+%%   journal = {arXiv preprint arXiv:2401.04088},
+%%   year    = {2024},
+%% }
+%%
+%% @article{anil2023gemini,
+%%   title   = {Gemini: A Family of Highly Capable Multimodal Models},
+%%   author  = {Anil, Rohan and Dai, Andrew M and Firat, Orhan and others},
+%%   journal = {arXiv preprint arXiv:2312.11805},
+%%   year    = {2023},
+%% }
+%%
+%% @article{qwen2025qwen3,
+%%   title   = {{Qwen3} Technical Report},
+%%   author  = {Qwen Team},
+%%   journal = {arXiv preprint},
+%%   year    = {2025},
+%% }
+%%
+%% @article{allal2025smollm2,
+%%   title   = {{SmolLM2}: When Smol Goes Big --- Data-Centric Training of a Small Language Model},
+%%   author  = {{Ben Allal}, Loubna and Lozhkov, Anton and Bakouch, Elie and others},
+%%   journal = {arXiv preprint arXiv:2502.02737},
+%%   year    = {2025},
+%% }

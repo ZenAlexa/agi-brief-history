@@ -1,0 +1,1079 @@
+\chapter{前沿展望——LLM 的下一步}
+\label{ch:outlook}
+%% ============================================================
+
+\section{推理模型的进化：从技巧到系统能力}
+
+推理（reasoning）能力的发展经历了几个清晰的阶段：
+
+\textbf{第一阶段：提示工程}。
+Chain-of-thought（CoT）提示的发现表明，
+只需在 prompt 中加入 ``Let's think step by step''，
+模型的数学和逻辑推理能力就会显著提升。
+这说明模型内部已经具备了推理能力，
+只是需要被正确地「激活」。
+
+\textbf{第二阶段：推理微调}。
+通过在包含推理链的数据上进行 SFT，
+让模型默认生成推理过程。
+这比提示工程更稳定——模型不再依赖用户提供正确的 prompt。
+
+\textbf{第三阶段：专用推理模型}。
+OpenAI o1/o3/o4-mini、DeepSeek-R1~\cite{deepseekr1}、
+Claude 的 extended thinking 模式
+代表了推理能力的系统化训练
+（其中 o1/o3 系列和 DeepSeek-R1 是专门训练的推理模型，
+而 Claude 的 extended thinking 是通用模型的推理增强模式，
+二者技术路线有本质区别）。
+这些模型通过 RL（如 GRPO~\cite{shao2024grpo}）
+学会了在推理过程中进行自我验证、回溯和错误修正。
+关键创新是将推理链的生成视为一个可以用 RL 优化的过程——
+模型不仅学会了「思考」，还学会了「思考如何思考」。
+
+\subsection{推理模型的技术路线分化}
+
+截至 2026 年初，推理模型已经形成了三条明显不同的技术路线：
+
+\textbf{路线一：专用推理模型（OpenAI o 系列）}。
+OpenAI 的 o1（2024 年 9 月）→ o3（2024 年 12 月预览，2025 年 4 月正式发布）
+→ o4-mini（2025 年 4 月）
+形成了一条清晰的演进路径。
+这些模型在训练时就被专门优化为「深度思考者」——
+它们生成长而详尽的推理链，
+在数学（AIME 2025：o3 达到 96.7\%）、
+编程（Codeforces rating $>$2700）和科学推理（GPQA Diamond：87.7\%）
+等需要深度推理的任务上表现突出。
+o4-mini 是这条路线的效率优化版本——
+以显著更低的成本和延迟提供接近 o3 的推理能力，
+在许多评估中甚至略微超越 o3。
+这表明推理能力的 scaling 不仅可以通过增大模型实现，
+还可以通过更好的训练方法在更小的模型上实现。
+
+\textbf{路线二：开源推理模型（DeepSeek-R1）}。
+DeepSeek-R1~\cite{deepseekr1} 用一个关键实验
+揭示了推理能力的涌现机制：
+在 R1-Zero 实验中，
+他们仅用格式化的 RL reward（不使用任何 SFT 数据），
+就让 base model 自发学会了长链推理和自我反思。
+这个发现意义深远——
+它表明推理能力不需要人工标注的推理链数据来训练，
+RL 本身就能诱导出这种能力。
+R1 的完整版本在 AIME 2024 上达到 79.8\%
+（与 o1 正式版的 83.3\% 接近），
+并以 MIT 许可证开源，
+催生了大量基于 R1 蒸馏的小型推理模型
+（如 R1-Distill-Qwen-32B、R1-Distill-LLaMA-70B 等）。
+
+\textbf{路线三：混合推理模式（Claude extended thinking）}。
+Anthropic 的 Claude 3.7 Sonnet（2025 年 2 月）
+开创了「混合推理」的概念——
+同一个模型可以在快速回答和深度推理之间切换。
+用户无需选择不同的模型，
+只需启用 extended thinking 模式，
+模型就会在回答前生成可见的思考过程。
+Claude Opus 4.6 进一步引入了可配置的 thinking budget
+（最高 128K tokens 的推理预算），
+用户可以根据任务复杂度和成本考量做出选择。
+这种路线的优势是灵活性——
+简单问题无需支付推理 token 的成本，
+复杂问题可以投入更多推理计算。
+
+\textbf{其他值得关注的推理模型}：
+Google 的 Gemini 2.5 Pro（内置 ``thinking'' 模式，
+2025 年 3 月在 LMSYS Chatbot Arena 登顶）；
+Grok 3（xAI，2025 年 2 月，内置 ``Big Brain'' 推理模式）；
+Qwen-QwQ（阿里巴巴，开源的推理专用模型）。
+
+\begin{whybox}[推理时计算 vs.\ 训练时计算的经济学]
+一个深刻的趋势转变正在发生：
+传统的 Scaling Laws 关注训练时计算——
+投入更多算力训练更大的模型。
+但推理时计算（test-time compute）提供了另一条路径——
+保持模型大小不变，通过在推理时投入更多计算
+（更长的思考链、更多的候选方案探索）来提升输出质量。
+这改变了成本结构：训练成本是一次性的，
+而推理成本随使用量线性增长。
+对于使用量大的应用，
+一个更小但「想得更久」的模型
+可能比一个更大但「直接回答」的模型更具经济优势。
+o4-mini 的成功正是这一趋势的体现——
+它以 o3 约 1/5 的成本提供了相当甚至更好的推理能力。
+\end{whybox}
+
+\section{多模态：走向统一理解}
+
+2025--2026 年，
+纯文本 LLM 正在快速转向多模态模型——
+同时理解文本、图像、音频甚至视频。
+Gemini 3、GPT-4o、Claude 4.5 Sonnet 都是原生多模态的。
+多模态不再是「附加功能」，而是「基础能力」。
+
+\subsection{视觉-语言模型的架构演进}
+
+视觉-语言模型（Vision-Language Model, VLM）
+的发展经历了几代架构：
+
+\textbf{CLIP 范式}：
+对比学习——训练一个图像编码器和一个文本编码器，
+使匹配的图文对在表示空间中靠近。
+CLIP 提供了强大的视觉表示，但不能生成文本。
+
+\textbf{LLaVA 范式}：
+视觉编码器 + 投影层 + LLM。
+将预训练的视觉编码器（如 ViT/SigLIP）的输出
+通过一个简单的投影层（线性层或 MLP）
+映射到 LLM 的输入空间，
+然后与文本 token 一起送入 LLM。
+这种架构简洁有效，
+是当前大多数开源 VLM 的基础。
+
+\textbf{原生多模态}：
+GPT-4o 和 Gemini 3（基于 Gemini 架构~\cite{anil2023gemini} 的后续版本）代表了下一步——
+不再将视觉作为「插件」，
+而是在预训练阶段就联合训练视觉和语言理解。
+这种方法成本更高（需要海量的图文配对数据），
+但产生的模型对视觉信息的理解更深入、更自然。
+
+\subsection{音频：从转录到原生理解}
+
+音频能力的发展也遵循类似的路径：
+
+\textbf{转录范式}：使用 Whisper 等专用模型将语音转为文本，
+再用 LLM 处理文本。这是目前最稳定的方案，
+但丢失了语音中的非文本信息（语调、情感、停顿）。
+
+\textbf{原生音频}：GPT-4o 的实时语音模式
+和 Gemini 的原生音频输入
+代表了音频理解的下一步——
+模型直接处理音频波形，
+不经过中间的文本转录步骤。
+这使得模型能够理解语调变化、背景声音、
+甚至多人对话中的说话者切换。
+
+实时语音交互的技术挑战巨大：
+模型需要在数百毫秒内开始生成回复（否则对话会感觉卡顿），
+同时能够被用户打断（``barge-in'' 检测），
+还需要处理环境噪声和远场拾音。
+
+\subsection{视频理解与世界模型}
+
+视频是多模态中计算成本最高的模态。
+一段 1 分钟的 30fps 视频包含 1800 帧——
+如果每帧都编码为数百个 token，
+模型需要处理数十万个视觉 token。
+
+当前的处理策略包括：
+\textbf{关键帧采样}——从视频中均匀或自适应地选取少量帧；
+\textbf{视频编码器}——使用 3D 卷积或时序 Transformer
+将连续帧压缩为更紧凑的表示；
+\textbf{分层处理}——先用轻量级模型定位关键片段，
+再用大模型深入分析。
+
+长视频理解（数十分钟到数小时）
+仍然是一个开放问题——
+它同时挑战了模型的上下文窗口、
+视觉理解能力和长期记忆能力。
+
+\textbf{世界模型（World Models）}
+代表了视频理解的更深层方向。
+OpenAI 的 Sora 2（2025 年 9 月发布）
+被定位为不仅仅是视频生成器，
+而是「世界模拟器」——
+模型学习视频中的物理规律（重力、碰撞、流体动力学），
+并能够生成物理上合理的新场景。
+Sora 2 支持 1080p 视频生成，最长 1 分钟，
+并加入了同步音频生成能力。
+虽然当前的世界模型距离真正理解物理定律还有很大差距
+（生成的视频仍然会出现物理不一致性），
+但这个方向对于机器人、自动驾驶和游戏 AI 至关重要——
+一个能够预测物理世界演变的模型
+可以用于规划和决策。
+
+\subsection{Omni-模型：全模态输入与输出}
+
+多模态的终极形态是 \textbf{omni-model}——
+不仅能理解多种模态的输入，
+还能生成多种模态的输出（文本、图像、音频、视频）。
+
+GPT-4o 的 ``o'' 就代表 ``omni''。
+它可以接收文本、图像和音频输入，
+并生成文本和音频输出。
+GPT-4o 在 2025 年 3 月获得了原生图像生成能力，
+不再依赖独立的 DALL-E 模型。
+Gemini 3 更进一步，原生支持图像和音频的生成。
+
+统一模型的关键挑战是\textbf{训练数据的模态平衡}——
+互联网上的文本数据远多于高质量的图文配对数据，
+而高质量的视频-文本配对数据更加稀缺。
+如何在预训练中平衡不同模态的数据比例，
+避免某种模态的能力被其他模态「挤压」，
+是一个活跃的研究方向。
+
+\section{Agent：从对话到行动}
+
+LLM 正在从「回答问题」演进为「执行任务」。
+这是 2025--2026 年最重要的技术趋势之一。
+
+\subsection{Agent 的核心架构}
+
+Agent 系统的核心是一个循环：
+\textbf{观察}（Observe）→
+\textbf{推理}（Think）→
+\textbf{行动}（Act）→
+\textbf{观察}（Observe）。
+这就是 ReAct 范式——
+模型交替进行推理（生成文本思考过程）
+和行动（调用工具获取外部信息），
+直到任务完成或达到预设的步数上限。
+
+这个循环可以持续数十到数百步。
+对于复杂任务（如修复一个涉及多文件的 GitHub issue），
+Agent 可能需要：
+阅读代码 → 理解架构 → 定位 bug →
+编写修复 → 运行测试 → 分析失败 → 修改修复 → 再次测试。
+每一步都是「观察-思考-行动」的实例。
+
+\subsection{工具使用与标准化}
+
+Agent 的能力取决于它可以使用的工具。
+当前的主流工具类型包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Function calling}：
+        LLM 生成结构化的函数调用
+        （指定函数名和参数），
+        由外部系统执行并返回结果。
+        这是最基础的工具使用形式。
+  \item \textbf{Code execution}：
+        LLM 生成代码（Python、Bash 等），
+        在沙箱环境中执行并获取输出。
+        Code Interpreter（OpenAI）和 tool use（Anthropic）
+        是典型实现。
+  \item \textbf{Web browsing}：
+        LLM 控制浏览器访问网页，提取信息。
+        需要处理动态渲染、验证码、反爬虫等挑战。
+  \item \textbf{Computer use}：
+        LLM 通过理解屏幕截图和控制鼠标/键盘
+        来操作计算机。
+        Anthropic 的 Claude computer use 是这个方向的先驱——
+        模型可以打开应用程序、填写表单、点击按钮，
+        像人类用户一样操作任意桌面软件。
+\end{itemize}
+
+\textbf{MCP（Model Context Protocol）}
+由 Anthropic 于 2024 年底开发并开源，
+作为 Agent 与外部工具交互的标准协议，
+正在被越来越多的工具提供商采用。
+它定义了工具描述（名称、参数、返回值）、
+调用和结果返回的标准格式，
+使得同一个 Agent 可以无缝对接不同的工具和服务——
+搜索引擎、数据库、API、本地文件系统、
+甚至其他 AI 模型。
+MCP 的意义类似于 HTTP 之于 Web——
+一个统一的协议使得生态系统可以繁荣发展。
+
+\subsection{代码 Agent：最成熟的落地场景}
+\label{sec:code-agents}
+
+2025--2026 年，Agent 应用最成熟的领域是\textbf{软件工程}。
+代码 Agent 已经从辅助工具演进为半自主的编程助手，
+在某些场景下甚至可以独立完成完整的开发任务。
+
+\textbf{Claude Code}（Anthropic，2025 年 2 月发布）
+是 CLI 级别的自主编程 Agent。
+与传统的 IDE 插件不同，
+Claude Code 运行在终端中，
+可以直接读写文件、执行 bash 命令、运行测试、
+管理 git 操作——全部通过自然语言交互。
+它支持 ``headless mode''（无人值守模式），
+可以在 CI/CD 管道中自动执行代码审查、
+修复 lint 错误、生成测试等任务。
+Claude Code 的设计理念是
+\textbf{给予 Agent 与人类开发者相同的工具和权限}——
+不是通过 API 读取代码片段，
+而是像人类一样在真实的开发环境中工作。
+
+\textbf{Devin}（Cognition AI）
+是另一种路线的代码 Agent——
+完全自主的「AI 软件工程师」。
+Devin 在云端独立运行，
+用户通过 Slack 或 Web 界面分配任务，
+Devin 自主规划、编码、测试，
+最终以 Pull Request 的形式交付结果。
+Devin 适合被委派独立的、
+定义清晰的开发任务（如 ``将这个 API 的认证从 OAuth 1.0 迁移到 OAuth 2.0''）。
+2025 年底 Cognition 收购了 Windsurf IDE，
+将 Devin 的自主能力与 IDE 的交互式编程结合。
+
+\textbf{Cursor} 和 \textbf{Windsurf}（Codeium）
+代表了 IDE-integrated Agent 的路线——
+将 AI 能力深度嵌入代码编辑器。
+Cursor 的 ``Composer'' 模式可以跨多文件进行修改，
+Agent 模式可以自动运行终端命令和管理文件。
+
+SWE-bench（修复真实 GitHub issue）
+的解决率已经从 2024 年初的 $\sim$5\%
+提升到 2026 年初的 $\sim$60\%+，
+这意味着 Agent 已经能够独立完成
+大多数的真实软件工程任务。
+
+\begin{corebox}[代码 Agent 的使用范式演变]
+代码 Agent 的使用范式正在经历三个阶段：
+\textbf{阶段一：补全}——GitHub Copilot 风格，
+逐行或逐函数补全代码，人类主导、AI 辅助。
+\textbf{阶段二：对话式编程}——
+通过自然语言描述需求，Agent 生成或修改代码块，
+人类审查并接受/拒绝。Cursor、Claude Code 当前主要在这个阶段。
+\textbf{阶段三：委托式编程}——
+将完整的任务委托给 Agent，
+Agent 自主完成规划、实现和测试，
+人类仅在关键决策点介入。
+Devin 的设计理念指向这个阶段，
+但可靠性仍然是核心挑战。
+从阶段二到阶段三的跨越
+需要 Agent 具备更强的规划能力、
+错误恢复能力和对不确定性的处理能力。
+\end{corebox}
+
+\subsection{多 Agent 系统}
+
+更复杂的任务可以由多个专门化的 Agent 协作完成。
+例如，一个软件开发任务可以分配给：
+\textbf{架构师 Agent}（设计整体方案）、
+\textbf{开发者 Agent}（编写代码）、
+\textbf{测试 Agent}（编写和运行测试）、
+\textbf{审查 Agent}（代码审查和质量检查）。
+
+多 Agent 框架包括
+AutoGen（Microsoft）、CrewAI、LangGraph 等。
+它们提供了 Agent 间通信、任务分配、
+结果汇聚等基础设施。
+
+多 Agent 系统的核心挑战是\textbf{协调成本}——
+Agent 之间的通信（通常以自然语言进行）
+本身消耗大量 tokens，
+而且 Agent 间的误解可能导致任务偏离方向。
+当前的研究表明，
+对于大多数任务，一个能力足够强的单 Agent
+比多个能力较弱的 Agent 协作更有效。
+
+\subsection{Agent 的可靠性挑战}
+
+Agent 面临的最大挑战是\textbf{可靠性}。
+在多步骤任务中，每一步都有一定的失败概率。
+如果每步的成功率是 95\%，
+那么 20 步链式执行的整体成功率只有 $0.95^{20} \approx 36\%$。
+
+更危险的是\textbf{静默失败}——
+Agent 可能在某一步产生了幻觉
+（比如调用了一个不存在的 API，
+或者基于错误的假设做出了决策），
+但后续步骤继续在错误的基础上执行，
+最终产生看似合理但完全错误的结果。
+
+幻觉在工具使用中尤其危险：
+在对话中，用户可以识别不合理的回答；
+但在 Agent 自主执行的过程中，
+一个错误的数据库查询或文件操作可能造成真实的损害。
+
+WebArena（自主网页操作）和 OSWorld（操作系统级任务）
+等基准测试正在推动 Agent 能力的边界。
+但从 benchmark 到真实世界仍有差距——
+benchmark 中的任务有明确的开始和结束条件，
+而真实世界的任务往往目标模糊、
+需要人类反馈、容错要求更高。
+
+\begin{warnbox}[Agent 的经济影响]
+Agent 作为「数字劳动力」（digital workers）的概念
+正在引发关于工作未来的严肃讨论。
+如果一个 Agent 能够完成初级软件工程师 50\% 的任务，
+这对就业市场意味着什么？
+乐观者认为 Agent 会放大人类的生产力，
+创造新的工作类型（如 Agent 监督者、prompt 工程师）。
+悲观者担心大规模的工作岗位替代。
+现实可能介于两者之间——
+Agent 的可靠性问题限制了它的自主性，
+但它正在显著改变工作的内容和效率要求。
+Anthropic CEO Dario Amodei 在 2025 年的文章
+``Machines of Loving Grace'' 中
+勾勒了 AI 增强人类而非替代人类的愿景，
+但同时承认转型期的阵痛不可避免。
+\end{warnbox}
+
+\section{硬件路线图：算力的下一个台阶}
+\label{sec:hardware-roadmap}
+
+LLM 的能力演进与硬件进步密不可分。
+2025--2027 年的 AI 加速器路线图
+决定了下一代模型的能力上限。
+
+\subsection{NVIDIA：从 Blackwell 到 Vera Rubin}
+
+NVIDIA 继续以 1--2 年的节奏推出新一代 GPU 架构：
+
+\textbf{Blackwell 架构}（2024 年发布，2025 年量产）
+是当前一代的旗舰。
+B200 GPU 提供 9 PFLOPS 的 FP4 性能
+和 192GB HBM3e 显存（6.4 TB/s 带宽），
+相比上一代 H100（FP8 约 3.9 PFLOPS，80GB HBM3）
+有显著提升。
+\textbf{GB200 NVL72} 是 Blackwell 的系统级产品——
+将 72 块 B200 GPU 通过第五代 NVLink 互连
+（GPU 间带宽 1.8 TB/s）组成一个液冷机柜，
+提供 720 PFLOPS 的 FP4 计算能力和 13.5TB 的统一显存。
+这种设计的意义在于：
+一个 GB200 NVL72 机柜可以将一个 700B+ 参数的模型
+完全放入 GPU 显存中进行推理，
+消除了多机通信的延迟。
+
+\textbf{Vera Rubin 架构}（预计 2026 年下半年发布）
+是 NVIDIA 的下一代平台。
+据已公布的信息，
+Rubin GPU 将采用 3nm 工艺，
+搭配 HBM4 内存（每 GPU 可能达到 256GB+，
+带宽超过 8 TB/s），
+计算性能预计再翻倍。
+Vera Rubin Ultra 将是完整平台版本，
+包含 CPU（Vera，基于 ARM 架构）和 GPU（Rubin）的集成。
+
+\subsection{AMD：从追赶者到竞争者}
+
+AMD 的 Instinct 系列正在成为 NVIDIA 的真正竞争对手：
+
+\textbf{MI300X}（2024 年量产）
+提供 192GB HBM3 显存和 5.3 TB/s 带宽——
+在显存容量上超越了 H100。
+这使得 MI300X 在大模型推理场景中有显著优势
+（更大的模型可以放入单 GPU），
+微软 Azure 和 Oracle Cloud 都已部署 MI300X 集群。
+
+\textbf{MI350 系列}（预计 2025 年底--2026 年初量产）
+基于全新的 CDNA 4 架构和 3nm 工艺，
+采用 chiplet 设计，
+提供 288GB HBM3e 显存。
+AMD 在 Hot Chips 2025 上展示了 MI350 的 node-to-rack 扩展架构，
+目标是在系统级能效（perf/watt）上与 NVIDIA Blackwell 竞争。
+MI350 的关键卖点是
+\textbf{开源软件栈}——ROCm 生态的持续改善
+使得越来越多的训练框架
+（PyTorch、JAX、vLLM）原生支持 AMD GPU，
+降低了迁移成本。
+
+\textbf{MI400}（路线图上为 2026 年底--2027 年）
+将是 AMD 的下一个大跳跃，
+但具体技术细节尚未公布。
+
+\subsection{Google TPU：垂直整合的典范}
+
+Google 的 TPU（Tensor Processing Unit）
+代表了另一种路线——
+自研加速器完全为自己的工作负载优化。
+
+\textbf{TPU v5p}（2023 年发布）
+单芯片提供 459 TFLOPS 的 BF16 性能，
+95GB HBM 内存。
+TPU v5p 的核心优势是
+\textbf{ICI（Inter-Chip Interconnect）网络}——
+一个 TPU v5p pod 可以将 8,960 块芯片通过 ICI 互连，
+在 pod 内实现无需显式通信编程的分布式计算。
+
+\textbf{TPU v6e（Trillium）}（2024 年发布）
+是效率优化版本，
+单芯片性能提升 67\%（相比 v5e），
+HBM 容量翻倍。
+v6e 特别针对推理场景优化，
+是 Gemini 模型的主要推理硬件。
+
+Google 即将推出的 \textbf{TPU v7}
+预计将带来又一个代际性能飞跃，
+特别是在 HBM 带宽和 ICI 通信速度上。
+TPU 的独特优势在于
+Google 可以端到端优化
+从编译器（XLA）到框架（JAX）到模型架构（Gemini）
+到硬件的整个栈——
+这种垂直整合在某些场景下
+可以提供比通用 GPU 更高的效率。
+
+\subsection{AWS Trainium：云厂商的自研芯片之路}
+
+Amazon 的 Trainium 代表了
+云服务商自研 AI 芯片的趋势：
+
+\textbf{Trainium2}（2024 年底推出 Trn2 instances）
+提供了相当于 H100 约 30--50\% 的单芯片性能，
+但以显著更低的价格提供给 AWS 客户。
+Trainium2 的核心价值不在于绝对性能，
+而在于\textbf{性价比}——
+AWS 可以将自研芯片的成本优势传递给用户。
+
+\textbf{Trainium3}（2025 年 12 月 GA，AWS 的第四代 AI 芯片）
+是一个重大升级——
+采用 3nm 工艺（与 NVIDIA Blackwell 同代），
+被 SemiAnalysis 称为
+``Amazon Basics 版的 GB200 NVL72''。
+Trn3 UltraServers 将 64 块 Trainium3 芯片
+通过高速互连组成一个节点，
+提供接近 NVIDIA GB200 NVL72 的系统级训练性能，
+但价格预计低 30--40\%。
+\textbf{Trainium4}（已进入路线图，预计 2027 年）
+将进一步提升每芯片的计算密度。
+
+Anthropic 是 Trainium 的重要早期客户——
+Claude 模型的部分训练和推理已经运行在 Trainium 上，
+这对验证非 NVIDIA 硬件的可行性具有标志性意义。
+
+\begin{keybox}[AI 加速器的竞争格局（2026 年）]
+NVIDIA 仍然占据 AI 训练市场约 80\%+ 的份额，
+但竞争格局正在发生结构性变化：
+（1）AMD 的 MI350 在大内存推理场景中具有竞争力；
+（2）Google TPU 通过垂直整合在自家工作负载上效率领先；
+（3）AWS Trainium3 以性价比切入中端市场；
+（4）国产加速器（华为昇腾 910C、寒武纪等）
+在中国市场因出口管制而获得替代需求。
+多供应商策略正在成为大型 AI 团队的标准做法——
+减少对单一供应商的依赖，
+同时通过竞争压低采购成本。
+但 NVIDIA 的 CUDA 生态仍然是其最大的护城河——
+迁移到其他硬件的软件适配成本是许多团队犹豫的主要原因。
+\end{keybox}
+
+\section{端侧模型：让 AI 无处不在}
+
+不是所有场景都需要云端的 700B 模型。
+端侧（on-device）AI 正在成为一个重要的发展方向。
+
+\subsection{为什么端侧模型重要？}
+
+端侧推理的核心价值：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{隐私}：数据不离开设备，
+        对于医疗记录、私人通信、企业机密等敏感场景至关重要。
+  \item \textbf{延迟}：本地推理消除了网络往返时间，
+        首 token 延迟可以低至数十毫秒。
+  \item \textbf{离线能力}：飞行模式、地铁、偏远地区——
+        不依赖网络连接的 AI 能力。
+  \item \textbf{成本}：没有 API 调用费用。
+        对于高频率使用场景（如写作助手、代码补全），
+        本地模型的边际成本几乎为零。
+\end{itemize}
+
+\subsection{NPU 硬件的快速演进}
+\label{sec:npu-hardware}
+
+端侧 AI 的能力边界由硬件决定。
+2025--2026 年，主要芯片厂商的 AI 加速能力正在快速提升：
+
+\textbf{Apple Neural Engine}（ANE）：
+Apple 的 M 系列和 A 系列芯片
+内置的 Neural Engine 是端侧 AI 的标杆。
+M4 芯片的 ANE 提供 38 TOPS 的算力，
+配合 Apple Silicon 的统一内存架构
+（CPU/GPU/NPU 共享内存，避免数据搬运），
+可以在 iPhone 和 Mac 上流畅运行 3B 模型。
+Apple Intelligence 基于这一硬件能力构建，
+在设备端运行一个 $\sim$3B 的基础语言模型~\cite{gunter2024appleintelligence}。
+
+\textbf{Qualcomm Hexagon NPU}（Snapdragon X Elite/X2 系列）：
+Snapdragon X Elite 的 Hexagon NPU 提供 45 TOPS，
+是 Windows on ARM PC 上的主要 AI 加速器。
+Snapdragon X2（预计 2026 年发布）
+进一步提升 NPU 性能，
+并改善了对主流 AI 框架的兼容性。
+Qualcomm 的 AI Stack（QNN SDK）
+支持将 ONNX 和 PyTorch 模型
+直接部署到 Hexagon NPU 上。
+
+\textbf{Intel Lunar Lake / Arrow Lake}：
+Intel 的最新客户端 CPU 集成了
+提供 48 TOPS 的 NPU，
+但其软件生态（OpenVINO）
+相比 Apple 和 Qualcomm 仍有差距。
+
+\textbf{AMD Ryzen AI}：
+AMD 的 Ryzen AI 300 系列集成了
+XDNA 2 NPU，提供 50 TOPS，
+在 Windows AI PC 市场与 Qualcomm 和 Intel 竞争。
+
+\begin{table}[H]
+\centering\small
+\caption{主要端侧 AI 加速器对比（2026 年初）}
+\begin{tabularx}{\linewidth}{l l l X}
+\toprule
+\textbf{芯片} & \textbf{NPU 算力} & \textbf{内存} & \textbf{可运行的模型规模} \\
+\midrule
+Apple M4 (ANE) & 38 TOPS & 16--32GB 统一 & 3B 流畅，7B 可运行 \\
+Snapdragon X Elite & 45 TOPS & 16--32GB LPDDR5x & 3B 流畅，7B 可运行 \\
+Intel Lunar Lake & 48 TOPS & 16--32GB LPDDR5x & 3B 流畅 \\
+AMD Ryzen AI 300 & 50 TOPS & 16--64GB DDR5 & 3B 流畅，7B 可运行 \\
+Apple M4 Max (ANE) & 38 TOPS & 36--128GB 统一 & 7B--14B 流畅 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{小模型家族与端侧能力}
+
+\textbf{小模型家族}正在快速发展：
+Apple Intelligence~\cite{gunter2024appleintelligence}
+将一个 $\sim$3B 的 LLM 部署到 iPhone 上；
+Google Gemini Nano（1.8B 和 3.25B）专为 Pixel 手机设计；
+LLaMA 3.2~\cite{dubey2024llama3} 提供 1B 和 3B 的端侧版本；
+Qwen3-0.6B~\cite{qwen2025qwen3} 和 Gemma 3-1B
+更是将模型压缩到了 1B 以下。
+
+量化技术（如 GGUF Q4\_K\_M）和
+推理优化（如 llama.cpp 的 ARM NEON 和 Metal 优化）
+使得在消费级硬件上运行 7B--14B 的模型成为现实。
+
+端侧模型的核心能力保留策略包括：
+\textbf{知识蒸馏}——用大模型的输出训练小模型，
+使小模型「继承」大模型的推理能力
+（DeepSeek-R1-Distill 系列就是这种方法的典范）；
+\textbf{结构化剪枝}——去除模型中对质量贡献最小的神经元或注意力头，
+在保持架构兼容性的同时减小模型；
+\textbf{共享词嵌入}——让输入嵌入层和输出层共享权重，
+减少参数量（LLaMA 3 等模型采用了这种设计）。
+
+实际测试表明，当前的 3B 模型在以下任务上已经「够用」：
+简单问答、文本摘要（短文）、情感分析、
+文本分类、短文翻译、格式转换。
+它们在以下任务上仍然不足：
+复杂推理、长文理解、代码生成（复杂逻辑）、
+创意写作（高质量）、多轮对话（需要长期记忆）。
+
+\subsection{端云协作：混合推理}
+
+端侧--云端的\textbf{混合推理}（hybrid inference）
+可能是最具实用价值的方向：
+简单请求在设备端本地处理（零延迟、完全隐私），
+复杂请求上传到云端的大模型处理（更高质量）。
+
+Apple Intelligence 的架构正是这种模式的典范：
+端侧 3B 模型处理大部分请求，
+当模型判断自己无法给出高质量回答时，
+请求被路由到云端更大的模型
+（Apple 称之为 Private Cloud Compute，
+使用专用的 Apple Silicon 服务器，
+承诺数据不存储、不记录）。
+路由决策可以由端侧模型自己做出——
+它可以评估自己对回答的「信心」，
+信心不足时自动升级到云端。
+
+这种架构的经济优势明显：
+假设 80\% 的请求可以在端侧处理，
+那么云端的服务器需求减少 80\%，
+显著降低了 API 提供商的运营成本。
+
+\begin{corebox}[2026 年端侧 AI 的能力阈值]
+NPU 硬件的发展正在快速改变端侧 AI 的能力阈值。
+2024 年的 iPhone 可以流畅运行 3B 模型，
+2026 年的旗舰手机（搭载 A19 或 Snapdragon X2）
+预计可以运行 7B 模型。
+高端笔记本（搭载 M4 Max/Ultra，128GB 统一内存）
+已经可以流畅运行 70B 的量化模型。
+这意味着一些原本只能在服务器上运行的任务——
+如本地代码补全、文档摘要、个性化写作助手——
+将逐步转移到用户设备上，
+从根本上改变 AI 服务的交付模式。
+\end{corebox}
+
+\section{AI 监管：规则正在形成}
+\label{sec:regulation}
+
+随着 LLM 能力的快速提升，
+全球各主要经济体正在加速构建 AI 监管框架。
+监管环境对 AI 公司的战略选择、
+开源生态和技术发展方向有深远影响。
+
+\subsection{EU AI Act：全球最严格的 AI 法规}
+
+欧盟 AI 法案（EU AI Act）于 2024 年 8 月 1 日正式生效，
+是全球首个全面的 AI 监管法律框架。
+其核心是\textbf{风险分级}制度：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{不可接受风险}（禁止）：
+        社会评分系统、实时远程生物识别（执法例外）、
+        操纵性 AI 系统。
+  \item \textbf{高风险}（严格监管）：
+        用于关键基础设施、教育、就业、司法的 AI 系统。
+        需要进行一致性评估（conformity assessment）、
+        建立风险管理系统、确保数据治理、保留技术文档。
+  \item \textbf{通用目的 AI 模型}（GPAI，特别规定）：
+        所有 GPAI 提供商必须提供技术文档、
+        遵守版权法、发布训练数据摘要。
+        ``systemic risk'' 模型（训练算力超过 $10^{25}$ FLOPs）
+        还需进行对抗性测试、监控严重事件、
+        确保网络安全。
+  \item \textbf{有限风险 / 最小风险}（轻度或无监管）：
+        聊天机器人、AI 生成内容等，
+        仅需透明度标注（告知用户正在与 AI 交互）。
+\end{itemize}
+
+\textbf{关键时间节点}：
+2025 年 2 月——禁止不可接受风险 AI 的条款生效；
+2025 年 8 月——GPAI 模型条款和治理结构生效；
+2026 年 8 月——高风险 AI 系统的全面合规要求生效。
+违规罚款最高可达 3,500 万欧元
+或全球年营业额的 7\%（取较高者）。
+
+EU AI Act 对开源模型有一定的豁免——
+``free and open-source'' 的 GPAI 模型
+如果不构成 systemic risk，
+可以免除部分合规义务（如技术文档要求的简化），
+但仍需遵守版权法。
+
+\subsection{美国：碎片化但加速中的监管}
+
+美国没有联邦级别的统一 AI 法律，
+但多层次的监管正在形成：
+
+\textbf{联邦层面}：
+拜登政府 2023 年 10 月的行政令
+（Executive Order on AI Safety and Security）
+要求开发 dual-use 基础模型的公司
+向联邦政府报告训练细节和安全测试结果。
+特朗普政府在 2025 年 1 月上任后撤销了这一行政令，
+转向更为宽松的 ``pro-innovation'' 政策。
+但国会层面，
+多项 AI 立法提案正在推进中，
+包括 AI 系统的透明度要求、
+深度伪造标注义务和 AI 在关键领域的使用规范。
+
+\textbf{州层面}：
+加利福尼亚州的 SB 1047（AI Safety Bill）
+在 2024 年引发了激烈辩论——
+该法案要求 AI 开发者对模型造成的严重危害承担责任，
+最终被州长 Gavin Newsom 否决，
+理由是过于严厉可能遏制创新。
+但 2025--2026 年的后续立法尝试仍在继续。
+科罗拉多州于 2024 年通过了
+美国首个全面的 AI 算法歧视法律。
+
+\textbf{机构层面}：
+NIST 的 AI Risk Management Framework（AI RMF）
+提供了自愿性的 AI 风险管理指南；
+FTC 将 AI 虚假声明纳入消费者保护执法范围；
+SEC 开始关注 AI 在金融市场中的风险。
+
+\subsection{中国：审批制 + 内容管控}
+
+中国的 AI 监管采取了\textbf{分类审批}的模式：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{生成式 AI 管理办法}（2023 年 8 月生效）：
+        向公众提供生成式 AI 服务
+        需要通过算法备案和安全评估。
+        服务提供者必须确保生成内容
+        符合社会主义核心价值观，
+        不得生成「违法」内容。
+  \item \textbf{深度合成管理规定}（2023 年 1 月生效）：
+        AI 生成的图像、音频、视频必须标注。
+  \item \textbf{算法推荐管理规定}（2022 年 3 月生效）：
+        覆盖推荐算法的透明度和用户控制权。
+\end{itemize}
+
+中国的监管特点是\textbf{事前审批}（pre-deployment approval）——
+模型必须通过政府审查才能上线，
+这与欧美的事后监管（post-deployment regulation）形成对比。
+截至 2025 年底，已有超过 200 个 AI 大模型
+通过了中国的备案审批。
+这种制度对开源模型的影响是复杂的——
+开源模型的权重可以自由下载，
+但基于开源模型构建的面向公众的服务
+仍然需要通过审批。
+
+\begin{warnbox}[监管对 AI 发展的影响]
+AI 监管正在形成一个全球「三极格局」：
+\textbf{欧盟}——严格的规则驱动，侧重权利保护和透明度，
+可能减慢创新速度但提高公众信任；
+\textbf{美国}——碎片化但灵活，侧重创新友好，
+可能导致监管套利和执法不一致；
+\textbf{中国}——集中审批制，侧重内容管控和国家安全，
+在保证可控性的同时可能限制学术自由度。
+对于 AI 公司来说，合规成本正在成为
+不可忽视的运营开支——
+特别是需要在多个司法管辖区运营的全球化公司，
+需要同时满足不同且有时矛盾的监管要求。
+开源模型在这个格局中处于特殊位置：
+一方面，开源天然满足透明度要求；
+另一方面，开源后的模型无法被收回，
+一旦被用于违规目的，责任归属变得模糊。
+\end{warnbox}
+
+\section{开合之争：开源 vs.\ 闭源的哲学与实践}
+
+2025--2026 年，开源与闭源模型之间的「开合之争」
+是 AI 领域最重要的叙事之一。
+
+\subsection{闭源的论据}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{安全控制}：
+        模型权重不公开，可以通过 API 层面的安全措施
+        （内容过滤、速率限制、使用监控）
+        防止滥用。一旦权重开源，安全对齐可以被移除。
+  \item \textbf{竞争优势}：
+        训练一个 frontier model 需要数千万到数亿美元的投入，
+        开源意味着竞争对手可以免费使用你的成果。
+  \item \textbf{责任管理}：
+        如果模型被用于有害目的，
+        API 提供商可以追踪和阻止滥用者；
+        开源后则无法控制模型的使用方式。
+  \item \textbf{收入模型}：
+        API 定价（按 token 收费）
+        是当前 LLM 公司最直接的变现方式。
+\end{itemize}
+
+\subsection{开源的论据}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{创新速度}：
+        开源社区的创新速度远超任何单一公司。
+        LoRA~\cite{hu2021lora}、QLoRA~\cite{dettmers2023qlora}、
+        Flash Attention~\cite{dao2022flashattention} 等
+        关键创新都来自开源社区或学术界。
+  \item \textbf{科学可重复性}：
+        如果研究成果无法被其他团队验证和复现，
+        其科学价值就打了折扣。
+  \item \textbf{民主化}：
+        防止 AI 能力集中在少数公司手中。
+        学术研究者、初创企业、发展中国家的开发者
+        都应该能够获取和使用先进的 AI 技术。
+  \item \textbf{国家安全}：
+        一个国家的 AI 能力不应该依赖于外国公司的 API——
+        开源模型允许本地部署和主权控制。
+  \item \textbf{生态系统效应}：
+        当你的模型被广泛使用，
+        围绕它建立的工具、教程、微调模型和应用
+        构成了一个自我强化的生态系统。
+\end{itemize}
+
+\subsection{``开放权重'' 不等于真正的开源}
+
+一个重要的区分：
+当前所谓的「开源模型」大多只是 \textbf{open weights}——
+公开了模型权重，但训练数据、完整的训练代码、
+数据处理管道和评估基础设施通常不公开。
+
+从技术角度看，
+开源模型的质量已经接近甚至达到闭源模型的水平——
+DeepSeek-R1 在数学推理上与 o1 相当，
+LLaMA 4 Maverick 在综合能力上逼近 GPT-4o。
+这是因为 LLM 的核心技术
+（Transformer 架构、训练方法、数据处理流水线）
+已经高度标准化，
+真正的差异化越来越依赖于\textbf{工程执行}而非秘密技术。
+
+一个更精确的开放程度光谱是：
+\textbf{完全闭源}（仅内部使用）→
+\textbf{API-only}（通过 API 提供服务，不公开权重）→
+\textbf{开放权重}（公开权重，不公开训练代码/数据）→
+\textbf{开放训练代码}（公开权重和训练代码，不公开数据）→
+\textbf{完全开源}（数据 + 代码 + 权重全部公开）。
+
+目前只有极少数模型（如 OLMo by AI2、SmolLM2 by HuggingFace）
+处于「完全开源」的端点。
+DeepSeek-V3/R1 虽然使用 MIT 许可证，
+但其训练数据和完整的训练基础设施并未公开。
+
+\subsection{Meta 的开源战略}
+
+Meta~\cite{touvron2023llama,dubey2024llama3} 的开源决策
+是 AI 行业最值得研究的战略案例之一。
+Mark Zuckerberg 的逻辑是\textbf{商品化互补品}（commoditize the complement）：
+Meta 的核心业务是社交网络和广告，
+AI 模型是这些业务的基础设施。
+如果 AI 模型成为商品（人人都能使用），
+那么构建在 AI 之上的应用
+（如 Meta 的推荐系统、广告排序、内容审核）
+才是真正的差异化竞争力。
+开源 LLaMA 还能吸引顶尖人才——
+研究者更愿意为一个开放的项目工作，
+因为他们的工作能被全世界看到。
+
+\subsection{DeepSeek-R1 的冲击}
+
+DeepSeek-R1~\cite{deepseekr1} 的发布
+深刻改变了开源 vs.\ 闭源的辩论格局。
+一个来自中国的、团队规模不到 200 人的实验室，
+训练出了在数学和代码推理上与 GPT-4 级别模型匹敌的模型，
+并以 MIT 许可证完全开源。
+
+这对闭源阵营的打击是多维度的：
+（1）如果开源模型能达到这个水平，
+那么闭源的「技术壁垒」论据就被削弱了；
+（2）DeepSeek-V3 报告的最终预训练 GPU 租赁成本约 \$5.5M
+（不含前期研发、数据处理和后训练成本），
+远低于 GPT-4 传闻中的 \$100M+（该数据未经官方确认）——
+这说明 frontier model 的训练不一定需要巨额投入；
+（3）开源模型的性能达到商用水平后，
+API 定价将面临巨大的下行压力。
+
+\section{总结与展望}
+
+2025--2026 年的 LLM 领域
+正在经历多条技术和产业路线的同时演进：
+
+\textbf{推理能力的系统化}——
+从提示工程到专用推理模型再到可配置推理预算，
+模型正在学会「思考」而非仅仅「回忆」。
+test-time compute 正在成为
+与训练 compute 同等重要的资源维度。
+
+\textbf{Agent 的落地}——
+从概念验证到生产工具，
+代码 Agent 已经改变了软件工程的工作流程。
+SWE-bench 60\%+ 的解决率
+标志着 Agent 从「玩具」跨入了「工具」的阶段。
+
+\textbf{硬件竞争的加剧}——
+NVIDIA 的垄断正在被 AMD、Google、AWS 逐步打破。
+多供应商策略降低了行业对单一供应商的依赖，
+也加速了算力成本的下降。
+
+\textbf{端侧 AI 的崛起}——
+NPU 硬件的进步使得 3B--7B 模型在手机上成为现实。
+端云混合推理将成为 AI 服务的标准架构。
+
+\textbf{监管框架的形成}——
+EU AI Act、美国各州立法、中国审批制度
+正在塑造 AI 公司的运营边界。
+合规成本将成为 AI 商业化的重要变量。
+
+\textbf{开源与闭源的融合}——
+开源模型在性能上持续逼近闭源模型，
+但「完全开源」仍然稀缺。
+行业可能走向一种混合格局——
+基础模型开源，增值服务闭源。
+
+LLM 技术的发展速度令人目眩。
+但贯穿始终的核心原则不会改变：
+数据的质量决定模型的上限，
+计算的规模决定模型的起点，
+而人类的智慧——
+体现在架构设计、训练策略和工程实现中——
+决定了我们能以多高的效率到达那个上限。
+
+这是一个激动人心的时代。
+从 Shannon 的信息论到 DeepSeek 的 GRPO，
+从 Transformer 的注意力机制到 MoE 的稀疏激活，
+每一步都是人类对「什么是智能」这个根本问题的持续探索。
+
+而这段旅程，才刚刚开始。
+
+如果用一句话总结 LLM 训练的核心智慧，那就是：
+\textbf{用最简单的目标函数（预测下一个词），
+配合足够的数据和计算规模，
+让复杂性从简单性中涌现。}
+这种「少即是多」的哲学贯穿了整个技术栈——
+从 Transformer 的简洁架构到 GRPO 的简单奖励信号，
+从 BPE 的朴素合并规则到量化的直观截断思路。
+最优雅的工程往往不是最复杂的，而是最简洁的。
+
+让我们回顾整篇文章的核心线索。
+LLM 的训练是一个环环相扣的流水线：
+\textbf{数据}决定了模型能学到什么（第四章），
+\textbf{架构}决定了模型能表达什么（第二、六、七章），
+\textbf{训练方法}决定了模型能学多好（第五章），
+\textbf{后训练}决定了模型能为人类服务多好（第八章），
+\textbf{推理优化}决定了模型能多快多便宜地服务（第九章）。
+
+每一个环节都蕴含着深刻的思想：
+下一个词预测背后是压缩即理解的信息论洞察，
+注意力机制背后是让模型自主决定信息流动的设计哲学，
+MoE 背后是参数效率与计算效率的解耦思想，
+GRPO 背后是让模型通过探索自我发现推理策略的强化学习理念，
+量化背后是信息论中「够用的精度」的朴素真理。
+
+对于想进入这个领域的读者，
+本文的附录提供了完整的训练流水线速查。
+对于已经在这个领域工作的实践者，
+希望本文的「为什么」视角能帮助你更深入地理解
+你每天使用的工具和方法背后的思想。
+
+
+%% ============================================================
+\appendix
+
+%% ============================================================
+%% BibTeX entries referenced in this chapter
+%% (to be added to the main .bib file)
+%%
+%% @article{deepseekr1,
+%%   title   = {{DeepSeek-R1}: Incentivizing Reasoning Capability in {LLMs} via Reinforcement Learning},
+%%   author  = {DeepSeek-AI},
+%%   journal = {arXiv preprint arXiv:2501.12948},
+%%   year    = {2025},
+%% }
+%%
+%% @article{shao2024grpo,
+%%   title   = {{DeepSeekMath}: Pushing the Limits of Mathematical Reasoning in Open Language Models},
+%%   author  = {Shao, Zhihong and Wang, Peiyi and Zhu, Qihao and others},
+%%   journal = {arXiv preprint arXiv:2402.03300},
+%%   year    = {2024},
+%% }
+%%
+%% @article{anil2023gemini,
+%%   title   = {Gemini: A Family of Highly Capable Multimodal Models},
+%%   author  = {Anil, Rohan and Dai, Andrew M and Firat, Orhan and others},
+%%   journal = {arXiv preprint arXiv:2312.11805},
+%%   year    = {2023},
+%% }
+%%
+%% @article{touvron2023llama,
+%%   title   = {{LLaMA}: Open and Efficient Foundation Language Models},
+%%   author  = {Touvron, Hugo and Lavril, Thibaut and Izacard, Gautier and others},
+%%   journal = {arXiv preprint arXiv:2302.13971},
+%%   year    = {2023},
+%% }
+%%
+%% @article{dubey2024llama3,
+%%   title   = {The {Llama 3} Herd of Models},
+%%   author  = {Dubey, Abhimanyu and Jauhri, Abhinav and Pandey, Abhinav and others},
+%%   journal = {arXiv preprint arXiv:2407.21783},
+%%   year    = {2024},
+%% }
+%%
+%% @article{hu2021lora,
+%%   title   = {{LoRA}: Low-Rank Adaptation of Large Language Models},
+%%   author  = {Hu, Edward J and Shen, Yelong and Wallis, Phillip and others},
+%%   journal = {arXiv preprint arXiv:2106.09685},
+%%   year    = {2021},
+%% }
+%%
+%% @article{dettmers2023qlora,
+%%   title   = {{QLoRA}: Efficient Finetuning of Quantized Language Models},
+%%   author  = {Dettmers, Tim and Pagnoni, Artidoro and Holtzman, Ari and Zettlemoyer, Luke},
+%%   journal = {arXiv preprint arXiv:2305.14314},
+%%   year    = {2023},
+%% }
+%%
+%% @article{dao2022flashattention,
+%%   title   = {{FlashAttention}: Fast and Memory-Efficient Exact Attention with {IO}-Awareness},
+%%   author  = {Dao, Tri and Fu, Daniel Y and Ermon, Stefano and Rudra, Atri and R{\'e}, Christopher},
+%%   journal = {Advances in Neural Information Processing Systems},
+%%   volume  = {35},
+%%   year    = {2022},
+%% }
+%%
+%% @article{gunter2024appleintelligence,
+%%   title   = {{Apple Intelligence} Foundation Language Models},
+%%   author  = {Gunter, Tom and Wang, Zirui and Wang, Chong and others},
+%%   journal = {arXiv preprint arXiv:2407.21075},
+%%   year    = {2024},
+%% }
+%%
+%% @article{qwen2025qwen3,
+%%   title   = {{Qwen3} Technical Report},
+%%   author  = {Qwen Team},
+%%   journal = {arXiv preprint},
+%%   year    = {2025},
+%% }
+%%
+%% @article{allal2025smollm2,
+%%   title   = {{SmolLM2}: When Smol Goes Big --- Data-Centric Training of a Small Language Model},
+%%   author  = {{Ben Allal}, Loubna and Lozhkov, Anton and Bakouch, Elie and others},
+%%   journal = {arXiv preprint arXiv:2502.02737},
+%%   year    = {2025},
+%% }

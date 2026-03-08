@@ -1,0 +1,133 @@
+\documentclass[
+  customlatinfont = macos,
+]{hkustthesis}
+
+\usepackage{hkust-cjk}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+% ============================================================
+% Book-style formatting: compact layout + footnote citations
+% ============================================================
+
+% Reduce line spacing for book-like density
+\linespread{1.25}
+
+% Tighter list spacing globally
+\setlist{itemsep=0pt, parsep=1pt, topsep=3pt}
+
+% Book-style footnote citations: \cite{key} -> footnote with full reference
+% \unskip removes the preceding ~ (non-breaking space) before footnote marker
+\let\origcite\cite
+\renewcommand{\cite}[1]{\unskip\footfullcite{#1}}
+
+% Code listing style (slightly smaller for book density)
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+  columns=flexible,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+  keywordstyle=\color{blue!70!black}\bfseries,
+  commentstyle=\color{green!50!black}\itshape,
+  stringstyle=\color{red!60!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=6pt,
+  tabsize=4,
+  showstringspaces=false,
+  language=Python,
+  aboveskip=6pt,
+  belowskip=6pt,
+}
+
+% Insight box colors
+\definecolor{coreBg}{HTML}{EFF6FF}
+\definecolor{coreBorder}{HTML}{3B82F6}
+\definecolor{whyBg}{HTML}{FEF3C7}
+\definecolor{whyBorder}{HTML}{D97706}
+\definecolor{keyBg}{HTML}{F0FDF4}
+\definecolor{keyBorder}{HTML}{22C55E}
+\definecolor{warnBg}{HTML}{FEF2F2}
+\definecolor{warnBorder}{HTML}{EF4444}
+\definecolor{mathBg}{HTML}{F5F3FF}
+\definecolor{mathBorder}{HTML}{8B5CF6}
+\definecolor{codeBg}{HTML}{ECFDF5}
+\definecolor{codeBorder}{HTML}{10B981}
+
+\newtcolorbox{corebox}[1][]{
+  colback=coreBg, colframe=coreBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\newtcolorbox{whybox}[1][]{
+  colback=whyBg, colframe=whyBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\newtcolorbox{keybox}[1][]{
+  colback=keyBg, colframe=keyBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\newtcolorbox{warnbox}[1][]{
+  colback=warnBg, colframe=warnBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\hkustsetup{
+  info = {
+    degree        = {mphil},
+    title         = {The Complete Journey of LLM Training: From Data to Intelligence},
+    author        = {Ziming Wang},
+    school        = {Academy of Interdisciplinary Studies},
+    department    = {Division of Integrative Systems and Design},
+    program       = {Technology Innovation and Entrepreneurship},
+    supervisor    = {},
+    submit-month  = {March 2026},
+    submit-date   = {7 March 2026},
+    defend-date   = {},
+    city          = {Hong Kong},
+  }
+}
+
+\addbibresource{refs.bib}
+\emergencystretch=2em
+
+\begin{document}
+
+\frontmatter
+\tableofcontents
+
+\mainmatter
+
+\input{chapters/ch01-intro}
+\input{chapters/ch02-transformer}
+\input{chapters/ch03-tokenization}
+\input{chapters/ch04-data}
+\input{chapters/ch05-pretraining}
+\input{chapters/ch06-moe}
+\input{chapters/ch07-long-context}
+\input{chapters/ch08-post-training}
+\input{chapters/ch09-inference}
+\input{chapters/ch10-test-time}
+\input{chapters/ch11-evaluation}
+\input{chapters/ch12-team}
+\input{chapters/ch13-frontier}
+\input{chapters/ch14-appendix}
+
+\printbibliography[heading=bibintoc,title=References]
+
+\end{document}

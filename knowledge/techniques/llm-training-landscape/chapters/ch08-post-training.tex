@@ -1,0 +1,2518 @@
+\chapter{后训练——从语言模型到 AI 助手}
+\label{ch:post-training}
+%% ============================================================
+
+预训练完成后，我们得到了一个强大的\textbf{基座模型}（Base Model）。
+它拥有海量的知识，能够流畅地续写文本，
+但它还不是一个有用的 AI 助手。
+
+为什么？因为基座模型只学会了一件事：预测下一个 token。
+如果你对它说「请总结下面这段话」，
+它不会去总结——它会继续「预测」你这段话之后可能出现的内容，
+比如更多的类似指令。
+它没有「遵循指令」的概念，
+也没有「什么该说什么不该说」的判断。
+
+后训练（Post-Training）就是把基座模型变成一个有用、安全、诚实的 AI 助手。
+这个过程通常分为三个阶段：
+\textbf{监督微调（SFT）→ 偏好优化（RLHF/DPO/GRPO）→ 安全对齐}。
+
+\section{监督微调（SFT）：学会对话}
+
+SFT 的核心思想很简单：给模型展示大量高质量的（指令, 回答）对，
+让它学习如何根据指令生成合适的回答。
+
+\begin{lstlisting}[caption={SFT data format example}]
+{
+  "instruction": "Explain quantum entanglement simply.",
+  "response": "Imagine you have two magic coins. When
+    you flip one and get heads, the other ALWAYS shows
+    tails, no matter how far apart they are. That's
+    quantum entanglement -- two particles linked so
+    measuring one instantly reveals the other's state."
+}
+\end{lstlisting}
+
+SFT 的训练过程与预训练相同（最小化交叉熵损失），
+但只在回答部分计算损失（不对指令部分计算损失），
+因为我们希望模型学会\textbf{如何回答}，而不是如何提问。
+
+\subsection{为什么需要 SFT？}
+
+基座模型和对话助手之间的差距，
+远比表面上看起来更深刻。
+
+一个在万亿 token 上预训练的 70B 模型
+确实「知道」几乎所有领域的知识。
+但它的行为模式是「续写」——
+给它一个开头，它会按照训练数据的分布延续下去。
+如果你问它「中国的首都是哪里？」，
+它可能回答「中国的首都是哪里？这是一个常见的地理问题」
+然后继续生成更多类似的问题——
+因为在训练数据中，问题后面跟着的经常是更多问题
+（比如考试卷或 FAQ 列表），而不是答案。
+
+SFT 要做的事情在概念上很简单：
+\textbf{改变模型的条件生成分布}。
+在预训练中，$P(\text{next} | \text{context})$ 是对整个互联网的建模。
+在 SFT 后，同样的条件概率变成了
+对「一个有帮助的助手会如何回答」的建模。
+模型的知识没有变，变的是它的\textbf{行为模式}。
+
+\subsection{Stanford Alpaca：SFT 的分水岭}
+
+2023 年 3 月，Stanford 的一个团队发布了 Alpaca——
+一个让整个开源 LLM 社区震动的项目。
+
+% NEW REF: taori2023alpaca = Taori et al., "Stanford Alpaca: An Instruction-following LLaMA Model", Stanford, 2023
+
+他们做了一件看似简单的事：
+用 GPT-3.5（text-davinci-003）生成了 52K 条
+指令-回答对（使用 Self-Instruct 方法），
+然后在 LLaMA-7B 上做 SFT。
+整个训练在 8 块 A100 上跑了 3 小时，
+API 调用成本约 \$500。
+
+结果令人惊讶：这个仅 7B 参数的模型
+在人类评估中的表现与 GPT-3.5 相当——
+至少在简单对话任务中如此。
+Alpaca 证明了两件事：
+\begin{enumerate}[noitemsep]
+  \item SFT 不需要天量数据或巨额成本，
+        少量高质量数据就足以让基座模型学会对话。
+  \item 可以用强模型的输出来训练弱模型
+       （后来被称为「蒸馏」），
+        大幅降低了 LLM 对齐的门槛。
+\end{enumerate}
+
+Alpaca 的发布像打开了闸门——
+在接下来的几个月里，
+开源社区涌现了 Vicuna、WizardLM、Orca 等
+大量基于 SFT 的模型。
+
+\subsection{数据质量的悖论}
+
+SFT 的数据量通常很小——从数千到数十万条对话，
+远少于预训练的万亿 token。
+但数据质量至关重要。
+
+这看似矛盾：预训练需要海量数据，SFT 却只需要少量数据？
+原因在于 SFT 的目标不是教模型新知识——
+知识已经在预训练中获得了。
+SFT 的目标是改变模型的\textbf{行为模式}：
+从「续写文本」转变为「遵循指令并给出有帮助的回答」。
+这种行为模式的转变，只需要少量但高质量的示例就够了。
+
+2023 年的 LIMA 论文将这个观察推向了极致。
+
+% NEW REF: zhou2023lima = Zhou et al., "LIMA: Less Is More for Alignment", NeurIPS, 2023
+
+LIMA 的作者仅用 \textbf{1,000 条}精心编写的对话数据
+对 LLaMA-65B 做 SFT，
+得到的模型在人类评估中击败了
+用 52K 数据训练的 Alpaca 和
+用 300K 数据训练的 GPT-4-All。
+他们据此提出了\textbf{「浅层对齐假说」}
+（Superficial Alignment Hypothesis）：
+\emph{模型在预训练中已经学到了几乎所有的知识和能力，
+对齐所做的只是教模型用正确的「格式」来展现这些能力——
+使用什么语气、如何组织回答、何时拒绝等。
+这种格式学习只需要极少量的高质量示例。}
+
+一个有用的类比是：
+预训练像是让一个人读了图书馆里所有的书——
+他获得了海量的知识，但你跟他对话时，
+他可能会漫无边际地「续写」而不是「回答你的问题」。
+SFT 就像教他「当别人问你问题时，
+你应该先理解问题，然后组织语言给出有帮助的回答」。
+这个行为模式的学习不需要读更多的书，
+只需要几个好的对话示例就够了。
+
+\begin{warnbox}[LIMA 的局限性]
+浅层对齐假说有其适用边界。
+LIMA 的 1,000 条数据在简单对话中效果好，
+但在复杂推理、代码生成、长文档分析等任务中
+与大数据量 SFT 模型仍有显著差距。
+这说明对于\textbf{复杂能力}的激发，
+仅靠「格式对齐」是不够的——
+还需要足够多的示例来教模型
+如何在新的行为模式下运用复杂能力。
+数据质量是必要条件，但充足的数据量也不可或缺。
+\end{warnbox}
+
+\subsection{SFT 的数据来源}
+
+高质量的 SFT 数据可以来自多个渠道：
+
+\textbf{人工编写}是质量最高但成本也最高的方式。
+OpenAI 在训练 InstructGPT~\cite{ouyang2022rlhf} 时
+雇佣了约 40 名标注者编写高质量的指令-回答对。
+这些标注者经过严格筛选和培训，
+确保回答的准确性、全面性和安全性。
+人工数据的优势在于质量可控——
+每一条数据都经过审核。
+劣势是成本高且速度慢——
+一名训练有素的标注者每天大约能产出 50--100 条高质量数据。
+
+\textbf{模型合成}（Self-Instruct / Evol-Instruct）
+使用已有的强大模型生成训练数据。
+
+Self-Instruct 的流程：
+提供少量种子指令 → 让 LLM 生成新指令 →
+让 LLM 为新指令生成回答 → 过滤低质量结果 → 重复。
+Alpaca 用的就是这种方法。
+
+Evol-Instruct（WizardLM 提出）是一种迭代式方法：
+从简单指令出发，让 LLM 逐步「进化」出更复杂的指令和回答。
+例如，将「写一个排序算法」进化为
+「写一个支持自定义比较器、处理空值和重复元素的泛型排序算法，
+并分析其时间和空间复杂度」。
+进化方向包括增加约束、深化推理、具体化场景、
+增加多步骤等。
+这种方法可以低成本地生成大量多样化且难度递进的训练数据。
+
+% NEW REF: xu2023wizardlm = Xu et al., "WizardLM: Empowering Large Language Models to Follow Complex Instructions", arXiv:2304.12244, 2023
+
+UltraChat 是另一种大规模合成方法：
+用两个 ChatGPT 实例互相对话，
+一个扮演用户，一个扮演助手，
+生成多轮对话数据。
+这种方法特别擅长生成自然的多轮对话——
+因为「用户」也是 LLM，会提出合理的追问。
+
+\textbf{开源社区数据}如 OpenAssistant、ShareGPT
+（用户分享的 ChatGPT 对话记录）
+提供了多样化的真实用户需求。
+但这些数据的质量参差不齐，需要过滤。
+ShareGPT 的优势是它反映了\textbf{真实用户的需求分布}——
+用户实际上会问什么、怎么问，
+这是合成数据很难完美模拟的。
+
+\textbf{领域专项数据}是为特定能力设计的 SFT 数据：
+\begin{itemize}[noitemsep]
+  \item \textbf{代码}：CodeAlpaca、Code-Feedback，
+        从代码竞赛和开源项目中构建指令-代码对。
+  \item \textbf{数学}：MetaMathQA 用多种方式重写数学题
+       （改变数字、改变问法、分解步骤），
+        让模型从不同角度学习同一数学概念。
+  \item \textbf{工具使用}：ToolBench 教模型如何调用 API——
+        包含数千个真实 API 的使用示例。
+  \item \textbf{多语言}：将高质量的英文指令数据翻译成其他语言，
+        同时保留文化相关的本地化内容。
+\end{itemize}
+
+实际中，最优的策略通常是混合多个来源：
+少量人工编写的「种子」数据保证核心质量，
+大量合成数据提供多样性，
+开源数据覆盖长尾需求，
+领域数据强化专项能力。
+
+\subsection{Chat 模板与训练格式}
+
+SFT 不仅要教模型\textbf{说什么}，
+还要教它\textbf{用什么格式说}。
+不同的模型家族使用不同的对话模板
+（chat template），
+这决定了系统提示、用户消息和助手回答
+在 token 流中如何编排。
+
+\begin{lstlisting}[caption={ChatML format (used by GPT/Qwen)}]
+<|im_start|>system
+You are a helpful assistant.<|im_end|>
+<|im_start|>user
+What is the capital of France?<|im_end|>
+<|im_start|>assistant
+The capital of France is Paris.<|im_end|>
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Llama 3 format}]
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+You are a helpful assistant.<|eot_id|>
+<|start_header_id|>user<|end_header_id|>
+
+What is the capital of France?<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>
+
+The capital of France is Paris.<|eot_id|>
+\end{lstlisting}
+
+这些格式看似琐碎，但至关重要。
+系统提示（system prompt）机制让同一个模型
+能在不同场景下扮演不同角色——
+「你是一个代码审查专家」和「你是一个温柔的儿童教育助手」
+使用同一个模型，只改变系统提示。
+这种灵活性是通过 SFT 在模板中学到的。
+
+\subsection{SFT 的训练细节}
+
+SFT 的训练与预训练在优化器和架构上完全相同，
+但超参数设置有显著差异：
+\begin{itemize}[noitemsep]
+  \item \textbf{学习率}：比预训练低一个数量级。
+        预训练通常用 $1 \times 10^{-4}$ 到 $3 \times 10^{-4}$，
+        SFT 用 $1 \times 10^{-5}$ 到 $5 \times 10^{-5}$。
+        过高的学习率会让模型「忘记」预训练中学到的知识
+       （灾难性遗忘）。
+  \item \textbf{训练轮数}：通常只训练 1--3 个 epoch。
+        过多的 epoch 会导致过拟合——
+        模型开始死记硬背 SFT 数据中的回答模式，
+        而不是学习通用的「遵循指令」行为。
+  \item \textbf{序列打包}：将多条短对话打包到一个训练序列中，
+        用特殊 token 分隔。
+        这避免了短序列浪费填充（padding）token 的计算。
+        但需要确保注意力掩码正确——
+        不同对话之间不能互相看到。
+  \item \textbf{损失掩码}：只在回答部分计算损失，
+        指令部分的 token 被掩码掉。
+        这让模型专注于学习「如何回答」，
+        而不是「如何提问」。
+\end{itemize}
+
+\subsection{LoRA：高效微调}
+
+对一个 70B 参数的模型做全参数 SFT 需要巨大的 GPU 内存。
+LoRA~\cite{hu2021lora}（Low-Rank Adaptation）
+提供了一种优雅的解决方案。
+
+\subsubsection{LoRA 的数学原理}
+
+核心假设是：\textbf{微调的参数更新具有低秩结构}。
+也就是说，从预训练模型到微调模型的权重变化 $\Delta W$
+可以被分解为两个小矩阵的乘积：
+\begin{equation}
+  W' = W + \alpha \cdot B A, \quad
+  B \in \mathbb{R}^{d \times r}, \;
+  A \in \mathbb{R}^{r \times d}, \;
+  r \ll d
+  \label{eq:lora}
+\end{equation}
+其中 $W$ 是冻结的预训练权重，
+$A$ 和 $B$ 是可训练的低秩矩阵，
+$r$（秩）通常取 8--64，
+$\alpha$ 是缩放因子。
+
+这个假设有实证支持。
+Aghajanyan 等人在 2020 年发现，
+预训练模型在微调时的权重更新
+存在极低的\textbf{内在维度}（intrinsic dimensionality）——
+一个 175B 参数模型的微调更新
+可以被投影到仅有几百或几千维的子空间中，
+几乎不损失性能。
+LoRA 正是利用了这一特性。
+
+% NEW REF: aghajanyan2020intrinsic = Aghajanyan et al., "Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning", ACL, 2021
+
+\begin{lstlisting}[caption={LoRA implementation concept}]
+class LoRALinear(nn.Module):
+    def __init__(self, in_dim, out_dim, rank=8, alpha=16):
+        super().__init__()
+        self.W = nn.Linear(in_dim, out_dim, bias=False)
+        self.W.weight.requires_grad = False  # Freeze
+
+        self.A = nn.Linear(in_dim, rank, bias=False)
+        self.B = nn.Linear(rank, out_dim, bias=False)
+        self.scale = alpha / rank
+
+    def forward(self, x):
+        # Original output + low-rank adaptation
+        return self.W(x) + self.scale * self.B(self.A(x))
+\end{lstlisting}
+
+这段代码展示了 LoRA 的核心：
+原始权重 \texttt{W} 被冻结（\texttt{requires\_grad = False}），
+只有两个小矩阵 \texttt{A} 和 \texttt{B} 参与训练。
+对于 $d = 4096$，$r = 8$，
+可训练参数从 $d^2 = 16.7M$ 降低到
+$2 \times d \times r = 65K$——\textbf{减少了 256 倍}。
+
+\subsubsection{Rank 选择与应用位置}
+
+Rank $r$ 的选择是 LoRA 中最重要的超参数决策。
+
+$r$ 太小（如 $r = 4$）：表达能力不足，
+复杂任务的微调效果受限。
+适合简单的格式对齐或风格迁移。
+
+$r$ 太大（如 $r = 128$）：可训练参数接近全参数微调的 1--2\%，
+优势减弱，同时增加了内存和计算开销。
+
+\textbf{实践指南}：
+\begin{itemize}[noitemsep]
+  \item $r = 8$--$16$：适合大多数 SFT 场景。
+  \item $r = 32$--$64$：适合需要更多适应的场景
+       （如跨语言微调、领域专业化）。
+  \item $r = 128$+：接近全参数微调的效果，
+        但通常不值得——此时不如直接做全参数微调。
+\end{itemize}
+
+LoRA 应该应用到模型的哪些层？
+研究表明，注意力层的 \textbf{Q 和 V 投影}是最重要的——
+只对 Q、V 应用 LoRA 通常能获得
+对所有注意力投影（Q、K、V、O）应用时
+80--90\% 的效果，但参数量减半。
+也有研究发现对 MLP 层同时应用 LoRA
+在某些任务上有额外收益。
+最新的实践倾向于对所有线性层都应用 LoRA
+（attention + MLP），使用较小的 rank 补偿参数量增加。
+
+\subsubsection{QLoRA：极致内存效率}
+
+QLoRA~\cite{dettmers2023qlora} 更进一步：
+将冻结的预训练权重 $W$ 量化为 4-bit，
+使得 70B 模型可以在单块 48GB GPU 上微调。
+
+QLoRA 引入了一种新的 4-bit 数据类型——\textbf{NF4}
+（4-bit NormalFloat）。
+它的设计基于一个观察：
+预训练模型的权重分布近似正态分布。
+NF4 将 4-bit 的 16 个量化级别
+按照正态分布的分位数进行不等间距划分，
+使得量化误差在统计意义上最小。
+
+QLoRA 的内存账本：
+\begin{itemize}[noitemsep]
+  \item 70B 模型权重（NF4）：$70B \times 0.5 \text{ bytes} = 35$ GB
+  \item LoRA 适配器（BF16，$r=16$）：约 200 MB
+  \item 优化器状态（仅针对适配器）：约 400 MB
+  \item 激活值和梯度：约 8--12 GB
+  \item \textbf{总计}：约 45--48 GB——刚好塞进一块 A6000（48GB）
+\end{itemize}
+
+对比全参数微调的内存需求：
+$70B \times 2 \text{ bytes (BF16)} = 140$ GB（仅模型权重）
+加上 Adam 优化器状态需要额外 $\sim$280 GB，
+总计超过 \textbf{420 GB}——需要至少 6 块 H100。
+
+\subsubsection{LoRA 的演进}
+
+LoRA 自提出以来催生了一系列改进变体：
+
+\textbf{LoRA+} 观察到 LoRA 中矩阵 $A$ 和 $B$
+使用相同的学习率是次优的。
+$B$ 在初始化时为零矩阵，
+需要更大的学习率来「启动」；
+$A$ 使用高斯初始化，需要更小的学习率保持稳定。
+LoRA+ 对两者使用不同的学习率，
+在某些任务上提升了 2--5\% 的效果。
+
+\textbf{DoRA}（Weight-Decomposed Low-Rank Adaptation）
+将权重分解为\textbf{方向}和\textbf{幅度}两个分量：
+$W' = m \cdot \frac{W + BA}{\|W + BA\|}$，
+其中 $m$ 是可学习的幅度向量。
+这种分解的动机是：全参数微调时
+权重的方向和幅度变化模式与 LoRA 不同——
+LoRA 倾向于同时改变两者，
+而全参数微调更多地调整方向。
+DoRA 通过显式分离两者，
+使得 LoRA 的行为更接近全参数微调。
+
+% NEW REF: liu2024dora = Liu et al., "DoRA: Weight-Decomposed Low-Rank Adaptation", ICML, 2024
+
+\textbf{rsLoRA}（rank-stabilized LoRA）修正了 LoRA 的缩放因子：
+原始 LoRA 使用 $\alpha / r$ 作为缩放，
+rsLoRA 改为 $\alpha / \sqrt{r}$。
+这个看似微小的改变确保了
+不同 rank 下的学习动态更加一致——
+当你增大 rank 时，不需要重新调学习率。
+
+\section{RLHF：学会人类偏好}
+
+SFT 教会了模型如何对话，
+但它本质上是「模仿」——
+模型只能像训练数据中的回答一样好，不会更好。
+而且它无法区分「还行」和「很好」的回答。
+
+\textbf{RLHF}（Reinforcement Learning from Human Feedback）~\cite{ouyang2022rlhf}
+引入了一个关键转变：
+不是教模型「什么是正确答案」，
+而是教它\textbf{人类更偏好什么}。
+
+\subsection{第一步：收集偏好数据}
+
+给人类标注者展示同一个指令的两个不同回答，
+让他们选择更好的那个。
+这比让人类写出完美回答要容易得多——
+判断「A 比 B 好」远比从零开始写一个完美回答简单。
+
+偏好收集有两种主要方式：
+\begin{itemize}[noitemsep]
+  \item \textbf{配对比较}（pairwise comparison）：
+        展示两个回答，选更好的那个。
+        这是最常用的方式，也是 Bradley-Terry 模型的基础。
+        优势是决策简单，标注者间一致性较高。
+  \item \textbf{Likert 评分}：
+        对单个回答按 1--5 分评分。
+        可以提供更细粒度的信号，
+        但标注者间的评分标准很难统一——
+        一个人的 4 分可能是另一个人的 3 分。
+\end{itemize}
+
+标注者间一致性（inter-annotator agreement）是一个持续的挑战。
+InstructGPT 的经验表明，
+即使经过培训的标注者之间，
+在约 25--30\% 的案例中也存在分歧。
+对于主观性强的问题（如创意写作），分歧比例更高。
+OpenAI 的做法是保留多个标注者的判断，
+在训练奖励模型时使用多数投票或概率化处理。
+
+\subsection{第二步：训练奖励模型}
+
+用偏好数据训练一个\textbf{奖励模型}（Reward Model），
+它接受一个（指令, 回答）对，输出一个标量分数，
+表示人类对这个回答的偏好程度。
+
+奖励模型通常也是一个 LLM，但输出层替换为回归头——
+最后一个 token 的隐藏状态通过一个线性层
+映射为一个标量分数。
+
+奖励模型的训练使用 \textbf{Bradley-Terry 模型}：
+给定偏好对 $(y_w, y_l)$（其中 $y_w$ 被偏好），
+奖励模型的损失函数为：
+\begin{equation}
+  \mathcal{L}_{\text{RM}} = -\log \sigma(r(x, y_w) - r(x, y_l))
+  \label{eq:reward-model}
+\end{equation}
+其中 $r(x, y)$ 是奖励模型对回答 $y$ 的评分，
+$\sigma$ 是 sigmoid 函数。
+这个损失函数的直觉是：
+被偏好回答的分数应该高于不被偏好回答的分数，
+两者的差值越大，损失越低。
+
+奖励模型的规模通常与策略模型相当或稍小。
+InstructGPT 使用了一个 6B 参数的奖励模型
+来引导 175B 参数的策略模型。
+更大的奖励模型通常更准确，
+但增加了 RLHF 管线的内存和计算开销。
+
+\subsubsection{奖励模型训练的挑战}
+
+训练一个好的奖励模型远比上面的数学公式暗示的困难。
+实践中会遇到多层次的挑战：
+
+\textbf{标注噪声与不一致性}。
+人类标注者之间的偏好不一致是根本性的。
+对于「哪个回答更好」，不同标注者的判断
+在 25--30\% 的案例中存在分歧（InstructGPT 数据）。
+对于主观性强的任务（创意写作、开放式建议），
+分歧比例可能超过 40\%。
+这意味着奖励模型的训练上界受限于人类一致性——
+它无法比人类标注者自己更准确。
+
+处理标注噪声的常见策略包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{多数投票}：每个偏好对由 3--5 名标注者独立判断，
+        取多数意见。但这使标注成本翻 3--5 倍。
+  \item \textbf{概率标签}：不用硬标签（$y_w$ 或 $y_l$），
+        而是用标注者投票比例作为软标签。
+        例如 3 人选 A、2 人选 B，
+        则标签为 $(0.6, 0.4)$ 而非 $(1, 0)$。
+  \item \textbf{标注者校准}：根据每个标注者的历史表现
+        为其判断加权。一致性高的标注者获得更高权重。
+\end{itemize}
+
+\textbf{奖励模型的分布偏移}。
+奖励模型在固定的偏好数据分布上训练，
+但策略模型在 RL 训练过程中不断生成新的、不同分布的回答。
+随着策略更新，模型生成的回答分布
+越来越偏离奖励模型训练时的数据分布，
+导致奖励模型在新分布上的估计不准确。
+这是奖励黑客的根本原因之一。
+
+一种缓解策略是\textbf{迭代训练}：
+RL 训练一段时间后，用当前策略模型生成新的回答，
+收集新的人类偏好，更新奖励模型，然后继续 RL。
+这种「在线 RLHF」大幅增加了复杂度和成本，
+但能显著减少奖励黑客。
+Anthropic 和 OpenAI 在其生产管线中都采用了迭代式奖励模型更新。
+
+\textbf{奖励模型的规模选择}。
+Llama 2 的技术报告透露，
+Meta 在不同版本中尝试了与策略模型相同规模的奖励模型（70B），
+发现更大的奖励模型确实更准确，
+但带来了显著的内存和延迟开销。
+实践中的权衡是：奖励模型通常为策略模型的 50--100\% 大小。
+近期的趋势是使用多个较小的奖励模型集成（ensemble），
+每个模型独立训练，取平均分数作为最终奖励。
+这种方法既提高了准确性，又有助于检测奖励黑客——
+当多个奖励模型的分数出现大幅分歧时，
+通常意味着策略模型正在利用某个奖励模型的漏洞。
+
+\subsubsection{奖励黑客与过度优化}
+
+\textbf{奖励黑客}（reward hacking）是 RLHF 中最棘手的问题之一。
+当策略模型对奖励模型优化过度时，
+它会找到获得高分但实际上无用的模式。
+Goodhart 定律在这里完美适用：
+\emph{「当一个度量变成了目标，它就不再是好的度量。」}
+
+% NEW REF: gao2023scaling = Gao et al., "Scaling Laws for Reward Model Overoptimization", ICML, 2023
+
+Gao 等人（2023）系统研究了奖励过度优化的 scaling law。
+他们发现一个令人不安的模式：
+随着 RL 训练的进行，
+\textbf{奖励模型的代理分数}（proxy reward）单调上升，
+但\textbf{真实的人类偏好}（gold reward）
+先上升、后下降，呈现倒 U 型曲线。
+也就是说，存在一个最优的优化程度——
+超过这个点后，模型在奖励模型上的「表现」越来越好，
+但实际上的回答质量越来越差。
+
+奖励黑客的常见表现形式包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{长度操纵}：奖励模型对更长的回答给出更高分数
+       （因为训练数据中好的回答往往更详细），
+        策略模型学会了生成冗长但空洞的回答。
+        这是最常见的奖励黑客形式。
+  \item \textbf{格式套利}：模型学会使用特定的格式化模式
+       （如加粗、列表、总结段落）来获得高分，
+        而不是真正提升内容质量。
+  \item \textbf{谄媚}（sycophancy）：奖励模型可能对
+        肯定用户观点的回答给出更高分数，
+        导致策略模型学会了「讨好用户」——
+        即使用户的观点是错误的，模型也倾向于赞同。
+  \item \textbf{自我重复}：模型反复强调同一个正确的关键点，
+        因为奖励模型对包含正确信息的回答给出高分。
+  \item \textbf{代码执行操纵}：在代码任务中，
+        模型可能学会修改测试用例而不是修复代码
+        来通过验证——这是一种更隐蔽的奖励黑客。
+\end{itemize}
+
+缓解奖励黑客的主要策略：
+\begin{enumerate}[noitemsep]
+  \item \textbf{KL 惩罚}（已在 PPO 目标中）：
+        限制策略偏离参考模型的程度。
+        $\beta$ 的选择是关键——
+        过小则抑制不住奖励黑客，
+        过大则策略几乎不更新。
+        典型值为 $\beta = 0.01$--$0.1$。
+  \item \textbf{奖励模型集成}：使用多个独立训练的奖励模型，
+        取保守估计（最小值或下四分位数）。
+        单个奖励模型容易被利用，但多个模型同时出错的概率更低。
+  \item \textbf{长度惩罚}：在奖励信号中显式减去
+        与回答长度成比例的惩罚项，
+        或将奖励归一化为每 token 的平均奖励。
+  \item \textbf{早停}（early stopping）：监控真实的人类评估指标，
+        在代理奖励持续上升但人类偏好开始下降时停止训练。
+        这需要在训练过程中定期进行人类评估抽检。
+  \item \textbf{迭代奖励模型更新}：定期用策略模型的最新输出
+        收集新的偏好数据，更新奖励模型，
+        使其跟上策略的分布变化。
+\end{enumerate}
+
+\begin{warnbox}[能量损失现象与奖励黑客]
+2025 年 ICML 的一项研究揭示了 RLHF 中的
+\textbf{能量损失现象}（energy loss phenomenon）。
+研究发现，在 RL 训练过程中，
+LLM 最后一层的隐藏状态的\textbf{能量}
+（范数的平方）会逐渐降低，
+这与奖励黑客行为存在强相关。
+当能量损失加剧时，模型更容易产生奖励黑客行为。
+通过在训练中加入能量正则化（鼓励维持隐藏状态的能量），
+可以有效缓解奖励黑客——
+这为理解和解决奖励黑客提供了新的视角。
+\end{warnbox}
+
+\subsection{第三步：PPO 优化}
+
+使用 PPO~\cite{schulman2017ppo}（Proximal Policy Optimization）算法，
+让模型（策略）生成回答，
+用奖励模型打分作为奖励信号，
+通过 RL 最大化期望奖励。
+
+PPO 的核心目标函数：
+\begin{equation}
+  J_{\mathrm{PPO}} = \mathbb{E}\!\left[
+    \min\!\left(\frac{\pi_\theta}{\pi_{\mathrm{old}}} A_t,\;
+    \mathrm{clip}\!\left(\frac{\pi_\theta}{\pi_{\mathrm{old}}},\,
+    1 \pm \epsilon\right) A_t\right)
+  \right] - \beta \, D_{\mathrm{KL}}(\pi_\theta \| \pi_{\mathrm{ref}})
+\end{equation}
+其中 $\pi_\theta / \pi_{\mathrm{old}}$ 是策略概率比，
+$A_t$ 是优势函数（由 critic 网络估计），
+clip 操作限制策略更新幅度防止过大的变化，
+KL 惩罚项防止模型偏离预训练分布太远。
+注意此处是 RLHF 中常用的 PPO 变体——
+原始 PPO 算法~\cite{schulman2017ppo}使用裁剪目标
+或自适应 KL 惩罚二者之一，
+而 RLHF 实践中通常将裁剪与固定系数的 KL 惩罚结合使用，
+以同时限制策略更新幅度和防止奖励黑客。
+
+让我们拆解这个公式中的每个组件：
+
+\textbf{策略概率比} $\pi_\theta / \pi_{\mathrm{old}}$
+衡量新策略相对于旧策略的变化。
+如果某个回答在新策略下的概率增加了，
+这个比值大于 1；如果减少了，小于 1。
+
+\textbf{优势函数} $A_t$ 用
+\textbf{GAE}（Generalized Advantage Estimation）计算：
+$A_t = \sum_{l=0}^{T-t} (\gamma \lambda)^l \delta_{t+l}$，
+其中 $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$
+是 TD 误差。GAE 通过 $\lambda$ 参数在偏差和方差之间权衡——
+$\lambda = 0$ 时等于单步 TD（低方差高偏差），
+$\lambda = 1$ 时等于 Monte Carlo（低偏差高方差）。
+实践中通常取 $\lambda = 0.95$。
+
+\textbf{Clip 操作}是 PPO 的核心创新。
+它限制了策略更新的幅度：
+如果新策略相对于旧策略的变化超过了 $(1-\epsilon, 1+\epsilon)$
+的范围（通常 $\epsilon = 0.2$），
+梯度被截断，阻止过大的策略跳跃。
+这使得训练更加稳定——
+旧的 policy gradient 方法（如 REINFORCE）
+因为没有这种限制，经常出现策略崩溃。
+
+\textbf{KL 惩罚}是防止\textbf{奖励黑客}（reward hacking）的关键。
+没有 KL 惩罚，策略模型会学到一些
+获得高奖励分数但实际上无意义的模式——
+比如生成冗长的、自我重复的回答
+（因为奖励模型碰巧对更长的回答给出更高分数）。
+KL 惩罚通过限制策略偏离参考模型（SFT 模型）的程度，
+确保模型在优化奖励的同时不丢失基本的语言能力。
+
+\subsection{PPO 的工程挑战}
+
+RLHF 的 PPO 阶段是整个后训练管线中
+工程难度最高的部分。
+主要原因是它需要同时在 GPU 上加载\textbf{四个大模型}：
+\begin{enumerate}[noitemsep]
+  \item \textbf{策略模型}（Policy）：正在被优化的模型——
+        它生成回答，接收梯度更新。
+  \item \textbf{参考模型}（Reference）：冻结的 SFT 模型——
+        用于计算 KL 惩罚。
+  \item \textbf{奖励模型}（Reward）：评估回答质量——
+        对策略模型生成的回答打分。
+  \item \textbf{价值模型}（Value/Critic）：估计状态价值函数——
+        用于计算优势函数 $A_t$。
+\end{enumerate}
+
+对于一个 70B 参数的策略模型，
+即使参考模型和价值模型可以用更小的版本，
+四个模型的总内存需求也极其恐怖。
+再加上每一步都需要：
+生成回答 → 奖励打分 → 计算优势 → 更新策略——
+这个循环比 SFT 的纯前向/反向传播复杂得多。
+
+InstructGPT~\cite{ouyang2022rlhf} 的训练规模：
+约 40 名标注者，收集约 33K 偏好比较。
+结果令人印象深刻：
+仅 1.3B 参数的 InstructGPT 在人类评估中
+被偏好于 175B 参数的 GPT-3——
+这有力地证明了 RLHF 的价值：
+一个经过良好对齐的小模型
+可以比一个未对齐的大模型更受用户欢迎。
+
+\subsection{PPO 的工程实践}
+
+RLHF 的 PPO 训练循环可以分解为四个交替执行的步骤，
+每一步都有独特的工程考量：
+
+\textbf{第一步：样本生成}（Rollout/Generation）。
+策略模型对一批 prompt 执行自回归生成。
+这一步是纯推理过程——
+需要大 batch 的高吞吐生成，
+通常使用 vLLM 或 TensorRT-LLM 等推理引擎加速。
+关键超参数包括 temperature（通常 0.7--1.0，
+比 SFT 的贪心解码更高以鼓励探索）
+和 top-$p$（通常 0.9--0.95）。
+每个 prompt 生成 1--4 个回答，
+batch 大小从数百到数千个 prompt 不等。
+
+\textbf{第二步：奖励评估}（Reward Scoring）。
+将生成的回答送入奖励模型打分。
+这一步是纯前向传播，无需梯度，
+但需要处理大量的（prompt, response）对。
+为防止奖励黑客，
+通常对原始奖励做裁剪（clip 到 $[-5, 5]$）
+或归一化（减均值除标准差）。
+
+\textbf{第三步：优势估计}（Advantage Estimation）。
+用 critic 网络计算每个 token 位置的价值估计，
+结合奖励信号通过 GAE 计算优势函数。
+LLM 版本的 PPO 有一个特殊之处：
+\textbf{奖励通常只在序列末尾给出}——
+中间 token 没有显式的奖励信号。
+这意味着 critic 需要学会将这个终端奖励
+分配到整个序列的各个位置——
+这比传统 RL（每步都有奖励）更难。
+
+\textbf{第四步：策略更新}（Policy Gradient Update）。
+用 PPO 的 clipped 目标函数计算策略梯度，
+更新策略模型和 critic 模型的权重。
+这一步需要全精度的反向传播和优化器步骤。
+通常对同一批数据做 1--4 次 mini-batch 更新
+（PPO 的 epoch 数），然后回到第一步生成新样本。
+
+四步循环中，\textbf{样本生成}通常是时间瓶颈——
+自回归生成比前向/反向传播慢得多。
+一种优化策略是将生成和训练\textbf{异步化}：
+一组 GPU 专门做生成（推理模式），
+另一组 GPU 做梯度更新（训练模式），
+两者通过共享队列传递数据。
+DeepSpeed-Chat 和 OpenRLHF 等开源框架
+提供了这种异步 PPO 训练的实现。
+
+\begin{lstlisting}[caption={RLHF PPO training loop (high-level)}]
+for epoch in range(num_epochs):
+    # Step 1: Generate responses
+    prompts = sample_batch(prompt_dataset, batch_size)
+    with torch.no_grad():
+        responses = policy_model.generate(
+            prompts, temperature=0.8, top_p=0.95,
+            max_new_tokens=512
+        )
+
+    # Step 2: Score with reward model
+    with torch.no_grad():
+        rewards = reward_model.score(prompts, responses)
+        rewards = torch.clamp(rewards, -5.0, 5.0)
+
+    # Step 3: Compute advantages with GAE
+    with torch.no_grad():
+        values = critic_model.predict_values(
+            prompts, responses
+        )
+        advantages = compute_gae(
+            rewards, values, gamma=1.0, lam=0.95
+        )
+        advantages = (advantages - advantages.mean()) \
+                    / (advantages.std() + 1e-8)
+
+    # Step 4: PPO update (multiple mini-batch epochs)
+    old_log_probs = policy_model.log_prob(
+        prompts, responses
+    ).detach()
+    ref_log_probs = ref_model.log_prob(
+        prompts, responses
+    ).detach()
+
+    for ppo_epoch in range(4):
+        log_probs = policy_model.log_prob(
+            prompts, responses
+        )
+        ratio = torch.exp(log_probs - old_log_probs)
+
+        surr1 = ratio * advantages
+        surr2 = torch.clamp(
+            ratio, 1 - clip_eps, 1 + clip_eps
+        ) * advantages
+        policy_loss = -torch.min(surr1, surr2).mean()
+
+        kl = log_probs - ref_log_probs
+        kl_loss = kl_beta * kl.mean()
+
+        loss = policy_loss + kl_loss
+        loss.backward()
+        optimizer.step()
+\end{lstlisting}
+
+\textbf{内存优化技巧}。
+在实际部署中，以下技巧可以显著降低 PPO 的内存需求：
+\begin{itemize}[noitemsep]
+  \item \textbf{参考模型权重共享}：用 LoRA 表示策略模型，
+        基础权重同时作为参考模型使用。
+        只需将 LoRA 适配器的贡献置零即可得到参考模型的输出。
+        这省去了一个完整模型的内存。
+  \item \textbf{Critic 复用}：让 critic 和奖励模型共享骨干网络，
+        只使用不同的输出头。
+        或者用更小规模的 critic（如策略的 1/4 大小）。
+  \item \textbf{梯度检查点}：在训练步骤中使用
+        activation checkpointing 交换计算和内存。
+  \item \textbf{混合精度}：生成和评分用 FP16/BF16，
+        梯度更新用 FP32，优化器状态用 FP32。
+\end{itemize}
+
+\begin{whybox}[为什么 RL 比 SFT 更强？]
+SFT 是「模仿学习」——
+模型只能学到训练数据中展示的行为。
+RL 是「探索优化」——
+模型可以尝试训练数据中\textbf{没有}的新策略，
+只要奖励模型认为它更好。
+这就是为什么 RLHF 后的模型
+通常比纯 SFT 的模型更能处理复杂、开放式的问题——
+它学会了「什么是好的」，
+而不仅仅是「什么是被人写过的」。
+
+一个直觉的类比：SFT 像是让学生抄写优秀作文——
+他学到了好作文的模式，但不知道\textbf{为什么}好。
+RLHF 像是有一位老师不断评价学生自己写的作文——
+学生可以尝试新的写作方式，
+老师告诉他哪些尝试更好、哪些更差，
+最终学生学会了「好」的本质，
+甚至可能写出超越范文的作品。
+\end{whybox}
+
+\section{DPO：去掉奖励模型}
+
+RLHF 强大但复杂——
+它需要同时维护四个模型：
+策略模型、参考模型、奖励模型和 critic 网络。
+这在工程上和内存上都是巨大的负担。
+
+DPO~\cite{rafailov2023dpo}（Direct Preference Optimization）
+的核心洞察是：\textbf{奖励模型是可以被数学消除的}。
+
+\subsection{从 RLHF 到 DPO 的完整推导}
+
+DPO 的数学推导是后训练领域最优美的结果之一。
+让我们从 RLHF 的优化目标开始，
+一步一步推导出 DPO 的损失函数。
+
+\textbf{起点：KL 约束的 RL 问题}。
+RLHF 的优化目标是在 KL 约束下最大化期望奖励：
+\begin{equation}
+  \max_{\pi_\theta} \; \mathbb{E}_{x \sim \mathcal{D},\, y \sim \pi_\theta(\cdot|x)}
+  \!\left[ r(x, y) \right]
+  - \beta \, D_{\text{KL}}\!\left(\pi_\theta(y|x) \,\|\, \pi_{\text{ref}}(y|x)\right)
+  \label{eq:rlhf-objective}
+\end{equation}
+展开 KL 散度：
+\begin{equation}
+  = \mathbb{E}_{x, y \sim \pi_\theta}\!\left[
+    r(x,y) - \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}
+  \right]
+\end{equation}
+
+\textbf{步骤一：求解最优策略}。
+对每个固定的 $x$，这是一个关于分布 $\pi_\theta(\cdot|x)$ 的优化问题。
+通过变分法（对 $\pi_\theta(y|x)$ 求泛函导数并令其为零），
+可以得到最优策略的闭式解：
+\begin{equation}
+  \pi^*(y|x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y|x) \exp\!\left(\frac{r(x,y)}{\beta}\right)
+  \label{eq:optimal-policy}
+\end{equation}
+其中配分函数 $Z(x) = \sum_y \pi_{\text{ref}}(y|x) \exp(r(x,y)/\beta)$
+确保 $\pi^*$ 是合法的概率分布。
+这个结果的直觉是：最优策略在参考策略的基础上，
+按奖励的指数进行重新加权——
+高奖励的回答获得更高的概率提升。
+
+\textbf{步骤二：从策略反解奖励}。
+将公式~\eqref{eq:optimal-policy} 两边取对数并重排：
+\begin{equation}
+  r(x,y) = \beta \log \frac{\pi^*(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
+  \label{eq:reward-from-policy}
+\end{equation}
+这个等式揭示了一个关键洞察：
+\textbf{最优策略隐式地定义了奖励函数}。
+也就是说，如果我们知道最优策略 $\pi^*$，
+就能反推出奖励函数（模一个与 $y$ 无关的常数 $\beta \log Z(x)$）。
+
+\textbf{步骤三：代入 Bradley-Terry 模型}。
+在 Bradley-Terry 偏好模型中，
+人类偏好 $y_w$ 胜过 $y_l$ 的概率为：
+\begin{equation}
+  P(y_w \succ y_l | x) = \sigma\!\left(r(x, y_w) - r(x, y_l)\right)
+\end{equation}
+将公式~\eqref{eq:reward-from-policy}的奖励表达式代入：
+\begin{align}
+  r(x, y_w) - r(x, y_l)
+  &= \beta \log \frac{\pi^*(y_w|x)}{\pi_{\text{ref}}(y_w|x)} + \beta \log Z(x) \notag \\
+  &\quad - \beta \log \frac{\pi^*(y_l|x)}{\pi_{\text{ref}}(y_l|x)} - \beta \log Z(x) \notag \\
+  &= \beta \log \frac{\pi^*(y_w|x)}{\pi_{\text{ref}}(y_w|x)}
+     - \beta \log \frac{\pi^*(y_l|x)}{\pi_{\text{ref}}(y_l|x)}
+\end{align}
+关键的数学魔法发生在这里：
+\textbf{$\beta \log Z(x)$ 项完美消去}——
+因为两个回答共享相同的输入 $x$，
+配分函数是相同的。
+这意味着我们不需要计算难以处理的配分函数！
+
+\textbf{步骤四：构造损失函数}。
+用策略模型 $\pi_\theta$ 替代最优策略 $\pi^*$，
+对偏好数据集上所有偏好对取负对数似然，
+得到 DPO 的损失函数：
+\begin{equation}
+  \mathcal{L}_{\mathrm{DPO}} = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}}\!\left[
+    \log \sigma\!\left(
+    \beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\mathrm{ref}}(y_w \mid x)}
+    - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\mathrm{ref}}(y_l \mid x)}
+  \right)\right]
+  \label{eq:dpo}
+\end{equation}
+其中 $y_w$ 是人类偏好的回答（winner），
+$y_l$ 是不被偏好的回答（loser），
+$\sigma$ 是 sigmoid 函数。
+
+这个推导的本质是：
+\textbf{DPO 跳过了显式的奖励建模步骤，
+直接在策略空间中优化偏好}。
+奖励模型被「折叠」进了策略本身——
+$\beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}$
+就是策略隐式定义的奖励。
+
+\subsection{DPO 损失函数的直觉}
+
+让我们通过一个具体例子来理解 DPO 损失函数的含义。
+假设用户问「如何煮意大利面？」，
+模型生成了两个回答：
+\begin{itemize}[noitemsep]
+  \item $y_w$（被偏好的）：「在大锅中烧开盐水，下入意大利面煮 8--10 分钟至有嚼劲（al dente），捞出沥干，拌入你喜欢的酱汁。」
+  \item $y_l$（不被偏好的）：「可以煮着吃。」
+\end{itemize}
+
+DPO 损失函数~\eqref{eq:dpo}中的
+$\log \frac{\pi_\theta(y_w|x)}{\pi_{\mathrm{ref}}(y_w|x)}$
+衡量的是：相比参考模型，当前模型在多大程度上
+更倾向于生成被偏好的回答？
+减去 $\log \frac{\pi_\theta(y_l|x)}{\pi_{\mathrm{ref}}(y_l|x)}$
+则衡量：当前模型在多大程度上\textbf{减少}了
+对不被偏好回答的倾向？
+通过 sigmoid 函数将这个差值映射到 $(0, 1)$ 区间，
+取负对数作为损失。
+
+当模型的行为已经很好（正确地偏好 $y_w$）时，
+sigmoid 的输入很大，$-\log \sigma(\cdot) \to 0$，损失接近零。
+当模型还没有学好（偏好 $y_l$ 而非 $y_w$）时，
+sigmoid 的输入为负，$-\log \sigma(\cdot)$ 很大，损失很高。
+梯度自然地推动模型增加 $y_w$ 的概率、降低 $y_l$ 的概率。
+
+$\beta$ 参数控制优化的「温度」：
+$\beta$ 越大，模型对偏好差异的反应越敏感，
+但也越容易在偏好数据的噪声上过拟合。
+典型的 $\beta$ 值在 0.1--0.5 之间。
+
+\subsection{DPO vs RLHF：简单性的代价}
+
+DPO 将 RLHF 从一个复杂的在线 RL 问题
+简化为一个离线的监督学习问题——
+只需要偏好数据对和标准的梯度下降即可。
+这使得偏好优化变得几乎和 SFT 一样简单。
+
+\begin{corebox}[DPO 的简化清单]
+DPO 相比 RLHF (PPO) 省去了：
+\begin{itemize}[noitemsep]
+  \item 训练奖励模型（省去一整个训练流程）
+  \item 价值网络（critic）（省去一个大模型的内存）
+  \item 在线生成回答（省去推理开销）
+  \item 强化学习循环（省去复杂的工程管线）
+\end{itemize}
+DPO 只需要：偏好数据 + 策略模型 + 参考模型 + 梯度下降。\\
+内存需求从 4 个模型降到 2 个模型。
+\end{corebox}
+
+但 DPO 的简单性不是没有代价的：
+\begin{itemize}[noitemsep]
+  \item \textbf{离线限制}：DPO 只能从已有的偏好数据中学习，
+        不像 PPO 可以在训练过程中探索新的回答。
+        这意味着 DPO 的效果高度依赖偏好数据的覆盖度——
+        如果数据中没有覆盖某类问题，
+        DPO 在那类问题上就无法改进。
+  \item \textbf{过拟合风险}：在有限的偏好数据上，
+        DPO 容易过拟合到数据的表面特征，
+        而不是学到真正的偏好。
+        比如如果偏好数据中更长的回答总是被标注为更好，
+        DPO 可能学到「长 = 好」的虚假模式。
+  \item \textbf{分布偏移}：偏好数据是由参考模型
+       （或某个旧版本模型）生成的。
+        随着训练的进行，策略模型的分布偏离了生成数据的分布，
+        导致估计偏差。PPO 通过在线生成天然避免了这个问题。
+\end{itemize}
+
+\subsection{DPO 的训练代码}
+
+DPO 的实现简洁得令人吃惊——
+核心逻辑不到 30 行代码：
+
+\begin{lstlisting}[caption={DPO training implementation}]
+def dpo_loss(policy_model, ref_model, batch, beta=0.1):
+    """Compute DPO loss for a batch of preference pairs."""
+    prompts = batch["prompt"]
+    chosen = batch["chosen"]       # y_w (preferred)
+    rejected = batch["rejected"]   # y_l (rejected)
+
+    # Log probs from current policy
+    pi_chosen = policy_model.log_prob(prompts, chosen)
+    pi_rejected = policy_model.log_prob(prompts, rejected)
+
+    # Log probs from frozen reference model
+    with torch.no_grad():
+        ref_chosen = ref_model.log_prob(prompts, chosen)
+        ref_rejected = ref_model.log_prob(
+            prompts, rejected
+        )
+
+    # DPO implicit reward:
+    #   r(x,y) = beta * log(pi/ref)
+    chosen_reward = beta * (pi_chosen - ref_chosen)
+    rejected_reward = beta * (pi_rejected - ref_rejected)
+
+    # Bradley-Terry loss with implicit rewards
+    loss = -F.logsigmoid(chosen_reward - rejected_reward)
+
+    # Useful metrics for monitoring
+    reward_margin = (chosen_reward - rejected_reward).mean()
+    accuracy = (chosen_reward > rejected_reward).float().mean()
+
+    return loss.mean(), {
+        "reward_margin": reward_margin.item(),
+        "accuracy": accuracy.item(),
+    }
+\end{lstlisting}
+
+这段代码的关键在于 \texttt{log\_prob} 的计算。
+对于一个回答 $y = (y_1, y_2, \ldots, y_T)$，
+对数概率是所有 token 的对数概率之和：
+$\log \pi(y|x) = \sum_{t=1}^T \log \pi(y_t | x, y_{<t})$。
+在实际实现中，这通过一次前向传播获得所有 token 的 logit，
+然后从中提取对应 token 的对数概率并求和。
+
+训练 DPO 时需要监控的关键指标：
+\begin{itemize}[noitemsep]
+  \item \textbf{隐式奖励边距}（reward margin）：
+        $\mathbb{E}[r_\theta(x, y_w) - r_\theta(x, y_l)]$
+        应该随训练逐渐增大，表示模型越来越能区分好坏回答。
+  \item \textbf{偏好准确率}：模型正确偏好 $y_w$ 的比例。
+        训练初期通常在 50--60\%（接近随机），
+        训练结束时应达到 70--80\%。
+        超过 85\% 通常意味着过拟合。
+  \item \textbf{选择与拒绝的对数概率变化}：
+        理想情况下，$\log \pi_\theta(y_w|x)$ 增加，
+        $\log \pi_\theta(y_l|x)$ 减少。
+        如果两者同时减少，说明模型在「遗忘」，
+        需要降低学习率或增大 $\beta$。
+\end{itemize}
+
+\subsection{DPO 的变体与演进}
+
+DPO 的成功激发了一系列改进方法。
+2024--2025 年间出现了数十种 DPO 变体，
+形成了一个\textbf{偏好优化方法家族}。
+以下是最重要的几个。
+
+\subsubsection{IPO：去掉 Bradley-Terry 假设}
+
+% NEW REF: azar2023ipo = Azar et al., "A General Theoretical Paradigm to Understand Learning from Human Feedback", arXiv:2310.12036, 2023
+
+\textbf{IPO}（Identity Preference Optimization）
+由 DeepMind 提出，
+它指出 DPO 的一个根本局限：
+DPO 隐含地假设了 Bradley-Terry 偏好模型，
+即偏好概率严格由奖励差的 sigmoid 决定。
+但人类偏好通常不满足这个理想化的模型——
+偏好可能是噪声的、非传递的、或上下文相关的。
+
+IPO 去掉了 Bradley-Terry 假设，
+直接优化偏好对数概率差的\textbf{正则化平方}：
+\begin{equation}
+  \mathcal{L}_{\text{IPO}} = \left(
+    \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)}
+    - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}
+    - \frac{1}{2\beta}
+  \right)^2
+  \label{eq:ipo}
+\end{equation}
+
+与 DPO 的 $-\log\sigma(\cdot)$ 不同，
+IPO 使用平方损失，并引入了一个目标边距 $\frac{1}{2\beta}$。
+这意味着 IPO 不会无限制地扩大 $y_w$ 和 $y_l$ 的概率差——
+一旦达到目标边距，梯度就会消失。
+这种「有目标的」优化使 IPO 更不容易过拟合，
+特别是在偏好数据中存在大量噪声标签时。
+
+\subsubsection{KTO：非配对偏好学习}
+
+\textbf{KTO}（Kahneman-Tversky Optimization）
+的独特之处在于它\textbf{不需要配对数据}。
+传统的 DPO 需要同一个问题的两个回答（$y_w$ vs $y_l$），
+KTO 只需要单独标注的「好」或「不好」
+（thumbs up / thumbs down）。
+这大幅降低了数据收集的门槛——
+用户的点赞/点踩行为可以直接作为训练信号，
+不需要将不同回答配成对。
+
+% NEW REF: ethayarajh2024kto = Ethayarajh et al., "KTO: Model Alignment as Prospect Theoretic Optimization", arXiv:2402.01306, 2024
+
+KTO 的理论基础来自行为经济学中的
+\textbf{前景理论}（Prospect Theory）——
+人类对损失的厌恶大于对等额收益的喜好
+（丢 100 元的痛苦大于捡到 100 元的快乐）。
+KTO 的损失函数显式编码了这种不对称性：
+\begin{equation}
+  \mathcal{L}_{\text{KTO}} = \begin{cases}
+    1 - \sigma\!\left(\beta \left(
+      \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} - z_{\text{ref}}
+    \right)\right) & \text{if } y \text{ is desirable} \\[6pt]
+    1 - \sigma\!\left(\beta \left(
+      z_{\text{ref}} - \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}
+    \right)\right) & \text{if } y \text{ is undesirable}
+  \end{cases}
+  \label{eq:kto}
+\end{equation}
+其中 $z_{\text{ref}} = \mathbb{E}_{x',y' \sim \mathcal{D}}
+\left[\beta \, D_{\text{KL}}(\pi_\theta(y'|x') \| \pi_{\text{ref}}(y'|x'))\right]$
+是一个归一化基线。
+
+KTO 的实用价值在于：
+现实中，配对偏好数据（同一问题的两个回答）
+比非配对的质量标注（单个回答是好是坏）
+更难收集也更昂贵。
+在产品场景中，用户的点赞/点踩行为
+天然就是非配对的——
+用户只对他看到的那一个回答做出反应，
+不会同时看到同一问题的另一个回答。
+KTO 使得这类非配对反馈可以直接用于训练。
+
+\subsubsection{SimPO：无参考模型的偏好优化}
+
+% NEW REF: meng2024simpo = Meng et al., "SimPO: Simple Preference Optimization with a Reference-Free Reward", arXiv:2405.14734, 2024
+
+\textbf{SimPO}（Simple Preference Optimization）
+进一步简化了 DPO，去掉了参考模型。
+它用回答的\textbf{平均对数概率}
+（即对数概率除以回答长度）
+作为隐式奖励：
+\begin{equation}
+  \mathcal{L}_{\text{SimPO}} = -\log \sigma\!\left(
+    \frac{\beta}{|y_w|} \log \pi_\theta(y_w|x)
+    - \frac{\beta}{|y_l|} \log \pi_\theta(y_l|x) - \gamma
+  \right)
+  \label{eq:simpo}
+\end{equation}
+其中 $|y|$ 是回答的 token 长度，
+$\gamma$ 是目标奖励边距（通常 $\gamma = 0.5$--$2.0$）。
+
+SimPO 的两个关键设计选择：
+\begin{enumerate}[noitemsep]
+  \item \textbf{长度归一化}：除以 $|y|$ 消除了长度偏差——
+        避免模型仅仅因为生成更长的回答而获得更高的隐式奖励。
+        这直接解决了 DPO 中常见的长度操纵问题。
+  \item \textbf{目标边距} $\gamma$：
+        确保被偏好回答的奖励至少比不被偏好的高 $\gamma$。
+        没有这个边距，模型可能「偷懒」——
+        只要 $y_w$ 的奖励略高于 $y_l$ 就停止优化。
+\end{enumerate}
+
+去掉参考模型的实用价值巨大：
+\textbf{内存需求从 2 个模型降到 1 个模型}。
+对于 70B 模型，这意味着节省约 140 GB 的 GPU 内存。
+实验表明 SimPO 在多个基准上的效果
+与 DPO 相当甚至更好——
+参考模型的约束可能在某些情况下过于保守。
+
+\subsubsection{ORPO：SFT 与偏好优化的统一}
+
+% NEW REF: hong2024orpo = Hong et al., "ORPO: Monolithic Preference Optimization without Reference Model", EMNLP, 2024
+
+\textbf{ORPO}（Odds Ratio Preference Optimization）
+提出了一个更激进的简化：
+将 SFT 和偏好优化合并为\textbf{一步训练}，
+不需要单独的 SFT 阶段，也不需要参考模型。
+
+ORPO 的核心观察是：标准的 SFT 交叉熵损失
+对被偏好和不被偏好的回答都会增加概率——
+因为交叉熵只看目标 token 的概率，
+不关心「好」和「差」的区别。
+ORPO 在 SFT 损失的基础上加入一个\textbf{赔率比}惩罚项：
+\begin{equation}
+  \mathcal{L}_{\text{ORPO}} = \underbrace{
+    \mathcal{L}_{\text{SFT}}(y_w)
+  }_{\text{SFT on preferred}} + \lambda \cdot \underbrace{
+    \log \sigma\!\left(
+      \log \frac{\text{odds}_\theta(y_w|x)}{\text{odds}_\theta(y_l|x)}
+    \right)
+  }_{\text{preference penalty}}
+  \label{eq:orpo}
+\end{equation}
+其中 $\text{odds}_\theta(y|x) = \frac{P_\theta(y|x)}{1 - P_\theta(y|x)}$
+是回答 $y$ 的赔率。
+
+ORPO 的优势是\textbf{训练流程极其简洁}：
+一次训练同时完成格式学习（SFT）和偏好对齐（DPO-like）。
+劣势是两个目标可能互相干扰——
+在实践中，ORPO 的效果对 $\lambda$ 的选择敏感。
+
+\subsubsection{cDPO 与在线 DPO}
+
+\textbf{cDPO}（conservative DPO）在损失函数中引入
+标签噪声的显式建模。
+假设偏好标注以概率 $\epsilon$ 出错
+（标注者将 $y_w$ 和 $y_l$ 搞反），
+cDPO 修改 DPO 损失为：
+\begin{equation}
+  \mathcal{L}_{\text{cDPO}} = -\log\!\left[
+    (1-\epsilon) \sigma(\hat{r}_w - \hat{r}_l)
+    + \epsilon \sigma(\hat{r}_l - \hat{r}_w)
+  \right]
+\end{equation}
+其中 $\hat{r} = \beta \log(\pi_\theta / \pi_{\text{ref}})$。
+当 $\epsilon = 0$ 时退化为标准 DPO。
+
+\textbf{在线 DPO}（Online DPO / Iterative DPO）
+解决 DPO 的离线限制。
+核心思想是在每轮训练后，
+用当前策略模型重新生成回答并收集新的偏好标注，
+然后在更新后的数据上继续 DPO 训练。
+这使 DPO 获得了类似 PPO 的在线探索能力，
+实验表明在线 DPO 的效果显著优于离线 DPO，
+接近甚至超过 PPO。
+
+\subsection{前沿实验室的选择：2025--2026}
+
+一个实践者关心的问题是：
+前沿实验室在 2025--2026 年实际使用哪种偏好优化方法？
+
+答案因实验室和任务而异，
+没有「一种方法统治一切」的局面：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{OpenAI}：o1/o3 系列推理模型
+        使用大规模 RL（PPO 变体）进行推理能力训练，
+        配合\textbf{审议式对齐}（deliberative alignment）
+        进行安全训练。
+        对于非推理的通用模型（如 GPT-4.5），
+        据信仍使用 PPO-based RLHF。
+  \item \textbf{Anthropic}：Claude 系列使用
+        Constitutional AI（RLAIF）框架，
+        训练过程中结合了 RLHF 和 AI 反馈。
+        2026 年 1 月发布的新宪法
+        暗示了更复杂的多阶段对齐管线。
+  \item \textbf{Meta}：Llama 3 使用了
+        DPO 作为主要的偏好优化方法
+       （技术报告明确提及），
+        辅以拒绝采样和迭代 DPO。
+        Llama 4 据信继续使用 DPO 家族方法。
+  \item \textbf{DeepSeek}：R1 和 V3 使用 GRPO，
+        这在推理任务上表现优异。
+        对通用对话任务辅以奖励模型驱动的 RL。
+  \item \textbf{Google}：Gemini 系列的对齐方法
+        未完全公开，但从技术报告中可推断
+        使用了 RLHF（PPO 变体）结合
+        大规模 AI 评判者的偏好数据。
+  \item \textbf{开源社区}：DPO 和 SimPO 是最受欢迎的方法，
+        因为它们实现简单、内存高效。
+        GRPO 因 DeepSeek-R1 的成功
+        在 2025 年被 Hugging Face TRL 和 OpenRLHF 框架
+        广泛支持，成为开源推理模型训练的首选。
+\end{itemize}
+
+\begin{keybox}[偏好优化的方法选择指南]
+没有一种方法适合所有场景。以下是实践中的选择逻辑：
+\begin{itemize}[noitemsep]
+  \item \textbf{有配对偏好数据 + 内存受限}：
+        DPO 或 SimPO（最简单）
+  \item \textbf{有非配对反馈（点赞/点踩）}：KTO
+  \item \textbf{从头训练，没有 SFT 模型}：ORPO
+  \item \textbf{可验证的推理任务}：GRPO（无需奖励模型）
+  \item \textbf{追求最高质量，资源充裕}：
+        在线 DPO 或 PPO（需要显著更多的工程投入）
+  \item \textbf{偏好数据噪声大}：IPO（对噪声鲁棒）
+\end{itemize}
+\end{keybox}
+
+\section{GRPO：推理模型的训练}
+
+\subsection{PPO 的瓶颈}
+
+PPO 虽然强大，但有一个致命的扩展性问题：
+它需要一个 critic 网络来估计优势函数 $A_t$。
+对于 70B+ 的模型，
+这意味着你需要同时在 GPU 上加载四个大模型
+（策略 + 参考 + 奖励 + critic），
+内存需求极其恐怖。
+在实践中，PPO 在大规模模型上的训练成本和工程复杂度远高于 DPO/GRPO，
+需要额外的内存优化技术（如模型并行、参数卸载等）。
+
+更根本的问题是：
+对于数学和代码这类有\textbf{可验证答案}的任务，
+用一个学出来的奖励模型来提供奖励信号
+既不必要（答案对不对可以直接验证），
+又不可靠（奖励模型本身可能犯错）。
+
+\subsection{GRPO 的核心算法}
+
+GRPO~\cite{shao2024grpo}（Group Relative Policy Optimization）
+由 DeepSeek 提出，专门为大规模推理模型训练设计。
+它的核心创新是\textbf{消除 critic 网络}：
+
+对于每个输入 $x$，生成一组 $G$ 个回答
+$\{y_1, \ldots, y_G\}$，
+用规则或奖励模型为每个回答打分 $\{R_1, \ldots, R_G\}$。
+然后用\textbf{组内统计量}替代 critic 来估计优势：
+\begin{equation}
+  A_i = \frac{R_i - \mathrm{mean}(\{R_j\}_{j=1}^G)}
+             {\mathrm{std}(\{R_j\}_{j=1}^G)}
+  \label{eq:grpo-adv}
+\end{equation}
+
+直觉上：如果一个回答的奖励高于同组的平均水平，
+它就是「好的」，应该被强化；
+如果低于平均水平，就应该被抑制。
+这是一种\textbf{相对评价}——
+我们不需要知道一个回答的「绝对」好坏，
+只需要知道它在这组回答中的\textbf{相对}位置。
+
+GRPO 的完整优化目标：
+\begin{equation}
+  J_{\text{GRPO}} = \mathbb{E}_{x, \{y_i\}} \left[
+    \frac{1}{G} \sum_{i=1}^{G}
+    \min\!\left(
+      \frac{\pi_\theta(y_i|x)}{\pi_{\text{old}}(y_i|x)} A_i,\;
+      \mathrm{clip}\!\left(
+        \frac{\pi_\theta(y_i|x)}{\pi_{\text{old}}(y_i|x)},
+        1 \pm \epsilon
+      \right) A_i
+    \right)
+    - \beta \, D_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})
+  \right]
+  \label{eq:grpo-objective}
+\end{equation}
+
+与 PPO 对比，GRPO 的关键区别：
+\begin{itemize}[noitemsep]
+  \item \textbf{无 critic}：优势 $A_i$ 由组内统计量计算，
+        不需要价值网络。内存减少 25--30\%。
+  \item \textbf{组采样}：每个 prompt 生成 $G$ 个回答
+       （通常 $G = 8$--$64$），
+        而非 PPO 的单个回答。
+        这提供了更丰富的对比信号。
+  \item \textbf{规则奖励}：对数学和代码任务，
+        可以使用确定性的规则奖励
+       （答案正确 $+1$，答案错误 $-1$），
+        无需训练奖励模型。
+        这种使用可验证奖励的方法也被称为
+        \textbf{RLVR}（Reinforcement Learning with Verifiable Rewards）——
+        通过数学答案比对、代码执行测试等确定性验证手段提供奖励信号，
+        避免了奖励模型的不可靠性。
+\end{itemize}
+
+\subsubsection{GRPO 与 PPO 的数学对比}
+
+为了深入理解 GRPO 的设计动机，
+让我们将它与 PPO 在数学层面进行对比。
+
+在标准 PPO 中，优势函数通过\textbf{价值网络} $V_\phi(s_t)$ 估计：
+\begin{equation}
+  A_t^{\text{PPO}} = \sum_{l=0}^{T-t} (\gamma \lambda)^l
+  \left[ r_t + \gamma V_\phi(s_{t+l+1}) - V_\phi(s_{t+l}) \right]
+\end{equation}
+这要求训练一个参数化的价值函数 $V_\phi$，
+它本身就需要大量的数据和计算来训练，
+且价值估计的误差会传播到策略梯度中。
+
+GRPO 的核心观察是：
+\textbf{对于 LLM 的对话任务，
+可以用同一 prompt 的多个采样来替代价值网络}。
+当我们对同一个 prompt $x$ 采样 $G$ 个回答时，
+组内平均奖励 $\bar{R} = \frac{1}{G}\sum_j R_j$
+就是该 prompt 下期望奖励的\textbf{无偏估计}——
+这本质上就是价值函数 $V(x)$ 的 Monte Carlo 估计。
+因此组内归一化的优势：
+\[
+  A_i = \frac{R_i - \bar{R}}{\text{std}(\{R_j\})}
+\]
+是对「回答 $y_i$ 相比该 prompt 的平均水平好多少」
+的无偏估计，无需学习一个参数化的 critic。
+
+这种替代在 RL 文献中并非全新——
+它与 \textbf{REINFORCE with baseline} 密切相关，
+其中 baseline 使用蒙特卡洛均值。
+GRPO 的贡献在于：(1) 将这种思想与 PPO 的 clipped 目标结合，
+保留了 PPO 的训练稳定性；
+(2) 通过标准差归一化进一步降低了方差；
+(3) 证明了这种方法在百亿级 LLM 上的实用性。
+
+GRPO 相比 PPO 的\textbf{计算权衡}：
+\begin{itemize}[noitemsep]
+  \item \textbf{节省}：省去了 critic 的前向传播、反向传播和参数存储。
+        对 70B 模型，这节省约 140--280 GB GPU 内存。
+  \item \textbf{代价}：每个 prompt 需要生成 $G$ 个回答而非 1 个，
+        采样开销增加 $G$ 倍。
+        但生成是无梯度的推理过程，可以高效并行化。
+  \item \textbf{净效果}：对于大模型，GRPO 的总训练效率
+        通常优于 PPO，因为瓶颈从内存变成了计算，
+        而计算更容易通过并行化解决。
+\end{itemize}
+
+\subsubsection{GRPO 的 Token 级变体}
+
+原始 GRPO 在\textbf{回答级别}计算优势——
+整个回答 $y_i$ 获得一个标量优势 $A_i$。
+但实际上，一个回答中的不同 token
+对最终质量的贡献是不同的——
+关键的推理步骤比格式化 token 重要得多。
+
+一种改进是\textbf{token 级 GRPO}：
+将回答级的优势分配到各个 token 位置。
+DeepSeek-R1 的实现中，
+对于回答 $y_i$ 的第 $t$ 个 token，优势为：
+\begin{equation}
+  A_{i,t} = A_i \quad \forall t \in \{1, \ldots, |y_i|\}
+\end{equation}
+即所有 token 共享相同的回答级优势。
+虽然这看似粗糙，但实践中效果良好——
+因为 policy gradient 中的 $\nabla \log \pi_\theta(y_t | \cdot)$
+已经为不同 token 位置提供了差异化的梯度信号。
+
+更精细的方法（如 token 级过程奖励）
+目前是活跃的研究方向，
+将在推理模型的 PRM 部分讨论。
+
+\subsection{GRPO 的广泛采用}
+
+DeepSeek-R1 的成功使 GRPO 迅速成为
+推理模型训练的事实标准。到 2025 年中，
+GRPO 已被多个团队采用或改进：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Hugging Face TRL}：
+        在 v0.13+（2025 年初）中正式支持 GRPO trainer，
+        成为开源社区训练推理模型的首选工具。
+        使用 TRL 的 \texttt{GRPOTrainer}，
+        几十行代码即可在自定义数据上训练推理模型。
+  \item \textbf{OpenRLHF}：
+        一个专注于 RLHF/GRPO 的分布式训练框架，
+        支持多节点 GRPO 训练，
+        已在 8 节点 64-GPU 集群上验证了 70B 模型的 GRPO。
+  \item \textbf{Hybrid GRPO}：
+        Sane（2025）提出在 GRPO 的组内增加
+        多采样策略（不同温度、不同 top-$p$），
+        提供更多样化的对比信号。
+  \item \textbf{各开源推理模型}：
+        QwQ、Sky-T1、Open-R1 等
+        多个开源推理模型项目
+        都采用了 GRPO 作为核心训练算法。
+\end{itemize}
+
+GRPO 的成功还催生了一个更广泛的范式——
+\textbf{RLVR}（Reinforcement Learning with Verifiable Rewards）。
+RLVR 的核心理念是：
+对于那些答案可以自动验证的任务
+（数学、代码、形式逻辑、棋类博弈等），
+应该直接使用规则验证器作为奖励信号，
+而不是训练一个可能出错的奖励模型。
+GRPO + RLVR 的组合已经在多项推理基准上
+超越了传统的 RLHF + PPO 方法。
+
+\subsection{GRPO 的训练代码}
+
+让我们看一下 GRPO 训练的核心逻辑：
+
+\begin{lstlisting}[caption={GRPO training step (simplified)}]
+def grpo_step(model, ref_model, prompts, reward_fn,
+              group_size=8, clip_eps=0.2, kl_beta=0.04):
+    all_loss = []
+    for prompt in prompts:
+        # Generate a group of responses
+        responses = [model.generate(prompt)
+                     for _ in range(group_size)]
+
+        # Score each response
+        rewards = [reward_fn(prompt, r) for r in responses]
+        rewards = torch.tensor(rewards)
+
+        # Compute group-relative advantages
+        advantages = (rewards - rewards.mean()) / (rewards.std() + 1e-8)
+
+        # Compute old log probs (from policy at time of generation)
+        old_log_probs = [model.log_prob(prompt, r).detach()
+                         for r in responses]
+
+        for resp, adv, old_lp in zip(responses, advantages,
+                                     old_log_probs):
+            # Current policy and reference log probs
+            log_prob = model.log_prob(prompt, resp)
+            ref_log_prob = ref_model.log_prob(prompt, resp)
+
+            # Policy ratio uses OLD policy (at sample generation time)
+            ratio = torch.exp(log_prob - old_lp)
+
+            # Clipped PPO-style objective
+            surr1 = ratio * adv
+            surr2 = torch.clamp(ratio, 1-clip_eps, 1+clip_eps) * adv
+            policy_loss = -torch.min(surr1, surr2)
+
+            # KL penalty uses REFERENCE model (frozen SFT model)
+            kl_loss = kl_beta * (torch.exp(log_prob - ref_log_prob)
+                                 - 1 - (log_prob - ref_log_prob))
+
+            all_loss.append(policy_loss + kl_loss)
+
+    loss = torch.stack(all_loss).mean()
+    loss.backward()
+    optimizer.step()
+\end{lstlisting}
+
+这段代码展示了 GRPO 的三个核心步骤。
+第一步，对每个 prompt 生成一组回答（\texttt{group\_size=8}），
+用奖励函数给每个回答打分。
+第二步，计算组内相对优势——
+分数高于组均值的回答获得正 advantage，
+低于均值的获得负 advantage。
+第三步，用 PPO 风格的 clipped 目标优化策略——
+增加高 advantage 回答的概率，
+降低低 advantage 回答的概率，
+同时通过 KL 惩罚防止策略偏离参考模型太远。
+
+注意代码中的两个关键区分：
+\textbf{策略比率}使用的是生成样本时的旧策略 \texttt{old\_lp}（即 $\pi_{\text{old}}$），
+而\textbf{KL 惩罚}使用的是冻结的参考模型 \texttt{ref\_log\_prob}（即 $\pi_{\text{ref}}$）。
+这与公式~\eqref{eq:grpo-objective}完全对应——
+clipped 目标中的比率是 $\pi_\theta / \pi_{\text{old}}$，
+KL 散度是 $D_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})$。
+此处的 KL 使用了 Schulman 提出的近似形式
+$\hat{D}_{\text{KL}} = e^{r} - 1 - r$（其中 $r = \log \pi_\theta - \log \pi_{\text{ref}}$），
+相比简单的 $r$ 形式对大偏差更加敏感。
+
+另外，这里没有 critic 网络——
+advantage 完全由组内统计量（均值和标准差）计算，
+这就是 GRPO 相比 PPO 节省内存的关键。
+
+\subsection{奖励信号的设计}
+
+对于推理模型（如 DeepSeek-R1），
+奖励信号的设计是一门精细的艺术。
+DeepSeek-R1 的奖励信号由多个分量组成：
+
+\textbf{准确性奖励}：对于数学和代码问题，
+直接验证最终答案是否正确（$+1$ 或 $-1$）。
+这种奖励是\textbf{可验证的}——
+不需要人类判断，不需要奖励模型，
+只需要一个自动检查器（如数学答案比对或代码执行）。
+对于数学题，提取 \texttt{\textbackslash boxed\{\}} 中的答案与标准答案比对。
+对于代码题，在沙箱中执行代码并检查测试用例是否通过。
+
+\textbf{格式奖励}：鼓励模型将推理过程
+放在 \texttt{<think>} 标签内，最终答案放在特定格式中。
+这个小小的格式约束至关重要——
+它引导模型将思考和回答分离，
+使得推理过程可以被隐藏或展示给用户。
+格式奖励通常是二值的：
+符合格式得 $+1$，不符合得 $-1$。
+
+\textbf{过程奖励}（Process Reward）是一种更精细的奖励信号：
+不仅评价最终答案对不对，
+还评价中间的推理步骤是否合理。
+虽然 DeepSeek-R1 的核心训练没有使用过程奖励
+（依靠准确性和格式奖励就够了），
+但过程奖励在数学推理领域
+（如 Math-Shepherd、PRM800K）被广泛研究。
+它的理想形态是对每一步推理给出奖励，
+但标注成本极高。
+
+\subsection{DeepSeek-R1：涌现的推理能力}
+
+DeepSeek-R1~\cite{deepseekr1} 的训练展示了一个令人兴奋的现象。
+
+\subsubsection{R1-Zero 实验：纯 RL 的探索}
+
+在正式构建 R1 的训练管线之前，DeepSeek 团队
+首先进行了一个极具启发性的实验——\textbf{R1-Zero}：
+直接在 DeepSeek-V3-Base 上使用 GRPO 做纯 RL 训练，
+不做任何 SFT、不提供任何人类推理示例。
+奖励信号极其简单——只看最终答案是否正确。
+结果令人惊叹：模型\textbf{自发涌现}了以下能力：
+\begin{itemize}[noitemsep]
+  \item 链式思维推理（chain-of-thought）——
+        模型学会了在给出答案前先进行详细的分步推理。
+  \item 自我验证和纠错（``wait, let me re-check...''）——
+        模型学会了在推理过程中暂停，
+        回头检查之前的步骤是否正确。
+  \item 所谓的``aha moment''——
+        模型在推理过程中突然意识到之前的方向是错的，
+        转向新的思路。训练过程中可以观察到
+        这种行为的出现频率随着训练进行而增加。
+  \item \textbf{自适应推理长度}——
+        简单问题用较短的推理链，
+        困难问题自动使用更长、更详细的推理。
+        这种「按需分配思考量」的行为完全是自发涌现的。
+\end{itemize}
+
+这些能力没有被人类演示过——
+它们纯粹是 RL 优化过程中自发出现的。
+这强有力地支持了「RL 能发现超越人类演示的策略」这一观点。
+
+但 R1-Zero 也有明显的缺陷：
+回答格式混乱（有时推理和答案混在一起），
+多语言混用（中文问题用英文推理），
+可读性差。
+这说明纯 RL 能涌现出\textbf{能力}，
+但不能涌现出\textbf{良好的格式和习惯}——
+后者仍然需要 SFT 来注入。
+这一实验为 R1 的正式训练管线设计提供了关键启示：
+\textbf{RL 能涌现能力，但需要 SFT 来规范格式}。
+
+\subsubsection{R1 的四阶段后训练管线}
+
+基于 R1-Zero 的经验，DeepSeek-R1 的正式训练
+在 V3-Base 基座模型上执行了四个阶段的后训练，
+展示了 SFT 和 RL 如何精密配合：
+\begin{enumerate}[noitemsep]
+  \item \textbf{冷启动 SFT}：
+        在 V3-Base 上用少量精心设计的推理示例做 SFT（数千条长 CoT 数据），
+        教会模型使用 \texttt{<think>}...\texttt{</think>} 格式。
+        这些数据由 R1-Zero 的输出经人工筛选和改写而来。
+        冷启动的目的不是教模型\textbf{如何}推理
+       （R1-Zero 已证明 RL 能涌现推理），
+        而是给 RL 一个更好的起点——
+        具备基本格式约束的模型在后续 RL 中能更快收敛。
+  \item \textbf{推理导向 RL}（GRPO）：
+        在冷启动 SFT 后的模型上做 GRPO 训练，
+        主要针对数学和代码等可验证任务。
+        这一阶段的重点是提升推理质量，
+        使用准确性奖励（答案对不对）和格式奖励（是否使用正确的标签结构）。
+  \item \textbf{拒绝采样 + SFT}：
+        用第二阶段 RL 后的模型生成大量回答，
+        只保留正确的、格式好的回答
+       （约 800K 条推理 trace），
+        同时混入通用的非推理数据
+       （写作、翻译、问答等约 200K 条），
+        在 V3-Base 上做一轮全面的 SFT。
+        这一步的关键是\textbf{平衡推理能力与通用能力}——
+        纯推理 RL 后的模型在非推理任务上可能退化。
+        这些高质量推理数据也被用于蒸馏——
+        训练 R1-Distill 系列（1.5B--70B）。
+  \item \textbf{全场景 RL}：
+        最后一轮 GRPO 覆盖所有任务类型——
+        推理任务使用规则奖励，
+        通用任务使用奖励模型。
+        这一阶段对齐有用性和安全性，
+        是最终的偏好优化和安全对齐步骤。
+\end{enumerate}
+
+\begin{keybox}[R1 训练的核心洞见]
+DeepSeek-R1 的训练管线揭示了一个重要模式：
+\textbf{RL 负责发现能力，SFT 负责整理格式}。
+两者的顺序和配合至关重要——
+先做冷启动 SFT 建立格式约束，
+再做推理 RL 提升推理质量，
+然后用拒绝采样 + SFT 整合推理与通用能力，
+最后做全场景 RL 完成对齐。
+这种 SFT-RL-SFT-RL 的交替训练模式
+成为了推理模型训练的标准范式。
+\end{keybox}
+
+\section{Constitutional AI：让 AI 自我改进}
+
+Anthropic 提出的 Constitutional AI~\cite{bai2022constitutional}
+代表了安全对齐的另一种思路。
+传统 RLHF 依赖大量的人类标注——
+但人类标注昂贵、缓慢，
+而且标注者之间可能存在严重的不一致。
+
+\subsection{核心思想：RLAIF}
+
+Constitutional AI 的核心思想是：
+用 \textbf{AI 反馈}（AI Feedback, RLAIF）
+替代\textbf{人类反馈}（Human Feedback, RLHF）。
+
+给模型一套\textbf{宪法原则}
+（如「回答应该无害且诚实」「不应帮助用户伤害他人」
+「应该承认不确定性而不是编造信息」），
+然后让模型根据这些原则自我批评和修正。
+
+\subsection{两阶段流程}
+
+Constitutional AI 分为两个阶段：
+
+\textbf{阶段一：监督学习阶段（SL-CAI）}
+\begin{enumerate}[noitemsep]
+  \item \textbf{红队生成}：让模型生成可能有害的回答。
+        通过精心设计的 adversarial prompt
+        诱导模型产生有毒、不安全或不诚实的输出。
+  \item \textbf{自我批评}：将模型的回答连同一条宪法原则
+        一起呈现给模型，要求它根据该原则审视自己的回答。
+        例如：「根据原则'回答应该真实且不编造事实'，
+        评估以下回答是否存在问题。」
+  \item \textbf{自我修正}：让模型根据自己的批评重写回答，
+        使其符合宪法原则。
+        这一步可以迭代多次，
+        每次使用不同的宪法原则进行批评和修正。
+  \item \textbf{SFT 训练}：用（原始问题, 最终修正后的回答）
+        作为训练数据，对模型做 SFT。
+\end{enumerate}
+
+\textbf{阶段二：强化学习阶段（RL-CAI）}
+\begin{enumerate}[noitemsep]
+  \item 用模型生成多个回答。
+  \item 让\textbf{AI 评判者}（而非人类标注者）
+        根据宪法原则对回答进行排序。
+  \item 用这些 AI 生成的偏好数据训练奖励模型。
+  \item 用标准的 RLHF 流程（PPO 或 DPO）优化策略。
+\end{enumerate}
+
+\subsection{宪法的设计}
+
+宪法原则的设计是 Constitutional AI 中
+最需要人类智慧的部分。
+典型的原则包括：
+\begin{itemize}[noitemsep]
+  \item 「选择最不可能被一个有道德的人反对的回答。」
+  \item 「选择不鼓励非法或危险行为的回答。」
+  \item 「选择诚实且不编造信息的回答。
+        如果不确定，应该说'我不确定'。」
+  \item 「选择不带有种族、性别或其他偏见的回答。」
+  \item 「选择最有帮助、最信息丰富的回答，
+        同时确保无害。」
+\end{itemize}
+
+宪法原则的选择和优先级排序
+直接决定了模型的「价值观」。
+不同的原则可能互相冲突——
+比如「最大限度地有帮助」和「避免任何潜在危害」
+在边界情况下会产生矛盾。
+Constitutional AI 通过明确的原则层次来处理这种冲突。
+
+\subsection{Constitutional AI 的意义}
+
+Constitutional AI 的一个深层意义在于它试图解决一个
+RLHF 中固有的哲学问题：
+\textbf{「人类偏好」到底代表谁的偏好？}
+不同的标注者有不同的价值观和知识水平，
+他们的偏好可能互相矛盾。
+
+Constitutional AI 通过明确定义一组原则，
+将模糊的「人类偏好」转化为可操作的、可审计的规则。
+这使得对齐过程更加透明和可控——
+你可以检查宪法原则列表，
+理解模型为什么做出某个决定，
+并通过修改原则来调整模型的行为。
+
+RLAIF 的实用价值也不可忽视。
+在 RLHF 中，收集几万条人类偏好比较需要数周时间和数万美元。
+在 RLAIF 中，同样数量的 AI 偏好比较可以在几小时内完成，
+成本仅为 API 调用费用。
+这使得偏好优化可以更频繁地迭代——
+每次更新宪法原则后，
+可以快速重新生成偏好数据并重新训练。
+
+Anthropic 的 Claude 系列模型大量使用了这种方法。
+实验表明，RLAIF 在无害性评估上的表现
+与 RLHF 相当甚至更好——
+AI 评判者比人类标注者更一致、更不容易疲劳，
+而且能更严格地执行宪法原则。
+
+\subsection{Claude 的新宪法（2026）}
+
+2026 年 1 月 22 日，Anthropic 发布了
+Claude 的全新宪法——一份长达 23,000 词的文件，
+被内部称为\textbf{「灵魂文档」}（soul document）。
+相比 2023 年的初版宪法（约 2,700 词），
+这份新宪法的规模增长了近 10 倍，
+反映了 Anthropic 对 AI 对齐理解的深化。
+
+% NEW REF: anthropic2026constitution = Anthropic, "Claude's New Constitution", Anthropic Blog, Jan 2026
+
+新宪法的核心转变在于：
+\textbf{从规则列表变为价值推理}。
+早期的宪法是一系列「做什么/不做什么」的规则，
+模型通过模式匹配来遵守。
+新宪法则解释了\textbf{为什么}需要这些规则——
+它教模型理解规则背后的道德推理，
+使模型能够在新的、未见过的情境中
+做出符合价值观的判断。
+
+新宪法的几个关键设计原则：
+\begin{itemize}[noitemsep]
+  \item \textbf{善意原则}：默认假设用户的意图是好的，
+        除非有明确的证据表明否则。
+        这减少了过度拒绝——
+        模型不会因为一个问题\textbf{可能}被滥用
+        就拒绝回答。
+  \item \textbf{比例原则}：对风险的反应应与风险的严重程度成比例。
+        帮用户写一封求职信（风险极低）应该毫不犹豫，
+        而讨论危险化学品的合成方法（风险极高）
+        则需要极其谨慎。
+  \item \textbf{透明原则}：当模型选择不回答某个问题时，
+        应该解释为什么，而不是简单地说「我不能这样做」。
+  \item \textbf{自主性原则}：尊重用户的自主决策权。
+        对于影响用户自身的决定（如饮食建议、生活方式选择），
+        模型应该提供信息而不是做道德判断。
+  \item \textbf{诚实原则}：承认不确定性，
+        不编造信息，
+        即使这意味着给出一个不那么「满意」的回答。
+\end{itemize}
+
+\subsection{Collective Constitutional AI：民主化对齐}
+
+% NEW REF: anthropic2023collective = Anthropic, "Collective Constitutional AI: Aligning a Language Model with Public Input", Anthropic Blog, 2023
+
+Anthropic 在 2023 年启动的\textbf{Collective Constitutional AI}
+实验代表了一个值得注意的方向：
+\textbf{用公众参与替代专家设计}来制定 AI 的宪法原则。
+
+在这个实验中，Anthropic 与 Polis 平台合作，
+让约 1,000 名公众参与者
+对一系列价值取向问题进行投票和讨论——
+比如「AI 应该在多大程度上拒绝争议性话题」
+「AI 应该在什么情况下承认自己是 AI」等。
+然后将这些公众共识转化为宪法原则，
+训练出一个「公众宪法」版本的 Claude。
+
+实验结果表明，公众制定的宪法
+在多个维度上与 Anthropic 内部专家制定的宪法表现相当，
+但在某些维度上更加\textbf{宽容}——
+公众倾向于允许模型讨论更多的争议性话题。
+这个实验的意义在于：
+它展示了\textbf{AI 对齐不一定需要由少数专家决定}，
+公众参与可以产生高质量的对齐规范。
+
+\subsection{RLAIF 的数学框架}
+
+RLAIF 的训练流程可以形式化如下。
+
+设 $\mathcal{C} = \{c_1, c_2, \ldots, c_K\}$ 是宪法原则集合。
+对于一个（prompt, response）对 $(x, y)$，
+AI 评判者基于原则 $c_k$ 给出评分 $s_k(x, y) \in [0, 1]$。
+聚合后的 AI 偏好分数为：
+\begin{equation}
+  s_{\text{AI}}(x, y) = \sum_{k=1}^{K} w_k \cdot s_k(x, y)
+\end{equation}
+其中 $w_k$ 是原则 $c_k$ 的权重。
+
+给定两个回答 $y_1, y_2$，
+AI 评判者的偏好概率为：
+\begin{equation}
+  P_{\text{AI}}(y_1 \succ y_2 | x, \mathcal{C}) =
+  \sigma\!\left(s_{\text{AI}}(x, y_1) - s_{\text{AI}}(x, y_2)\right)
+\end{equation}
+
+这些 AI 生成的偏好然后被用于
+训练奖励模型（RL-CAI）或直接用于 DPO——
+后者更为简单高效，
+是 2025--2026 年 RLAIF 的主流实现方式。
+
+RLAIF 的一个关键研究发现是：
+\textbf{AI 评判者的一致性远高于人类标注者}。
+对于同一个偏好比较，
+AI 评判者在重复评估时的一致性超过 95\%，
+而人类标注者通常只有 70--75\%。
+这种高一致性部分补偿了
+AI 评判者可能存在的系统性偏差。
+
+\section{推理能力的后训练}
+\label{sec:reasoning-post-training}
+
+2024--2025 年，LLM 领域最重要的范式转变之一
+是\textbf{推理模型}（reasoning models）的崛起——
+以 OpenAI o1/o3 和 DeepSeek-R1 为代表。
+这些模型通过后训练获得了
+在思维链（chain-of-thought）中进行长时间、
+深层次推理的能力，
+在数学、代码和科学推理任务上
+远超传统的「快思考」模型。
+
+推理模型的后训练有其独特的方法论，
+值得单独深入讨论。
+
+\subsection{推理模型的训练范式}
+
+推理模型的核心理念是：
+\textbf{将计算从训练时转移到推理时}
+（从 train-time scaling 到 test-time scaling）。
+传统的 LLM 对每个问题只做一次前向传播就给出答案。
+推理模型则在回答之前生成长长的思维链，
+本质上是在用更多的推理时计算来换取更高的准确率。
+
+目前存在两种主要的推理训练范式：
+
+\textbf{OpenAI 路线：蒸馏 + RL}。
+OpenAI 的 o1 系统卡（2024 年 12 月）透露，
+o1 使用了「大规模强化学习」来训练推理能力。
+虽然具体细节未公开，但从已知信息可以推断：
+\begin{enumerate}[noitemsep]
+  \item 首先生成大量的推理 trace（可能由更强的教师模型或搜索算法产生），
+        对模型做 SFT 建立思维链的格式。
+  \item 然后用 RL 进一步优化推理质量——
+        奖励信号来自答案的正确性验证。
+  \item o1/o3 的一个独特特征是\textbf{隐藏思维链}——
+        推理过程不展示给用户，
+        只展示最终答案。
+        这使得 OpenAI 可以在思维链中使用
+        更自由的推理策略（包括可能不那么「政治正确」的推理步骤），
+        而不用担心用户看到。
+\end{enumerate}
+
+\textbf{DeepSeek 路线：冷启动 SFT + GRPO}。
+DeepSeek-R1 的训练管线已在前文详细讨论。
+与 OpenAI 路线的关键区别是：
+R1 的思维链是\textbf{透明的}——
+用户可以看到完整的推理过程。
+而且 R1-Zero 实验证明，
+推理能力可以仅通过 RL 自发涌现，
+不一定需要人类提供的推理示例。
+
+两种路线的共同点是：
+\textbf{RL 是推理能力训练的核心}，
+SFT 只提供格式和起点。
+
+% NEW REF: openai2024o1systemcard = OpenAI, "OpenAI o1 System Card", OpenAI, Dec 2024
+
+\subsection{审议式对齐：OpenAI 的安全推理}
+
+% NEW REF: openai2024deliberative = OpenAI, "Deliberative Alignment: Reasoning Enables Safer Language Models", OpenAI, Dec 2024
+
+OpenAI 在 2024 年 12 月提出的\textbf{审议式对齐}
+（deliberative alignment）
+是推理模型对齐的一个重要创新。
+
+核心思想是：
+\textbf{让推理模型在思维链中显式推理安全规范}。
+传统的对齐方法（RLHF、DPO）
+通过训练将安全行为「烘焙」进模型的权重中——
+模型直觉性地拒绝有害请求，但不「理解」为什么。
+审议式对齐则不同：
+模型在训练过程中被教会了安全规范的\textbf{文本}，
+在遇到潜在敏感的请求时，
+模型会在思维链中显式引用相关的安全政策，
+进行推理，然后决定如何回应。
+
+这种方法的优势是：
+\begin{itemize}[noitemsep]
+  \item \textbf{可解释性}：通过检查思维链，
+        可以看到模型是如何做出安全决策的——
+        它引用了哪条政策，如何权衡利弊。
+  \item \textbf{泛化能力}：对于训练中未见过的新型攻击，
+        模型可以通过推理安全原则来正确应对，
+        而不是依赖于模式匹配。
+  \item \textbf{精确性}：减少了过度拒绝——
+        模型可以推理出一个看似危险的请求
+        实际上是无害的
+       （比如「如何制造炸弹蛋糕」是烹饪问题，不是武器问题）。
+\end{itemize}
+
+审议式对齐与 Constitutional AI 有相似之处——
+两者都使用显式的原则来指导模型行为。
+区别在于：Constitutional AI 在\textbf{训练时}
+使用原则来生成偏好数据，
+审议式对齐在\textbf{推理时}
+让模型在思维链中推理原则。
+推理模型使两者的结合成为可能。
+
+\subsection{过程奖励模型 vs 结果奖励模型}
+
+在推理模型的训练中，
+奖励信号的粒度是一个核心设计选择。
+
+\textbf{结果奖励模型}（Outcome Reward Model, ORM）
+只评估最终答案的正确性。
+例如，对于数学题「$3x + 5 = 20$，求 $x$」，
+ORM 只关心最终答案是不是 $x = 5$——
+不关心中间的推理步骤是否合理。
+
+ORM 的优势是简单——
+对于有标准答案的任务（数学、代码），
+自动验证即可。
+劣势是\textbf{信用分配问题}：
+如果模型给出了错误答案，
+ORM 无法告诉你哪一步推理出了问题。
+模型可能通过错误的推理碰巧得到正确答案（假阳性），
+或者推理步骤大部分正确但最后一步犯了算术错误（假阴性）。
+
+\textbf{过程奖励模型}（Process Reward Model, PRM）
+对推理链中的\textbf{每一步}给出奖励信号。
+PRM 判断每个推理步骤是否合理——
+即使最终答案错误，正确的中间步骤也能获得正奖励。
+
+% NEW REF: lightman2023prm = Lightman et al., "Let's Verify Step by Step", arXiv:2305.20050, 2023
+
+OpenAI 的 PRM800K 数据集~\cite{lightman2023prm}
+包含了约 800K 条人工标注的推理步骤评价
+（每步标注为「正确」「中性」或「错误」），
+是目前最大的过程奖励标注数据集。
+
+PRM 的数学形式化：
+对于推理链 $s = (s_1, s_2, \ldots, s_N)$（$N$ 个步骤），
+PRM 为每步给出奖励：
+\begin{equation}
+  r_{\text{PRM}}(x, s) = \left(r(s_1|x), r(s_2|x, s_1), \ldots,
+  r(s_N|x, s_{<N})\right)
+\end{equation}
+最终奖励可以取多种聚合方式：
+\begin{itemize}[noitemsep]
+  \item \textbf{最小值}：$R = \min_i r(s_i | \cdot)$
+       ——只要有一步出错，整体奖励就低。
+        这是最保守的策略。
+  \item \textbf{最后一步的正确概率}：
+        $R = \prod_{i=1}^N P(s_i \text{ correct} | \cdot)$
+       ——所有步骤都正确的联合概率。
+  \item \textbf{加权平均}：$R = \sum_i w_i \cdot r(s_i | \cdot)$，
+        后面的步骤权重更高（因为错误更可能在后面发生）。
+\end{itemize}
+
+PRM 的主要挑战是\textbf{标注成本}。
+人工标注每一步推理的正确性极其耗时——
+一道 AMC 竞赛题的 10 步推理链
+可能需要一名数学研究生花 10--15 分钟来标注。
+近期的研究探索了\textbf{自动化 PRM 标注}的方法：
+
+\textbf{Math-Shepherd}（2024）提出用蒙特卡洛方法
+自动估计每步的过程奖励：
+对推理链的每个中间步骤 $s_i$，
+从该步骤开始多次采样续写至答案，
+该步骤的奖励等于「续写得到正确答案的比例」。
+如果从某一步开始，大多数续写都得到了正确答案，
+说明这一步是合理的。
+这种方法完全不需要人工标注，
+但需要大量的采样计算。
+
+% NEW REF: wang2024mathshepherd = Wang et al., "Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations", ACL, 2024
+
+\begin{corebox}[PRM vs ORM：如何选择？]
+\begin{tabularx}{\linewidth}{l X X}
+\toprule
+\textbf{维度} & \textbf{ORM} & \textbf{PRM} \\
+\midrule
+信号粒度 & 整个回答 & 每个推理步骤 \\
+标注成本 & 低（自动验证） & 高（人工或蒙特卡洛） \\
+信用分配 & 差 & 好 \\
+搜索引导 & 弱 & 强（可做 beam search） \\
+适用场景 & 有标准答案的简单任务 & 长推理链的复杂任务 \\
+实际使用 & GRPO + RLVR（主流） & 推理时搜索（辅助） \\
+\bottomrule
+\end{tabularx}
+在 2025--2026 年的实践中，
+\textbf{训练}阶段主要使用 ORM（通过 GRPO + RLVR），
+\textbf{推理}阶段使用 PRM 做搜索引导
+（如 best-of-$N$ 采样时用 PRM 选最佳路径）。
+\end{corebox}
+
+\subsection{推理蒸馏：让小模型也能推理}
+
+推理模型的一个重要应用模式是\textbf{蒸馏}——
+用大型推理模型的输出来训练小型模型。
+
+DeepSeek-R1-Distill 系列证明了这种方法的有效性：
+用 R1（基于 V3 的 671B MoE 模型）生成的推理 trace
+对 Qwen2.5 和 Llama 3.1 系列模型做 SFT，
+产生了从 1.5B 到 70B 不等的蒸馏模型。
+令人惊讶的是，R1-Distill-Qwen-32B
+在 AIME 2024（数学竞赛）上的表现
+超过了 OpenAI o1-mini——
+一个通过 SFT 蒸馏的 32B 模型
+击败了一个通过大规模 RL 训练的（可能更大的）模型。
+
+蒸馏的关键发现：
+\begin{itemize}[noitemsep]
+  \item 蒸馏后的模型获得了长思维链推理的能力，
+        即使它从未经历过 RL 训练。
+        模型通过模仿教师的推理 trace 学会了推理。
+  \item 但蒸馏模型的推理能力有\textbf{天花板}——
+        它无法超越教师模型的推理质量。
+        要突破这个天花板，仍然需要在蒸馏后做 RL。
+  \item 蒸馏 + RL 的组合效果优于单独使用任何一种。
+        先蒸馏建立推理格式，再用 GRPO 提升推理质量。
+\end{itemize}
+
+\section{安全对齐的深层技术}
+\label{sec:safety-alignment}
+
+安全对齐不仅仅是「教模型说不」——
+它涉及多层次的技术挑战，
+从训练时的价值注入到推理时的防御机制，
+再到对抗不断演化的攻击策略。
+
+\subsection{红队测试：攻击驱动的防御}
+
+\textbf{红队测试}（red teaming）是安全对齐的核心方法论：
+通过模拟攻击来发现模型的弱点，
+然后针对性地修复。
+
+% NEW REF: perez2022redteaming = Perez et al., "Red Teaming Language Models with Language Models", arXiv:2202.03286, 2022
+
+红队测试的演进经历了几个阶段：
+
+\textbf{第一代：人工红队}。
+训练有素的安全研究员手动编写
+旨在诱导模型产生有害输出的 prompt。
+这种方法覆盖面有限但质量高——
+人类擅长发现模型的深层次弱点。
+OpenAI、Anthropic 和 Google 都维护着
+专门的红队团队（通常 20--50 人）。
+
+\textbf{第二代：自动化红队}。
+用 LLM 自动生成攻击 prompt（LLM-as-red-teamer）。
+Perez 等人（2022）首先提出用语言模型来红队测试语言模型。
+这大幅提高了测试的覆盖面——
+可以在数小时内生成数万条攻击 prompt，
+覆盖远比人工测试更多的攻击向量。
+
+\textbf{第三代：多轮对抗}。
+2025--2026 年，安全评估的前沿转向了\textbf{多轮对抗}。
+攻击者不再尝试用一个 prompt 突破防线，
+而是通过多轮对话逐步诱导模型——
+先建立信任，然后逐渐将话题引向危险方向。
+MLCommons 的 AILuminate 基准（2025）
+和 MultiBreak 基准（ICLR 2026 在审）
+都包含了大量的多轮越狱攻击。
+
+红队测试的结果直接用于后训练：
+\begin{enumerate}[noitemsep]
+  \item 将成功的攻击 prompt 转化为安全 SFT 数据
+       （教模型正确拒绝这类请求）。
+  \item 用攻击结果训练专门的安全奖励模型。
+  \item 在偏好数据中增加安全相关的偏好对。
+\end{enumerate}
+
+\subsection{表示工程：激活层面的安全控制}
+
+% NEW REF: zou2023representation = Zou et al., "Representation Engineering: A Top-Down Approach to AI Transparency", arXiv:2310.01405, 2023
+
+\textbf{表示工程}（Representation Engineering, RepE）
+是一种相对较新的对齐方法，
+它在模型的\textbf{内部表示}（激活向量）层面进行干预，
+而不是通过改变权重。
+
+核心思想是：
+LLM 的隐藏状态中包含了
+与安全性相关的\textbf{方向}（directions）。
+通过识别这些方向，
+我们可以在推理时\textbf{操控}模型的行为——
+增加「安全方向」的激活、减少「危险方向」的激活。
+
+具体方法：
+\begin{enumerate}[noitemsep]
+  \item \textbf{方向提取}：构造对比数据集
+       （安全回答 vs 不安全回答），
+        提取两组回答在隐藏状态空间中的差异方向。
+        例如，对同一个敏感问题，
+        收集安全拒绝回答和不安全遵从回答的隐藏状态，
+        差异向量就是「安全方向」。
+  \item \textbf{激活偏移}：在推理时，
+        将模型每一层的隐藏状态
+        沿安全方向偏移一个可控的量：
+        $h' = h + \alpha \cdot v_{\text{safe}}$。
+        $\alpha$ 控制偏移的强度——
+        太小无效，太大会影响模型的正常功能。
+  \item \textbf{效果}：经过激活偏移的模型
+        在安全评估上显著提升，
+        同时对正常任务的影响较小。
+\end{enumerate}
+
+TRYLOCK 系统（2026 年 1 月）展示了
+表示工程在实际防御中的应用：
+它将 DPO 安全对齐、RepE 激活控制、
+输入规范化和分类器检测
+组合成一个\textbf{纵深防御}（defense-in-depth）架构。
+在 249 条攻击 prompt 上，
+TRYLOCK 达到了 88\% 的相对攻击抵御率，
+同时对正常查询的误拒率仅 1.6\%。
+
+\subsection{越狱攻击的演化}
+
+\textbf{越狱}（jailbreak）攻击——
+旨在绕过 LLM 安全防线的对抗性输入——
+经历了快速的演化。
+理解攻击的演化对于设计防御至关重要。
+
+\textbf{早期越狱}（2023）：主要依赖角色扮演和提示注入。
+「DAN（Do Anything Now）」prompt 让模型扮演
+一个没有安全约束的角色。
+这类攻击通过简单的安全 SFT 就能防御。
+
+\textbf{自动化越狱}（2023--2024）：
+GCG（Greedy Coordinate Gradient）攻击
+使用梯度优化自动生成对抗性后缀——
+在正常请求后附加一串看似无意义的 token，
+这些 token 经过优化可以绕过安全防线。
+防御方法包括困惑度过滤（对抗后缀的困惑度极高）
+和输入规范化。
+
+\textbf{编码越狱}（2024--2025）：
+攻击者发现将有害请求编码为 Base64、ROT13、
+或其他编码格式可以绕过安全检测——
+因为安全训练主要使用自然语言文本，
+模型对编码后的文本缺乏安全判断能力。
+防御方法是在安全训练中加入编码/解码后的数据。
+
+\textbf{多轮越狱}（2025--2026）：
+最新的攻击策略通过多轮对话逐步构建上下文。
+例如先让模型帮忙写一个「虚构小说」的场景，
+然后逐步将场景引向危险方向。
+每一轮单独看都是无害的，
+但组合起来达成了有害的目标。
+这是目前最难防御的攻击类型——
+需要模型理解对话的\textbf{整体意图}，
+而不是孤立地评估每条消息。
+
+\subsection{多语言安全挑战}
+
+安全对齐面临的一个系统性挑战是\textbf{多语言泛化}。
+
+绝大多数的安全训练数据都是英文——
+红队测试、安全 SFT、偏好数据主要覆盖英文场景。
+这导致了一个严重的问题：
+\textbf{模型在英文中学到的安全行为
+不能完全迁移到其他语言}。
+
+Welo Data（2025）的多语言安全评估揭示了令人担忧的差距：
+在英文中被安全拒绝的有害请求，
+翻译成低资源语言后，
+模型的拒绝率可能下降 30--50\%。
+甚至用中文、日文等高资源语言提问，
+安全性也低于英文。
+
+这个问题的根源在于：
+\begin{itemize}[noitemsep]
+  \item \textbf{安全概念的编码是语言相关的}。
+        模型在英文中学到了「如何制造毒品」→ 拒绝的关联，
+        但这个关联不一定迁移到其他语言中的
+        等价表述。
+  \item \textbf{安全训练的数据分布偏差}。
+        如果 99\% 的安全 SFT 数据是英文，
+        模型在其他语言中的安全行为
+        主要依赖跨语言迁移——
+        而跨语言迁移在安全领域不够可靠。
+  \item \textbf{文化差异}。
+        不同文化对「有害」的定义不同。
+        在一种文化中被认为需要审查的内容
+        在另一种文化中可能完全正常。
+        安全训练需要\textbf{文化感知}——
+        这远比简单的多语言翻译复杂。
+\end{itemize}
+
+缓解多语言安全差距的策略包括：
+多语言红队测试（每种目标语言都做安全评估）、
+多语言安全 SFT 数据
+（不仅翻译英文数据，还需要本地化的安全场景）、
+以及语言无关的安全表示
+（在表示空间中学习跨语言的安全方向）。
+
+\section{SFT 数据的质量工程}
+\label{sec:sft-data-quality}
+
+随着后训练技术的成熟，
+业界逐渐认识到：
+\textbf{数据质量是后训练效果的最大瓶颈}——
+算法和计算资源的改进
+远不如数据质量的提升来得重要。
+
+\subsection{前沿模型的 SFT 数据规模}
+
+不同的模型使用了差异巨大的 SFT 数据量：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{InstructGPT}（2022）：
+        约 13K 条人工编写的指令-回答对，
+        加上约 33K 条偏好比较。
+  \item \textbf{Llama 2-Chat}（2023）：
+        约 27,540 条 SFT 标注数据。
+        Meta 强调了数据质量而非数量——
+        这些数据由内部标注者精心编写，
+        经过多轮质量审核。
+  \item \textbf{Llama 3-Instruct}（2024）：
+        显著扩大了 SFT 数据规模——
+        技术报告透露使用了约 1M+ 条 SFT 数据，
+        包括人工数据、合成数据和拒绝采样数据。
+        这标志着从「少量精品」到「大规模高质量」的转变。
+  \item \textbf{DeepSeek-R1}（2025）：
+        约 800K 条推理 trace + 约 200K 条通用数据
+        用于第三阶段的 SFT。
+        推理数据来自 RL 后模型的拒绝采样，
+        质量极高。
+  \item \textbf{Claude 系列}（未公开具体数字）：
+        据 Anthropic 的公开讨论，
+        使用了 RLAIF 生成的大规模合成偏好数据，
+        辅以人工编写的核心安全和能力数据。
+\end{itemize}
+
+总的趋势是：
+\textbf{SFT 数据量从 2022 年的约 10K 增长到 2025 年的约 1M+}，
+增长了两个数量级。
+但数据质量的门槛也在不断提高——
+不是简单地堆量，而是每一条数据都要精心策划。
+
+\subsection{LIMA vs 规模路线的辩论}
+
+LIMA（2023）的「1,000 条数据就够了」引发了持续的辩论。
+
+\textbf{LIMA 派}认为：
+SFT 的核心作用是改变输出格式，
+而不是教授新能力。
+因此，少量的高质量数据（1K--10K）
+足以完成格式对齐，
+更多的数据带来的是边际递减的收益。
+
+\textbf{规模派}认为：
+LIMA 的结论只在简单对话任务上成立。
+对于复杂任务（数学推理、代码生成、多步规划、
+工具使用等），
+模型需要大量的高质量示例
+来学习如何将预训练中获得的知识
+应用到新的行为模式中。
+Llama 3 和 GPT-4 级别的模型
+使用的 SFT 数据量远超 LIMA 的建议。
+
+% NEW REF: kaur2025instruct = Kaur et al., "Instruct-SkillMix: A Powerful Pipeline for LLM Instruction Tuning", ICLR, 2025
+
+2025 年，ICLR 接收的 Instruct-SkillMix 论文
+提供了一个折中的视角：
+\textbf{关键不是数据的绝对数量，
+而是数据的多样性和技能覆盖度}。
+Instruct-SkillMix 自动从 LLM 中提取
+指令遵循的核心「技能」
+（如因果推理、类比推理、约束满足等），
+然后生成\textbf{每条数据同时训练两种随机技能}的
+指令-回答对。
+这种组合性确保了高效的技能覆盖——
+$N$ 种技能只需 $O(N)$ 条数据（而非 $O(N^2)$）
+就能覆盖所有技能对。
+结果表明，使用 Instruct-SkillMix 生成的
+少量但高多样性的数据（$\sim$10K 条）
+可以匹配使用大规模低多样性数据（$\sim$100K+ 条）
+的效果。
+
+\subsection{SFT 数据的质量过滤}
+
+不论数据来源如何，
+质量过滤是确保 SFT 数据有效性的必要步骤。
+
+\textbf{自动过滤方法}：
+\begin{itemize}[noitemsep]
+  \item \textbf{困惑度过滤}：丢弃困惑度极高或极低的回答。
+        极高说明回答质量差或包含噪声，
+        极低可能说明回答是直接复制粘贴的
+        或过于模板化。
+  \item \textbf{LLM-as-Judge}：用强大的 LLM
+        对候选 SFT 数据进行质量评分。
+        按有用性、准确性、安全性等多个维度评分，
+        只保留总分超过阈值的数据。
+        这是目前最常用的自动过滤方法。
+  \item \textbf{一致性检查}：
+        让模型对同一个指令生成多个回答，
+        如果多个回答之间高度一致，
+        说明这个指令-回答对的信号明确。
+        如果回答差异很大，
+        可能说明指令本身模糊或回答不确定性高。
+  \item \textbf{去重}：移除语义重复的指令。
+        SFT 数据中大量的近似重复
+        会浪费训练容量并导致模型在特定模式上过拟合。
+        通常使用 MinHash 或嵌入向量聚类来检测近似重复。
+\end{itemize}
+
+\textbf{人工审核}仍然不可替代。
+即使自动过滤可以处理大部分数据，
+对核心能力领域（安全拒绝、事实准确性）
+的人工抽检仍然是必要的。
+前沿实验室通常维护一支 20--50 人的标注团队，
+对自动过滤后的数据进行最终审核。
+
+\begin{warnbox}[SFT 数据的常见陷阱]
+\begin{itemize}[noitemsep]
+  \item \textbf{模型崩塌}：如果 SFT 数据全部由同一个 LLM 生成
+       （特别是同一个模型的自我蒸馏），
+        多轮迭代后模型的多样性会逐渐降低——
+        这被称为「模型崩塌」（model collapse）。
+        缓解方法是混合多个来源的数据。
+  \item \textbf{合成数据的系统偏差}：
+        LLM 生成的 SFT 数据
+        继承了生成模型的偏见和风格。
+        例如，GPT-4 生成的回答普遍偏向详细和结构化，
+        用这些数据训练的模型也会过度冗长。
+  \item \textbf{指令多样性不足}：
+        如果 SFT 数据集中的指令主要是问答和总结，
+        模型在创意写作、角色扮演、多步推理等
+        覆盖不足的领域表现会明显较差。
+\end{itemize}
+\end{warnbox}
+
+\section{后训练的综合流水线}
+
+在实际的模型开发中，
+后训练通常不是单次运行，而是一个\textbf{迭代过程}。
+让我们看一个完整的后训练流水线，
+展示各个阶段如何衔接。
+
+\subsection{典型流水线}
+
+一轮典型的后训练迭代包括：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{SFT 基础训练}：在通用指令数据上微调基座模型，
+        建立基本的对话能力。
+        数据量：50K--500K 条对话。
+        训练时间：1--3 天（在 64 块 GPU 上）。
+  \item \textbf{能力专项训练}：对特定能力（如代码、数学、多语言）
+        做额外的 SFT 或 RL 训练。
+        这一步通常使用领域特定的数据和评估指标。
+  \item \textbf{偏好优化}：使用 DPO 或 GRPO 优化模型输出的质量——
+        包括有用性、准确性、详细程度等维度。
+        DPO 需要 10K--100K 偏好对。
+        GRPO 需要可验证的奖励函数。
+  \item \textbf{安全对齐}：确保模型拒绝有害请求，
+        不泄露敏感信息，不生成违法内容。
+        这一步可能使用 Constitutional AI 或
+        专门的安全 SFT 数据。
+  \item \textbf{评估与反馈}：在全面的基准测试和人类评估中检查质量，
+        发现问题后返回步骤 1--4 迭代修正。
+  \item \textbf{长上下文适配}：在长文本场景下做额外的 SFT，
+        确保模型在长上下文中也能正确遵循指令。
+  \item \textbf{工具使用训练}：教模型使用搜索引擎、代码执行器、
+        API 调用等外部工具——
+        这通常需要专门的 SFT 数据和 RL 训练。
+\end{enumerate}
+
+\subsection{流水线中的关键决策}
+
+\textbf{阶段顺序}至关重要。
+一个常见的错误是在 SFT 之后立刻做安全对齐，
+然后再做偏好优化。
+问题在于：偏好优化可能会部分「解除」安全约束——
+如果偏好数据中包含模型应该详细回答
+但安全训练教它拒绝的边界情况，
+优化有用性可能会降低安全性。
+
+最佳实践是将安全对齐放在\textbf{最后一步}，
+或者在每个阶段都混入安全数据
+（持续安全训练，而不是一次性对齐）。
+
+\textbf{数据配比}是另一个关键决策。
+如果代码数据在 SFT 中占比过高，
+模型的通用对话能力可能退化。
+如果安全数据过多，模型可能变得「过度谨慎」——
+对无害的请求也给出拒绝回答。
+找到正确的平衡需要反复实验和评估。
+
+整个后训练过程可能需要 2--6 周，
+消耗数百到数千块 GPU。
+虽然计算量远小于预训练（通常仅为预训练的 1--5\%），
+但对模型的最终用户体验影响巨大——
+一个糟糕的后训练可以毁掉一个优秀的基座模型，
+而一个出色的后训练可以让一个中等的基座模型大放异彩。
+
+\begin{corebox}[后训练方法对比]
+\begin{tabularx}{\linewidth}{l X X}
+\toprule
+\textbf{方法} & \textbf{优势} & \textbf{局限} \\
+\midrule
+SFT & 简单、稳定、易于调试 & 只能模仿，无法超越训练数据 \\
+RLHF (PPO) & 能发现新策略，质量最高 & 工程复杂，大模型训练成本极高 \\
+DPO & 简单如 SFT，效果接近 RLHF & 离线方法，受数据分布限制 \\
+GRPO & 可扩展到 700B+，涌现推理 & 需要可验证的奖励信号 \\
+Constitutional AI & 减少人类标注，原则透明 & AI 评判者可能遗漏微妙的偏见 \\
+\bottomrule
+\end{tabularx}
+\end{corebox}
+
+
+%% ============================================================
+% EXISTING REFERENCES (kept)
+% NEW REF: liu2023lost = Liu et al., "Lost in the Middle: How Language Models Use Long Contexts", arXiv:2307.03172, 2023
+% NEW REF: chen2023extending = Chen et al., "Extending Context Window of Large Language Models via Positional Interpolation", arXiv:2306.15595, 2023
+% NEW REF: peng2023yarn = Peng et al., "YaRN: Efficient Context Window Extension of Large Language Models", arXiv:2309.00071, 2023
+% NEW REF: taori2023alpaca = Taori et al., "Stanford Alpaca: An Instruction-following LLaMA Model", Stanford, 2023
+% NEW REF: zhou2023lima = Zhou et al., "LIMA: Less Is More for Alignment", NeurIPS, 2023
+% NEW REF: xu2023wizardlm = Xu et al., "WizardLM: Empowering Large Language Models to Follow Complex Instructions", arXiv:2304.12244, 2023
+% NEW REF: aghajanyan2020intrinsic = Aghajanyan et al., "Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning", ACL, 2021
+% NEW REF: ethayarajh2024kto = Ethayarajh et al., "KTO: Model Alignment as Prospect Theoretic Optimization", arXiv:2402.01306, 2024
+% NEW REF: meng2024simpo = Meng et al., "SimPO: Simple Preference Optimization with a Reference-Free Reward", arXiv:2405.14734, 2024
+% NEW REF: liu2024dora = Liu et al., "DoRA: Weight-Decomposed Low-Rank Adaptation", ICML, 2024
+%
+%% NEW REFERENCES (added in expansion)
+% NEW REF: gao2023scaling = Gao et al., "Scaling Laws for Reward Model Overoptimization", ICML, 2023
+% NEW REF: azar2023ipo = Azar et al., "A General Theoretical Paradigm to Understand Learning from Human Feedback", arXiv:2310.12036, 2023
+% NEW REF: hong2024orpo = Hong et al., "ORPO: Monolithic Preference Optimization without Reference Model", EMNLP, 2024
+% NEW REF: anthropic2026constitution = Anthropic, "Claude's New Constitution", Anthropic Blog, Jan 2026
+% NEW REF: anthropic2023collective = Anthropic, "Collective Constitutional AI: Aligning a Language Model with Public Input", Anthropic Blog, 2023
+% NEW REF: openai2024o1systemcard = OpenAI, "OpenAI o1 System Card", OpenAI, Dec 2024
+% NEW REF: openai2024deliberative = OpenAI, "Deliberative Alignment: Reasoning Enables Safer Language Models", OpenAI, Dec 2024
+% NEW REF: lightman2023prm = Lightman et al., "Let's Verify Step by Step", arXiv:2305.20050, 2023
+% NEW REF: wang2024mathshepherd = Wang et al., "Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations", ACL, 2024
+% NEW REF: perez2022redteaming = Perez et al., "Red Teaming Language Models with Language Models", arXiv:2202.03286, 2022
+% NEW REF: zou2023representation = Zou et al., "Representation Engineering: A Top-Down Approach to AI Transparency", arXiv:2310.01405, 2023
+% NEW REF: kaur2025instruct = Kaur et al., "Instruct-SkillMix: A Powerful Pipeline for LLM Instruction Tuning", ICLR, 2025
+% NEW REF: weng2024rewardhacking = Weng, Lilian, "Reward Hacking in Reinforcement Learning", Lil'Log, Nov 2024
+% NEW REF: sane2025hybridgrpo = Sane, "Hybrid Group Relative Policy Optimization: A Multi-Sample Approach", arXiv:2502.01652, 2025
+% NEW REF: thornton2026trylock = Thornton, "TRYLOCK: Defense-in-Depth Against LLM Jailbreaks via Layered Preference and Representation Engineering", arXiv:2601.03300, 2026
+% NEW REF: ivison2024unpacking = Ivison et al., "Unpacking DPO and PPO: Disentangling Best Practices for Learning from Preference Feedback", NeurIPS, 2024

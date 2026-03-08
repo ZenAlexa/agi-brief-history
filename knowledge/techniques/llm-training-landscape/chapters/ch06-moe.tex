@@ -1,0 +1,773 @@
+\chapter{Mixture of Experts——参数效率的极致}
+\label{ch:moe}
+%% ============================================================
+
+\section{核心思想：不是每个神经元都需要工作}
+
+想象一个公司有 256 名专家，分别精通不同领域。
+当一个任务到来时，你不需要让所有 256 人都参与——
+你只需要挑选最相关的 8 个人来处理。
+这就是 Mixture of Experts (MoE) 的核心思想。
+
+\subsection{历史脉络}
+
+MoE 的思想远比深度学习更古老。
+1991 年，Jacobs 等人提出了最早的 MoE 框架——% NEW REF: jacobs1991moe = Adaptive Mixtures of Local Experts, Jacobs et al., Neural Computation 1991
+用多个「专家」网络分别处理输入空间的不同区域，
+一个「门控」网络决定每个输入由哪些专家处理。
+但这个想法在之后的 25 年里基本停留在学术论文中，
+没有被大规模应用。
+
+2017 年，Shazeer 等人~\cite{shazeer2017moe}
+将 MoE 引入了 NLP 领域，
+在 LSTM 语言模型中嵌入了稀疏门控的 MoE 层，
+用 $>$1000 个专家实现了当时的最大模型（137B 参数）。
+这篇论文的标题直接叫做
+``Outrageously Large Neural Networks''——
+「大得离谱的神经网络」。
+
+2022 年，Switch Transformer~\cite{fedus2022switch}
+将 MoE 扩展到 Transformer 架构，
+用 top-1 路由（每个 token 只发给 1 个专家）
+训练了一个 1.6T 参数的模型。
+Switch Transformer 证明了一个关键点：
+\textbf{即使只激活一个专家，
+只要专家数量足够多、路由足够准确，
+模型性能就可以超越同规模的稠密模型}。
+
+自此，MoE 从一种学术好奇心
+变成了 LLM 训练的主流架构选择。
+
+\subsection{稠密模型 vs 稀疏模型}
+
+传统的「稠密」模型（Dense Model）在处理每个 token 时
+使用所有参数——参数量直接决定了计算量。
+MoE 模型则打破了这种绑定：
+\textbf{总参数量决定了模型的知识容量，
+但每个 token 的计算量只取决于被激活的参数}。
+
+DeepSeek-V3 的数据最能说明这种效率：
+总参数 671B（知识容量巨大），
+每个 token 仅激活 37B（计算成本低），
+激活率约 5.5\%。
+
+用一个类比来理解：
+稠密模型像一个通才——不管什么问题，
+他调动全部知识和精力来回答，效果不错但很累。
+MoE 模型像一个高效的团队——
+不管什么问题，先判断这是什么类型的问题，
+然后把最擅长的几个人召集起来处理，
+其他人可以休息。
+团队的总知识量（总参数）可以很大，
+但每次实际消耗的精力（计算量）很小。
+
+\section{路由机制}
+
+MoE 层替换了 Transformer 中的 FFN 层。
+对于输入 token $\mathbf{x}$，
+路由器（一个简单的线性层）计算每个专家的分数，
+然后选择得分最高的 $K$ 个专家：
+\begin{equation}
+  g_i = \frac{e^{s_i}}{\sum_{j \in \mathrm{TopK}} e^{s_j}}, \quad
+  s = W_{\mathrm{router}} \mathbf{x}, \quad
+  \mathbf{y} = \sum_{i \in \mathrm{TopK}} g_i \cdot \mathrm{Expert}_i(\mathbf{x})
+  \label{eq:moe-routing}
+\end{equation}
+
+路由器本身极其轻量——
+它只是一个 $[d, N_{\mathrm{experts}}]$ 的线性投影，
+没有偏置，没有激活函数。
+它的参数量微不足道（$4096 \times 256 \approx 1M$），
+但它做出的决策至关重要：
+将每个 token 送到最合适的专家去处理。
+
+训练过程中，路由器通过梯度下降与专家一起优化。
+一个有趣的现象是路由器会自发学到有意义的分工：
+某些专家可能专注于代码相关的 token，
+某些专注于数学符号，
+某些专注于特定语言的文本。
+这种\textbf{自动专业化}不是人为设定的——
+它完全是训练过程中涌现出来的。
+
+\subsection{Top-K 路由}
+
+Top-K 路由是目前最主流的方案。
+$K$ 的选择涉及质量与效率的权衡：
+
+\textbf{Top-1}（Switch Transformer~\cite{fedus2022switch}）：
+每个 token 只发给 1 个专家。
+计算效率最高，但单个专家可能无法充分处理复杂 token。
+而且 top-1 的路由决策更「尖锐」——
+一旦选错专家，没有其他专家来补救。
+
+\textbf{Top-2}（Mixtral~\cite{jiang2024mixtral}、GShard）：
+每个 token 发给 2 个专家，% NEW REF: lepikhin2021gshard = GShard: Scaling Giant Models with Conditional Computation, Lepikhin et al., ICLR 2021
+结果按路由权重加权求和。
+这是一种「保险」策略——
+即使一个专家不太合适，
+另一个通常能弥补。
+Top-2 是最常见的选择，
+在质量和效率之间取得了良好平衡。
+
+\textbf{Top-8}（DeepSeek-V3~\cite{deepseekv3}）：
+每个 token 发给 8 个专家。
+看起来计算量更大？
+不——因为 DeepSeek 使用了 256 个\textbf{细粒度小专家}，
+每个专家只有标准专家的 $\sim$1/32 大小。
+选 8 个小专家的总计算量与选 2 个大专家相当，
+但组合空间爆炸式增长（从 28 种增加到 44 亿种）。
+
+\subsection{Token Choice vs Expert Choice}
+
+上述路由方式都是\textbf{Token Choice}——
+每个 token 独立选择自己要去的专家。
+这会导致一个固有问题：
+热门专家可能收到过多 token，冷门专家闲置。
+
+Zhou 等人（2022）提出了\textbf{Expert Choice} 路由：% NEW REF: zhou2022expertchoice = Mixture-of-Experts with Expert Choice Routing, Zhou et al., NeurIPS 2022
+反过来，让专家选择 token。
+每个专家从所有 token 中选取得分最高的 $k$ 个来处理。
+这天然保证了负载均衡——
+每个专家处理相同数量的 token，不存在过载或空闲。
+
+但 Expert Choice 有一个问题：
+某些 token 可能被多个专家选中（计算冗余），
+而某些 token 可能不被任何专家选中（信息丢失）。
+在实践中，Token Choice + 负载均衡机制
+仍然是更主流的方案。
+
+\subsection{其他路由策略}
+
+\textbf{Hash 路由}是最简单的基线：
+根据 token 的哈希值确定性地分配到专家。
+不需要可学习的路由器，负载完全均衡，
+但缺乏语义感知——
+代码 token 和诗歌 token 可能被分到同一个专家。
+实验表明 Hash 路由的性能显著低于学习型路由。
+
+\textbf{随机路由}也是一个有用的基线：
+随机均匀地将 token 分配到专家。
+在某些配置下，随机路由的表现出人意料地不差——
+因为即使路由是随机的，
+专家本身仍然可以通过梯度下降
+学到对不同类型输入的通用处理能力。
+这提示了一个有趣的问题：
+路由器到底有多重要？
+答案是：在大规模训练中，学习型路由\textbf{显著}优于随机路由，
+但差距不如你直觉认为的那么大。
+
+\subsection{动态路由与可微路由（2025--2026 前沿）}
+\label{sec:advanced-routing}
+
+标准的 Top-K 路由有一个根本局限：
+\textbf{每个 token 固定激活 $K$ 个专家}，
+无论 token 的复杂度如何。
+简单的 token（如 ``the''）可能只需要 1 个专家就够了，
+而复杂的 token（如数学公式中的关键符号）
+可能需要 5 个以上的专家协同处理。
+
+\textbf{DynaMoE}~(2026) 放松了这两个约束：% NEW REF: dynamoe2026 = DynaMoE: Dynamic Token-Level Expert Activation with Layer-Wise Adaptive Capacity, Guelmez, arXiv 2026
+（1）每个 token 激活的专家数量根据输入复杂度
+动态变化（从最少 1 个到层级相关的最大值）；
+（2）不同层的专家总容量可以不同——
+底层可能需要更多专家处理低级特征的多样性，
+顶层可能需要更少但更专精的专家。
+DynaMoE 提出了 6 种容量调度策略
+（线性递增、线性递减、中间峰值等），
+让模型自动学习最优的层间容量分配。
+
+\textbf{DirMoE} 是 ICLR 2026 上提出的% NEW REF: dirmoe2026 = DirMoE: Differentiable Probabilistic Router for Mixture-of-Experts, ICLR 2026
+\textbf{完全可微}的概率路由器。
+传统的 Top-K 路由不可微——
+``选择第 3 和第 7 个专家'' 这个离散决策
+无法产生干净的梯度信号。
+DirMoE 将路由分解为两个可微的概率过程：
+\begin{itemize}[noitemsep]
+  \item \textbf{Bernoulli 过程}决定每个专家是否被激活
+        （连续松弛的 Gumbel-Sigmoid）。
+  \item \textbf{Dirichlet 过程}决定被激活专家之间的权重分配。
+\end{itemize}
+这种分离使得路由在端到端训练中拥有干净的梯度流。
+DirMoE 还引入了基于 Simpson 指数的``稀疏度旋钮''——
+通过一个标量超参数精确控制期望的活跃专家数量，
+\textbf{无需辅助损失}来维持负载均衡。
+实验表明 DirMoE 在匹配标准 MoE 吞吐量的同时
+实现了更稳定的路由和更均匀的专家利用率。
+
+\textbf{L2R}（Low-Rank \& Lipschitz-Controlled Routing）% NEW REF: l2r2026 = L2R: Low-Rank and Lipschitz-Controlled Routing for Mixture-of-Experts, Yang et al., arXiv 2026
+从另一个角度改进路由：
+在低秩潜在空间中执行路由决策，
+并通过 Lipschitz 控制确保路由函数的平滑性。
+直觉上，标准的线性路由器在高维空间中
+可能因``角度集中''现象而产生
+几乎相同的分数——微小的输入变化导致路由决策翻转。
+L2R 通过约束路由函数的 Lipschitz 常数，
+确保了路由决策的稳定性。
+
+用代码来看，MoE 路由器的核心逻辑可以用几行实现：
+
+\begin{lstlisting}[caption={MoE router implementation}]
+class MoERouter(nn.Module):
+    def __init__(self, d_model, n_experts, top_k):
+        super().__init__()
+        self.gate = nn.Linear(d_model, n_experts, bias=False)
+        self.top_k = top_k
+
+    def forward(self, x):
+        # x: (batch, seq_len, d_model)
+        scores = self.gate(x)  # (batch, seq_len, n_experts)
+
+        # Select top-k experts per token
+        topk_scores, topk_ids = scores.topk(self.top_k, dim=-1)
+
+        # Normalize scores (softmax over selected experts only)
+        topk_weights = F.softmax(topk_scores, dim=-1)
+
+        return topk_weights, topk_ids
+\end{lstlisting}
+
+这段代码展示了路由的三个步骤：
+线性投影得到每个专家的分数，
+TopK 选出得分最高的 $K$ 个专家，
+在选出的专家上做 softmax 得到归一化的权重。
+这些权重决定了各专家输出的贡献比例。
+其中 $g_i$ 是归一化后的路由权重，
+只在被选中的 TopK 专家上计算 softmax。
+
+\section{负载均衡：MoE 训练的核心挑战}
+
+\subsection{为什么负载不均衡是灾难性的}
+
+MoE 训练中最棘手的问题是\textbf{专家坍缩}
+（expert collapse）：
+路由器学会将绝大多数 token 发送到少数几个「强」专家，
+而大部分专家几乎不接收任何 token，逐渐退化为随机噪声。
+
+为什么这是灾难性的？两个层面：
+
+\textbf{计算浪费}：
+假设有 64 个专家分布在 64 块 GPU 上，
+如果 80\% 的 token 都被路由到 4 个专家，
+那么只有 4 块 GPU 在满负荷工作，
+另外 60 块 GPU 基本在空转——
+你花了 64 块 GPU 的钱，只得到了 4 块 GPU 的效果。
+在分布式训练中，整个系统的速度受最慢节点（最忙的专家）制约，
+所以负载不均衡直接导致训练吞吐量暴跌。
+
+\textbf{知识容量浪费}：
+MoE 的核心优势是「用总参数量换知识容量」。
+如果大部分专家闲置，等价于这些参数不存在——
+671B 参数的 MoE 模型可能退化为
+只有几十 B 参数的效果。
+
+\subsection{传统方案：辅助损失}
+
+最早的解决方案~\cite{shazeer2017moe}
+是在训练目标中加入一个辅助损失来惩罚不均衡：
+\begin{equation}
+  L_{\mathrm{total}} = L_{\mathrm{LM}} + \alpha \cdot L_{\mathrm{balance}}
+  \label{eq:aux-loss}
+\end{equation}
+其中辅助损失的形式为：
+\begin{equation}
+  L_{\mathrm{balance}} = N \cdot \sum_{i=1}^{N} f_i \cdot P_i
+  \label{eq:balance-loss}
+\end{equation}
+这里 $f_i$ 是实际被分配到专家 $i$ 的 token 比例，
+$P_i$ 是所有 token 对专家 $i$ 的平均路由概率。
+$N$ 是专家数量，用于归一化。
+
+直觉上，$f_i \cdot P_i$ 的乘积形式
+鼓励两者同时尽可能均匀：
+当所有专家均匀接收 token 时
+（$f_i = P_i = 1/N$），
+$\sum f_i P_i = N \times (1/N)^2 = 1/N$，达到最小值。
+当负载高度不均衡时（所有 token 集中在一个专家），
+$\sum f_i P_i = 1$，达到最大值。
+
+Switch Transformer~\cite{fedus2022switch} 简化了这个公式，
+使用 $\alpha = 0.01$ 作为默认系数，
+并证明即使是 top-1 路由，
+只要辅助损失设置得当，训练也能保持稳定。
+
+但辅助损失有一个\textbf{根本矛盾}：
+$\alpha$ 太大，负载均衡得到满足，
+但辅助损失的梯度「污染」了语言建模的梯度——
+路由器不再纯粹地为质量最优而路由，
+而是在「质量」和「均衡」之间妥协，模型质量下降。
+$\alpha$ 太小，辅助损失形同虚设，
+专家坍缩照常发生。
+在实践中，$\alpha$ 的调节需要大量实验，
+且没有一个值能适用于训练的所有阶段。
+
+\subsection{DeepSeek 的无辅助损失方案}
+
+DeepSeek-V3~\cite{deepseekv3} 提出了一个优雅的替代方案：
+\textbf{不加辅助损失}，
+而是给每个专家的路由分数加一个\textbf{不参与梯度计算}的偏置项 $b_i$：
+\begin{equation}
+  s_i = W_{\mathrm{router}} \mathbf{x} + b_i
+  \quad (\text{$b_i$ 不参与反向传播})
+\end{equation}
+偏置的更新规则极其简单：
+如果第 $i$ 个专家过载，$b_i \leftarrow b_i - \gamma$；
+如果空闲，$b_i \leftarrow b_i + \gamma$（$\gamma \approx 10^{-3}$）。
+
+因为 $b_i$ 不在计算图中，
+语言建模的梯度完全不受干扰——
+训练目标纯粹是预测下一个 token，没有任何妥协。
+2025 年芝加哥大学的理论论文证明了这种方法等价于
+原始--对偶分配问题的在线求解，具有单调改进保证。
+
+这个方法的优雅之处在于它将两个不同的优化问题\textbf{解耦}了：
+语言建模（预测下一个 token）通过标准的梯度下降优化，
+负载均衡通过偏置项的启发式规则调整。
+两者互不干扰——语言建模的梯度不受负载均衡的影响，
+负载均衡的调整也不需要通过梯度传播。
+这就像一个工厂的生产线和排班表是分开管理的——
+生产线的优化不需要考虑排班约束，
+排班表的调整也不需要改变生产流程。
+
+\begin{keybox}[负载均衡方法对比]
+\begin{center}
+\begin{tabular}{lccl}
+  \hline
+  \textbf{方法} & \textbf{需要辅助损失} & \textbf{影响 LM 梯度}
+  & \textbf{代表模型} \\
+  \hline
+  辅助损失 & 是 & 是（$\alpha$ 敏感） & Switch Transformer \\
+  Expert Choice & 否 & 部分 & Expert Choice Routing \\
+  偏置项调节 & 否 & 否 & DeepSeek-V3 \\
+  \hline
+\end{tabular}
+\end{center}
+\end{keybox}
+
+\section{DeepSeek 的三大创新}
+
+DeepSeek-V3~\cite{deepseekv3} 在 MoE 上做了三项改变游戏规则的创新。
+
+\subsection{细粒度专家}
+
+传统 MoE 使用少量大专家（如 Mixtral 的 8 个专家，每个约 7B 参数）。
+DeepSeek 使用 \textbf{256 个小专家}（每个仅约 0.5B 参数）
+加 1 个\textbf{共享专家}（处理所有 token 的通用知识）：
+\begin{equation}
+  \mathbf{y} = \mathrm{SharedExpert}(\mathbf{x})
+  + \sum_{i \in \mathrm{Top8}} g_i \cdot \mathrm{Expert}_i(\mathbf{x})
+\end{equation}
+
+256 个专家中选 8 个，组合数为
+$\binom{256}{8} \approx 4.4 \times 10^{9}$——
+相比 Mixtral 的 $\binom{8}{2} = 28$ 种组合，
+组合空间扩大了 $10^{8}$ 倍。
+这意味着模型可以为不同类型的输入激活完全不同的专家组合，
+实现更精细的专业化。
+
+为什么细粒度专家更好？三个原因：
+
+\textbf{更灵活的组合}。
+8 个大专家中选 2 个，
+就像只有 8 门课的课程表中选 2 门——
+选择空间很有限。
+256 个小专家中选 8 个，
+就像 256 门课中选 8 门——
+可以精确匹配每个学生（token）的需求。
+
+\textbf{更好的专业化}。
+小专家被迫在一个更窄的领域内做到精通，
+因为它们的参数量有限，无法成为「通才」。
+大专家则可能在多个不相关的领域之间分散注意力。
+实验表明，细粒度专家的专业化程度更高——
+某些专家可能只处理 Python 代码中的列表推导，
+另一些只处理数学证明中的符号推理。
+
+\textbf{相似的计算成本}。
+关键洞察：8 个小专家的总计算量
+$\approx$ 2 个大专家的计算量（如果大小比例为 1:4）。
+所以细粒度专家不增加每个 token 的计算成本——
+它只是用更多的小模块替代了少数大模块。
+
+\subsection{共享专家}
+
+在上面的公式中，
+$\mathrm{SharedExpert}(\mathbf{x})$ 是一个始终被激活的专家——
+不管 token 是什么类型，它都参与计算。
+
+为什么需要共享专家？
+在纯路由的 MoE 中，
+每个路由专家都需要独立学会一些「基础知识」
+（如语法规则、常见词的语义等），
+因为不能保证某个 token 每次都被路由到同一个专家。
+这导致了跨专家的冗余——
+256 个专家中可能有 200 个都各自学了一遍「the 后面通常跟名词」。
+
+共享专家将这些通用知识集中到一个始终激活的模块中，
+路由专家只需学习\textbf{差异化}的专业知识。
+这既减少了冗余，又让路由专家能更专注于自己的领域。
+
+从残差连接的视角看，
+共享专家提供了一个强大的「默认输出」——
+即使路由器把 token 送到了不太合适的专家，
+共享专家的输出仍然保证了基本的质量。
+
+\subsection{DeepEP：专用通信库}
+
+MoE 的一个工程瓶颈是 All-to-All 通信：
+每个 token 需要被发送到对应专家所在的 GPU，
+计算完成后再发送回来。
+这种细粒度的跨 GPU 通信模式不同于数据并行的 All-Reduce，
+标准通信库的效率很低。
+
+为什么 All-to-All 比 AllReduce 更难优化？
+AllReduce 中每块 GPU 发送和接收的数据量是确定性的——
+总是 $M/N$ 的数据。
+All-to-All 中数据量取决于路由决策——
+如果某个专家特别热门，
+对应 GPU 可能收到 10 倍于平均水平的数据，
+而其他 GPU 几乎收不到数据。
+这种\textbf{不均匀的通信模式}
+让带宽利用和延迟优化变得困难。
+
+DeepSeek 开源的 DeepEP 提供两种模式：
+
+\textbf{Normal 模式}用于训练和 prefill（高吞吐量优先）：
+将大量 token 的路由请求打包成批次，
+利用 NVLink（节点内）和 InfiniBand（节点间）的
+分层通信策略——
+同一节点内的专家通信走 NVLink（900\,GB/s），
+跨节点的专家通信走 IB（400\,Gb/s），
+两者可以并行进行。
+
+\textbf{Low-Latency 模式}用于推理 decode
+（通过 hook-based 通信--计算重叠实现零额外 SM 占用）。
+在 decode 阶段，每个时间步只有 1 个 token 需要路由，
+通信量很小但对延迟极其敏感。
+DeepEP 利用 GPU 的硬件 hook 机制
+将通信操作卸载到 NVLink/IB 控制器，
+SM 完全不参与通信——
+计算和通信真正同时进行，零开销。
+
+\section{MoE 在实践中}
+
+\subsection{Mixtral 8x7B：MoE 的开源先驱}
+
+Mixtral 8x7B~\cite{jiang2024mixtral} 是 Mistral AI 发布的
+第一个广泛使用的开源 MoE 模型。
+它的规格说明了 MoE 的效率优势：
+\begin{itemize}[noitemsep]
+  \item \textbf{总参数}：47B（8 个 FFN 专家 $\times$ $\sim$5.5B + 非 FFN 参数）
+  \item \textbf{活跃参数}：13B（每个 token 激活 2 个专家）
+  \item \textbf{性能}：在大部分基准测试上
+        匹配或超越 LLaMA 2 70B（稠密模型）
+  \item \textbf{推理成本}：约为 LLaMA 2 70B 的 $1/5$
+\end{itemize}
+
+47B 总参数 vs 70B 稠密参数，
+Mixtral 的参数总量反而更少——
+但它用 MoE 的稀疏激活实现了类似甚至更好的性能，
+同时推理时只需要 13B 的计算量。
+
+\subsection{DeepSeek-V3：MoE 的巅峰}
+
+DeepSeek-V3~\cite{deepseekv3} 将 MoE 推向了新的高度：
+\begin{itemize}[noitemsep]
+  \item \textbf{总参数}：671B
+  \item \textbf{活跃参数}：37B（256 路由专家选 8 + 1 共享专家）
+  \item \textbf{训练数据}：14.8T token
+  \item \textbf{训练成本}：$\sim$\$5.6M（2048 块 H800，约 2 个月）
+  \item \textbf{性能}：在多项基准测试上达到或超越 GPT-4o、Claude 3.5 Sonnet
+\end{itemize}
+
+$\$$5.6M 的训练成本令整个行业震惊——
+它比同等性能的 LLaMA 3 405B 的估计训练成本低约 20 倍。
+成本优势来自三方面叠加：
+MoE 架构（37B 活跃 vs 405B 全激活）、
+FP8 训练（减少 $\sim$50\% 内存和 $\sim$30\% 计算）、
+以及精细的工程优化（DualPipe、DeepEP 等）。
+
+\subsection{LLaMA 4：Meta 的 MoE 转型}
+\label{sec:llama4-moe}
+
+2025 年 4 月，Meta 发布了 LLaMA 4 系列——% NEW REF: llama4 = The Llama 4 Herd, Meta AI, 2025
+这是 LLaMA 家族首次采用 MoE 架构，
+标志着 Meta 从稠密模型全面转向 MoE。
+
+LLaMA 4 包含三个变体：
+\begin{center}
+\begin{tabular}{lcccl}
+  \hline
+  \textbf{模型} & \textbf{总参数} & \textbf{活跃参数}
+  & \textbf{专家数 / Top-K} & \textbf{特色} \\
+  \hline
+  Scout & 109B & 17B & 16 / 1 & 10M token 上下文 \\
+  Maverick & 400B & 17B & 128 / 1 & 原生多模态 \\
+  Behemoth & $\sim$2T & 288B & 16 / 2 & 训练中（未发布） \\
+  \hline
+\end{tabular}
+\end{center}
+
+LLaMA 4 的 MoE 设计与 DeepSeek 有显著差异：
+
+\textbf{Top-1 路由}。
+Scout 和 Maverick 都使用 Top-1 路由
+（每个 token 只发给 1 个专家），
+而不是 DeepSeek 的 Top-8。
+这是一个大胆的选择——
+Top-1 在 Switch Transformer 中曾被证明可行，
+但需要更精确的路由器。
+Meta 通过从 Behemoth（Top-2）的知识蒸馏
+来弥补 Top-1 路由的信息损失。
+
+\textbf{知识蒸馏}。
+Scout 和 Maverick 都通过从 Behemoth 蒸馏获得了
+显著的质量提升——这是一种``大模型训练小模型''的策略。
+Behemoth 本身有 288B 活跃参数（Top-2 路由 16 个专家），
+在 STEM 基准测试上超越了 GPT-4.5 和 Claude Sonnet 3.7。
+
+\textbf{超长上下文}。
+Scout 支持 \textbf{10M token 上下文窗口}——
+目前最长的生产级上下文长度。
+这通过高效的 iRoPE 位置编码
+和分块注意力机制实现，
+但也对 MoE 的路由一致性提出了更高要求。
+
+\subsection{Qwen3-235B：阿里巴巴的 MoE 实践}
+
+Qwen3-235B-A22B 是阿里巴巴 Qwen 团队% NEW REF: qwen3 = Qwen3 Technical Report, Qwen Team, arXiv 2025
+发布的旗舰 MoE 模型，采用了与 DeepSeek 相似但不同的设计选择：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{总参数}：235B，\textbf{活跃参数}：22B。
+  \item \textbf{128 个路由专家，Top-8 路由}——
+        与 DeepSeek-V3 的 256 专家 + Top-8 相比，
+        专家数减半但每个专家更大。
+  \item \textbf{94 层}，使用 GQA（64 头，4 KV 头）。
+  \item 支持 128K token 上下文，通过 YaRN 位置编码外推。
+\end{itemize}
+
+Qwen3 的一个独特创新是\textbf{思考/非思考双模式}——
+模型可以在``思考模式''（生成内部推理链）和
+``直接回答模式''之间切换，
+用户通过 prompt 控制推理预算。
+这对 MoE 路由提出了新要求：
+思考模式下的 token 可能需要不同的专家组合
+来处理推理链中的中间步骤。
+
+\subsection{Kimi K2：万亿参数的 MoE}
+
+Moonshot AI 的 Kimi K2 将 MoE 推到了\textbf{万亿参数}量级：% NEW REF: kimik2_moe = Kimi K2: Open Agentic Intelligence, Kimi Team, arXiv 2025
+\begin{itemize}[noitemsep]
+  \item \textbf{总参数}：$\sim$1T（1.04T）。
+  \item \textbf{活跃参数}：32B。
+  \item \textbf{384 个路由专家，Top-8 路由}——
+        比 DeepSeek-V3 更多的专家（384 vs 256），
+        组合空间为 $\binom{384}{8} \approx 1.8 \times 10^{13}$。
+  \item 使用 \textbf{MLA}（Multi-head Latent Attention）
+        压缩 KV cache。
+  \item 128K token 上下文。
+\end{itemize}
+
+Kimi K2 在 MoE 训练上的关键创新是
+将 \textbf{Muon 优化器}引入 MoE 训练
+（使用改进版 MuonClip），
+并在 15.5T token 的全程训练中实现了``零 loss spike''。
+这是一个重要的工程里程碑——
+万亿参数 MoE 模型的训练稳定性
+一直是业界最大的担忧之一。
+
+\begin{keybox}[2025--2026 主要 MoE 模型对比]
+\begin{center}
+\begin{tabular}{lccccc}
+  \hline
+  \textbf{模型} & \textbf{总参数} & \textbf{活跃参数}
+  & \textbf{专家数} & \textbf{Top-K} & \textbf{共享专家} \\
+  \hline
+  Mixtral 8x7B & 47B & 13B & 8 & 2 & 无 \\
+  DeepSeek-V3 & 671B & 37B & 256 & 8 & 1 \\
+  LLaMA 4 Maverick & 400B & 17B & 128 & 1 & 无$^\dagger$ \\
+  LLaMA 4 Behemoth & $\sim$2T & 288B & 16 & 2 & 无$^\dagger$ \\
+  Qwen3-235B & 235B & 22B & 128 & 8 & 未公开 \\
+  Kimi K2 & 1.04T & 32B & 384 & 8 & 有 \\
+  \hline
+\end{tabular}
+\end{center}
+
+\small $^\dagger$\,LLaMA 4 未明确公开共享专家设计。
+\end{keybox}
+
+从表中可以看到一个清晰的趋势：
+\textbf{细粒度小专家 + 高 Top-K} 成为主流设计
+（DeepSeek、Qwen3、Kimi K2 都使用 Top-8 + 100 个以上的专家）。
+LLaMA 4 的 Top-1 路由 + 知识蒸馏是一条独特的路线，
+但 Behemoth（未发布的旗舰模型）也回到了 Top-2。
+
+\section{MoE 推理的工程挑战}
+\label{sec:moe-inference}
+
+MoE 的训练效率优势在推理端面临严峻的工程挑战。
+
+\subsection{内存瓶颈与专家卸载}
+
+MoE 模型的推理面临一个核心矛盾：
+\textbf{每次只激活 5\%--10\% 的参数，
+但 100\% 的参数都必须驻留在可访问的存储中}。
+DeepSeek-V3 的 671B 参数在 BF16 下需要 $\sim$1.3\,TB 内存，
+至少需要 17 块 H100（80\,GB）才能装下——
+但每个 token 实际只需要 37B 参数（$\sim$74\,GB）的计算。
+
+\textbf{专家卸载}（Expert Offloading）将不活跃的专家
+从 GPU 显存卸载到 CPU 内存甚至 SSD，
+只在需要时加载到 GPU：
+
+\textbf{FineMoE}~(2026) 提出了\textbf{细粒度}的卸载策略：% NEW REF: finemoe2026 = FineMoE: Taming Latency-Memory Trade-Off in MoE-Based LLM Serving via Fine-Grained Expert Offloading, Yu et al., EuroSys 2026
+不是以整个专家为单位进行卸载/加载
+（粒度太粗——一个专家可能有几百 MB），
+而是将每个专家进一步拆分为更小的``子专家''块，
+按需加载。
+关键洞察是：专家的使用频率遵循\textbf{长尾分布}——
+少数``热门专家''被频繁调用，大部分专家很少使用。
+FineMoE 将热门专家常驻 GPU，
+冷门专家按子块粒度从 CPU 按需传输。
+
+\textbf{ADEPT}（2026）进一步引入了% NEW REF: adept2026 = Two-Stage Expert Offloading for Domain-Aware MoE Inference, Kim et al., IEEE Access 2026
+\textbf{领域感知的预取}策略：
+根据输入文本的领域特征（代码、数学、自然语言等）
+预判哪些专家可能被激活，提前将它们从 CPU 加载到 GPU。
+这将专家加载操作从推理的关键路径上移除，
+有效隐藏了 PCIe 总线的 I/O 延迟。
+
+\subsection{MoE 模型的量化}
+
+量化是降低 MoE 内存占用的另一条路径——
+但 MoE 的量化比稠密模型更具挑战性。
+
+\textbf{DynaExq}~(2025) 提出了% NEW REF: dynaexq2025 = Dynamic Expert Quantization for Scalable MoE Inference, Chu et al., arXiv 2025
+\textbf{动态混合精度}的量化方案：
+不同专家使用不同的量化位宽。
+热门专家（频繁使用）保持较高精度（如 8 bit），
+冷门专家使用更激进的压缩（如 4 bit 甚至 2 bit），
+因为它们对最终输出的贡献权重较小。
+DynaExq 在运行时根据路由统计量
+动态调整专家的量化位宽，
+在精度和内存之间找到最优平衡。
+
+\textbf{MiLo}（Mixture of Low-Rank Compensators）% NEW REF: milo2025 = MiLo: Efficient Quantized MoE Inference with Mixture of Low-Rank Compensators, Huang et al., arXiv 2025
+则在量化后为每个专家附加一个\textbf{低秩补偿器}——
+用少量的额外参数修正量化带来的误差。
+对于 4-bit 量化的 MoE 模型，
+MiLo 可以恢复 90\%+ 的原始精度，
+而额外的参数开销不到原始专家的 5\%。
+
+\subsection{批处理的矛盾}
+
+MoE 推理还面临一个``批处理悖论''：
+\textbf{批处理是推理吞吐量的关键，
+但它抵消了 MoE 的稀疏性优势}。
+
+在单请求推理中，每个 token 只激活 $K$ 个专家，
+MoE 的计算节省是真实的。
+但在批处理（batched inference）中，
+不同请求的 token 可能路由到不同的专家——
+当 batch size 足够大时，
+所有 $N$ 个专家都会被至少一个 token 激活，
+等价于运行一个\textbf{完整的稠密模型}。
+更糟的是，MoE 的 All-to-All 通信开销在稠密模型中不存在。
+
+\textbf{Lynx}~(2025) 提出了一种``专家重映射''方案：% NEW REF: lynx2025 = Lynx: Enabling Efficient MoE Inference via Dynamic Batch-Aware Expert Selection, arXiv 2025
+在运行时动态地将 batch 中不同请求的 token
+重新分配到重叠度更高的专家子集上，
+减少实际需要激活的专家总数。
+这在保持 $<$1\% 精度损失的前提下，
+将推理吞吐量提升了 $1.23\times$。
+
+\textbf{MoE-SpeQ}~(2025) 则将推测解码% NEW REF: moespeq2025 = MoE-SpeQ: Speculative Quantized Decoding with Proactive Expert Prefetching and Offloading for MoE, Wang et al., arXiv 2025
+与专家预取结合：
+在主模型验证候选 token 的同时，
+利用路由器的预判结果预加载下一步可能需要的专家。
+推测解码本身减少了生成步数，
+专家预取则隐藏了每步的加载延迟——
+两种优化相互增强。
+
+\subsection{MoE 的优势与挑战}
+
+\begin{corebox}[MoE vs Dense：何时选择哪种架构]
+\textbf{MoE 的优势}：
+\begin{itemize}[noitemsep]
+  \item 知识容量与推理成本解耦——大容量、低推理成本
+  \item 对于广泛部署的模型，推理经济性是压倒性优势
+  \item 专家专业化带来的任务适配能力
+\end{itemize}
+
+\textbf{MoE 的挑战}：
+\begin{itemize}[noitemsep]
+  \item \textbf{内存占用}：所有专家必须加载到内存中，
+        即使每次只激活一小部分。
+        671B MoE 模型的权重（BF16）约 1.3\,TB——
+        需要至少 17 块 H100（80\,GB）才能放下。
+  \item \textbf{微调困难}：
+        LoRA 等参数高效微调方法
+        在 MoE 上的应用并不直接——
+        应该给每个专家加 LoRA 适配器，
+        还是只给共享部分加？
+        给所有 256 个专家都加 LoRA 会导致参数量爆炸，
+        只给部分专家加则可能破坏路由的平衡。
+  \item \textbf{训练复杂度}：
+        负载均衡、通信优化、容量因子调节——
+        MoE 的超参数空间比稠密模型大得多。
+  \item \textbf{推理延迟}：
+        虽然 FLOP 更少，但 All-to-All 通信引入了额外延迟。
+        在单 GPU 推理中，MoE 的延迟优势可能被
+        更多的内存访问抵消
+        （所有专家的参数都在内存中，cache 命中率更低）。
+\end{itemize}
+
+\textbf{经验法则}：
+当目标模型的知识容量需要 $>$100B 参数，
+且推理成本是重要考量时，选择 MoE。
+当模型规模在 7B--14B，
+且部署环境受限（单 GPU、边缘设备）时，选择 Dense。
+\end{corebox}
+
+\begin{whybox}[为什么 MoE 是 2026 年的标准选择？]
+答案是\textbf{推理经济学}。训练一次，推理无数次。
+MoE 使得你可以用 37B 的推理成本获得 671B 的知识容量。
+当你服务数百万用户、每天处理数十亿 token 时，
+这个 $\sim$20$\times$ 的推理计算节省是巨大的。
+这就是为什么 2026 年所有 frontier 开源模型
+（DeepSeek-V3/V4、LLaMA 4、Qwen3-235B、Mistral Large 3）
+都采用了 MoE 架构。
+
+值得注意的是，MoE 并不总是最优选择。
+对于参数量在 7B--14B 的小模型，
+Dense（稠密）架构仍然占主导——
+因为小模型的参数本来就不多，
+再拆分成多个专家后每个专家太小，
+专业化程度不够。
+而且小模型通常部署在单块 GPU 甚至 CPU 上，
+MoE 的 All-to-All 通信开销在单设备上没有意义。
+
+MoE 的真正优势在大规模模型上：
+当你需要 $>$100B 的知识容量，
+但推理成本必须控制在 $\sim$20B 参数以内时，
+MoE 是唯一的选择。
+\end{whybox}
+
+
+%% ============================================================
+% NEW REF: jacobs1991moe = Adaptive Mixtures of Local Experts, Jacobs et al., Neural Computation 1991
+% NEW REF: lepikhin2021gshard = GShard: Scaling Giant Models with Conditional Computation, Lepikhin et al., ICLR 2021
+% NEW REF: zhou2022expertchoice = Mixture-of-Experts with Expert Choice Routing, Zhou et al., NeurIPS 2022
+%% --- NEW REFERENCES (March 2026 update) ---
+% NEW REF: dynamoe2026 = DynaMoE: Dynamic Token-Level Expert Activation with Layer-Wise Adaptive Capacity, Guelmez, arXiv 2026
+% NEW REF: dirmoe2026 = DirMoE: Differentiable Probabilistic Router for Mixture-of-Experts, ICLR 2026
+% NEW REF: l2r2026 = L2R: Low-Rank and Lipschitz-Controlled Routing for Mixture-of-Experts, Yang et al., arXiv 2026
+% NEW REF: llama4 = The Llama 4 Herd, Meta AI, 2025
+% NEW REF: qwen3 = Qwen3 Technical Report, Qwen Team, arXiv 2025
+% NEW REF: kimik2_moe = Kimi K2: Open Agentic Intelligence, Kimi Team, arXiv 2025
+% NEW REF: finemoe2026 = FineMoE: Taming Latency-Memory Trade-Off in MoE-Based LLM Serving, Yu et al., EuroSys 2026
+% NEW REF: adept2026 = Two-Stage Expert Offloading for Domain-Aware MoE Inference, Kim et al., IEEE Access 2026
+% NEW REF: dynaexq2025 = Dynamic Expert Quantization for Scalable MoE Inference, Chu et al., arXiv 2025
+% NEW REF: milo2025 = MiLo: Efficient Quantized MoE Inference with Low-Rank Compensators, Huang et al., arXiv 2025
+% NEW REF: lynx2025 = Lynx: Enabling Efficient MoE Inference via Dynamic Batch-Aware Expert Selection, arXiv 2025
+% NEW REF: moespeq2025 = MoE-SpeQ: Speculative Quantized Decoding with Expert Prefetching for MoE, Wang et al., arXiv 2025

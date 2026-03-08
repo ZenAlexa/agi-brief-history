@@ -1,0 +1,369 @@
+\chapter{附录：完整训练流水线速查}
+\label{app:pipeline}
+%% ============================================================
+
+以下是一个典型 frontier LLM（如 DeepSeek-V3 级别）
+从零开始训练到部署的完整流水线概览，
+供读者作为全景参考。
+
+\section{阶段一：数据准备（1--3 个月）}
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{网页爬取}：获取 Common Crawl 快照或自建爬虫，
+        原始数据量通常在 PB 级别。
+  \item \textbf{文本提取}：使用 trafilatura 等工具从 HTML 中提取纯文本，
+        去除导航栏、广告、模板文本。
+  \item \textbf{语言识别}：使用 fastText lid 识别文本语言，
+        按语言分类处理。
+  \item \textbf{精确去重}：URL 去重 + SHA-256 哈希去重，
+        去除完全相同的文档。
+  \item \textbf{模糊去重}：MinHash + LSH，
+        $n$-gram Jaccard 相似度阈值通常设为 0.8。
+  \item \textbf{质量过滤}：
+        规则过滤（行长度、特殊字符比例、重复行比例、
+        关键词黑名单）+
+        模型过滤（perplexity 过滤、分类器打分）。
+  \item \textbf{有害内容过滤}：
+        分类器识别色情、暴力、仇恨言论等内容并移除。
+  \item \textbf{个人信息去除}：
+        正则表达式匹配并删除电话号码、邮箱、身份证号等 PII。
+  \item \textbf{数据配比}：
+        确定网页:代码:学术:书籍:数学的比例，
+        通常需要在小模型上做 proxy 实验来确定最优比例。
+  \item \textbf{分词器训练}：
+        在最终数据集上训练 BPE 分词器（使用 SentencePiece），
+        确定词表大小（32K--150K）。
+  \item \textbf{数据打包}：
+        将 token 化的数据打包成连续的序列
+        （concatenation + document separator），
+        按训练序列长度切分，
+        写入高效的二进制格式（如 MDS、arrow）。
+\end{enumerate}
+
+\begin{keybox}[数据准备 Checklist]
+\begin{itemize}[noitemsep]
+  \item[\textbullet] 数据来源已确定？许可证已验证（CC、MIT 等）？
+  \item[\textbullet] 语言分布已规划？各语言的数据量比例是否合理？
+  \item[\textbullet] 质量指标已定义？perplexity 阈值、最小/最大文档长度、特殊字符上限？
+  \item[\textbullet] 去重已完成？精确去重 + 模糊去重，去重率通常在 30--60\%？
+  \item[\textbullet] PII 已移除？电话、邮箱、身份证号、信用卡号等？
+  \item[\textbullet] 存储预算已确认？经验法则：$\sim$2\,TB / 1T tokens（压缩后，Parquet 格式）
+\end{itemize}
+\end{keybox}
+
+\textbf{推荐工具链}：
+Datatrove~\cite{penedo2024fineweb}（HuggingFace 的数据处理框架，FineWeb 的基础）
+用于构建端到端的数据管道；
+trafilatura 用于网页文本提取；
+fastText lid 用于语言识别；
+text-dedup 用于高效去重（支持 MinHash/SimHash/SuffixArray）；
+Parquet 格式用于存储（列式压缩，高效随机访问）。
+
+\section{阶段二：预训练（1--3 个月）}
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{架构确定}：
+        模型大小、层数、头数、FFN 维度、
+        是否使用 MoE、专家数量、GQA 组数等。
+  \item \textbf{并行策略配置}：
+        根据 GPU 数量和模型大小确定
+        DP / TP / PP / SP / EP 的维度划分。
+  \item \textbf{超参数搜索}：
+        在小模型（proxy model）上搜索最优的
+        学习率、batch size、warmup steps 等，
+        利用 Scaling Laws 推算到目标规模。
+  \item \textbf{训练启动}：
+        分阶段训练——
+        先用较短的上下文长度（如 4K）训练主体，
+        后期扩展到长上下文（如 128K）。
+  \item \textbf{持续监控}：
+        loss 曲线、梯度范数、学习率、GPU 利用率、
+        通信带宽、checkpoint 大小，
+        出现 loss spike 时回滚检查点。
+  \item \textbf{中间评估}：
+        定期在验证集和少量基准测试上评估，
+        发现问题及时调整数据配比或超参数。
+\end{enumerate}
+
+\begin{corebox}[预训练超参数起点（7B Dense Model 参考值）]
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{超参数} & \textbf{参考值与说明} \\
+\midrule
+Learning rate & 峰值 $3 \times 10^{-4}$，cosine decay 至峰值的 $1/10$ \\
+Batch size    & 4M tokens（可从 1M 逐步增大） \\
+Warmup steps  & 2000 步 \\
+Weight decay  & 0.1 \\
+Adam $\beta$  & $\beta_1 = 0.9, \beta_2 = 0.95$ \\
+Gradient clipping & 1.0 \\
+序列长度      & 主训练阶段 4K--8K，后期扩展到 32K--128K \\
+精度          & BF16 mixed precision（部分计算用 FP32 累积） \\
+\bottomrule
+\end{tabularx}
+\end{corebox}
+
+\textbf{Checkpoint 策略}：
+每 1000--2000 步保存一次 checkpoint，
+保留最近 5--10 个 checkpoint（滚动覆盖旧的）。
+每个完整训练 checkpoint 需要保存：
+BF16 参数（$\times 2$ 字节）、
+FP32 master weights（$\times 4$ 字节）、
+以及 Adam 优化器状态 $m$ 和 $v$（各 $\times 1$ 字节，通常以 BF16 保存），
+总计约为模型参数量 $\times$ 8 字节。
+对于 7B 模型，单个 checkpoint 约 56\,GB；
+对于 70B 模型，约 560\,GB。
+
+\textbf{监控指标}：
+\begin{itemize}[noitemsep]
+  \item \textbf{Loss 曲线}：应平滑下降，任何突然上升（spike）都需要调查。
+  \item \textbf{Gradient norm}：应稳定在一定范围内，突然增大可能预示发散。
+  \item \textbf{Learning rate}：确认调度器按预期工作。
+  \item \textbf{GPU 利用率}：目标 > 90\%，低于此说明存在瓶颈。
+  \item \textbf{Tokens/second}：训练吞吐量，用于估算完成时间。
+  \item \textbf{MFU}（Model FLOPs Utilization）：
+        实际计算量 / 理论峰值计算量，
+        优秀的实现可以达到 40--60\%。
+\end{itemize}
+
+\begin{warnbox}[常见故障与对策]
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{现象} & \textbf{可能原因与对策} \\
+\midrule
+Loss spike（突然上升） &
+  数据异常（检查当前 batch 的数据质量）；
+  学习率过高（降低 LR 或回滚 checkpoint）；
+  梯度爆炸（检查 gradient clipping 是否生效） \\
+Loss 不下降 &
+  学习率过低；
+  数据有严重质量问题；
+  模型架构 bug（如 residual connection 缺失） \\
+GPU 利用率低 &
+  数据加载瓶颈（增加 dataloader workers）；
+  通信瓶颈（检查网络带宽、调整并行策略）；
+  batch size 过小 \\
+OOM（显存不足） &
+  减小 batch size；
+  增加 TP/PP 维度；
+  启用 activation checkpointing \\
+\bottomrule
+\end{tabularx}
+\end{warnbox}
+
+\section{阶段三：后训练（2--6 周）}
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{SFT 阶段}：
+        在 10K--1M 条高质量（指令, 回答）对上微调。
+        数据来源包括人工编写、模型生成（合成数据）和开源数据集。
+  \item \textbf{偏好优化}：
+        收集偏好数据 → 使用 DPO 或 GRPO 优化。
+        对于推理模型，这一步可能需要多轮 RL 训练。
+  \item \textbf{安全对齐}：
+        在安全数据集上做额外的 SFT/RL，
+        确保模型拒绝有害请求。
+  \item \textbf{全面评估}：
+        在所有目标基准测试上评估，
+        与前代模型和竞品对比。
+  \item \textbf{红队测试}：
+        专业团队尝试各种越狱和滥用场景，
+        发现漏洞后迭代对齐。
+\end{enumerate}
+
+\begin{corebox}[后训练超参数参考]
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{阶段} & \textbf{超参数} & \textbf{参考值} \\
+\midrule
+SFT & Learning rate & $1 \times 10^{-5}$ -- $2 \times 10^{-5}$ \\
+SFT & Epochs        & 1--3 epochs（数据量少时可多轮） \\
+SFT & Batch size    & Effective batch size 128--512 samples \\
+SFT & LR schedule   & Cosine decay \\
+\midrule
+DPO/GRPO & Learning rate & $5 \times 10^{-7}$ -- $5 \times 10^{-6}$ \\
+DPO/GRPO & KL penalty $\beta$ & 0.05--0.1（DPO）；无（GRPO 用 clipping） \\
+DPO/GRPO & Epochs & 1 epoch（过拟合风险高） \\
+\midrule
+\multicolumn{2}{l}{SFT 数据量} & 10K--100K 条高质量指令对 \\
+\multicolumn{2}{l}{偏好数据量} & 50K--200K 条偏好对比对 \\
+\bottomrule
+\end{tabularx}
+\end{corebox}
+
+\textbf{后训练关键提醒}：
+每个后训练阶段完成后，
+都要在基础能力 benchmark（如 MMLU、HumanEval、MATH）
+上检查是否有能力退化（regression）。
+过度的后训练（特别是安全对齐）可能导致模型变得
+过度保守（over-refusal），
+在基础能力上反而变差——
+这被称为 alignment tax。
+
+\section{阶段四：部署与推理优化（持续）}
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{量化}：
+        将模型权重从 BF16 量化到 FP8/INT4 等格式，
+        在质量和速度之间找到最优点。
+  \item \textbf{推理框架部署}：
+        选择 vLLM / SGLang / TensorRT-LLM，
+        配置 continuous batching、prefix caching 等。
+  \item \textbf{服务架构}：
+        负载均衡、自动扩缩容、
+        请求路由（简单请求用小模型，复杂请求用大模型）。
+  \item \textbf{持续监控}：
+        延迟、吞吐量、错误率、用户满意度，
+        发现退化时及时回滚或更新。
+\end{enumerate}
+
+\begin{keybox}[量化级别决策树]
+\begin{itemize}[noitemsep]
+  \item 精度要求高 + 延迟预算充裕 → \textbf{FP8}（近零精度损失）
+  \item 精度要求中 + 高吞吐需求 → \textbf{INT4/AWQ}（2--3$\times$ 加速）
+  \item 消费级硬件 / 端侧部署 → \textbf{GGUF Q4\_K\_M}（4-bit，质量/速度最佳平衡）
+  \item 极限压缩 / 嵌入式设备 → \textbf{Q2\_K / 2-bit}（显著质量损失，仅限简单任务）
+\end{itemize}
+\end{keybox}
+
+\textbf{服务架构参考}：
+API Gateway（认证、限流、计费）→
+Load Balancer（请求分发、健康检查）→
+Inference Servers（vLLM/SGLang 实例池）→
+Model Registry（模型版本管理、灰度发布）。
+
+\textbf{监控指标}：
+P50/P95/P99 延迟、
+吞吐量（tokens/second/GPU）、
+错误率（5xx 响应比例）、
+成本效率（\$/million tokens）。
+
+\textbf{成本优化策略}：
+Batch size 调优（更大的 batch 提高吞吐但增加延迟）；
+Prefix caching（对于有共同 system prompt 的请求，
+缓存 KV cache 可以减少 40--70\% 的 prefill 计算）；
+模型路由（简单查询用 7B 模型，复杂查询用 70B 模型，
+通过 intent classifier 自动分配）。
+
+\section{资源需求总览}
+
+\begin{corebox}[从零到部署的资源需求估算（70B Dense Model）]
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{阶段} & \textbf{GPU 需求} & \textbf{时间与成本估算} \\
+\midrule
+数据准备    & CPU 集群为主  & 1--3 个月，主要是人力和存储成本 \\
+预训练      & 2048$\times$ H100   & 2--3 个月，\$10--50M GPU 租赁 \\
+后训练      & 128--512$\times$ H100 & 2--6 周，\$100K--1M \\
+推理部署    & 8--64$\times$ H100/请求 & 持续运营，\$0.5--5/M tokens \\
+\bottomrule
+\end{tabularx}
+\end{corebox}
+
+\section{术语表}
+
+\begin{table}[H]
+\centering\small
+\caption{LLM 训练核心术语速查}
+\begin{tabularx}{\linewidth}{l X}
+\toprule
+\textbf{术语} & \textbf{定义} \\
+\midrule
+Attention &
+  Transformer 的核心机制，允许每个 token 根据相关性
+  动态地从其他 token 获取信息 \\
+BPE (Byte-Pair Encoding) &
+  主流分词算法，通过迭代合并最频繁的相邻 token 对构建词表 \\
+Checkpoint &
+  训练过程中保存的模型状态快照，用于故障恢复和评估 \\
+DPO (Direct Preference Optimization) &
+  无需 reward model 的偏好优化方法，
+  直接用偏好数据训练策略模型~\cite{rafailov2023dpo} \\
+FSDP &
+  Fully Sharded Data Parallel，PyTorch 原生的分片数据并行 \\
+GQA (Grouped-Query Attention) &
+  多个 query head 共享一组 key/value head，
+  减少 KV cache 大小 \\
+GRPO &
+  Group Relative Policy Optimization，
+  DeepSeek 提出的无需 reward model 的 RL 方法~\cite{shao2024grpo} \\
+KV Cache &
+  推理时缓存已计算的 Key 和 Value 向量，避免重复计算 \\
+LoRA (Low-Rank Adaptation) &
+  参数高效微调方法，
+  只训练低秩分解的小矩阵~\cite{hu2021lora} \\
+MFU (Model FLOPs Utilization) &
+  实际计算量 / 硬件理论峰值，衡量训练效率 \\
+MoE (Mixture of Experts) &
+  混合专家架构，每个 token 只激活部分参数，
+  实现参数效率与计算效率的解耦 \\
+RLHF &
+  Reinforcement Learning from Human Feedback，
+  用人类偏好训练 reward model 再用 RL 优化策略~\cite{ouyang2022rlhf} \\
+RoPE (Rotary Position Embedding) &
+  旋转位置编码，通过旋转矩阵编码相对位置~\cite{su2021rope} \\
+Scaling Laws &
+  模型性能与参数量/数据量/计算量之间的幂律关系~\cite{kaplan2020scaling} \\
+SFT (Supervised Fine-Tuning) &
+  监督微调，在（指令, 回答）对上继续训练 \\
+Tensor Parallelism &
+  将单个层的权重矩阵沿行或列维度切分到多块 GPU \\
+Pipeline Parallelism &
+  将模型的不同层分配到不同 GPU，形成流水线 \\
+Quantization（量化） &
+  通过降低数值精度（如 FP16→INT4）来减少模型内存占用和加速推理 \\
+RAG (Retrieval-Augmented Generation) &
+  检索增强生成，通过检索外部知识库来增强模型的生成质量，
+  缓解幻觉问题 \\
+CoT (Chain-of-Thought) &
+  思维链，通过逐步推理来解决复杂问题的提示策略 \\
+MCP (Model Context Protocol) &
+  模型上下文协议，由 Anthropic 开源的标准化工具调用协议，
+  定义 Agent 与外部工具交互的统一格式 \\
+VLM (Vision-Language Model) &
+  视觉语言模型，能够同时处理图像和文本的多模态模型 \\
+ZeRO &
+  DeepSpeed 的内存优化策略，
+  分片 optimizer states / gradients / parameters~\cite{rajbhandari2020zero} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{推荐阅读}
+
+以下是每个 LLM 从业者都应该阅读的核心文献：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Attention Is All You Need}~\cite{vaswani2017attention}——
+        Transformer 架构的原始论文，
+        奠定了整个现代 LLM 的基础。
+  \item \textbf{Scaling Laws for Neural Language Models}~\cite{kaplan2020scaling}——
+        发现了模型性能与资源之间的幂律关系，
+        改变了整个领域的资源分配策略。
+  \item \textbf{Training Compute-Optimal Large Language Models}~\cite{hoffmann2022chinchilla}——
+        Chinchilla 论文，纠正了 Kaplan 的结论，
+        表明数据量应与模型大小同步扩展。
+  \item \textbf{LLaMA: Open and Efficient Foundation Language Models}~\cite{touvron2023llama}——
+        证明了开源模型可以达到闭源水平，
+        引爆了开源 LLM 生态。
+  \item \textbf{DeepSeek-V3 Technical Report}~\cite{deepseekv3}——
+        工程智慧的集大成之作，
+        展示了如何用有限资源训练 frontier model。
+  \item \textbf{DeepSeek-R1}~\cite{deepseekr1}——
+        通过 RL 激发推理能力的典范，
+        GRPO 的成功改变了后训练的方法论。
+  \item \textbf{FlashAttention}~\cite{dao2022flashattention}——
+        IO-aware 的注意力计算，
+        将算法优化与硬件特性深度结合。
+  \item \textbf{Direct Preference Optimization (DPO)}~\cite{rafailov2023dpo}——
+        优雅地简化了 RLHF 流程，
+        证明了简单方法可以替代复杂系统。
+  \item \textbf{LoRA}~\cite{hu2021lora}——
+        参数高效微调的奠基工作，
+        使得在消费级硬件上微调大模型成为可能。
+  \item \textbf{The Bitter Lesson}~\cite{sutton2019bitterlesson}——
+        Rich Sutton 的经典短文，
+        论证了利用计算规模的通用方法
+        总是最终胜过人工设计的特殊方法。
+\end{enumerate}
+
+

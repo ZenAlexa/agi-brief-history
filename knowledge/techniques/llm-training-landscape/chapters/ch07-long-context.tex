@@ -1,0 +1,870 @@
+\chapter{长上下文——让模型阅读整本书}
+\label{ch:long-context}
+%% ============================================================
+
+早期的 Transformer 模型只能处理 512 或 2048 个 token——
+大约一两页文字。这严重限制了模型的实用性：
+它无法阅读一篇长论文，无法理解一个完整的代码仓库，
+更无法在长篇对话中保持一致性。
+
+2025--2026 年，长上下文能力取得了巨大突破。
+下表展示了截至 2026 年初主要模型的上下文窗口对比：
+
+\begin{center}
+\begin{tabular}{lcll}
+\hline
+\textbf{模型} & \textbf{上下文窗口} & \textbf{位置编码} & \textbf{发布时间} \\
+\hline
+LLaMA 4 Scout     & 10M tokens  & iRoPE       & 2025.04 \\
+Gemini 2.5 Pro    & 1M tokens   & 未公开       & 2025.03 \\
+Gemini 3 Pro/Flash & 1--2M tokens & 未公开      & 2025--2026 \\
+Claude Sonnet 4.5 / Opus 4.5 & 200K--1M tokens & 未公开 & 2025--2026 \\
+GPT-5 系列        & 400K tokens & 未公开       & 2025--2026 \\
+Kimi K2.5          & 256K tokens & RoPE 变体    & 2025 \\
+Jamba 1.5-Large   & 256K tokens & RoPE + SSM   & 2024.08 \\
+DeepSeek-V3       & 128K tokens & YaRN + MLA   & 2024.12 \\
+LLaMA 3.1 405B    & 128K tokens & RoPE + 频率调整 & 2024.07 \\
+Qwen 2.5          & 128K--1M tokens & YaRN    & 2024--2025 \\
+\hline
+\end{tabular}
+\end{center}
+
+LLaMA 4 Scout 以 10M token（约 15,000 页）
+创下了公开模型的最长上下文记录。
+Google 的 Gemini 系列稳定支持 1--2M token。
+Anthropic 的 Claude 系列在 2025--2026 年
+将上下文扩展到了 200K--1M token。
+OpenAI 的 GPT-5 系列达到了 400K token。
+
+但这些数字背后隐藏着艰巨的工程和科学挑战——
+让模型「看到」长文本和让模型「理解」长文本，
+完全是两回事。
+正如 Chroma 的 context rot 研究~\cite{chroma2025contextrot} 所揭示的：
+\textbf{标称上下文长度和有效上下文利用率之间存在巨大鸿沟。}
+
+\section{为什么长上下文很难？}
+
+长上下文的困难不是单一的，而是四重挑战的叠加。
+
+\subsection{计算复杂度：$O(n^2)$ 的诅咒}
+
+注意力机制的计算复杂度是 $O(n^2)$——
+序列长度翻倍，计算量翻四倍。
+让我们把这个抽象的复杂度换算成具体的数字：
+
+处理 4K token 时，每一层注意力需要计算
+$4{,}096 \times 4{,}096 = 16.8M$ 个注意力分数对。
+处理 128K token 时，这个数字变成
+$131{,}072 \times 131{,}072 \approx 16.4B$——
+\textbf{增长了近 1000 倍}。
+如果模型有 80 层（如 LLaMA 70B），
+那就是 $80 \times 16.4B \approx 1.3$ 万亿次注意力分数计算。
+
+即使有 FlashAttention~\cite{dao2022flashattention} 这样的优化
+（将注意力的 IO 复杂度从 $O(n^2)$ 降到 $O(n^2/M)$，
+其中 $M$ 是 SRAM 大小），
+计算量本身的 $O(n^2)$ 增长是无法改变的。
+128K token 的计算量就是 4K token 的 $1024\times$，
+这是数学决定的，没有捷径。
+
+\subsection{内存瓶颈：KV Cache 的爆炸}
+
+比计算更致命的是内存。
+在推理时，Transformer 需要缓存所有已处理 token 的
+Key 和 Value 向量（称为 KV cache），
+以便后续 token 做注意力计算。
+
+KV cache 的大小可以这样估算：
+\begin{equation}
+  \text{KV cache} = 2 \times n_{\text{layers}} \times n_{\text{kv\_heads}}
+  \times d_{\text{head}} \times n_{\text{tokens}} \times \text{bytes per element}
+  \label{eq:kv-cache-size}
+\end{equation}
+其中因子 2 来自 Key 和 Value 两组向量，
+$n_{\text{kv\_heads}}$ 是 KV 头的数量（注意不是 query 头的数量——
+在使用 GQA 的模型中两者不同）。
+
+LLaMA 70B 使用 GQA（Grouped Query Attention），
+有 64 个 \textbf{query 头}但只有 8 个 \textbf{KV 头}
+（每 8 个 query 头共享一组 KV 投影）。
+因此 KV cache 计算直接使用 $n_{\text{kv\_heads}} = 8$。
+
+对于 LLaMA 70B（80 层，8 个 KV heads，head 维度 128）
+处理 128K token，使用 BF16（2 bytes）：
+\[
+  2 \times 80 \times 8 \times 128 \times 131{,}072 \times 2
+  \approx 21 \text{ GB}
+\]
+仅一个用户的一次 128K 请求，
+光是 KV cache 就要占用约 21\,GB——
+超过单块 H100（80\,GB）显存的四分之一，
+模型权重还没算。
+如果不使用 GQA（即 64 个 KV heads），
+KV cache 将膨胀到约 171\,GB，远超单块 GPU 容量。
+
+\begin{warnbox}[KV Cache 是长上下文推理的真正瓶颈]
+很多人以为长上下文的瓶颈是计算。
+实际上，对于推理来说，\textbf{内存才是硬约束}。
+计算可以通过更多 GPU 和更长时间来解决，
+但 KV cache 必须驻留在 GPU 显存中，
+而单块 GPU 的显存是有限的。
+这就是为什么 KV cache 的压缩和分布式管理
+是长上下文推理工程中最核心的问题。
+\end{warnbox}
+
+\subsection{训练--推理的长度失配}
+
+第三个挑战更加根本：
+模型在训练时只见过一定长度的序列，
+当推理时序列长度超过训练长度时会发生什么？
+
+RoPE~\cite{su2021rope} 的位置编码依赖于旋转角度
+$\theta_i = 10000^{-2i/d}$。
+在训练长度内（比如 4K），
+模型见过的最大旋转角度是 $4096 \times \theta_i$。
+当推理时序列长度变成 32K，
+旋转角度变为 $32768 \times \theta_i$——
+这些角度值是模型从未在训练中遇到过的。
+
+直觉上，这就像一个只学过 0--100 范围内加法的学生
+被要求做 0--1000 范围的加法。
+虽然底层规则相同，但具体的数值模式是「未见过」的，
+注意力分数变得不可靠——
+这就是所谓的「外推失败」（extrapolation failure）。
+
+低频维度受影响最大：
+它们的旋转角度在训练范围内变化缓慢（不到一整圈），
+但在超长序列中可能转过好几圈，
+进入完全陌生的角度空间。
+高频维度则相对安全，
+因为它们在训练范围内已经转过了很多圈，
+多转几圈不会带来本质变化。
+
+\subsection{Lost in the Middle：中间信息的遗忘}
+
+第四个挑战来自模型的注意力分配模式。
+2023 年 Liu 等人的研究揭示了一个令人不安的现象：
+当输入序列很长时，
+模型对序列\textbf{开头}和\textbf{结尾}的信息关注度最高，
+而对\textbf{中间}部分的信息检索准确度显著下降——
+下降幅度超过 30\%。
+
+% NEW REF: liu2023lost = Liu et al., "Lost in the Middle: How Language Models Use Long Contexts", arXiv:2307.03172, 2023
+
+这种「U 型曲线」注意力模式有深层原因。
+在自回归训练中，
+每个 token 的损失只取决于它之前的 context。
+序列开头的 token 是所有后续 token 的 context，
+因此它们的信息被反复强化。
+序列结尾的 token 距离当前预测位置最近，
+在注意力分数中自然占优势（近因效应）。
+中间的 token 则两头不沾——
+既不是「总是被参考」的锚点，
+也不是「最近看到」的新鲜信息。
+
+这个发现意味着：仅仅增加上下文窗口是不够的。
+如果关键信息恰好落在长序列的中间部分，
+模型可能会「看到但不记住」——
+就像一个学生虽然读了整本教科书，
+但只记得开头和结尾的内容。
+
+\section{位置编码的扩展方法}
+
+面对训练--推理的长度失配问题，
+研究者们提出了一系列巧妙的位置编码扩展方法。
+这些方法的核心思想都是：
+让超长序列中的位置编码落入模型训练时见过的值域范围内。
+
+\subsection{线性位置插值}
+
+最直接的方法是\textbf{线性插值}：
+如果要将 4K 上下文扩展到 32K（$8\times$），
+就把所有位置索引除以 8。
+原来位置 32,768 的 token 变成位置 4,096——
+刚好是训练时见过的最大位置。
+
+% NEW REF: chen2023extending = Chen et al., "Extending Context Window of Large Language Models via Positional Interpolation", arXiv:2306.15595, 2023
+
+数学上，将位置 $m$ 替换为 $m/s$，
+其中 $s = L_{\text{target}} / L_{\text{train}}$ 是扩展比例。
+RoPE 的旋转角度变为 $(m/s) \cdot \theta_i$，
+确保所有角度都落在训练时见过的范围内。
+
+为什么这个简单的技巧有效？
+因为它保持了\textbf{相对位置关系}不变——
+如果 token A 和 token B 的相对位置差是 $\Delta$，
+插值后变成 $\Delta / s$，但两者的差值比例没变。
+模型学到的「距离越远注意力越弱」的模式仍然适用。
+
+但线性插值有明显的局限：
+当扩展比例 $s$ 很大时（比如 $32\times$ 以上），
+相邻 token 的位置差变得极小
+（从 1.0 变成 $1/32 = 0.03125$），
+模型难以区分紧邻的 token 的位置关系——
+局部分辨率严重下降。
+这就像把一张高清照片压缩到很小：
+全局结构保留了，但细节模糊了。
+
+\subsection{NTK-aware 插值}
+
+NTK-aware 插值的核心洞察是：
+\textbf{不应该对所有频率维度做相同比例的缩放}。
+
+回忆 RoPE 的频率：$\theta_i = b^{-2i/d}$（$b = 10000$）。
+高频维度（$i$ 小）负责编码\textbf{局部}位置关系
+（相邻 token 之间的差异），
+低频维度（$i$ 大）负责编码\textbf{全局}位置关系
+（文档开头 vs 文档结尾）。
+
+线性插值对所有频率一视同仁地除以 $s$，
+结果高频维度——负责局部关系的维度——被不必要地压缩了。
+NTK-aware 插值只调大 base 值 $b$：
+将 $b = 10000$ 替换为 $b' = 10000 \cdot s^{d/(d-2)}$。
+
+这产生了一种非均匀缩放效果：
+\begin{itemize}[noitemsep]
+  \item \textbf{高频维度}几乎不受影响——
+        它们的频率本来就高，稍微调整 base 对它们影响很小。
+        局部位置分辨率得以保留。
+  \item \textbf{低频维度}被显著缩放——
+        让它们能编码更远的位置关系。
+\end{itemize}
+
+一个有趣的类比：这就像数字系统中的进制变化。
+在十进制中，三位数能表示 0--999。
+如果我们把进制从 10 变成 100，
+三位数就能表示 0--$100^3 = 999{,}999$——
+扩大了 1000 倍的范围，
+但低位的分辨率几乎不变。
+
+NTK-aware 插值的最大优势是\textbf{不需要微调}——
+在中等扩展比例（$4\times$ 左右）下，
+直接修改 base 值就能在推理时扩展上下文，
+质量损失很小。但在高扩展比例下仍会退化。
+
+\subsection{YaRN：优雅的频率操控}
+
+YaRN（Yet Another RoPE extensioN）是当前最流行的上下文扩展方法。
+它的核心洞察是：RoPE 的不同频率维度应该被\textbf{区别对待}，
+而且不仅要调整频率，还要调整注意力的温度。
+
+% NEW REF: peng2023yarn = Peng et al., "YaRN: Efficient Context Window Extension of Large Language Models", arXiv:2309.00071, 2023
+
+RoPE 的频率 $\theta_i = 10000^{-2i/d}$ 从高频（$i$ 小）到低频（$i$ 大）。
+YaRN 将这些频率分为三组，并定义了一个关键概念——
+频率维度的「波长」$\lambda_i = 2\pi / \theta_i$。
+如果 $\lambda_i$ 远大于训练长度 $L$，
+说明该维度在训练中连一整圈都没转完，外推风险最高。
+如果 $\lambda_i$ 远小于 $L$，
+说明该维度已经转过很多圈，外推风险最低。
+
+基于这个分析，YaRN 将频率维度分为三组：
+\begin{itemize}[noitemsep]
+  \item \textbf{高频维度}（$\lambda_i < L$，对应短距离模式）：
+        不做任何修改——这些维度已经能处理局部关系，不需要调整。
+        它们在训练中转过了很多圈，
+        外推到更长序列时只是多转几圈而已。
+  \item \textbf{低频维度}（$\lambda_i > s \cdot L$，对应长距离模式）：
+        按上下文扩展比例进行激进的频率缩放——
+        比如要将 4K 扩展到 128K（$32\times$），
+        这些维度的频率除以 32。
+        它们必须被压缩到训练范围内，否则外推完全不可靠。
+  \item \textbf{中频维度}（$L \leq \lambda_i \leq s \cdot L$）：
+        进行渐进式的 NTK-aware 插值——
+        在不缩放和完全缩放之间做平滑过渡。
+        过渡函数是一个 ramp（线性插值因子），
+        避免了频率空间中的突变。
+\end{itemize}
+
+此外，YaRN 引入了\textbf{注意力温度缩放}因子 $\sqrt{t}$。
+长序列中注意力分数的方差会增大
+（因为更多的 token 参与 softmax 竞争），
+导致注意力分布变得过于「尖锐」——
+集中在少数 token 上，忽略其余信息。
+温度因子 $\sqrt{t}$ 相当于在 softmax 之前
+将注意力 logits 除以 $\sqrt{t}$（$t > 1$），
+降低 softmax 的「锐度」，
+让注意力分布更加平滑，
+使模型能更均匀地关注长序列中的信息。
+
+通过这些手段，YaRN 只需在原始预训练数据的极小比例上做微调
+（通常 $\sim$0.1\% 的训练数据，训练 $\sim$400 步），
+就能将上下文窗口扩展 $32\times$ 甚至更多。
+Qwen2.5、DeepSeek 等模型均使用 YaRN 变体进行上下文扩展。
+
+\subsection{Dynamic NTK：推理时自适应}
+
+Dynamic NTK 是一种在推理时根据实际序列长度
+\textbf{动态调整}插值比例的方法。
+
+核心思想很简单：不预设固定的扩展比例，
+而是在推理时检查当前序列长度 $n$——
+如果 $n \leq L_{\text{train}}$，不做任何修改；
+如果 $n > L_{\text{train}}$，
+将插值比例设为 $s = n / L_{\text{train}}$，
+然后应用 NTK-aware 缩放。
+
+这种方法的优势是\textbf{完全免微调}——
+不需要任何额外训练，只需修改推理代码。
+对于中等程度的扩展（$2\times$--$4\times$），
+Dynamic NTK 的质量损失可以接受。
+但对于大比例扩展（$8\times$ 以上），
+质量下降明显，因为模型没有在长序列上做过任何适应。
+
+Dynamic NTK 在实际应用中常被用作一种「应急方案」——
+当用户的输入偶尔超过训练长度时，
+它能优雅地降级，而不是直接崩溃。
+
+\section{iRoPE：Meta 的交替架构}
+
+LLaMA 4 引入了更激进的方案——iRoPE（interleaved RoPE）。
+它不是在位置编码的数值上做文章，
+而是从\textbf{架构层面}重新思考位置编码的角色。
+
+\subsection{核心设计：交替堆叠}
+
+iRoPE 交替堆叠两种注意力层：
+\begin{itemize}[noitemsep]
+  \item \textbf{RoPE 层}：使用旋转位置编码，
+        捕捉局部上下文和精确的相对位置关系。
+        这些层知道「哪个 token 在前，哪个在后」。
+  \item \textbf{NoPE 层}（No Positional Encoding）：
+        完全没有位置编码，注意力只基于语义内容。
+        这些层天然不受序列长度限制——
+        因为它们根本不编码位置信息。
+\end{itemize}
+
+为什么这种交替架构有效？
+关键洞察是：\textbf{不是所有注意力模式都需要位置信息}。
+
+考虑两种典型的注意力模式：
+一种是「这个代词指代的是三句话前的名词」——
+这需要精确的位置感知（RoPE 层的工作）。
+另一种是「这段话在讨论量子物理的概念」——
+这只需要语义匹配，不关心具体位置（NoPE 层的工作）。
+
+NoPE 层的存在使得模型对长序列有天然的适应性——
+它们关注的是「这个 token 的内容是什么」
+而非「这个 token 在哪个位置」。
+当序列从 8K 扩展到 1M 时，
+NoPE 层完全不受影响，
+只有 RoPE 层需要做位置编码的扩展。
+这等于把需要外推的层数减少了一半。
+
+\subsection{LLaMA 4 的 iRoPE 实现细节}
+
+LLaMA 4 系列包含三个模型，
+全部采用 iRoPE + MoE 架构：
+
+\begin{center}
+\begin{tabular}{lccccc}
+\hline
+\textbf{模型} & \textbf{总参数} & \textbf{活跃参数} & \textbf{专家数} & \textbf{上下文} \\
+\hline
+Scout   & 109B  & 17B  & 16    & 10M tokens \\
+Maverick & 400B & 17B  & 128   & 1M tokens \\
+Behemoth & 2T   & 288B & 16    & --- (训练中) \\
+\hline
+\end{tabular}
+\end{center}
+
+Scout 的 10M token 上下文窗口（约 15,000 页文本）
+是截至 2025 年 4 月所有公开模型中最长的。
+这个惊人的长度正是得益于 iRoPE 的架构设计：
+NoPE 层提供了「免费」的上下文扩展空间，
+RoPE 层通过频率调整处理位置敏感的注意力模式。
+
+在 LLaMA 4 的具体实现中~\cite{meta2025llama4}，
+iRoPE 的交替模式并非简单的 1:1 交替。
+Meta 发现不同的交替比例适合不同的模型规模——
+Scout 和 Maverick 使用了针对各自专家数量和模型规模
+优化的交替策略。
+
+iRoPE 还与 LLaMA 4 的其他架构创新协同工作：
+\begin{itemize}[noitemsep]
+  \item \textbf{早期融合}（Early Fusion）：
+        LLaMA 4 是原生多模态模型，
+        文本、图像和视频 token 在模型早期就被融合处理。
+        NoPE 层对跨模态注意力特别有价值——
+        「这张图片展示的概念」和「文本描述的概念」
+        之间的匹配是纯语义的，不需要位置信息
+  \item \textbf{MoE 稀疏激活}：
+        每个 token 只激活少量专家，
+        使得 Scout 的 109B 总参数中仅有 17B 活跃——
+        这让 10M 上下文在 8$\times$H100 上可运行
+\end{itemize}
+
+\begin{keybox}[iRoPE 的训练流程]
+LLaMA 4 的长上下文训练分三个阶段：
+\begin{enumerate}[noitemsep]
+  \item \textbf{预训练}：在 8K 上下文长度上完成主体训练。
+        这个阶段消耗了绝大部分计算。
+        Behemoth 作为「教师模型」在这个阶段训练，
+        Scout 和 Maverick 通过蒸馏获得高质量初始化。
+  \item \textbf{中等长度扩展}：调整 RoPE 层的频率参数，
+        将上下文扩展到 128K--256K，
+        在长文档数据上做少量继续训练。
+  \item \textbf{超长扩展}：进一步扩展到 1M--10M。
+        NoPE 层在这个阶段几乎不需要适应，
+        RoPE 层通过 YaRN 风格的频率操控进行扩展。
+\end{enumerate}
+LLaMA 4 Scout 通过 iRoPE 达到了 10M token 的上下文窗口——
+这在纯 RoPE 架构中几乎不可能实现。
+\end{keybox}
+
+\subsection{iRoPE 的推理优化}
+
+iRoPE 的另一个优势是推理效率。
+NoPE 层可以使用更激进的 KV cache 压缩策略
+（比如丢弃远距离的 KV），
+因为它们的注意力模式基于语义相似度而非位置，
+远距离的 token 只要语义不相关就不重要。
+而 RoPE 层则保留完整的位置信息，
+确保精确的位置感知不受影响。
+
+vLLM 在 v0.8.3 版本中已原生支持 LLaMA 4 的 iRoPE 架构。
+实测显示，使用 8$\times$H100，
+vLLM 可以为 Scout 提供 1M 上下文的推理服务，
+为 Maverick 提供约 430K 上下文的推理服务。
+
+\begin{warnbox}[iRoPE 的局限与争议]
+LLaMA 4 在发布后收到了一些社区反馈：
+虽然 10M token 的上下文窗口在 NIAH 等检索测试上表现优秀，
+但在需要\textbf{深度推理}的长上下文任务上，
+实际有效利用的上下文长度远低于标称值。
+这再次验证了「标称上下文长度 $\neq$ 有效上下文长度」的原则。
+此外，Behemoth 模型截至 2026 年初仍未正式发布，
+社区对其实际性能持审慎态度。
+\end{warnbox}
+
+\section{Ring Attention：跨 GPU 处理超长序列}
+
+即使解决了位置编码的问题，
+超长序列的 KV cache 仍然可能超过单块 GPU 的内存容量。
+Ring Attention 的解决方案是
+将长序列\textbf{分割到多块 GPU 上}。
+
+\subsection{核心思想：环形传递}
+
+Ring Attention 的灵感来自一个简单的观察：
+标准注意力要求每个 query 都能访问所有的 key 和 value，
+但没人说所有 KV 必须\textbf{同时}在同一块 GPU 上。
+
+设备排列成环形拓扑。
+每块 GPU 持有序列的一个 chunk（包含该 chunk 的 Q、K、V），
+然后执行以下步骤：
+\begin{enumerate}[noitemsep]
+  \item 每块 GPU 计算自己持有的 Q 与\textbf{当前本地} KV 的注意力。
+  \item \textbf{同时}，每块 GPU 将自己的 KV block
+        发送给环上的下一块 GPU，
+        并从前一块 GPU 接收新的 KV block。
+  \item 收到新的 KV block 后，计算 Q 与这些新 KV 的注意力，
+        将结果与之前的注意力输出做\textbf{在线聚合}
+        （online softmax aggregation——
+        不需要存储完整的注意力矩阵，
+        只需要维护 running sum 和 running max）。
+  \item 重复步骤 2--3，直到 KV block 在环上转了一整圈，
+        每块 GPU 都看到了所有的 KV。
+\end{enumerate}
+
+关键的工程技巧在于步骤 2：
+\textbf{通信与计算重叠}。
+当 GPU 在计算当前 KV block 的注意力时，
+下一个 KV block 正在通过网络传输过来。
+只要计算时间大于传输时间——
+在序列足够长的情况下通常成立——
+传输延迟就被完全隐藏了。
+
+\subsection{内存与扩展性分析}
+
+Ring Attention 将每块 GPU 的内存需求
+从 $O(n)$（存储完整 KV cache）降为 $O(n/P)$
+（$P$ 是 GPU 数量），
+理论上支持无限长的序列——
+只要有足够多的 GPU。
+PyTorch 已经将 Ring Attention 原生集成到
+ContextParallel API 中。
+
+但实际的扩展性受两个因素限制：
+\begin{itemize}[noitemsep]
+  \item \textbf{通信带宽}：每个 KV block 需要在环上传递 $P-1$ 次。
+        当 GPU 数量很多时，KV 的总通信量为 $O(n \cdot (P-1))$，
+        网络带宽成为瓶颈。
+        在 NVLink（900 GB/s）互连的节点内这不是问题，
+        但跨节点（通常 100--400 Gb/s InfiniBand）时延迟显著增加。
+  \item \textbf{收益递减}：超过一定长度后，
+        模型的有效信息利用率下降（context rot 效应），
+        更多的 GPU 和更长的上下文不一定带来更好的结果。
+\end{itemize}
+
+\subsection{Zig-Zag Ring Attention：负载均衡}
+
+Ring Attention 有一个变体叫 \textbf{Zig-Zag Ring Attention}，
+它解决了原始方法在自回归模型中的负载不均衡问题。
+在因果注意力中（每个 token 只能关注之前的 token），
+序列开头的 GPU 计算量最小（只有少量的 KV 对），
+序列末尾的 GPU 计算量最大（需要关注所有之前的 token）。
+
+如果将序列按顺序均匀分配给 $P$ 块 GPU，
+第 1 块 GPU 的计算量约为第 $P$ 块的 $1/P$——
+当 $P = 8$ 时，最轻的 GPU 只有最重的 $1/8$ 的工作量，
+7/8 的时间在空等。
+
+Zig-Zag 通过锯齿形的序列分割策略平衡各 GPU 的负载：
+第一块 GPU 拿第 1、4、5、8 段序列，
+第二块拿第 2、3、6、7 段……
+使得每块 GPU 处理的总 token 数近似相等。
+直觉上，每块 GPU 同时拥有序列开头（计算量小）
+和序列末尾（计算量大）的 chunk，
+两者的计算量互相平衡。
+
+\textbf{Striped Attention} 是另一种变体，
+它将序列按 token 级别交错分配
+（第 $i$ 个 token 分配给第 $i \mod P$ 块 GPU），
+实现了理论上完美的负载均衡，
+但通信模式更复杂。
+
+\section{长上下文训练的实践}
+
+支持长上下文不是简单地「把序列长度调大」就行。
+需要在数据、训练策略和工程三个维度同时发力。
+
+\subsection{多阶段扩展训练}
+
+通常需要分阶段训练：
+
+\textbf{阶段一}：在标准上下文长度（如 4K--8K）上完成主体预训练，
+消耗大部分训练 token（如 14T 中的 13.5T）。
+这个阶段的重点是学习语言和知识，上下文长度不是关注点。
+
+\textbf{阶段二}：逐步扩展上下文长度——
+先扩展到 32K，训练少量数据适应；
+然后扩展到 128K，再训练一批数据。
+Qwen2.5 的长上下文版本甚至使用了三阶段扩展（32K → 128K → 1M）。
+每次扩展时需要调整 RoPE 的频率参数（通过 YaRN 或类似方法）。
+
+LLaMA 3~\cite{dubey2024llama3} 的长上下文训练提供了一个典型的工程实例：
+预训练在 8K 上下文上完成，
+然后通过六个子阶段逐步扩展到 128K——
+每个子阶段将上下文长度翻倍（8K → 16K → 32K → ... → 128K），
+同时逐步增大 RoPE 的 base 频率
+（从 $5 \times 10^5$ 逐步增大到 $8 \times 10^6$）。
+
+\textbf{阶段三}：在长上下文数据上做 SFT，
+确保模型能够在长文本中遵循指令、
+回答关于文档特定部分的问题、
+以及保持长距离的一致性。
+
+这种分阶段策略的原因是：
+长序列的训练效率远低于短序列——
+注意力的 $O(n^2)$ 复杂度意味着
+一条 128K 的样本比 32 条 4K 的样本\textbf{慢得多}，
+但包含的有效 token 数是一样的。
+在短序列上完成大部分学习，
+然后在长序列上做少量适应，是效率最优的策略。
+
+\subsection{长上下文训练数据}
+
+长上下文训练面临一个独特的数据挑战：
+\textbf{大多数高质量文本都不长}。
+网页平均长度约 2K--4K token，
+新闻文章约 500--2000 token。
+真正超过 32K token 的高质量文档并不多。
+
+长上下文训练数据的来源：
+\begin{itemize}[noitemsep]
+  \item \textbf{书籍}：单本书通常在 50K--500K token，
+        是最天然的长上下文数据源。
+        但版权问题限制了可用数量。
+  \item \textbf{代码仓库}：一个完整的代码仓库
+        （包含所有文件及其依赖关系）
+        可以轻松超过 100K token。
+        代码的优势是结构清晰、
+        有明确的跨文件引用关系。
+  \item \textbf{学术论文}：单篇论文 8K--30K token，
+        可以将相关论文串联起来作为长文档。
+  \item \textbf{法律和财务文档}：合同、招股书、法规
+        动辄数十万 token，是天然的长文本。
+  \item \textbf{合成长文档}：将多个相关短文档
+        按逻辑顺序拼接成长文档。
+        例如将关于同一主题的 Wikipedia 页面拼接起来，
+        或者在一组文档上生成跨文档的问答对。
+        这种方法需要小心处理拼接边界，
+        避免模型学到「文档之间无关联」的错误模式。
+\end{itemize}
+
+\subsection{长上下文 SFT 数据}
+
+阶段三的长上下文 SFT 需要专门设计的指令数据。
+典型的任务类型包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{长文档总结}：给出一篇 50K+ token 的文档，
+        要求模型生成不同粒度的摘要（一句话/一段/多页）。
+  \item \textbf{多文档问答}：给出多篇文档，
+        要求模型综合多个来源回答问题。
+        这测试的是跨文档信息整合能力。
+  \item \textbf{仓库级代码理解}：给出整个代码仓库，
+        要求模型解释架构、定位 bug、
+        或在保持全局一致性的前提下修改代码。
+  \item \textbf{长距离事实一致性}：
+        在对话的早期提供一组事实，
+        在很久之后（上万 token 的对话之后）
+        询问与这些事实相关的问题。
+\end{itemize}
+
+\subsection{推理工程优化}
+
+SGLang 在 2026 年初发布的 Chunked Pipeline Parallelism
+是长上下文推理的重要工程突破。
+它将长序列的 prefill（首次处理整个输入序列的阶段）
+分成多个 chunk，在不同 GPU 上以流水线方式并行处理。
+在 DeepSeek-V3.1 上的实测显示，
+处理 1M token 的输入延迟从 55.5 秒降至 10.5 秒——
+降低了 81\%，相当于 $3.31\times$ 的吞吐提升。
+这意味着用户可以在约 10 秒内完成对一整本书的「阅读」，
+极大地提升了长上下文模型的实用性。
+
+\section{长上下文的实际应用场景}
+
+长上下文能力开启了许多此前不可能的应用场景：
+
+\textbf{整仓库代码理解}：
+将一个完整的代码仓库（数万行代码）放入上下文，
+让模型理解整体架构后再回答具体问题或做修改。
+这比传统的 RAG（只检索相关片段）
+能获得更全面的上下文理解。
+Cursor 和 GitHub Copilot Workspace 等开发工具
+已经在利用这种能力——
+将整个项目的代码、配置文件、README
+一起放入上下文，让模型做出全局一致的修改。
+
+\textbf{长文档分析}：
+将一份数百页的法律合同或学术论文完整放入上下文，
+让模型进行总结、比较或提取特定信息。
+这避免了将文档切分成小块后丢失跨段落关联的问题。
+在金融领域，分析师可以将一整份招股书
+（通常 200--500 页）放入上下文，
+直接询问「这家公司的主要风险因素和竞争优势分别是什么？」
+
+\textbf{多文档对比分析}：
+将多篇研究论文同时放入上下文，
+让模型比较它们的方法、结果和结论。
+这在文献综述和系统性综述中特别有价值——
+传统做法需要人类研究者反复翻阅多篇论文，
+而长上下文模型可以「同时阅读」所有论文并做对比。
+
+\textbf{多轮对话的长期记忆}：
+在一次持续数小时的编程对话中，
+模型可以记住早期讨论的设计决策，
+在后期做修改时保持一致性。
+对于短上下文模型，长对话必须依赖
+RAG 或摘要来维持「记忆」，
+但这些方法不可避免地会丢失信息。
+足够长的上下文窗口可以直接保留完整的对话历史。
+
+\textbf{少样本学习}：
+在上下文中放入大量的示例和说明，
+让模型在不做任何微调的情况下学会新任务。
+更长的上下文意味着可以提供更多、更多样的示例。
+一个极端的例子：在上下文中放入整本编程教材，
+然后要求模型按照教材的风格和约定写代码——
+这比用几个 few-shot 示例效果好得多。
+
+\textbf{长内容生成}：
+生成长篇小说章节、技术文档、剧本等需要
+在数万 token 的范围内保持情节、角色、
+技术概念一致性的内容。
+短上下文模型在长篇生成中常出现前后矛盾——
+因为它「忘记了」前面写过什么。
+
+但正如下一节将讨论的，
+更长的上下文不等于更好的利用。
+在实际应用中，如何组织和筛选放入上下文的信息
+（context engineering）与上下文长度本身同样重要——
+甚至更重要。
+
+\section{Context Rot 与 NIAH：长上下文的质量评估}
+
+在追求更长的上下文窗口时，
+我们需要区分两个不同的能力维度：
+\textbf{检索}（retrieval）和\textbf{理解}（reasoning）。
+2025 年的研究表明，这两个维度之间的差距
+远比人们最初预期的更大。
+
+\subsection{Needle in a Haystack 测试}
+
+NIAH（Needle in a Haystack）是最广泛使用的长上下文评估方法。
+测试方法很简单：在一段无关的长文本（haystack）中
+插入一条关键信息（needle），
+然后询问模型关于这条信息的问题。
+通过改变 needle 的位置（开头/中间/结尾）
+和 haystack 的长度，
+可以绘制出模型在不同位置和长度下的检索准确率热力图。
+
+NIAH 测试揭示了几个重要模式：
+\begin{itemize}[noitemsep]
+  \item 大多数现代模型在 NIAH 上表现优秀——
+        即使在 128K 长度下，主流模型的检索准确率也接近 100\%。
+  \item 但 NIAH 本质上只测试\textbf{检索}——
+        模型能否找到特定信息。
+        这是长上下文能力的\textbf{必要条件}，
+        但远不是\textbf{充分条件}。
+\end{itemize}
+
+一个模型可以完美地通过 NIAH（找到 needle），
+但在需要\textbf{综合}长上下文中多处信息做推理时表现糟糕。
+比如「根据文档第 3 章和第 7 章的描述，
+这两部分的结论是否矛盾？」——
+这要求模型不仅找到两处信息，
+还要理解并比较它们的含义。
+
+\subsection{NIAH 的局限与更好的评估}
+
+NIAH 的根本问题是它把长上下文简化成了一个搜索任务。
+在真实场景中，用户很少需要「在长文档中找一句话」——
+更常见的是需要\textbf{综合}、\textbf{推理}和\textbf{比较}。
+
+更有挑战性的评估任务包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{Multi-Needle NIAH}：
+        在 haystack 中插入\textbf{多个}相关信息片段，
+        要求模型综合所有片段才能回答问题。
+        这测试的是信息\textbf{聚合}能力，
+        而非单点检索
+  \item \textbf{RULER}（2024）：
+        包含多种长上下文推理任务——
+        变量追踪、多跳推理、
+        以及需要整合分散在上下文各处的信息的复合任务
+  \item \textbf{长文档摘要质量}：
+        给模型一篇 100K+ token 的文档，
+        评估摘要是否遗漏了中间部分的关键信息。
+        这直接测量 lost-in-the-middle 效应
+  \item \textbf{BABILong}：
+        基于 bAbI 任务改编的长上下文推理基准，
+        需要在长文本中追踪实体状态和关系
+\end{itemize}
+
+\subsection{Context Rot：系统性退化}
+
+2025 年 7 月，Chroma 发布了影响深远的
+\textbf{context rot} 研究报告~\cite{chroma2025contextrot}，
+对 18 个 frontier 模型（包括 GPT-4.1、Claude 4、
+Gemini 2.5、Qwen3 等当时最新的模型）
+进行了系统性的长上下文评估。
+核心发现令人警醒：
+\textbf{所有模型都随着输入长度的增加而性能下降，
+即使远未达到标称的上下文窗口上限}。
+
+具体发现：
+\begin{itemize}[noitemsep]
+  \item \textbf{U 型曲线持续存在}：
+        模型对序列开头和结尾的信息关注度最高，
+        中间部分的信息检索准确度下降超过 30\%。
+        这被称为「lost in the middle」效应~\cite{liu2023lost}。
+        尽管 2024--2025 年的训练改进缓解了部分问题，
+        但 U 型模式并未消失——只是变得不那么陡峭
+  \item \textbf{反直觉发现}：有逻辑结构的上下文
+        比随机打乱的上下文\textbf{更难}检索——
+        模型在有意义的干扰信息中更容易「迷路」。
+        这意味着真实应用场景
+        （放入完整文档而非随机文本）的难度
+        比 NIAH 测试暗示的更高
+  \item \textbf{推理 vs 检索的鸿沟}：
+        在需要跨上下文推理的任务中，
+        性能下降比纯检索任务更为严重。
+        模型可能能找到两个相关段落，
+        但无法正确地将它们联系起来做推理。
+        对于简单的重复词计数任务，
+        一些模型在输入增长到几千 token 时
+        就开始出现可靠性问题
+  \item \textbf{标称 vs 有效上下文}：
+        实际测试显示，
+        许多模型的「有效上下文利用率」（实际可靠使用的比例）
+        仅为标称上下文窗口的 50--80\%。
+        例如一个标称 200K 的模型，
+        在约 100--160K token 后可靠性就开始下降
+  \item \textbf{核心结论}：
+        \textbf{Context engineering（如何组织上下文）
+        比 context length（能塞多少）更重要}
+\end{itemize}
+
+\subsection{Context Engineering：从「更长」到「更智能」}
+
+Anthropic 在 2025 年下半年
+明确将 ``context engineering'' 定义为构建高效 AI Agent 的核心技能，
+标志着行业思维从「追求更长的上下文窗口」
+转向「更智能地利用有限的上下文预算」~\cite{anthropic2025contexteng}。
+
+\begin{whybox}[Context Engineering 的核心原则]
+基于 context rot 的研究和生产实践，
+以下原则已成为行业共识：
+\begin{itemize}[noitemsep]
+  \item \textbf{重要信息前置}：
+        把最关键的指令和信息放在上下文的开头，
+        利用模型对开头信息的高关注度。
+        系统提示词（system prompt）和核心约束应在最前面
+  \item \textbf{冗余而非堆积}：
+        对关键信息做适度冗余
+       （比如在不同位置重复强调重要约束），
+        而不是试图塞入尽可能多的不同信息。
+        每个不必要的 token 都在\textbf{主动}降低其他 token 的注意力预算
+  \item \textbf{结构化组织}：
+        使用清晰的标题、分隔符和层次结构
+        帮助模型定位和组织信息。
+        XML 标签、Markdown 标题、编号列表
+        都能显著提高信息检索的可靠性
+  \item \textbf{即时上下文（Just-in-Time Context）}：
+        不要在一开始就加载所有信息，
+        而是在需要时才检索和注入——
+        这对 AI Agent 尤为重要。
+        一个执行 20 步任务的 Agent，
+        在每一步只需要当前相关的上下文，
+        而非全部 20 步的信息
+  \item \textbf{上下文压缩（Compaction）}：
+        对长时间运行的 Agent，
+        定期将已处理的上下文压缩为简洁的摘要，
+        丢弃不再需要的细节。
+        这类似于人类的「工作记忆管理」
+  \item \textbf{RAG + 长上下文的协同}：
+        RAG 负责从海量文档中筛选相关内容，
+        长上下文负责一次性理解所有筛选出的内容。
+        两者互补而非替代。
+        经验表明 RAG 检索 top-20 到 top-50 相关片段
+        并放入 32K--128K 的上下文中，
+        效果通常优于直接将整个文档塞入 1M 上下文
+\end{itemize}
+\end{whybox}
+
+\begin{corebox}[长上下文的未来方向]
+截至 2026 年初，长上下文领域有几个值得关注的研究方向：
+\begin{enumerate}[noitemsep]
+  \item \textbf{混合架构}：iRoPE（LLaMA 4）和 Transformer-SSM 混合模型
+        通过架构创新扩展上下文，
+        而非仅依赖位置编码技巧。
+        SSM 层不需要 KV cache，
+        天然适合超长上下文
+  \item \textbf{稀疏注意力训练}：
+        DeepSeek 的 NSA 证明了稀疏注意力可以端到端训练，
+        不再需要全注意力预训练后蒸馏的两阶段流程
+  \item \textbf{KV cache 压缩}：
+        MLA（DeepSeek）、GQA、动态 KV 驱逐等技术
+        持续降低长上下文推理的内存开销
+  \item \textbf{无限上下文}：
+        Ring Attention + 流水线并行使得
+        理论上可以处理任意长度的序列，
+        瓶颈从「能否处理」转变为「能否有效利用」
+  \item \textbf{Context engineering 工具化}：
+        自动上下文管理工具（如智能截断、
+        动态检索增强、注意力预算分配）
+        可能比扩展上下文窗口本身更有实际价值
+\end{enumerate}
+\end{corebox}
+
+
+%% ============================================================
+%% NEW REFERENCES (to be added to refs.bib):
+%% meta2025llama4 = Meta. "The Llama 4 Herd: The Beginning of a New Era of Natively Multimodal AI Innovation." Meta AI Blog, April 2025.
+%% chroma2025contextrot = Hong, Kelly et al. "Context Rot: How Increasing Input Tokens Impacts LLM Performance." Chroma Technical Report, July 2025.
+%% liu2023lost = Liu, Nelson et al. "Lost in the Middle: How Language Models Use Long Contexts." arXiv:2307.03172, 2023.
+%% anthropic2025contexteng = Anthropic. "Context Engineering for AI Agents." Anthropic Blog, 2025.
+%% ============================================================

@@ -1,0 +1,1248 @@
+\chapter{评估与安全——如何知道模型足够好？}
+\label{ch:eval}
+%% ============================================================
+
+\section{评估的困境}
+
+评估 LLM 是一个根本性的难题。
+传统的 NLP 评估——给定答案，检查是否正确——
+对于开放式生成任务完全不适用。
+一个问题可以有无数种正确的回答方式。
+
+\subsection{Goodhart 定律}
+
+\begin{warnbox}[Goodhart 定律的警告]
+「当一个度量成为目标时，它就不再是好的度量。」
+已有证据表明，一些模型在特定基准测试上被过度优化——
+在 MMLU 上得分很高，但在实际使用中表现平平。
+Chatbot Arena 的人类盲评被认为是最可靠的评估方式，
+因为它直接衡量用户满意度，
+而且每天更新的问题使得「针对性优化」变得困难。
+\end{warnbox}
+
+Goodhart 定律在 LLM 评估中有多种表现形式：
+
+\textbf{直接过拟合}：
+当模型开发者将 MMLU 得分作为关键指标反复迭代时，
+他们可能有意或无意地调整训练数据、训练策略和超参数
+来最大化 MMLU 分数。
+结果是模型学会了「做 MMLU 选择题」的模式，
+而不是真正掌握了 57 个学科的知识。
+
+\textbf{格式 hacking}：
+某些基准测试对输出格式敏感。
+例如，MMLU 期望模型输出 A/B/C/D 中的一个字母。
+一些模型被特别训练成在遇到选择题时
+以极高的概率直接输出字母，
+而不是先「思考」再回答。
+这提高了基准分数，但可能降低了模型在
+需要深思熟虑的真实场景中的表现。
+
+\textbf{奖励模型 hacking}：
+在使用 RLHF 时，模型可能学会了讨好奖励模型
+（生成奖励模型喜欢的风格——冗长、过度谨慎、
+频繁使用``I appreciate your question'' 这样的客套话），
+而不是真正提高回答质量。
+这是 Goodhart 定律在训练阶段的体现。
+
+\subsection{数据污染}
+\label{subsec:data-contamination}
+
+\textbf{数据污染}（data contamination）
+是基准测试面临的另一个严峻挑战：
+如果测试题目出现在了模型的训练数据中，
+模型可能只是在「背答案」而非真正推理。
+
+随着训练数据规模从数十亿扩大到数万亿 token，
+几乎不可能保证训练数据中完全不包含任何基准测试的内容——
+这些测试题本身就发布在互联网上。
+
+常用的检测和缓解方法包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{N-gram overlap detection}：
+        检查训练数据和测试题之间的 n-gram 重叠率。
+        超过阈值的样本被标记为可能泄露。
+  \item \textbf{Canary strings}：
+        在测试集中插入独特的标记字符串，
+        然后检查模型是否能记忆这些字符串。
+  \item \textbf{Temporal splits}：
+        使用模型训练截止日期\textbf{之后}发布的数据构建测试集。
+        LiveBench 就采用这种策略，定期更换测试题。
+  \item \textbf{Private test sets}：
+        不公开测试题的全部内容。
+        SWE-bench 的部分测试用例就是私有的。
+\end{itemize}
+
+\subsubsection{深入数据污染检测}
+
+近年来，数据污染检测已发展为一个独立的研究方向。
+Ravaut et al.\ (2024)~\cite{ravaut2024contamination}
+对现有方法进行了系统综述，
+将检测方法分为三个层面：
+
+\textbf{第一层：基于训练数据的检测}。
+如果能访问模型的训练数据（通常仅限开源模型），
+可以直接进行文本匹配。
+方法包括精确字符串匹配、
+N-gram 重叠率计算（通常用 8-gram 或 13-gram），
+以及语义相似度检索。
+GPT-4 的技术报告就使用了
+基于子串匹配的污染检测，
+但由于训练数据本身不公开，
+外部研究者无法独立验证。
+
+\textbf{第二层：基于模型行为的检测}。
+即使无法访问训练数据，
+也可以通过分析模型行为推断是否存在污染：
+\begin{itemize}[noitemsep]
+  \item \textbf{成员推断攻击}（Membership Inference Attack, MIA）：
+        利用模型对训练样本和非训练样本的不同行为
+        （如 perplexity 差异）来判断某个样本是否在训练集中。
+        Shi et al.\ (2024) 提出的 Min-K\% Prob 方法~\cite{shi2024detecting}
+        通过检查一段文本中概率最低的 K\% token
+        的平均对数概率来判断——
+        如果这些「最不可能」的 token 的概率仍然很高，
+        说明模型很可能在训练中见过这段文本。
+  \item \textbf{补全测试}（Completion Test）：
+        给模型一道测试题的前半部分，
+        检查它能否逐字补全后半部分。
+        如果模型能精确复现原文的表述
+        （而非给出语义等价但措辞不同的回答），
+        强烈暗示该题目出现在训练数据中。
+  \item \textbf{扰动一致性测试}（Perturbation Test）：
+        对基准测试题做微小的\textbf{语义保持}修改
+        （改变数字、替换名称、调整选项顺序），
+        如果模型在原题上准确率很高
+        但在扰动版本上大幅下降，
+        说明它可能只是记住了原题的答案。
+        Golchin \& Surdeanu (2024)~\cite{golchin2024time}
+        系统地研究了这种方法。
+\end{itemize}
+
+\textbf{第三层：基于基准设计的预防}。
+从源头上减少污染的可能性：
+\begin{itemize}[noitemsep]
+  \item \textbf{动态基准}：
+        LiveBench 和 LiveCodeBench 定期更新测试题，
+        使用模型训练截止日期之后的数据，
+        从根本上消除了数据泄露的可能性。
+  \item \textbf{私有测试集}：
+        保留一部分测试题不公开。
+        只接受 API 提交，服务端验证结果。
+  \item \textbf{程序化生成}：
+        使用参数化模板动态生成测试题。
+        每次评估使用不同的具体实例，
+        但考察相同的能力。
+        FrontierMath 的部分题目就采用了这种策略。
+\end{itemize}
+
+\begin{warnbox}[SWE-bench Verified 的污染警示]
+2026 年 2 月，OpenAI 发布报告指出
+SWE-bench Verified 已出现严重的数据污染问题~\cite{openai2026swebenchpro}。
+由于该基准的测试用例来自公开的 GitHub issue，
+许多模型的训练数据中包含了这些 issue 的讨论和解决方案。
+OpenAI 建议社区转向 SWE-bench Pro——
+一个使用私有测试用例和更严格防泄露措施的新版本。
+这一事件凸显了\textbf{任何公开的静态基准
+都有被污染的风险}，
+进一步强化了动态基准和私有测试集的重要性。
+\end{warnbox}
+
+\subsection{基准饱和}
+
+LLM 的进步速度让基准测试快速\textbf{饱和}——
+设计来区分好坏的测试，
+在最新的模型面前失去了区分度。
+
+GSM8K（8500 道小学数学应用题）在 2023 年初
+还被认为是衡量数学推理能力的有力基准。
+到 2025 年底，前沿模型在 GSM8K 上的准确率普遍超过 95\%，
+GSM8K 已经无法区分不同模型的数学能力。
+社区因此推出了更难的替代品：
+MATH（竞赛级数学）$\to$ AIME（数学奥林匹克）$\to$
+GPQA（博士级科学问题）$\to$ FrontierMath（研究级数学）。
+每一代更难的基准测试的生命周期都在缩短。
+
+这导致了一场\textbf{基准军备竞赛}：
+研究者不断设计更难的测试，模型不断攻克它们。
+这本身说明了 LLM 能力的快速进步，
+但也给评估方法论带来了挑战——
+我们需要的不仅是更难的题目，
+还需要更好的评估\textbf{范式}。
+
+\section{基准测试全景}
+
+主流基准测试覆盖不同能力维度：
+
+\subsection{知识与推理}
+\begin{itemize}[noitemsep]
+  \item \textbf{MMLU}（57 学科选择题）~\cite{hendrycks2021mmlu}：
+        从高中到专业级别的知识测试。
+        涵盖人文、社会科学、STEM 等。
+        2023 年的标杆，2025 年已接近饱和（前沿模型 $>$90\%）。
+  \item \textbf{MMLU-Pro}~\cite{wang2024mmlupro}：MMLU 的加强版。
+        10 个选项（而非 4 个），更难的题目，更少的格式泄露。
+        更好地区分当前前沿模型的知识深度。
+  \item \textbf{ARC}（AI2 Reasoning Challenge）：
+        科学推理题。ARC-Challenge 子集需要多步推理。
+  \item \textbf{GPQA}（Graduate-Level Google-Proof QA）~\cite{rein2024gpqa}：
+        博士级别的物理、化学、生物问题。
+        ``Google-Proof'' 意味着即使允许搜索也不容易回答——
+        需要深度专业知识和推理。
+  \item \textbf{Big-Bench Hard}：
+        从 BIG-Bench 的 204 个任务中筛选出
+        语言模型表现最差的 23 个任务。
+        专注于需要多步推理的困难问题。
+\end{itemize}
+
+\subsubsection{MMLU-Pro：超越 MMLU 的下一代知识基准}
+
+MMLU 在 2023--2024 年是 LLM 评估的核心指标，
+但随着前沿模型准确率逼近 90\% 甚至更高，
+其区分度急剧下降。
+Wang et al.\ (2024) 在 NeurIPS 2024 上提出了 MMLU-Pro~\cite{wang2024mmlupro}，
+通过三个关键改进重新拉开了模型之间的差距：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{10 选项制}：
+        从 MMLU 的 4 个选项增加到 10 个。
+        这将随机猜测的基线从 25\% 降低到 10\%，
+        大幅减少了「蒙对」的概率。
+        更重要的是，
+        10 个选项中的干扰项（distractors）经过精心设计，
+        反映了常见的错误推理路径，
+        使得需要真正理解才能排除。
+  \item \textbf{更高的推理需求}：
+        MMLU-Pro 的题目需要更多的多步推理。
+        实验表明，使用 Chain-of-Thought（CoT）提示
+        可以将 MMLU-Pro 的准确率提升 10--15 个百分点，
+        而在原始 MMLU 上 CoT 的提升幅度不到 2\%。
+        这说明 MMLU-Pro 的题目确实在考察推理能力，
+        而非简单的知识记忆。
+  \item \textbf{更强的鲁棒性}：
+        在 MMLU 上，选项顺序的变化可导致模型准确率波动 4--5\%；
+        在 MMLU-Pro 上，这种波动降低到 2\% 以内。
+        10 选项制降低了格式偏差（format bias）的影响。
+\end{enumerate}
+
+截至 2026 年初，前沿模型在 MMLU-Pro 上的准确率
+约为 85--90\%（对比 MMLU 上的 90--95\%），
+仍有足够的区分度。
+
+\subsubsection{GPQA Diamond：博士级的「Google-Proof」评估}
+
+GPQA~\cite{rein2024gpqa} 的设计理念是创造
+即使允许使用搜索引擎也难以回答的问题。
+题目由各领域的博士专家撰写并交叉验证：
+\textbf{领域专家}的准确率约为 65\%，
+而\textbf{拥有 Google 搜索权限的非专家}准确率仅约 34\%。
+这个巨大的差距证明了题目确实需要深度专业知识。
+
+GPQA Diamond 是 GPQA 中最具挑战性的 198 道题子集，
+涵盖物理、化学和生物三个学科。
+截至 2026 年初，
+推理模型（如 o3、R1）在 GPQA Diamond 上的准确率
+已达到 85--93\%，
+\textbf{首次在某些领域超越了人类博士专家}。
+这一方面说明了推理模型的巨大进步，
+另一方面也意味着 GPQA 可能在未来 1--2 年内饱和。
+
+\subsection{数学}
+\begin{itemize}[noitemsep]
+  \item \textbf{GSM8K}（8500 道小学应用题）：
+        曾经的标准数学基准。需要 2--8 步的基本数学运算。
+        2025 年已接近饱和——大多数前沿模型准确率 $>$95\%。
+  \item \textbf{MATH}（12,500 道竞赛级数学）：
+        覆盖代数、几何、数论等 7 个类别，
+        难度从 1 到 5。Level 5 仍有挑战性。
+  \item \textbf{AIME}（American Invitational Mathematics Examination）：
+        美国数学邀请赛真题。整数答案，需要创造性数学推理。
+        推理模型（R1, o1）在此基准上表现显著优于标准模型。
+  \item \textbf{FrontierMath}~\cite{glazer2024frontiermath}：
+        由 Epoch AI 与专业数学家合作设计的研究级数学基准。
+        详见下文单独展开。
+\end{itemize}
+
+\subsubsection{FrontierMath：AI 数学能力的终极测试}
+
+FrontierMath~\cite{glazer2024frontiermath}
+由 Epoch AI 于 2024 年 11 月发布，
+代表了目前最高难度的 AI 数学基准。
+它与之前的数学基准有根本性的不同：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{原创的未发表题目}：
+        所有 350 道题目都是由数学家专门为该基准\textbf{原创}的，
+        从未在任何地方发表过，
+        从根本上杜绝了数据泄露。
+  \item \textbf{研究级难度}：
+        题目覆盖数论、实分析、代数几何、范畴论等
+        现代数学的主要分支。
+        解决一道典型的 FrontierMath 题目
+        需要相关领域的数学研究者花费\textbf{数小时到数天}。
+  \item \textbf{四级难度体系}：
+        Tier 1--3 覆盖本科到博士后水平，
+        Tier 4 是研究级数学。
+        此外还有一组\textbf{开放问题}——
+        至今未被人类数学家解决的问题。
+  \item \textbf{自动验证}：
+        答案是精确的数值或数学对象，
+        可以通过程序自动验证，无需主观判断。
+\end{itemize}
+
+\begin{keybox}[FrontierMath 的标志性意义]
+当 FrontierMath 于 2024 年发布时，
+所有前沿模型的通过率不到 2\%。
+著名数学家 Terence Tao 评论道：
+``这些题目极具挑战性——
+我预计在数年内 AI 系统还无法解决其中的大部分。''
+然而到 2025 年底，
+推理模型（如 o3）在 Tier 1--2 上的通过率已超过 25\%，
+在 Tier 4 上仍然低于 5\%。
+FrontierMath 可能是目前唯一一个
+在可预见的未来不会饱和的 LLM 基准。
+\end{keybox}
+
+\subsection{代码}
+\begin{itemize}[noitemsep]
+  \item \textbf{HumanEval}（164 道函数级编程题）：
+        给出函数签名和 docstring，模型生成函数体。
+        用单元测试验证正确性。简单但有用的基线。
+  \item \textbf{MBPP}（Mostly Basic Python Problems）：
+        974 道入门级 Python 编程题。比 HumanEval 更多样但也更简单。
+  \item \textbf{SWE-bench}（真实 GitHub issue 修复）~\cite{jimenez2024swebench}：
+        给模型一个真实的 GitHub issue 和整个代码仓库，
+        要求生成修复 patch。
+        这是目前最接近\textbf{真实软件工程}场景的基准——
+        需要理解上千行代码、定位 bug、生成正确的修复。
+        前沿模型的通过率从 2024 年初的 $\sim$5\%
+        提升到 2025 年底的 $\sim$50\%（在 SWE-bench Verified 上）。
+  \item \textbf{LiveCodeBench}：
+        持续收集编程竞赛平台（LeetCode、Codeforces）的新题，
+        避免数据泄露。题目有明确的时间戳，
+        可以按模型训练截止日期进行公平比较。
+\end{itemize}
+
+\subsubsection{SWE-bench：从函数到系统的代码评估革命}
+
+SWE-bench~\cite{jimenez2024swebench} 的意义在于
+它将代码评估从\textbf{函数级}（HumanEval）
+提升到了\textbf{系统级}。
+一个典型的 SWE-bench 任务要求模型：
+\begin{enumerate}[noitemsep]
+  \item 阅读 GitHub issue 中用户的问题描述（通常含错误日志）。
+  \item 理解一个包含数百个文件、数万行代码的仓库结构。
+  \item 定位到 bug 所在的具体文件和函数。
+  \item 编写一个正确的 patch（包括代码修改和可能的测试更新）。
+  \item 通过仓库的既有测试套件验证。
+\end{enumerate}
+
+SWE-bench 经历了三个版本的演进：
+\begin{itemize}[noitemsep]
+  \item \textbf{SWE-bench}（原版）：
+        2294 个来自 12 个 Python 仓库的真实 issue。
+        部分任务被发现存在评估问题
+        （如测试不够严格导致错误方案通过）。
+  \item \textbf{SWE-bench Verified}（2024 年 8 月）：
+        由人类工程师审核的 500 个高质量子集。
+        确保每个任务的测试用例足够严格。
+        曾被广泛用作标准评估集。
+  \item \textbf{SWE-bench Pro}（2026 年，提议中）：
+        针对 Verified 版本出现的污染问题而提出的更新，
+        使用私有测试用例和更严格的防泄露措施。
+\end{itemize}
+
+\subsection{长上下文}
+\begin{itemize}[noitemsep]
+  \item \textbf{RULER}：
+        综合性长上下文评估。
+        包含多种任务类型（检索、聚合、推理）
+        和多种上下文长度（4K 到 128K+）。
+  \item \textbf{Needle-in-a-Haystack}（NIAH）：
+        在长文本中某个随机位置插入一个特定事实，
+        然后在文本末尾询问这个事实。
+        测试模型在不同上下文位置的信息检索能力。
+        简单直观，但只测试了最基本的「能否找到信息」。
+\end{itemize}
+
+\subsection{指令跟随与对话}
+\begin{itemize}[noitemsep]
+  \item \textbf{MT-Bench}：
+        80 道多轮对话题，由 GPT-4 评分（1--10 分）。
+        涵盖写作、推理、数学、编码等 8 个类别。
+        成本低，但受限于 GPT-4 自身的判断能力。
+  \item \textbf{AlpacaEval}：
+        805 道指令，由 GPT-4 与参考模型做 pairwise 比较。
+        快速廉价，但存在「长度偏见」——
+        GPT-4 评分器倾向于偏好更长的回答。
+        AlpacaEval 2.0 引入了长度控制来缓解这个问题。
+  \item \textbf{Arena-Hard}：
+        从 Chatbot Arena 的真实用户问题中
+        筛选出最具区分度的 500 道题。
+        使用 GPT-4-Turbo 做评判。
+        比 MT-Bench 和 AlpacaEval 有更高的区分度。
+\end{itemize}
+
+\subsection{动态基准：LiveBench}
+
+\begin{keybox}[LiveBench：抗污染的动态基准]
+LiveBench~\cite{white2024livebench} 采用了一种独特的策略来对抗数据泄露：
+它\textbf{定期更换测试题}，
+使用模型训练截止日期之后才出现的信息来构造问题。
+例如，使用最新的新闻文章、最新发布的数学竞赛题、
+最新的代码仓库 commit 来生成评估题目。
+这保证了没有模型能够通过训练数据「背答案」。
+代价是需要持续投入人力维护和更新测试集。
+\end{keybox}
+
+LiveBench 于 2024 年发布，
+并作为 Spotlight Paper 入选 ICLR 2025，
+标志着动态评估范式获得了学术界的认可。
+其设计原则包括：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{客观可验证的答案}：
+        每道题目都有明确的、可程序验证的正确答案，
+        消除了对 LLM 评判者的依赖。
+        这与 MT-Bench 和 AlpacaEval 依赖 GPT-4 评分形成对比。
+  \item \textbf{定期完全刷新}：
+        测试题每 6 个月完全更换一次。
+        旧题目公开用于研究，新题目取而代之。
+  \item \textbf{7 大类别、23 项任务}：
+        涵盖数学推理、代码生成、数据分析、
+        语言理解、指令跟随、逻辑推理、综合能力。
+  \item \textbf{天花板效应控制}：
+        即使是最强的前沿模型，
+        在 LiveBench 上的综合准确率也很少超过 65\%，
+        保持了良好的区分度。
+\end{enumerate}
+
+\subsection{Chatbot Arena：人类评估的金标准}
+\label{subsec:chatbot-arena}
+
+\textbf{LMSYS Chatbot Arena}%
+\footnote{LMSYS 即 Large Model Systems Organization，
+由 UC Berkeley SkyLab 的研究者于 2023 年创立。
+2025 年底，团队以 LMArena 的名义独立运营，
+并获得了超过 1 亿美元的融资。}
+是目前最受信赖的 LLM 评估平台。
+它的设计哲学是：让真实用户用真实问题来评判模型。
+
+\subsubsection{核心流程}
+
+\begin{enumerate}[noitemsep]
+  \item 用户提出\textbf{任意}问题——没有预设的题库，
+        问题完全来自真实用户需求。
+  \item 系统将问题同时发送给两个\textbf{匿名}模型。
+        用户不知道自己在与哪个模型对话。
+  \item 用户看到两个回答，选择更好的那个
+        （或选择平局，或选择「都不好」）。
+  \item 投票结束后揭示模型身份。
+  \item 基于所有投票，使用 Bradley-Terry 模型
+        计算每个模型的 Elo 评分。
+\end{enumerate}
+
+\subsubsection{Bradley-Terry 模型与 Elo 评分}
+
+Bradley-Terry 模型假设模型 $i$ 击败模型 $j$ 的概率是：
+\begin{equation}
+  P(i \succ j) = \frac{e^{\beta_i}}{e^{\beta_i} + e^{\beta_j}}
+  \label{eq:bt-model}
+\end{equation}
+其中 $\beta_i$ 是模型 $i$ 的能力参数。
+通过最大似然估计拟合所有投票数据，
+得到每个模型的 Elo 分数。
+
+更具体地说，给定 $N$ 次成对比较的数据
+$\{(i_k, j_k, y_k)\}_{k=1}^{N}$，
+其中 $y_k \in \{i_k, j_k\}$ 表示胜者，
+对数似然函数为：
+\begin{equation}
+  \mathcal{L}(\boldsymbol{\beta}) = \sum_{k=1}^{N}
+  \left[\beta_{y_k} - \log\left(e^{\beta_{i_k}} + e^{\beta_{j_k}}\right)\right]
+  \label{eq:bt-loglik}
+\end{equation}
+通过最大化此对数似然，
+可以估计所有模型的能力参数 $\boldsymbol{\beta}$。
+为了可解释性，
+最终的 Elo 分数通常线性变换到
+均值约 1000--1200 的范围内。
+
+\begin{whybox}[为什么 Bradley-Terry 优于简单胜率？]
+直接计算胜率（Win Rate）的问题在于：
+不同模型被匹配的对手不同。
+一个模型如果总是和弱模型对比，
+胜率会虚高但实力并不强。
+Bradley-Terry 模型的优势在于
+它同时考虑了\textbf{所有}成对比较的传递性——
+如果 A 经常胜 B，B 经常胜 C，
+即使 A 和 C 从未直接比较，
+模型也能正确推断 A 应该强于 C。
+这使得即使对战矩阵是稀疏的
+（并非每两个模型都有足够的直接对战），
+也能得到可靠的全局排名。
+\end{whybox}
+
+\subsubsection{Style Control：分离风格与实质}
+
+2024 年 8 月，Chatbot Arena 团队提出了
+\textbf{Style Control}（风格控制）机制~\cite{li2024stylecontrol}，
+解决了一个重要的偏见问题：
+用户倾向于偏好更\textbf{长}的、
+使用更多 \textbf{Markdown 格式}的回答。
+这意味着一个输出更冗长但内容不一定更好的模型
+可能获得更高的 Elo 分数。
+
+Style Control 通过在 Bradley-Terry 模型中
+加入\textbf{风格特征}作为协变量来缓解此问题：
+\begin{equation}
+  P(i \succ j) = \sigma\bigl(\beta_i - \beta_j
+  + \boldsymbol{\gamma}^\top(\mathbf{s}_i - \mathbf{s}_j)\bigr)
+  \label{eq:style-control}
+\end{equation}
+其中 $\sigma$ 是 sigmoid 函数，
+$\mathbf{s}_i$ 是模型 $i$ 的风格特征向量
+（包括回答长度、Markdown 使用率等），
+$\boldsymbol{\gamma}$ 是对应的系数。
+这样，$\beta_i$ 就更纯粹地反映了模型的
+\textbf{实质能力}而非风格偏好。
+
+开启 Style Control 后的排名变化非常有启发性：
+某些以简洁著称的模型（如早期的 Claude）
+在 Style Control 排名中显著上升；
+而某些以冗长著称的模型则相应下降。
+
+\subsubsection{分类排行榜}
+
+Chatbot Arena 不仅提供总体排名，
+还按\textbf{能力类别}提供细分排行榜：
+\begin{itemize}[noitemsep]
+  \item \textbf{Hard Prompts}：
+        从用户提交中筛选出特别困难的问题——
+        通常是需要深度推理、专业知识或复杂指令跟随的问题。
+        Hard Prompts 排名比总体排名更能区分前沿模型，
+        因为简单问题上大多数好模型表现相似。
+  \item \textbf{Coding}：编程相关问题的独立排名。
+  \item \textbf{Math}：数学推理问题的独立排名。
+  \item \textbf{Creative Writing}：创意写作能力排名。
+  \item \textbf{Vision}：
+        多模态（图文理解）能力排名。
+        截至 2026 年初已积累超过 67 万次视觉评估。
+  \item \textbf{多语言}：中文、日文、法文等非英语能力排名。
+\end{itemize}
+
+\begin{corebox}[Chatbot Arena 的数据规模（截至 2026 年初）]
+\begin{itemize}[noitemsep]
+  \item 累计超过 \textbf{800 万次}人类评估投票
+  \item 覆盖超过 \textbf{200 个}模型
+  \item 文本排行榜涵盖 100+ 模型，视觉排行榜涵盖 100+ 模型
+  \item LMArena 独立运营并获得超过 1 亿美元融资
+  \item 从 UC Berkeley 的学术项目演变为
+        AI 行业的基础设施级评估平台
+\end{itemize}
+\end{corebox}
+
+Chatbot Arena 的优势在于：
+\begin{itemize}[noitemsep]
+  \item \textbf{问题来自真实用户需求}，不是研究者预设的。
+  \item \textbf{评估标准由用户自定义}——
+        用户根据自己的偏好判断「更好」，不受固定评分标准约束。
+  \item \textbf{模型匿名}，消除了品牌偏见。
+  \item \textbf{动态更新}，使得针对性优化极为困难。
+  \item \textbf{统计显著性极高}——
+        百万级的投票量使得 Elo 评分的置信区间非常窄。
+\end{itemize}
+
+其局限性也值得注意：
+\begin{itemize}[noitemsep]
+  \item \textbf{用户群体偏差}：
+        Arena 的用户以技术人员为主，
+        可能不代表普通用户的偏好。
+  \item \textbf{单轮评估为主}：
+        大多数投票基于单轮对话，
+        无法完全反映多轮对话的质量。
+  \item \textbf{位置偏差}：
+        研究表明用户有轻微的偏好左侧回答的倾向，
+        虽然 Arena 通过随机化位置来缓解。
+  \item \textbf{无法评估安全性}：
+        用户投票主要基于「有用性」，
+        不会主动测试和评估安全性问题。
+\end{itemize}
+
+\section{推理能力评估}
+\label{sec:reasoning-eval}
+
+随着 OpenAI o1/o3 系列和 DeepSeek-R1 等\textbf{推理模型}
+（reasoning models）的出现，
+传统的评估范式面临新的挑战。
+推理模型通过在推理时生成大量 thinking tokens
+来进行深度思考（详见第~\ref{ch:ttc}~章），
+其能力特征与标准模型有显著差异——
+在需要多步推理的任务上表现极强，
+但在简单任务上可能反而因「过度思考」而表现更慢或更贵。
+
+\subsection{推理模型 vs 标准模型：评估差异}
+
+\begin{corebox}[推理模型的独特评估挑战]
+推理模型改变了评估的基本假设：
+\begin{enumerate}[noitemsep]
+  \item \textbf{成本不再恒定}：
+        标准模型每个问题消耗大致相同的计算量；
+        推理模型根据问题难度动态调整，
+        难题可能消耗 100 倍于简单题的 token。
+        基准测试的排名需要考虑\textbf{计算效率}，
+        而非仅仅是准确率。
+  \item \textbf{简单基准失去意义}：
+        推理模型在 GSM8K 上达到 $>$99\% 准确率，
+        在 MMLU 上超过 90\%——
+        这些基准完全无法区分推理模型的优劣。
+        评估推理模型需要\textbf{显著更难}的题目
+        （AIME、GPQA Diamond、FrontierMath）。
+  \item \textbf{Thinking tokens 的可观察性}：
+        一些推理模型（如 DeepSeek-R1）会输出完整的思考过程；
+        另一些（如 o1 早期版本）隐藏了思考过程。
+        这使得评估和比较推理质量变得复杂。
+\end{enumerate}
+\end{corebox}
+
+推理模型在不同基准上的表现模式值得关注。
+在「需要多步推理」的任务上，
+推理模型相对标准模型的提升幅度巨大：
+\begin{itemize}[noitemsep]
+  \item \textbf{AIME 2024/2025}：
+        标准模型（如 GPT-4o, Claude 3.5 Sonnet）
+        的通过率约为 10--20\%，
+        而推理模型（o3, R1）可以达到 80--90\% 以上。
+  \item \textbf{GPQA Diamond}：
+        标准模型准确率约 50--60\%，
+        推理模型达到 70--93\%，
+        部分结果超越人类博士专家水平。
+  \item \textbf{FrontierMath Tier 1--2}：
+        标准模型通过率 $<$5\%，
+        推理模型可达 25\% 以上。
+  \item \textbf{SWE-bench Verified}：
+        推理模型在复杂 bug 修复上
+        相比标准模型有 10--15 个百分点的提升。
+\end{itemize}
+
+但在「不需要深度推理」的任务上
+（如创意写作、简单问答、翻译），
+推理模型的表现与标准模型相当甚至稍弱——
+过多的 thinking tokens 有时反而引入不必要的复杂性。
+
+\subsection{过程奖励模型 vs 结果奖励模型}
+\label{subsec:prm-vs-orm}
+
+评估推理过程（而非仅评估最终答案）
+是推理模型训练和评估中的核心问题。
+两种主要范式形成了鲜明的对比：
+
+\subsubsection{结果奖励模型（ORM）}
+
+\textbf{结果奖励模型}（Outcome Reward Model, ORM）
+只关注最终答案是否正确：
+\begin{equation}
+  R_{\text{ORM}}(\text{solution}) =
+  \begin{cases}
+    +1 & \text{if final answer is correct} \\
+    -1 & \text{if final answer is wrong}
+  \end{cases}
+  \label{eq:orm}
+\end{equation}
+
+ORM 的优势是\textbf{标注简单}——
+只需验证最终答案，
+不需要评估每一步推理的正确性。
+对于数学和代码等有明确正确答案的任务，
+ORM 的标注成本几乎为零（自动验证）。
+
+但 ORM 存在严重的\textbf{信用分配问题}
+（credit assignment problem）：
+如果一个解题过程有 10 步，其中第 3 步出错导致最终答案错误，
+ORM 只知道「答案错了」，
+但不知道具体是哪一步出了问题。
+在使用 RL 训练时，
+错误的信用分配会导致学习效率低下——
+前两步（正确的）也可能被错误地惩罚，
+而第 3 步（错误的）可能没有被充分惩罚。
+
+\subsubsection{过程奖励模型（PRM）}
+
+\textbf{过程奖励模型}（Process Reward Model, PRM）~\cite{lightman2024lets}
+对推理过程的\textbf{每一步}提供反馈：
+\begin{equation}
+  R_{\text{PRM}}(\text{step}_t \mid \text{step}_{1:t-1}) \in [-1, +1]
+  \label{eq:prm}
+\end{equation}
+其中每一步的奖励取决于该步骤
+在之前所有步骤的上下文中是否正确。
+
+PRM 解决了信用分配问题——
+它能精确指出推理链中\textbf{哪一步}出错，
+为 RL 训练提供更密集、更准确的学习信号。
+OpenAI 在 2023 年的研究~\cite{lightman2024lets}
+表明 PRM 引导的搜索（Best-of-N with PRM）
+在数学问题上显著优于 ORM 引导的搜索。
+
+\begin{whybox}[PRM 为什么更有效？]
+直觉上，PRM vs ORM 的差异
+类似于老师批改作业的两种方式：
+\begin{itemize}[noitemsep]
+  \item \textbf{ORM}：只看最终答案，
+        打对号或叉号，不做过程批注。
+        学生知道答案错了，但不知道错在哪里。
+  \item \textbf{PRM}：逐步检查，
+        在每一步标注对错。
+        学生能精确知道自己在哪一步走偏了。
+\end{itemize}
+后者显然提供了更多的学习信息，
+但\textbf{批注成本}（标注成本）也高得多。
+\end{whybox}
+
+\subsubsection{PRM 的标注瓶颈与自动化}
+
+PRM 面临的核心挑战是\textbf{标注成本}：
+逐步评估推理过程需要大量的人力。
+OpenAI 的 PRM800K 数据集~\cite{lightman2024lets}
+包含了 80 万步的人类标注，成本极高且难以扩展。
+
+Setlur et al.\ (2025)~\cite{setlur2025rewarding}
+在 ICLR 2025 上提出了
+\textbf{自动化过程验证}（Automated Process Verification）的方法。
+核心思想是利用结果监督来\textbf{自动生成}过程标签：
+\begin{enumerate}[noitemsep]
+  \item 给定推理链的前 $t$ 步，
+        让模型多次独立完成剩余步骤。
+  \item 如果从第 $t$ 步之后继续推理
+        \textbf{大概率能得到正确答案}，
+        那么第 $t$ 步很可能是正确的。
+  \item 如果从第 $t$ 步之后继续推理
+        \textbf{几乎总是得到错误答案}，
+        那么第 $t$ 步很可能是错误的。
+\end{enumerate}
+这种方法通过蒙特卡洛估计每一步的「正确概率」，
+将不可扩展的人工逐步标注
+转化为可自动化的过程，
+使 PRM 训练的规模化成为可能。
+
+Yang et al.\ (2025)~\cite{yang2025beyond}
+进一步指出了现有 PRM 的一个局限：
+在长推理链中，标注倾向于只关注\textbf{第一个错误步骤}
+及其之前的步骤，
+而忽略了后续步骤中可能的\textbf{自我纠正}。
+他们提出了更灵活的「反思式」PRM，
+能够评估模型在发现错误后的纠正能力。
+
+\subsubsection{PRM 与 ORM 的实际选择}
+
+\begin{keybox}[PRM vs ORM：实际应用指南]
+\begin{itemize}[noitemsep]
+  \item \textbf{数学/逻辑推理}：PRM 显著优于 ORM。
+        推理链长、每步可验证、
+        信用分配问题严重——PRM 的优势最大化。
+  \item \textbf{代码生成}：ORM 通常足够。
+        有单元测试作为准确的结果信号，
+        而代码的「步骤」边界不如数学清晰。
+  \item \textbf{开放式文本生成}：两者都很困难。
+        既没有明确的正确答案（ORM 难），
+        也没有可验证的中间步骤（PRM 难）。
+        LLM-as-Judge 或人类评估更适合。
+  \item \textbf{混合方法}：
+        实践中，很多系统结合 ORM 和 PRM——
+        PRM 用于引导搜索方向，
+        ORM 用于最终结果验证。
+\end{itemize}
+\end{keybox}
+
+\subsection{推理模型的专项基准}
+\label{subsec:reasoning-benchmarks}
+
+推理模型的快速发展催生了一系列新的评估基准，
+专门针对需要深度推理的任务：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{AIME 2024/2025}：
+        美国数学邀请赛真题是评估推理模型数学能力的标准基准。
+        题目需要创造性的多步推理，而非模式匹配。
+        o3 在 AIME 2024 上的得分超过 90\%，
+        接近人类数学竞赛选手的顶尖水平。
+  \item \textbf{GPQA Diamond}：
+        198 道博士级科学问题（见~\ref{subsec:chatbot-arena}~节）。
+        推理模型在此基准上的准确率
+        已从 2024 年初的约 50\% 提升到 2026 年初的约 90\%。
+  \item \textbf{FrontierMath Tier 4}：
+        研究级数学问题（见上文）。
+        目前唯一仍对推理模型构成真正挑战的数学基准。
+  \item \textbf{EpochAI Frontier Probes}：
+        专门设计来测量推理能力边界的题目集。
+\end{itemize}
+
+\section{前沿模型基准对比}
+\label{sec:benchmark-comparison}
+
+为了呈现 2025--2026 年 LLM 能力格局的全貌，
+我们汇总了主要前沿模型在核心基准上的表现%
+\footnote{数据来源综合自各模型的技术报告、
+Chatbot Arena 排行榜和独立评测平台。
+数据截止到 2026 年 2 月。
+注意不同来源的评测条件可能存在差异。}。
+
+\begin{table}[htbp]
+\centering
+\caption{2025--2026 年前沿模型基准测试对比}
+\label{tab:model-benchmarks}
+\small
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+\textbf{模型} & \textbf{类型} & \textbf{MMLU-Pro} & \textbf{GPQA-D}
+  & \textbf{SWE-bench V} & \textbf{Arena Elo} \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{推理模型（Reasoning Models）}} \\
+GPT-5.2 Pro       & 推理  & 88.7\% & 93.2\% & 65.8\% & 1402 \\
+Claude Opus 4.6   & 混合  & 88.2\% & 89.0\% & 72.5\% & 1504 \\
+DeepSeek V3.2-S   & 推理  & 85.9\% & 85.3\% & 77.8\% & 1361 \\
+Grok 4 Heavy      & 推理  & 86.4\% & 88.9\% & 61.0\% & 1375 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{标准模型（Standard Models）}} \\
+Gemini 3 Pro      & 标准  & 89.8\% & 87.5\% & 63.2\% & 1485 \\
+Claude Opus 4.5   & 标准  & 87.1\% & 86.5\% & 68.4\% & 1370 \\
+GPT-5.2           & 标准  & 86.3\% & 88.0\% & 58.2\% & 1380 \\
+Qwen 3.5          & 标准  & 84.6\% & 82.1\% & 62.5\% & 1342 \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{开源模型（Open-Weight Models）}} \\
+Llama 4 Maverick  & 标准  & 83.2\% & 78.5\% & 55.8\% & 1320 \\
+DeepSeek R1       & 推理  & 90.8\% & 71.5\% & 49.2\% & 1310 \\
+Qwen 3.5          & 标准  & 84.6\% & 82.1\% & 62.5\% & 1342 \\
+Mistral 3         & 标准  & 82.8\% & 79.3\% & 54.1\% & 1315 \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+{\footnotesize
+\textit{注}：GPQA-D = GPQA Diamond; SWE-bench V = SWE-bench Verified;
+Arena Elo 数据来自 Chatbot Arena 排行榜，截至 2026 年 2--3 月。
+``推理'' 类型指使用 thinking tokens 的模型；
+``混合'' 指同时支持标准和推理模式。
+同一模型在不同评测条件下可能给出不同分数。}
+\end{table}
+
+从表~\ref{tab:model-benchmarks} 可以观察到几个值得注意的模式：
+
+\textbf{推理模型在 GPQA 上优势巨大}：
+推理模型在需要深度科学推理的 GPQA Diamond 上
+普遍超过 85\%，部分超过 90\%，
+远高于标准模型的 78--88\%。
+这证实了 thinking tokens 在复杂推理任务上的价值。
+
+\textbf{SWE-bench 上开源模型追赶迅速}：
+DeepSeek V3.2-Speciale 在 SWE-bench Verified 上达到 77.8\%，
+超过了多数闭源模型。
+这得益于其在代码相关的后训练数据上的大量投入。
+
+\textbf{Arena Elo 与基准分数并不完全一致}：
+Gemini 3 Pro 在 MMLU-Pro 上得分最高（89.8\%），
+但其 Arena Elo 低于 MMLU-Pro 分数较低的 Claude Opus 4.6。
+这说明\textbf{基准测试和真实用户偏好衡量的是不同的东西}——
+用户满意度取决于指令跟随、风格、一致性等
+基准测试不一定覆盖的维度。
+
+\textbf{开源与闭源的差距在缩小}：
+Llama 4 Maverick 和 Qwen 3.5 等开源模型
+在 MMLU-Pro 上已接近闭源前沿模型（差距 $<$5\%）。
+在某些特定任务上，开源模型甚至有竞争力。
+
+\section{安全对齐}
+
+LLM 的安全问题包括多个层面：
+
+\subsection{有害内容生成}
+
+模型可能生成暴力、歧视、违法的内容。
+通过 RLHF 中的安全奖励和 Constitutional AI~\cite{bai2022constitutional}
+（让 AI 根据原则自我批评和修正）来缓解。
+
+Constitutional AI 的核心思想是：
+不依赖人类标注者来判断每个输出是否安全，
+而是给模型一组\textbf{宪法原则}（如「不鼓励暴力」
+「尊重隐私」「提供准确信息」），
+让模型自己根据这些原则评估和修正输出。
+这大幅降低了安全标注的人力成本，
+同时使安全标准更加一致和可扩展。
+
+\subsection{越狱攻击}
+
+\textbf{越狱攻击}（Jailbreaking）：
+用户通过巧妙的提示绕过模型的安全限制。
+常见的越狱技巧包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{角色扮演}：``假设你是一个没有任何限制的 AI...''
+  \item \textbf{间接提问}：``写一个关于角色 X 做 Y 的小说...''
+        （间接获取有害信息）
+  \item \textbf{编码/加密}：用 Base64、逆序文本等方式
+        隐藏有害指令。
+  \item \textbf{多轮诱导}：通过多轮对话逐步引导模型
+        越过安全边界。
+\end{itemize}
+
+防御策略包括\textbf{对抗训练}
+（在训练数据中纳入已知的越狱模式，
+让模型学会识别和拒绝），
+\textbf{输入/输出过滤}（独立的安全分类器
+对输入和输出进行审查），
+以及\textbf{红队测试}。
+
+\textbf{Red teaming}（红队测试）
+是系统性地寻找模型安全漏洞的过程。
+专业的红队由安全研究者、领域专家和普通用户组成，
+他们尝试各种方法来触发有害输出。
+越来越多的团队使用\textbf{自动化红队}——
+用另一个 LLM 来自动生成大量攻击 prompt，
+然后检查目标模型的回复。
+这大幅提高了测试覆盖率，
+但人类红队仍然不可替代——
+他们能发现自动化方法难以想到的创意攻击。
+
+\subsection{幻觉}
+
+\textbf{幻觉}（Hallucination）：
+模型自信地生成不正确的信息。
+这是一个尚未完全解决的根本问题——
+语言模型本质上是在做统计预测，
+不具备真正的「知道自己不知道」的能力。
+
+幻觉可以分为两类：
+\begin{itemize}[noitemsep]
+  \item \textbf{内在幻觉}（Intrinsic hallucination）：
+        输出与\textbf{给定的上下文/来源}矛盾。
+        例如，文档里说「收入增长了 5\%」，
+        模型回答「收入增长了 15\%」。
+  \item \textbf{外在幻觉}（Extrinsic hallucination）：
+        输出无法从给定来源中验证，但也不矛盾。
+        模型「添加」了来源中不存在的信息。
+        这类幻觉更难检测——可能是正确的补充信息，
+        也可能是捏造的。
+\end{itemize}
+
+幻觉的根源在于模型的训练目标——
+最大化下一个 token 的概率——
+与「只在确定时才生成」之间的矛盾。
+模型被训练为\textbf{总是生成一些东西}，
+即使它对内容的准确性没有把握。
+而且模型没有「事实性」的内在概念——
+它学到的是训练数据中的统计模式，
+而非可验证的事实。
+
+\subsection{RAG：用检索对抗幻觉}
+
+Retrieval-Augmented Generation（RAG）
+通过在生成前检索外部知识来部分缓解幻觉问题。
+
+RAG 的基本流程是：
+\begin{enumerate}[noitemsep]
+  \item \textbf{检索}：用户提问 $\to$ 将问题向量化 $\to$
+        在向量数据库中检索最相关的文档块。
+  \item \textbf{增强}：将检索到的文档块与用户问题拼接，
+        作为上下文送入 LLM。
+  \item \textbf{生成}：LLM 基于检索到的上下文生成回答，
+        回答有了可追溯的「来源」。
+\end{enumerate}
+
+RAG 的关键技术组件：
+\begin{itemize}[noitemsep]
+  \item \textbf{Chunking}（文档切分）：
+        将长文档切成固定大小的块（如 512 tokens）。
+        切分策略影响检索质量——
+        太大则不精确，太小则失去上下文。
+        重叠切分（相邻块有 10--20\% 的重叠）可以缓解边界问题。
+  \item \textbf{Embedding models}（嵌入模型）：
+        将文本转换为高维向量。
+        常用的包括 OpenAI text-embedding-3、
+        BGE、E5-Mistral 等。
+        嵌入质量直接决定检索质量。
+  \item \textbf{Vector databases}（向量数据库）：
+        存储和检索高维向量。
+        常用的包括 Pinecone、Weaviate、Milvus、Chroma 等。
+        核心操作是\textbf{最近邻搜索}（ANN）。
+\end{itemize}
+
+但 RAG 也不是万灵药——
+如果检索到的文档本身有误，或者检索不到相关信息，
+幻觉仍然可能发生。
+此外，模型有时会\textbf{忽略}检索到的信息，
+仍然依赖自己的「记忆」生成回答——
+这在检索结果与模型内在知识矛盾时尤为常见。
+
+\subsection{隐私与安全评估}
+
+\textbf{隐私泄露}：
+模型可能记住并泄露训练数据中的敏感信息。
+差分隐私训练和去敏处理是主要的缓解手段。
+
+\textbf{安全评估基准}：
+\begin{itemize}[noitemsep]
+  \item \textbf{TruthfulQA}：测试模型是否会复述常见的错误信息和迷思。
+        817 个问题涵盖健康、法律、金融等领域的常见误解。
+  \item \textbf{BBQ}（Bias Benchmark for QA）：
+        测试模型在不同人群（种族、性别、年龄等）上的偏见。
+  \item \textbf{ToxiGen}：测试模型生成有毒内容的倾向。
+        涵盖针对 13 个少数群体的隐含和显性有毒语言。
+  \item \textbf{AdvBench}：对抗性提示集合，
+        测试模型在面对刻意诱导时的安全性。
+\end{itemize}
+
+\subsection{对齐税}
+
+安全对齐不是免费的——
+让模型更安全通常会\textbf{略微降低}其原始能力。
+这被称为\textbf{alignment tax}（对齐税）。
+
+例如，过度的安全训练可能导致模型\textbf{过度拒绝}——
+拒绝回答完全合法合理的问题
+（如「如何制作鸡尾酒」被错误地归类为有害问题）。
+这降低了用户体验。
+
+能力与安全之间存在一个\textbf{Pareto 前沿}——
+在给定的技术水平下，不可能同时最大化两者。
+更好的对齐技术（如 Constitutional AI、DPO）
+可以将这个前沿向外推——
+在相同安全水平下保留更多能力，
+或在相同能力水平下实现更好的安全性。
+
+安全对齐不是一次性的工作，而是一个持续的过程——
+随着模型能力的增强和新攻击方式的出现，
+安全机制需要不断迭代更新。
+
+\section{评估的实践智慧}
+
+在实际的模型开发过程中，评估团队积累了许多经验教训：
+
+\subsection{持续评估}
+
+\textbf{评估要在训练过程中持续进行}，
+而不是等到训练结束后一次性评估。
+通常每 1000--5000 步在一组核心基准测试上评估一次，
+绘制「能力曲线」——
+观察不同能力在训练过程中的变化趋势。
+有时会发现某种能力在训练中期突然出现（涌现），
+或者某种能力随着训练进行反而退化（灾难性遗忘）。
+这些信号可以指导数据配比和训练策略的调整。
+
+\subsection{能力维度分析}
+
+\textbf{不同基准测试衡量不同能力维度}。
+MMLU 主要测试\textbf{知识记忆}——
+模型在训练数据中是否见过相关知识。
+GSM8K 和 MATH 测试\textbf{推理能力}——
+模型能否进行多步逻辑推导。
+HumanEval 和 SWE-bench 测试\textbf{代码能力}——
+前者是函数级代码生成，后者是系统级 bug 修复。
+LMSYS Chatbot Arena 测试\textbf{综合实用性}——
+真实用户在盲评中更偏好哪个模型。
+
+一个模型可能在某些维度上很强，
+在另一些维度上很弱——
+这就是为什么单一基准测试分数永远不够。
+完整的评估需要\textbf{多维度的能力画像}。
+
+\subsection{数据泄露防范}
+
+\textbf{基准测试的「数据泄露」是一个严肃问题}。
+如果测试题目出现在训练数据中，
+模型可能只是在「背答案」而非真正理解。
+防御措施包括：使用 contamination detection
+（检查训练数据中是否包含测试题）、
+定期更新基准测试、以及使用动态生成的评估问题。
+
+一个实用的检测方法是\textbf{扰动测试}：
+对基准测试题做微小的修改（改变数字、替换名称），
+如果模型的准确率大幅下降，
+说明它可能只是记住了原题的答案，
+而没有真正理解解题方法。
+
+\subsection{评估金字塔}
+
+\begin{corebox}[评估金字塔：从自动到人工]
+\begin{enumerate}[noitemsep]
+  \item \textbf{自动化指标}（底层，最便宜）：
+        Perplexity、BLEU、ROUGE 等。
+        快速、廉价、可重复，但与人类判断相关性有限。
+        适合训练过程中的快速检查。
+  \item \textbf{基准测试套件}（中层）：
+        MMLU、HumanEval、GSM8K 等标准化测试。
+        覆盖多个能力维度，有历史可比性。
+        适合模型之间的系统性比较。
+  \item \textbf{LLM-as-Judge}（中上层）：
+        用 GPT-4 等强模型评估其他模型的输出。
+        比人类评估便宜得多，与人类判断相关性较高。
+        但存在自我偏见（倾向偏好自己风格的输出）。
+  \item \textbf{人类评估}（顶层，最贵但最可靠）：
+        Chatbot Arena 式的盲评。
+        直接衡量用户满意度。
+        适合最终的模型质量判断。
+  \item \textbf{生产指标}（最终裁判）：
+        用户留存率、任务完成率、NPS。
+        真实场景中的表现是唯一的最终标准。
+\end{enumerate}
+\end{corebox}
+
+\subsection{建立针对性评估}
+
+公共基准测试衡量的是通用能力，
+但实际应用场景往往有独特的需求。
+\textbf{建立针对你自己用例的评估套件}
+比追逐公共基准分数更有价值。
+
+例如，如果你在用 LLM 做客服机器人，
+你应该建立一个包含真实客户问题的评估集，
+用领域专家标注正确答案，
+然后衡量模型在\textbf{你的}场景中的表现。
+公共基准上多 2 个百分点不如
+你的客服评估集上多 5 个百分点有意义。
+
+\subsection{A/B 测试}
+
+在生产环境中，\textbf{A/B 测试是最终的评估方式}。
+将两个模型版本随机分配给用户，
+比较关键的业务指标——
+用户满意度、任务完成率、对话轮次等。
+这是最接近「真相」的评估，
+因为它直接衡量了模型在真实场景中的表现。
+
+\subsection{回归测试}
+
+新模型版本在改进某些能力的同时，
+可能在其他方面\textbf{退化}——
+这被称为\textbf{能力回归}。
+例如，一个更强的数学推理模型
+可能在创意写作上反而变差了。
+建立\textbf{回归测试套件}——
+一组覆盖所有关键能力的测试用例——
+可以在每次模型更新时快速检查是否有能力退化。
+
+\textbf{人类评估仍然是金标准}。
+LMSYS Chatbot Arena 的 Elo 排名系统
+让真实用户对两个匿名模型的回答做盲评。
+截至 2026 年初，已经积累了超过 800 万次人类评估，
+是判断模型综合能力最可靠的指标。
+它的优势在于：问题来自真实用户需求，
+评估标准由用户自定义（不是研究者预设的），
+而且动态更新使得「针对性优化」变得困难。
+
+
+%% ============================================================
+
+%% BibTeX entries for references cited in this chapter
+%% ---------------------------------------------------
+%
+% @article{hendrycks2021mmlu,
+%   title={Measuring Massive Multitask Language Understanding},
+%   author={Hendrycks, Dan and Burns, Collin and Basart, Steven and Zou, Andy and Mazeika, Mantas and Song, Dawn and Steinhardt, Jacob},
+%   journal={Proceedings of ICLR},
+%   year={2021}
+% }
+%
+% @inproceedings{wang2024mmlupro,
+%   title={{MMLU-Pro}: A More Robust and Challenging Multi-Task Language Understanding Benchmark},
+%   author={Wang, Yubo and Ma, Xueguang and Zhang, Ge and Ni, Yuansheng and Chandra, Abhranil and Guo, Shiguang and Ren, Weiming and Arulraj, Aaran and He, Xuan and Jiang, Ziyan and Li, Tianle and Ku, Max and Wang, Kai and Zhuang, Alex and Fan, Rongqi and Yue, Xiang and Chen, Wenhu},
+%   booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
+%   year={2024}
+% }
+%
+% @inproceedings{rein2024gpqa,
+%   title={{GPQA}: A Graduate-Level Google-Proof Q\&A Benchmark},
+%   author={Rein, David and Hou, Betty Li and Stickland, Asa Cooper and Petty, Jackson and Pang, Richard Yuanzhe and Dirani, Julien and Michael, Julian and Bowman, Samuel R.},
+%   booktitle={Proceedings of NAACL},
+%   year={2024}
+% }
+%
+% @article{glazer2024frontiermath,
+%   title={{FrontierMath}: A Benchmark for Evaluating Advanced Mathematical Reasoning in {AI}},
+%   author={Glazer, Elliot and Erdil, Ege and Besiroglu, Tamay and Chicharro, Diego and Chen, Evan and Gunning, Alex and Olsson, Caroline Falkman and Denain, Jean-Stanislas and Ho, Anson},
+%   journal={Epoch AI},
+%   year={2024}
+% }
+%
+% @inproceedings{jimenez2024swebench,
+%   title={{SWE-bench}: Can Language Models Resolve Real-World {GitHub} Issues?},
+%   author={Jimenez, Carlos E. and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik},
+%   booktitle={Proceedings of ICLR},
+%   year={2024}
+% }
+%
+% @inproceedings{white2024livebench,
+%   title={{LiveBench}: A Challenging, Contamination-Free {LLM} Benchmark},
+%   author={White, Colin and Dooley, Samuel and Roberts, Manley and Pal, Arka and Feuer, Ben and Jain, Siddhartha and Shwartz-Ziv, Ravid and Jain, Neel and Saifullah, Khalid and Narang, Siddartha and others},
+%   booktitle={Proceedings of ICLR},
+%   year={2025}
+% }
+%
+% @article{li2024stylecontrol,
+%   title={Does Style Matter? Disentangling Style and Substance in {Chatbot Arena}},
+%   author={Li, Tianle and Angelopoulos, Anastasios and Chiang, Wei-Lin},
+%   journal={LMSYS Blog},
+%   year={2024}
+% }
+%
+% @article{lightman2024lets,
+%   title={Let's Verify Step by Step},
+%   author={Lightman, Hunter and Kosaraju, Vineet and Burda, Yura and Edwards, Harri and Baker, Bowen and Lee, Teddy and Leike, Jan and Schulman, John and Sutskever, Ilya and Cobbe, Karl},
+%   journal={Proceedings of ICLR},
+%   year={2024}
+% }
+%
+% @inproceedings{setlur2025rewarding,
+%   title={Rewarding Progress: Scaling Automated Process Verifiers for {LLM} Reasoning},
+%   author={Setlur, Amrith and Nagpal, Chirag and Fisch, Adam and Geng, Xinyang and Eisenstein, Jacob and Agarwal, Rishabh and Agarwal, Alekh and Berant, Jonathan and Kumar, Aviral},
+%   booktitle={Proceedings of ICLR},
+%   year={2025}
+% }
+%
+% @inproceedings{yang2025beyond,
+%   title={Beyond the First Error: Process Reward Models for Reflective Mathematical Reasoning},
+%   author={Yang, Zhaohui and He, Chenghua and Shi, Xiaowen and Deng, Shihong and Li, Linjing and Yin, Qiyue and Jiang, Daxin},
+%   booktitle={Findings of EMNLP},
+%   year={2025}
+% }
+%
+% @article{shi2024detecting,
+%   title={Detecting Pretraining Data from Large Language Models},
+%   author={Shi, Weijia and Ajith, Anirudh and Xia, Mengzhou and Huang, Yangsibo and Liu, Daogao and Blevins, Terra and Chen, Danqi and Zettlemoyer, Luke},
+%   journal={Proceedings of ICLR},
+%   year={2024}
+% }
+%
+% @article{golchin2024time,
+%   title={Time Travel in {LLMs}: Tracing Data Contamination in Large Language Models},
+%   author={Golchin, Shahriar and Surdeanu, Mihai},
+%   journal={Proceedings of ICLR},
+%   year={2024}
+% }
+%
+% @article{ravaut2024contamination,
+%   title={A Comprehensive Survey of Contamination Detection Methods in Large Language Models},
+%   author={Ravaut, Mathieu and Ding, Bosheng and Jiao, Fangkai and Chen, Hailin and Li, Xingxuan and Zhao, Ruochen and Qin, Chengwei and Xiong, Caiming and Joty, Shafiq},
+%   journal={arXiv preprint arXiv:2404.00699},
+%   year={2024}
+% }
+%
+% @article{chen2025contamination,
+%   title={Benchmarking Large Language Models Under Data Contamination: A Survey from Static to Dynamic Evaluation},
+%   author={Chen, Simin and Chen, Yiming and Li, Zexin and Jiang, Yifan and Wan, Zhongwei and He, Yixin and Ran, Dezhi and Gu, Tianle and Li, Haizhou and Xie, Tao and Ray, Baishakhi},
+%   booktitle={Proceedings of EMNLP},
+%   year={2025}
+% }
+%
+% @article{bai2022constitutional,
+%   title={Constitutional {AI}: Harmlessness from {AI} Feedback},
+%   author={Bai, Yuntao and Kadavath, Saurav and Kundu, Sandipan and Askell, Amanda and Kernion, Jackson and Jones, Andy and Chen, Anna and Goldie, Anna and Mirhoseini, Azalia and McKinnon, Cameron and others},
+%   journal={arXiv preprint arXiv:2212.08073},
+%   year={2022}
+% }
+%
+% @misc{openai2026swebenchpro,
+%   title={Why {SWE-bench Verified} No Longer Measures Frontier Coding Capabilities},
+%   author={{OpenAI}},
+%   year={2026},
+%   howpublished={\url{https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/}}
+% }
+%

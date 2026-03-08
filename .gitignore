@@ -4,3 +4,16 @@ __pycache__/
 *.egg-info/
 .env
 .venv/
+
+# LaTeX build artifacts (keep .tex, .bib, .pdf)
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.toc
+*.xdv

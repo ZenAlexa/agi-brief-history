@@ -1,0 +1,1038 @@
+\chapter{分词——教机器「认字」}
+\label{ch:tokenization}
+%% ============================================================
+
+在模型能够处理文本之前，
+必须将自然语言文本转换成模型可以操作的数字序列。
+这个过程叫做\textbf{分词}（Tokenization）。
+分词看似只是一个预处理步骤，
+但它对模型的性能、效率和多语言能力有着深远的影响——
+一个糟糕的分词器可以让一个优秀的模型变得平庸。
+
+\section{从词向量到子词：一段简史}
+
+在讨论现代分词方法之前，
+有必要回顾一下 NLP 领域是如何一步步走到今天的。
+这段历史揭示了一个核心矛盾——
+如何在词汇覆盖率和语义表达力之间找到平衡。
+
+\subsection{词向量的黄金时代}
+
+2013 年，Mikolov 等人提出了 Word2Vec，
+第一次大规模地证明了
+\textbf{词的语义可以被编码在低维向量中}。
+Word2Vec 的核心思想简洁而深刻：
+「你可以通过一个词的邻居来了解它。」
+——一个词的含义由它频繁共现的词决定（分布假设）。
+% NEW REF: mikolov2013word2vec = Mikolov, Tomas and Chen, Kai and Corrado, Greg and Dean, Jeffrey. Efficient Estimation of Word Representations in Vector Space. arXiv preprint arXiv:1301.3781, 2013.
+
+Word2Vec 训练出来的向量展现了令人惊叹的代数性质：
+$\vec{\text{King}} - \vec{\text{Man}} + \vec{\text{Woman}} \approx \vec{\text{Queen}}$。
+这个结果让整个 NLP 社区为之兴奋——
+词向量似乎捕获了某种深层的语义结构。
+
+2014 年，Stanford 的 Pennington 等人提出了 GloVe
+（Global Vectors for Word Representation），
+通过对全局词共现矩阵做分解来学习词向量。
+GloVe 的优势在于它同时利用了局部上下文
+（像 Word2Vec）和全局统计信息（像传统的矩阵分解方法）。
+% NEW REF: pennington2014glove = Pennington, Jeffrey and Socher, Richard and Manning, Christopher D. GloVe: Global Vectors for Word Representation. In Proceedings of EMNLP, 2014.
+
+然而，这些\textbf{静态词向量}有一个根本性的缺陷：
+每个词只有一个固定的向量表示，
+不管它出现在什么上下文中。
+``bank'' 在「river bank」和「investment bank」中
+得到完全相同的向量——
+这显然丢失了关键的语义区分信息。
+
+\subsection{上下文嵌入的崛起}
+
+2018 年，Allen AI 的 Peters 等人提出了 ELMo
+（Embeddings from Language Models），
+用双向 LSTM 语言模型为每个词生成
+\textbf{依赖上下文的}向量表示。
+同一个 ``bank'' 在不同句子中会得到不同的嵌入。
+这是一个范式性的转变——
+从静态的字典式表示，走向动态的上下文式表示。
+% NEW REF: peters2018elmo = Peters, Matthew E and Neumann, Mark and Iyyer, Mohit and Gardner, Matt and Clark, Christopher and Lee, Kenton and Zettlemoyer, Luke. Deep contextualized word representations. In Proceedings of NAACL-HLT, 2018.
+
+随后，BERT~\cite{devlin2019bert} 将上下文嵌入推向了新的高度：
+用 Transformer 替代 LSTM，在大规模语料上预训练，
+然后微调到下游任务。
+BERT 的成功不仅仅在于更好的嵌入质量，
+还在于它证明了一个重要的观点——
+\textbf{分词和嵌入可以被解耦}。
+模型不需要以完整的词作为输入单元，
+子词（subword）同样可以工作，甚至工作得更好。
+
+\subsection{未登录词问题}
+
+从 Word2Vec 到 ELMo，所有基于词级别的方法
+都面临一个致命的问题：\textbf{未登录词}（Out-of-Vocabulary, OOV）。
+
+词表是在训练时固定的。
+如果测试时遇到了训练语料中没有出现过的词
+（例如新出现的专有名词 ``ChatGPT''、
+技术术语 ``quantization''、
+或者拼写错误 ``langauge''），
+模型只能将其映射为一个通用的 \texttt{<UNK>} token，
+丢失所有语义信息。
+
+英语的形态变化加剧了这个问题：
+``play''、``plays''、``played''、``playing''、``player''、``playful''
+——这些词共享词根 ``play''，语义高度相关，
+但在词级别的词表中它们是完全独立的条目。
+词表要么包含所有变体（导致词表巨大），
+要么遗漏某些变体（导致 OOV）。
+
+对于中文、日文、韩文等语言，
+问题又有不同的表现形式。
+中文没有明确的词边界——
+「研究生命的起源」可以被切分为
+「研究/生命/的/起源」或「研究生/命/的/起源」——
+分词歧义本身就是一个经典的 NLP 难题。
+
+\textbf{子词分词}（subword tokenization）正是为解决这些问题而诞生的。
+它的核心洞察是：
+不要试图穷举所有的词，
+而是找到一组合适的\textbf{子词单元}，
+使得任何词都可以由这些子词拼接而成。
+
+\section{为什么不能直接用字或词？}
+
+让我们更系统地分析三种切分粒度的优劣。
+
+\textbf{字符级切分}：
+每个字母（或汉字）作为一个 token。
+词表极小（英语仅需 $\sim$256 个字节），
+永远不会遇到 OOV 问题。
+但代价是巨大的：
+字符层面的信息太稀疏了——
+模型需要从大量的字符序列中学习词的含义，
+效率极低。而且对于长文本，字符序列会非常长，
+大幅增加注意力机制的计算成本。
+以英语为例，一段 1000 词的文本
+在字符级别约有 5000 个 token，
+而在子词级别只有约 1300 个。
+注意力的 $O(n^2)$ 复杂度意味着字符级的计算量是子词级的约 15 倍。
+
+\textbf{词级切分}：
+「I love coding」$\to$ [``I'', ``love'', ``coding'']。
+问题更严重：英语有数十万个词，
+而且新词不断出现（如 ``ChatGPT''、``DeepSeek''）。
+按词切分的词表要么巨大无比，要么遇到未登录词就束手无策。
+对于中文、日文等语言，「什么是一个词」本身就是模糊的。
+更实际的问题是：
+巨大的词表意味着巨大的嵌入矩阵——
+一个 50 万词的词表配上 4096 维嵌入就需要 2B 参数，
+这比许多小模型的全部参数还多。
+
+\textbf{子词级切分}——即 BPE 等方法所采用的——
+在两个极端之间找到了最优的平衡：
+高频词保留为完整的 token，
+低频词或未见过的词被拆分为子词片段。
+词表大小可控（32K--150K），
+同时保证零 OOV。
+
+\section{BPE：折中的智慧}
+
+\subsection{从数据压缩到自然语言}
+
+字节对编码（Byte Pair Encoding, BPE）的历史
+比大多数人想象的要久远得多。
+它最初由 Philip Gage 在 1994 年提出，
+是一种简单而高效的\textbf{数据压缩}算法：
+反复找到数据中出现最频繁的字节对，
+用一个新的字节替换它们，从而缩短数据长度。
+% NEW REF: gage1994bpe = Gage, Philip. A New Algorithm for Data Compression. C Users Journal, 12(2):23--38, 1994.
+
+2016 年，Sennrich 等人~\cite{sennrich2016bpe}
+将这个想法引入了自然语言处理，
+用于解决机器翻译中的稀有词问题。
+从此，BPE 成为了几乎所有现代 LLM 的标准分词方法。
+
+这个类比值得深思：
+BPE 本质上是在对语言做\textbf{压缩}——
+将高频模式编码为单个 token，
+低频模式则由多个 token 组合表示。
+这与 Shannon 的信息论完美契合：
+最优编码应该给高频符号分配短码，
+给低频符号分配长码。
+BPE 正是在做这件事——
+只不过它的「码」是 token，
+它的「符号」是自然语言中的子词片段。
+
+\subsection{算法详解}
+
+BPE 的算法流程如下：
+\begin{enumerate}[noitemsep]
+  \item 初始词表 = 所有单个字符（或字节）。
+  \item 在训练语料中统计所有相邻 token 对的频率。
+  \item 合并频率最高的一对，形成新的 token 加入词表。
+  \item 重复步骤 2--3，直到词表大小达到目标（通常 32K--150K）。
+\end{enumerate}
+
+\subsection{完整的合并示例}
+
+让我们用一个具体的例子来完整演示 BPE 的合并过程。
+假设训练语料中频繁出现四个词：
+``low''（5 次）、``lower''（2 次）、
+``newest''（6 次）、``widest''（3 次）。
+
+首先，每个词被拆成字符序列，词尾加上特殊标记 \texttt{\_}
+（表示词边界）。初始表示如下：
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{词（频次）} & \textbf{Token 序列} \\
+\hline
+low (5)    & \texttt{l o w \_} \\
+lower (2)  & \texttt{l o w e r \_} \\
+newest (6) & \texttt{n e w e s t \_} \\
+widest (3) & \texttt{w i d e s t \_} \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{第 1 轮}：统计所有相邻 token 对的频率。
+\texttt{(e, s)} 出现 $6 + 3 = 9$ 次（来自 newest 和 widest），
+频率最高。合并 \texttt{e + s} $\to$ \texttt{es}。
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{词（频次）} & \textbf{Token 序列} \\
+\hline
+low (5)    & \texttt{l o w \_} \\
+lower (2)  & \texttt{l o w e r \_} \\
+newest (6) & \texttt{n e w \underline{es} t \_} \\
+widest (3) & \texttt{w i d \underline{es} t \_} \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{第 2 轮}：\texttt{(es, t)} 出现 $6 + 3 = 9$ 次，
+频率最高。合并 \texttt{es + t} $\to$ \texttt{est}。
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{词（频次）} & \textbf{Token 序列} \\
+\hline
+low (5)    & \texttt{l o w \_} \\
+lower (2)  & \texttt{l o w e r \_} \\
+newest (6) & \texttt{n e w \underline{est} \_} \\
+widest (3) & \texttt{w i d \underline{est} \_} \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{第 3 轮}：\texttt{(est, \_)} 出现 $6 + 3 = 9$ 次，
+频率最高。合并 \texttt{est + \_} $\to$ \texttt{est\_}。
+
+\textbf{第 4 轮}：\texttt{(l, o)} 出现 $5 + 2 = 7$ 次，
+频率最高。合并 \texttt{l + o} $\to$ \texttt{lo}。
+
+\textbf{第 5 轮}：\texttt{(lo, w)} 出现 $5 + 2 = 7$ 次，
+频率最高。合并 \texttt{lo + w} $\to$ \texttt{low}。
+
+此时的状态：
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{词（频次）} & \textbf{Token 序列} \\
+\hline
+low (5)    & \texttt{\underline{low} \_} \\
+lower (2)  & \texttt{\underline{low} e r \_} \\
+newest (6) & \texttt{n e w \underline{est\_}} \\
+widest (3) & \texttt{w i d \underline{est\_}} \\
+\hline
+\end{tabular}
+\end{center}
+
+继续合并下去，``low'' 最终会被编码为单个 token \texttt{low\_}，
+``newest'' 会被编码为两个 token \texttt{new} + \texttt{est\_}，
+以此类推。
+这个过程完美地体现了 BPE 的核心思想：
+\textbf{高频模式被压缩为单个 token，
+低频模式由子 token 组合表示}。
+
+\subsection{代码实现}
+
+\begin{lstlisting}[caption={BPE core algorithm (simplified)}]
+def learn_bpe(corpus, vocab_size):
+    # Start with character-level tokens
+    vocab = set(all_characters_in(corpus))
+    tokens = [list(word) for word in corpus]
+
+    while len(vocab) < vocab_size:
+        # Count all adjacent token pairs
+        pair_counts = count_pairs(tokens)
+        # Find the most frequent pair
+        best_pair = max(pair_counts, key=pair_counts.get)
+        # Merge that pair everywhere
+        new_token = best_pair[0] + best_pair[1]
+        vocab.add(new_token)
+        tokens = merge_pair(tokens, best_pair, new_token)
+
+    return vocab
+\end{lstlisting}
+
+这段代码展示了 BPE 的核心循环：
+统计频率——找到最高频对——合并——重复。
+\texttt{count\_pairs} 遍历所有 token 序列，
+统计相邻 pair 的出现次数。
+\texttt{merge\_pair} 将语料中所有该 pair 的出现替换为合并后的新 token。
+
+\subsection{时间复杂度分析}
+
+BPE 训练的时间复杂度值得分析。
+假设语料有 $N$ 个 token，目标词表大小为 $V$。
+每一轮合并需要：
+(1) 遍历所有 token 对并统计频率——$O(N)$；
+(2) 找到最高频对——$O(|\text{pairs}|)$，可用优先队列优化到 $O(\log|\text{pairs}|)$；
+(3) 在语料中执行替换——最坏 $O(N)$。
+总共需要 $V$ 轮合并，因此总复杂度为 $O(VN)$。
+
+对于典型的规模（$V = 100\text{K}$，$N = 10^{10}$），
+直接实现会非常慢。
+实际的工业级实现（如 HuggingFace 的 \texttt{tokenizers} 库）
+使用了大量优化技巧：
+基于前缀树的高效合并、增量更新频率计数、
+Rust 实现的底层运算。
+这些优化使得在数十 GB 的语料上
+训练一个 BPE 分词器只需要几个小时。
+
+\section{WordPiece 与 Unigram：其他选择}
+
+BPE 并不是唯一的子词分词算法。
+还有两种重要的替代方案：
+Google 的 WordPiece 和 SentencePiece 中的 Unigram 模型。
+三者的核心区别在于\textbf{合并策略}。
+
+\subsection{WordPiece：基于似然的合并}
+
+WordPiece 最初由 Google 为语音识别系统开发，
+后来被 BERT~\cite{devlin2019bert} 采用而广为人知。
+% NEW REF: schuster2012wordpiece = Schuster, Mike and Nakajima, Kaisuke. Japanese and Korean voice search. In ICASSP, 2012.
+
+BPE 选择合并\textbf{频率最高}的 token 对，
+而 WordPiece 选择合并后
+\textbf{使语言模型似然提升最大}的 token 对。
+具体来说，对于候选合并对 $(a, b) \to ab$，
+WordPiece 计算的得分是：
+\begin{equation}
+  \text{score}(a, b) = \frac{\text{freq}(ab)}{\text{freq}(a) \times \text{freq}(b)}
+\end{equation}
+这个得分衡量的是 $a$ 和 $b$ 共同出现的频率
+相对于它们各自独立出现的频率——
+本质上是\textbf{互信息}（pointwise mutual information）的一种近似。
+
+直觉上，BPE 倾向于合并\textbf{绝对频率}高的对，
+而 WordPiece 倾向于合并\textbf{关联性}强的对。
+例如，``t'' + ``h'' 在英文中的绝对频率极高（因为 ``th'' 出现在大量词中），
+BPE 会优先合并它。
+但 ``u'' + ``n'' 虽然绝对频率不如 ``th'' 高，
+它们共现的条件概率可能更高
+（``un-'' 作为前缀非常稳定），
+WordPiece 可能会优先合并它。
+
+\subsection{Unigram 模型：从大到小的剪枝}
+
+Unigram 模型（由 Kudo 于 2018 年提出）
+采用了与 BPE/WordPiece 完全相反的策略：
+\textbf{从一个很大的初始词表开始，逐步删除 token}。
+% NEW REF: kudo2018sentencepiece = Kudo, Tomas and Richardson, John. SentencePiece: A simple and language independent subword tokenizer and detokenizer for Neural Text Processing. In Proceedings of EMNLP, 2018.
+
+初始词表通常包含所有字符和最频繁的子字符串
+（可能有数十万个条目）。
+然后，Unigram 反复计算每个 token 被移除后
+对整体语言模型似然的影响——
+移除后似然下降最少的 token 被剪掉。
+这个过程重复直到词表缩小到目标大小。
+
+Unigram 的一个独特优势是它支持\textbf{多种分词方式}。
+对于同一段文本，可能存在多种合法的分词方案，
+Unigram 模型为每种方案分配一个概率。
+这允许在训练时使用\textbf{子词正则化}
+（subword regularization）——
+随机采样不同的分词方案，
+增加训练数据的多样性，
+类似于数据增强（data augmentation）的效果。
+
+\subsection{三种方法的对比}
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\hline
+\textbf{特征} & \textbf{BPE} & \textbf{WordPiece} & \textbf{Unigram} \\
+\hline
+方向           & 自底向上（合并） & 自底向上（合并） & 自顶向下（剪枝） \\
+合并依据       & 频率最高       & 似然提升最大     & 似然损失最小     \\
+分词确定性     & 确定性         & 确定性           & 概率性           \\
+子词正则化     & 不支持         & 不支持           & 原生支持         \\
+代表模型       & GPT 系列       & BERT             & T5               \\
+               & LLaMA, Mistral &                  &                  \\
+               & Qwen           &                  &                  \\
+\hline
+\end{tabular}
+\end{center}
+
+在实践中，三种方法在最终效果上的差异通常不大——
+词表大小和训练数据的选择对性能的影响远大于合并策略的选择。
+这也是为什么不同实验室选择不同算法的原因：
+差异不大，所以选择更方便实现的那个就好。
+
+\section{词表大小：一个微妙的权衡}
+
+词表大小是一个重要的超参数。
+不同模型的选择差异巨大，
+背后反映了不同团队的设计哲学。
+
+\begin{center}
+\small
+\begin{tabular}{lrll}
+\hline
+\textbf{模型} & \textbf{词表大小} & \textbf{分词方式} & \textbf{说明} \\
+\hline
+GPT-2 (2019)       & 50,257   & BPE          & 早期 BPE，纯英文优化 \\
+LLaMA 1 (2023)     & 32,000   & SentencePiece & 偏小，中文效率低 \\
+LLaMA 2 (2023)     & 32,000   & SentencePiece & 同 LLaMA 1 \\
+Mistral 7B (2023)  & 32,000   & SentencePiece & 同 LLaMA 1 \\
+Gemma 2 (2024)     & 256,000  & SentencePiece & Google，超大词表 \\
+GPT-4 (2023)       & 100,256  & tiktoken      & 多语言 + 代码 \\
+LLaMA 3 (2024)     & 128,256  & tiktoken 风格 & 大幅扩展，多语言 \\
+DeepSeek-V3 (2024) & 128,000  & BBPE          & 强化多语言和代码 \\
+Gemma 3 (2025)     & 262,144  & SentencePiece & 目前最大的公开词表 \\
+Qwen3 (2025)       & 151,643  & tiktoken 风格 & 中文优化，CJK 效率高 \\
+LLaMA 4 (2025)     & 202,048  & tiktoken 风格 & 200 语言，多模态 token \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{whybox}[从 32K 到 262K：词表大小演进的逻辑]
+这张表揭示了一个清晰的趋势：
+词表大小从 2023 年的 32K 迅速扩展到 2025 年的 150K--262K。
+背后的驱动力有三个：
+(1) \textbf{多语言}——LLaMA 4 声称支持 200 种语言，
+需要足够大的词表来为每种语言提供合理的 fertility；
+(2) \textbf{多模态}——LLaMA 4 的词表中
+包含了图像 token（\texttt{<|image|>}）和其他视觉 token，
+词表 ID 从 200,000 开始分配给特殊 token；
+(3) \textbf{代码}——Rust、Mojo 等新语言的关键词和运算符
+需要更大的词表来避免被拆分为多个子词 token。
+Google 的 Gemma 3 更是直接使用 262K 的超大词表——
+证明对于足够大的模型，嵌入层的额外开销可以被忽略。
+\end{whybox}
+
+\textbf{词表太小}：每个文本需要更多的 token 表示
+（因为更多词被拆成子词），
+输入序列变长，注意力计算更慢，
+模型需要从更长的上下文中学习。
+一个量化这个问题的指标是\textbf{fertility}
+（生育率）——平均每个词被切分成多少个 token。
+fertility 越接近 1，分词效率越高。
+
+\textbf{词表太大}：嵌入矩阵（$V \times d$）消耗大量参数和内存。
+稀有 token 的嵌入得不到充分训练。
+对于小模型，嵌入层可能占总参数的很大比例。
+
+近年来的趋势是增大词表：
+GPT-2 用 50K，LLaMA 1 用 32K，
+LLaMA 3 增大到 128K，Qwen3 更是用到了 150K。
+这是因为更大的词表能更高效地编码多语言文本
+（每个中文词可以用更少的 token 表示），
+而现代模型的参数量足够大，
+嵌入层占比相对较小。
+
+\begin{whybox}[为什么大词表能帮助中文？]
+在小词表（32K）下，
+许多中文常用词会被拆成 2--3 个 token，
+例如「人工智能」可能被切成「人工'' + ``智'' + ``能」。
+而在 150K 词表下，
+「人工智能」可以作为一个完整的 token 存在。
+这不仅节省了序列长度（效率提升），
+也让模型能直接学习这个词的完整语义
+（而不是从子词中拼凑），
+提升了模型对中文的理解能力。
+
+具体的数字可以说明这个差异。
+LLaMA 1（32K 词表）处理中文时，
+平均 fertility 约为 2.5——
+即每个中文词平均被切成 2.5 个 token。
+同样的中文文本在 Qwen3（150K 词表）下，
+fertility 降至约 1.2。
+这意味着相同的上下文窗口可以容纳约 2 倍的中文内容——
+对中文理解能力的提升是直接且显著的。
+\end{whybox}
+
+\begin{warnbox}[fertility 的隐含成本]
+fertility 不仅影响理解能力，还直接影响\textbf{推理成本}。
+API 服务按 token 计费——
+如果你的语言 fertility 是 2.5（即同等内容需要 2.5 倍的 token），
+那么你每次调用的成本也是 fertility 为 1 的语言的 2.5 倍。
+对于使用 LLaMA 1 分词器的模型处理中文，
+用户在成本上受到了系统性的「不公平对待」。
+这也是为什么中文 AI 社区强烈推动大词表的原因之一。
+\end{warnbox}
+
+\section{SentencePiece：工业级实现}
+
+SentencePiece 是 Google 开源的分词工具~\cite{kudo2018sentencepiece}，
+被 LLaMA、Qwen、DeepSeek、Mistral 等主流模型采用。
+它不仅是一个分词算法的实现，
+更是一个\textbf{完整的分词框架}——
+同时支持 BPE 和 Unigram 两种算法，
+提供训练、编码、解码的全套功能。
+
+\subsection{语言无关性}
+
+SentencePiece 的核心特点是将输入视为\textbf{原始 Unicode 字节流}，
+不依赖任何预分词（pre-tokenization）步骤。
+
+传统的 BPE 实现（如 GPT-2 的 tokenizer）
+需要先按空格和标点将文本切分为「词」，
+然后在词内部做 BPE 合并。
+这种设计对英文友好（空格是天然的词边界），
+但对中文、日文等没有空格的语言不够自然。
+
+SentencePiece 直接在字节级别操作：
+将所有文本编码为 UTF-8 字节序列，
+然后在字节序列上学习 BPE（或 Unigram）合并规则。
+这意味着它可以处理\textbf{任何语言}——
+甚至是 emoji、数学符号和未知的 Unicode 字符——
+因为一切最终都是字节。
+
+\subsection{字节回退机制}
+
+SentencePiece 的一个关键设计是\textbf{字节回退}
+（byte fallback）机制。
+当遇到词表中不存在的 Unicode 字符时，
+SentencePiece 不会输出 \texttt{<UNK>}，
+而是将该字符拆解为其 UTF-8 字节表示，
+用特殊的字节 token（如 \texttt{<0xE4>}）来编码。
+
+这意味着 SentencePiece 的分词结果
+\textbf{永远不会包含未知 token}——
+任何输入都能被编码和解码。
+这对于处理用户输入至关重要，
+因为用户可能输入任何字符——
+生僻汉字、emoji、甚至是乱码。
+
+\subsection{确定性与可复现性}
+
+SentencePiece 的设计还带来一个重要的工程优势：
+分词器的输出是\textbf{确定性的}——
+同一段文本总是产生相同的 token 序列，
+与操作系统、locale 设置和文本预处理无关。
+这在分布式训练中至关重要，
+因为不同 GPU 上的分词结果必须完全一致。
+
+\subsection{训练与使用}
+
+使用 SentencePiece 训练一个分词器非常简单：
+
+\begin{lstlisting}[caption={Training a SentencePiece tokenizer}]
+import sentencepiece as spm
+
+# Train a BPE tokenizer with 32K vocab
+spm.SentencePieceTrainer.train(
+    input='training_corpus.txt',
+    model_prefix='my_tokenizer',
+    vocab_size=32000,
+    model_type='bpe',          # or 'unigram'
+    character_coverage=0.9995, # cover 99.95% of characters
+    byte_fallback=True,        # enable byte fallback
+    split_digits=True,         # split each digit separately
+    num_threads=16,
+)
+
+# Use the trained tokenizer
+sp = spm.SentencePieceProcessor(model_file='my_tokenizer.model')
+tokens = sp.encode('Hello world!', out_type=str)
+# ['_Hello', '_world', '!']
+ids = sp.encode('Hello world!', out_type=int)
+# [12345, 2048, 67]
+text = sp.decode(ids)
+# 'Hello world!'
+\end{lstlisting}
+
+注意 \texttt{character\_coverage=0.9995} 这个参数——
+它指定词表应覆盖训练语料中 99.95\% 的字符。
+剩下的 0.05\% 极稀有字符将通过字节回退处理。
+对于以 CJK 字符为主的语料，
+这个值通常需要设得更高（如 0.99995），
+因为 CJK 字符集本身就很大。
+
+\section{特殊 Token 的设计}
+
+现代 LLM 的词表不仅包含自然语言 token，
+还包含一系列\textbf{特殊 token}，用于控制模型的行为。
+
+\subsection{基础特殊 Token}
+
+\begin{itemize}[noitemsep]
+  \item \texttt{<bos>}（begin of sequence）：
+        标记序列的开始。
+  \item \texttt{<eos>}（end of sequence）：
+        标记序列的结束，模型在生成时遇到它就停止。
+  \item \texttt{<pad>}（padding）：
+        用于将不同长度的序列填充到相同长度，
+        以便组成 batch。
+\end{itemize}
+
+\subsection{对话模板 Token}
+
+随着 LLM 从文本补全转向多轮对话，
+对话模板（chat template）的设计变得至关重要。
+不同模型使用不同的对话格式：
+
+\textbf{ChatML 格式}（OpenAI/Qwen）：
+\begin{lstlisting}[language={}]
+<|im_start|>system
+You are a helpful assistant.
+<|im_end|>
+<|im_start|>user
+What is BPE?
+<|im_end|>
+<|im_start|>assistant
+BPE stands for Byte Pair Encoding...
+<|im_end|>
+\end{lstlisting}
+
+\textbf{LLaMA 3 格式}：
+\begin{lstlisting}[language={}]
+<|begin_of_text|>
+<|start_header_id|>system<|end_header_id|>
+
+You are a helpful assistant.
+<|eot_id|>
+<|start_header_id|>user<|end_header_id|>
+
+What is BPE?
+<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>
+\end{lstlisting}
+
+这些特殊 token 在预训练阶段不存在——
+它们是在 SFT（监督微调）阶段被添加到词表中的。
+模型通过 SFT 学会这些 token 的含义：
+\texttt{<|im\_start|>} 表示一条消息的开始，
+\texttt{<|im\_end|>} 表示消息结束。
+
+\subsection{推理与工具调用 Token}
+
+2024--2025 年的一个重要趋势是
+为特定功能设计专用的特殊 token：
+
+\begin{itemize}[noitemsep]
+  \item \texttt{<think>} / \texttt{</think>}：
+        DeepSeek-R1~\cite{deepseekr1} 和 Qwen3~\cite{qwen2025qwen3}
+        用于标记推理过程的 token，
+        推理内容包在这对标签内，不展示给用户。
+  \item \texttt{<tool\_call>} / \texttt{</tool\_call>}：
+        标记工具调用请求——
+        模型输出结构化的函数调用信息。
+  \item \texttt{<tool\_response>} / \texttt{</tool\_response>}：
+        标记工具返回的结果，
+        模型根据这些结果继续生成回复。
+  \item \texttt{<|code|>}：
+        某些模型用于标记代码块的开始，
+        触发代码补全模式。
+\end{itemize}
+
+这些特殊 token 的嵌入在 SFT 阶段被学习，
+使模型理解「到这里该停了」或
+「接下来是推理过程」等控制信号。
+它们的设计看似简单，
+但直接影响了模型在多轮对话、工具调用、
+推理模式等场景中的行为。
+
+\begin{corebox}[特殊 Token 设计的原则]
+好的特殊 token 设计需要满足几个条件：
+(1) \textbf{不与自然语言冲突}——
+用 \texttt{<|...|>} 这样的格式是因为
+它几乎不可能出现在正常文本中；
+(2) \textbf{语义明确}——
+模型和后处理代码都能明确判断每个 token 的含义；
+(3) \textbf{向后兼容}——
+添加新的特殊 token 不应破坏已训练的模型对旧 token 的理解。
+这也是为什么添加特殊 token 通常伴随着一轮新的 SFT。
+\end{corebox}
+
+\section{分词的陷阱与挑战}
+
+分词看似已经是一个「解决了的问题」，
+但在实践中仍然存在许多令人头疼的陷阱。
+
+\subsection{Glitch Token：分词器的「幻觉」}
+
+2023 年，研究人员发现了一个诡异的现象：
+当向 GPT 系列模型输入某些特定的 token
+（如 ``SolidGoldMagikarp''）时，
+模型会表现出极不正常的行为——
+重复输出无意义的文本、拒绝回答问题、
+甚至产生与输入完全无关的内容。
+% NEW REF: rumbelow2023glitch = Rumbelow, Jessica and watMEG, Matthew. SolidGoldMagikarp (plus, prompt generation). Lesswrong, 2023.
+
+这些被称为 \textbf{glitch tokens}（故障 token）。
+产生的原因是：
+在 BPE 训练时，这些字符串在训练语料中频繁出现
+（``SolidGoldMagikarp'' 是一个 Reddit 用户名，
+出现在大量被爬取的 Reddit 帖子中），
+因此被编码为单独的 token。
+但在模型的预训练数据中，
+这些 token 可能很少或从未出现在有意义的上下文中——
+它们的嵌入向量几乎没有被训练过，
+停留在接近随机初始化的状态。
+
+这个故事的教训是：
+\textbf{分词器和模型的训练数据必须对齐}。
+如果分词器的训练语料和模型的预训练语料差异过大，
+就会产生大量「存在于词表中但模型不理解」的 token。
+
+\subsection{数学与数字的困境}
+
+分词对模型的数学能力有着直观但容易被忽视的影响。
+考虑 ``12345'' 这个数字：
+在某些分词器下，它可能被切分为
+``123'' + ``45''、``1'' + ``234'' + ``5''、
+或者 ``12345'' 整体。
+不同的切分方式意味着模型
+「看到」的数字表示是不同的——
+它甚至无法可靠地判断一个数字有几位。
+
+这就是为什么许多现代分词器选择
+\textbf{将每个数字字符独立为一个 token}：
+``12345'' $\to$ [``1'', ``2'', ``3'', ``4'', ``5'']。
+虽然这增加了序列长度，
+但让模型能够在字符级别理解数字的结构，
+从而提升算术能力。
+SentencePiece 的 \texttt{split\_digits=True}
+选项正是为此设计的。
+
+\subsubsection{数字位置嵌入：Abacus Embeddings}
+
+即使将数字逐位切分，模型的算术能力仍然有限——
+尤其在面对训练时未见过长度的数字时
+（例如训练 20 位加法，推广到 100 位加法）。
+McLeish 等人（2024）发现了问题的根源：
+Transformer 的标准位置编码无法让模型
+可靠地追踪每个数字在一个长数字中的\textbf{相对位置}
+（个位、十位、百位……）。
+% NEW REF: mcleish2024abacus = McLeish, Sean and Bansal, Arpit and Stein, Alex and Jain, Neel and Kirchenbauer, John and Bartoldson, Brian R and Kailkhura, Bhavya and Bhatele, Abhinav and Geiping, Jonas and Schwarzschild, Avi and Goldstein, Tom. Transformers Can Do Arithmetic with the Right Embeddings. In NeurIPS, 2024.
+
+他们提出了 \textbf{Abacus Embeddings}——
+为每个数字字符添加一个额外的嵌入，
+编码该数字字符\textbf{相对于数字起始位置}的偏移量。
+直觉上，这就像给每一位数字加上了
+「我是个位」「我是十位」「我是百位」的标签。
+
+结果令人印象深刻：
+仅在 20 位数字上训练一天（单 GPU），
+模型在 100 位加法上达到了 99\% 的准确率。
+这个结果有深刻的启示——
+\textbf{分词和嵌入的设计可以弥补（或加剧）
+Transformer 在特定能力上的不足}。
+数学能力不完全是「更多训练数据」的问题，
+有时候只需要告诉模型数字的正确结构。
+
+\subsubsection{数字比较的陷阱}
+
+分词还导致了另一个反直觉的问题：数字大小比较。
+许多 LLM 会错误地判断 ``9.11 $>$ 9.9''——
+因为 ``.11'' 和 ``.9'' 是不同的 token，
+模型无法直接比较它们的数值大小。
+这个问题的根源在于：
+分词器将小数点后的数字视为文本片段而非数值，
+``0.11'' 中的 ``.11'' 可能被合并为一个 token，
+而 ``0.9'' 中的 ``.9'' 是另一个 token——
+模型看到的是两个完全不同的符号，
+失去了数值比较的基础。
+
+Kreitner 等人（2024）提出了 \textbf{xVal}，
+一种直接将数字编码为单个 token 并附带浮点数值嵌入的方法，
+在科学计算任务上显著提升了数字处理精度。
+% NEW REF: kreitner2024xval = Kreitner, Linus and Hager, Paul and Mengedoht, Jonathan and Kaissis, Georgios and Rueckert, Daniel and Menten, Martin J. Efficient numeracy in language models through single-token number embeddings. arXiv preprint arXiv:2510.06824, 2024.
+
+这些研究共同指向一个结论：
+\textbf{BPE 是为自然语言设计的压缩算法，
+不是为数学设计的}。
+数字有独立于语言频率的内在结构（位值系统），
+强行用统计频率来决定数字的切分方式，
+从根本上就是一个范畴错误。
+
+\subsection{代码中的空白问题}
+
+Python 使用缩进来标记代码块层次。
+一个常见的问题是：
+分词器如何处理空格和制表符？
+
+如果 4 个空格被编码为一个 token ``\verb|    |''，
+而 2 个空格被编码为另一个 token ``\verb|  |''，
+那么 8 个空格的缩进就是两个
+``\verb|    |'' token。
+但如果分词器的合并规则不同，
+8 个空格可能被切分为
+``\verb|  |'' + ``\verb|    |'' + ``\verb|  |''
+（3 个 token）——
+这种不一致会让模型难以学习正确的缩进模式。
+
+GPT-4 和 LLaMA 3 的分词器
+为常见的空格序列（1 个到 16 个空格）
+专门设置了独立的 token，
+避免了这个问题。
+同样，制表符和换行符也被设为独立 token。
+这些看似微小的设计决策，
+对模型的代码生成能力有着显著的影响。
+
+\subsection{新编程语言的分词挑战}
+
+随着 LLM 被用于越来越多的编程语言，
+分词器面临着新的挑战——
+尤其是那些在分词器训练语料中出现较少的新兴语言。
+
+\textbf{Rust} 是一个典型的例子。
+Rust 的语法中包含大量复合运算符
+和在其他语言中少见的符号组合：
+\texttt{::}（路径分隔符）、\texttt{->}（返回类型标记）、
+\texttt{=>}（匹配分支）、\texttt{\&mut}（可变引用）、
+\texttt{<'a>}（生命周期标注）。
+在以 Python 和 JavaScript 为主训练的分词器中，
+这些 Rust 特有的符号组合可能未被合并为独立 token，
+而是被拆分为多个单字符 token——
+增加了序列长度，也增加了模型学习 Rust 语法的难度。
+
+以生命周期标注 \texttt{<'a, 'b>} 为例，
+它可能被分为 7 个 token（\texttt{<, ', a, ,, ', b, >}），
+而在 Rust 开发者眼中这是一个不可分割的语义单元。
+更麻烦的是 Rust 的宏系统（如 \texttt{vec![1, 2, 3]}）——
+\texttt{vec!} 中的感叹号在大多数语言中不出现在标识符后，
+分词器会将其与标识符拆开，
+丢失了「这是一个宏调用」的关键信息。
+
+\textbf{Mojo}（Modular 推出的高性能 ML 语言）
+面临更大的挑战：
+它几乎不存在于 2024 年之前的训练语料中。
+Mojo 的语法混合了 Python 和 Rust 的特征——
+\texttt{fn}（函数定义）、\texttt{let}（不可变绑定）、
+\texttt{var}（可变绑定）、\texttt{struct}、\texttt{trait}——
+这些关键词虽然与 Rust 相同，
+但 Mojo 独有的类型注解语法（如 \texttt{DType.float32}）
+和 SIMD 操作（如 \texttt{SIMD[DType.float32, 4]}）
+在训练语料中几乎不存在，
+导致模型生成 Mojo 代码时错误率显著偏高。
+
+\begin{warnbox}[新语言的恶性循环]
+新编程语言面临一个恶性循环：
+(1) 训练语料中缺乏该语言的代码，
+分词器无法为其优化 token 合并规则；
+(2) 分词效率低导致模型生成该语言代码的质量差；
+(3) 质量差导致开发者不使用 LLM 辅助编写该语言代码，
+进一步减少了高质量训练数据的来源。
+打破这个循环的方法通常是
+在微调阶段大量注入特定语言的高质量代码数据——
+但这需要分词器的词表中
+已经包含该语言的常见 token，
+否则效果仍然有限。
+\end{warnbox}
+
+\section{前沿探索：超越传统分词}
+
+\subsection{Tiktoken：速度的极致}
+
+2022 年，OpenAI 开源了 tiktoken——
+一个用 Rust 编写的高性能 BPE 分词器。
+tiktoken 的设计哲学是\textbf{推理速度优先}：
+它使用正则表达式进行预分词（pre-tokenization），
+将文本先切分为较大的块，
+然后在每个块内做 BPE 匹配。
+这种设计使得 tiktoken 的编码速度
+比 Python 实现快 3--6 倍。
+
+GPT-4 和 GPT-4o 都使用 tiktoken。
+LLaMA 3 也从 SentencePiece 切换到了
+类似 tiktoken 的 BPE 实现。
+
+\subsection{无分词器模型：字节级别的终极方案？}
+
+一个更激进的想法是完全抛弃分词器，
+直接在字节级别训练模型。
+Meta 的 MegaByte（2023 年）是这种思路的早期代表：
+它将输入视为原始字节序列，
+用一个大模型处理字节块，
+用一个小模型在块内生成单个字节。
+% NEW REF: yu2023megabyte = Yu, Lili and Simig, Daniel and Flaherty, Colin and Aghajanyan, Armen and Zettlemoyer, Luke and Lewis, Mike. MEGABYTE: Predicting Million-Byte Sequences with Multiscale Transformers. In NeurIPS, 2023.
+
+字节级模型的潜在优势非常诱人：
+\begin{itemize}[noitemsep]
+  \item 完全消除分词器——简化整个训练和部署流程。
+  \item 真正的语言无关——任何语言、任何编码都是字节。
+  \item 消除分词导致的信息损失和偏见。
+\end{itemize}
+
+\subsubsection{BLT：动态分配计算的字节级模型}
+
+2024 年 12 月，Meta 发表了 \textbf{Byte Latent Transformer}（BLT），
+标志着字节级模型在实用性上迈出了关键一步。
+BLT 的核心创新是\textbf{动态 patch 分割}——
+它不使用固定大小的字节块（如 MegaByte 的做法），
+而是根据\textbf{下一个字节的熵}来决定 patch 的边界。
+% NEW REF: pagnoni2024blt = Pagnoni, Artidoro and Pasunuru, Ram and Rodriguez, Pedro and Nguyen, John and Muller, Benjamin and Li, Margaret and Zhou, Chunting and Yu, Lili and Weston, Jason and Zettlemoyer, Luke and Ghosh, Gargi and Lewis, Mike and Holtzman, Ari and Iyer, Srinivasan. Byte Latent Transformer: Patches Scale Better Than Tokens. arXiv preprint arXiv:2412.09871, 2024.
+
+直觉上，这种设计非常自然：
+\begin{itemize}[noitemsep]
+  \item 当文本可预测时（例如常见的英文单词中间），
+        熵低，patch 变长——用更少的计算处理简单内容。
+  \item 当文本不可预测时（例如代码中的变量名、罕见词），
+        熵高，patch 变短——分配更多计算给复杂内容。
+\end{itemize}
+
+BLT 的架构由三个组件构成：
+一个轻量的\textbf{字节编码器}将字节序列编码为 patch 表示，
+一个大型的\textbf{潜在 Transformer} 在 patch 级别进行推理，
+一个轻量的\textbf{字节解码器}将 patch 表示还原为字节预测。
+重型计算（注意力、FFN）只在 patch 级别发生，
+而 patch 的平均长度约为 4--6 个字节——
+接近 BPE token 的平均长度，
+因此计算成本可以与基于 token 的模型竞争。
+
+Meta 的实验结果令人瞩目：
+在 8B 参数、4T 训练字节的规模上，
+BLT 首次在 FLOP 控制的对比中
+\textbf{匹配了基于 token 的 LLaMA 模型}的性能，
+同时在推理效率上有所提升
+（因为简单文本使用更长的 patch，减少了前向传播次数）。
+更重要的是，BLT 展现了更好的\textbf{长尾泛化能力}——
+在拼写、音素等字符级任务上
+显著优于基于 BPE 的模型。
+
+\begin{corebox}[BLT 的意义]
+BLT 证明了字节级模型的可行性不再是理论上的。
+它的关键洞察是：
+\textbf{计算资源应该根据内容的复杂度动态分配，
+而不是像 BPE 那样用固定的词表来决定}。
+这与人类阅读的模式惊人地一致——
+我们扫过熟悉的词很快，
+在遇到生僻词或复杂概念时则放慢速度仔细理解。
+截至 2026 年初，BLT 的代码已开源，
+但尚未有 frontier 级别的模型采用纯字节级架构。
+这个方向值得密切关注。
+\end{corebox}
+
+\subsection{多模态分词：图像也是 Token}
+
+随着多模态大模型（如 GPT-4V、Gemini）的兴起，
+一个自然的问题是：
+能不能把图像也「分词」成一组离散 token，
+与文本 token 统一处理？
+
+答案是肯定的。
+VQ-VAE（Vector Quantized Variational Autoencoder）
+和 VQGAN 等方法可以将图像编码为
+一组离散的码本索引——
+每个索引就是一个「图像 token」。
+例如，一张 256$\times$256 的图像
+可以被编码为 $16 \times 16 = 256$ 个图像 token。
+这些 token 与文本 token 共享同一个 Transformer，
+实现了真正的多模态统一建模。
+
+这种方法的代表包括：
+Google 的 Parti 和 Gemini、
+Meta 的 Chameleon。
+它们展示了一个激动人心的可能性：
+\textbf{所有模态——文本、图像、音频、视频——
+都可以被「分词」为离散 token，
+然后用同一个 Transformer 进行统一建模}。
+分词不再只是 NLP 的预处理步骤，
+而是多模态 AI 的基础设施。
+
+\subsubsection{Emu3：纯 next-token prediction 的多模态统一}
+
+2024 年，北京智源人工智能研究院（BAAI）发布了 \textbf{Emu3}，
+这是多模态分词领域的一个里程碑式工作。
+Emu3 证明了一个强有力的命题：
+\textbf{仅靠 next-token prediction，
+不需要扩散模型或组合架构，
+就可以同时实现多模态感知和生成}。
+% NEW REF: wang2024emu3 = Wang, Xinlong and Zhang, Xiaosong and Luo, Zhengxiong and Sun, Quan and Cui, Yufeng and others. Emu3: Next-Token Prediction is All You Need. Nature, 2025.
+
+Emu3 的方法概念上非常简洁：
+将图像、文本和视频统一编码为离散 token 序列，
+然后用一个标准的 Transformer decoder 做 next-token prediction。
+图像通过改进的 VQVAE 编码为 $32 \times 32 = 1024$ 个视觉 token，
+视频则被编码为帧序列中的视觉 token 流。
+在推理时，生成图像就是自回归地生成视觉 token，
+然后用 VQVAE decoder 解码回像素。
+
+Emu3 在图像生成上超越了 SDXL，
+在图像理解上与 LLaVA-1.6 持平——
+这是第一次有纯自回归模型在两个方向上同时达到领先水平。
+这一结果发表在 \textit{Nature}（2025）上，
+标志着多模态分词从实验性概念走向了成熟验证。
+
+\subsubsection{UniTok：统一视觉分词器}
+
+多模态分词面临的一个技术挑战是
+\textbf{生成和理解对视觉 token 的需求不同}。
+图像生成需要高保真度的像素重建
+（偏向 VQVAE 式的离散编码），
+而图像理解需要高级语义特征
+（偏向 CLIP 式的连续编码）。
+
+ByteDance 和香港大学的 \textbf{UniTok}（2025）
+尝试在一个统一的分词器中同时满足两种需求。
+UniTok 的核心创新是在训练视觉分词器时
+同时优化重建损失和语义对齐损失，
+使得同一组离散 token 既能重建图像，
+也能承载语义信息。
+这个方向代表了多模态分词的未来趋势——
+不是为每个任务设计专门的分词器，
+而是用一个统一的分词器覆盖所有需求。
+% NEW REF: ma2025unitok = Ma, Chuofan and Jiang, Yi and Wu, Junfeng and Yang, Jihan and Yu, Xin and Yuan, Zehuan and Peng, Bingyue and Qi, Xiaojuan. UniTok: a Unified Tokenizer for Visual Generation and Understanding. In NeurIPS, 2025.
+
+\subsubsection{音频和视频的分词}
+
+音频和视频的分词也在快速发展。
+音频方面，\textbf{SoundStream}（Google）和
+\textbf{EnCodec}（Meta）使用残差向量量化
+（Residual Vector Quantization, RVQ）
+将音频波形编码为多层离散 token。
+Gemma 3n（2025）直接以 6.25 tokens/秒 的速率
+处理音频输入——
+这意味着 1 分钟的音频仅需要 375 个 token，
+远低于将音频转录为文本的 token 开销。
+
+视频则是最具挑战性的模态。
+一段 10 秒、30fps 的 256$\times$256 视频，
+如果每帧编码为 256 个 token，
+总共需要 $300 \times 256 = 76{,}800$ 个 token——
+即使对于 10M 上下文窗口的 LLaMA 4 Scout
+也是一个不小的负担。
+视频分词的关键是\textbf{时间冗余压缩}——
+相邻帧之间的变化通常很小，
+只需要编码变化的部分，
+类似于视频编解码器中 I 帧和 P 帧的关系。
+
+\begin{corebox}[多模态分词的统一愿景]
+多模态分词的发展正在走向一个统一的架构：
+\textbf{所有模态共享同一个 token 空间}。
+文本 token 和图像 token 混合在同一个序列中，
+模型在预训练时同时学习所有模态的模式。
+LLaMA 4 已经在词表中预留了多模态 token 的位置
+（图像 token ID 为 200092），
+Gemini 使用了类似的设计。
+这种统一表示的终极目标是——
+模型不再需要知道输入的模态是什么，
+因为一切都已经是 token。
+\end{corebox}
+
+
+%% ============================================================

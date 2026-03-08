@@ -1,0 +1,1419 @@
+\chapter{Transformer——注意力就是一切}
+\label{ch:transformer}
+%% ============================================================
+
+2017 年，Google 的研究团队发表了一篇改变历史进程的论文：
+《Attention is All You Need》~\cite{vaswani2017attention}。
+这篇论文提出的 Transformer 架构，在不到十年的时间里，
+从一个机器翻译模型发展成了当今所有 AI 系统的核心引擎。
+为什么 Transformer 如此成功？让我们从最核心的组件——注意力机制——开始理解。
+
+\section{自注意力：学会「看哪里」}
+
+\subsection{直觉：图书馆的类比}
+
+想象你走进一座图书馆，你有一个问题想要回答。
+你的问题就是\textbf{查询}（Query）：
+「我想找关于法国历史的信息。」
+图书馆里每本书的标题是\textbf{键}（Key）：
+「法国大革命」「量子物理导论」「巴黎美食指南」……
+每本书的内容是\textbf{值}（Value）。
+
+你会把自己的查询与每本书的标题做比较，
+与「法国大革命」的匹配度最高，
+与「巴黎美食指南」也有一定相关性，
+与「量子物理导论」则几乎不相关。
+然后你根据这些相关性，加权地阅读各本书的内容。
+
+这个类比可以更精确地对应到信息检索领域。
+在搜索引擎中，用户输入查询 $q$，
+系统计算 $q$ 与每个文档键 $k_i$ 的相关性分数 $\mathrm{score}(q, k_i)$，
+然后按分数排序返回文档内容 $v_i$。
+注意力机制做的事情完全一样，
+只不过它不是返回 top-$k$ 文档，
+而是对\textbf{所有}文档做\textbf{软性}加权平均——
+相关性越高的文档权重越大。
+
+自注意力（Self-Attention）做的就是这件事。
+在一个句子中，\textbf{每个词同时扮演查询、键和值三个角色}。
+每个词都在问：「句子里的其他词中，哪些与我最相关？」
+然后根据相关性，加权地整合其他词的信息。
+
+\subsection{数学公式}
+
+给定输入序列中某个位置的向量 $\mathbf{x}$，
+我们用三个可学习的线性变换将其映射为查询、键、值：
+\begin{equation}
+  \mathbf{q} = W_Q \mathbf{x}, \quad
+  \mathbf{k} = W_K \mathbf{x}, \quad
+  \mathbf{v} = W_V \mathbf{x}
+\end{equation}
+其中 $W_Q, W_K \in \mathbb{R}^{d_k \times d}$，
+$W_V \in \mathbb{R}^{d_v \times d}$ 是参数矩阵。
+
+对整个序列做矩阵运算，注意力的计算公式为：
+\begin{equation}
+  \mathrm{Attention}(Q, K, V)
+  = \mathrm{softmax}\!\left(\frac{Q K^\top}{\sqrt{d_k}}\right) V
+  \label{eq:attention}
+\end{equation}
+
+这个公式分为三步。
+第一步，$QK^\top$ 计算所有查询与所有键的点积，
+得到一个 $n \times n$ 的相关性矩阵（$n$ 是序列长度）。
+第二步，除以 $\sqrt{d_k}$ 进行缩放——
+这一步至关重要，因为当维度 $d_k$ 较大时，
+点积的值会变得很大，
+导致 softmax 的梯度趋近于零（饱和），模型无法有效学习。
+第三步，softmax 将相关性分数转换为概率分布，
+然后与 $V$ 相乘得到加权输出。
+
+\subsection{计算复杂度分析}
+
+注意力的计算复杂度值得仔细分析，
+因为它决定了 Transformer 能处理多长的序列。
+
+$QK^\top$ 的计算：$Q \in \mathbb{R}^{n \times d_k}$，
+$K \in \mathbb{R}^{n \times d_k}$，
+矩阵乘法的复杂度为 $O(n^2 d_k)$。
+softmax 的复杂度为 $O(n^2)$（对 $n \times n$ 矩阵逐行操作）。
+最终 $\mathrm{softmax}(\cdot) \times V$ 的复杂度为 $O(n^2 d_v)$。
+总计算复杂度为 $O(n^2 d)$，其中 $d = d_k = d_v$。
+
+内存方面，需要存储 $n \times n$ 的注意力矩阵。
+对于 $n = 128{,}000$（128K 上下文），
+这个矩阵有 $128K \times 128K \approx 160$ 亿个元素——
+仅以 FP16 存储就需要约 30\,GB。
+这就是为什么长上下文是 LLM 的核心挑战之一，
+也是 Flash Attention 如此重要的原因。
+
+\subsection{手工计算示例}
+
+为了让注意力的计算过程完全透明，
+让我们用一个极简的例子手动走一遍。
+假设序列长度 $n = 3$，每个 token 的维度 $d = 4$，
+查询/键/值的维度 $d_k = d_v = 2$。
+
+输入矩阵（3 个 token，每个 4 维）：
+\[
+X = \begin{pmatrix}
+  1 & 0 & 1 & 0 \\
+  0 & 1 & 0 & 1 \\
+  1 & 1 & 0 & 0
+\end{pmatrix}
+\]
+
+投影矩阵（简化为固定值）：
+\[
+W_Q = \begin{pmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 0 \\ 0 & 1 \end{pmatrix}, \quad
+W_K = \begin{pmatrix} 0 & 1 \\ 1 & 0 \\ 0 & 1 \\ 1 & 0 \end{pmatrix}, \quad
+W_V = \begin{pmatrix} 1 & 1 \\ 0 & 0 \\ 0 & 1 \\ 1 & 0 \end{pmatrix}
+\]
+
+\textbf{Step 1}: 计算 $Q, K, V$：
+\[
+Q = XW_Q = \begin{pmatrix} 2 & 0 \\ 0 & 2 \\ 1 & 1 \end{pmatrix}, \quad
+K = XW_K = \begin{pmatrix} 0 & 2 \\ 2 & 0 \\ 1 & 1 \end{pmatrix}, \quad
+V = XW_V = \begin{pmatrix} 1 & 2 \\ 1 & 0 \\ 1 & 1 \end{pmatrix}
+\]
+
+\textbf{Step 2}: 计算 $QK^\top / \sqrt{d_k}$（$\sqrt{d_k} = \sqrt{2} \approx 1.41$）：
+\[
+QK^\top = \begin{pmatrix} 0 & 4 & 2 \\ 4 & 0 & 2 \\ 2 & 2 & 2 \end{pmatrix}
+\quad \Rightarrow \quad
+\frac{QK^\top}{\sqrt{2}} \approx \begin{pmatrix} 0 & 2.83 & 1.41 \\ 2.83 & 0 & 1.41 \\ 1.41 & 1.41 & 1.41 \end{pmatrix}
+\]
+
+\textbf{Step 3}: 对每一行做 softmax，得到注意力权重矩阵 $A$：
+\[
+A \approx \begin{pmatrix}
+  0.05 & 0.77 & 0.19 \\
+  0.77 & 0.05 & 0.19 \\
+  0.33 & 0.33 & 0.33
+\end{pmatrix}
+\]
+
+\textbf{Step 4}: 加权求和 $\mathrm{Output} = AV$：
+\[
+\mathrm{Output} \approx \begin{pmatrix}
+  1.00 & 0.28 \\
+  1.00 & 1.72 \\
+  1.00 & 1.00
+\end{pmatrix}
+\]
+
+观察结果：token 1 的输出主要由 token 2 的值决定（权重 0.77），
+token 2 的输出主要由 token 1 的值决定（权重 0.77），
+而 token 3 均匀地关注所有 token（权重各约 0.33）。
+这就是注意力的本质——让每个 token 选择性地聚焦于最相关的其他 token。
+
+\subsection{代码实现}
+
+用 PyTorch 实现自注意力仅需几行代码：
+
+\begin{lstlisting}[caption={Self-Attention in PyTorch}]
+import torch
+import torch.nn.functional as F
+import math
+
+def self_attention(x, W_q, W_k, W_v):
+    """
+    x: (batch, seq_len, d_model)
+    W_q, W_k, W_v: (d_model, d_k) or (d_model, d_v)
+    """
+    Q = x @ W_q  # (batch, seq_len, d_k)
+    K = x @ W_k  # (batch, seq_len, d_k)
+    V = x @ W_v  # (batch, seq_len, d_v)
+
+    d_k = Q.shape[-1]
+    # Step 1+2: scaled dot-product
+    scores = (Q @ K.transpose(-2, -1)) / math.sqrt(d_k)
+    # Step 3: softmax + weighted sum
+    weights = F.softmax(scores, dim=-1)
+    output = weights @ V
+    return output
+\end{lstlisting}
+
+这段代码对应了公式~\eqref{eq:attention}的三个步骤。
+\texttt{Q @ K.transpose(-2, -1)} 是 $QK^\top$（矩阵乘法），
+除以 \texttt{math.sqrt(d\_k)} 是缩放，
+\texttt{F.softmax} 是 softmax 归一化，
+最后 \texttt{weights @ V} 是加权求和。
+
+\begin{whybox}[为什么用点积而不是其他相似度度量？]
+Bahdanau 等人在 2015 年提出的注意力使用加法形式
+$\mathrm{score} = v^\top \tanh(W_1 q + W_2 k)$，
+需要额外的参数和非线性操作。
+点积注意力 $q^\top k$ 没有额外参数，
+而且可以直接用高度优化的矩阵乘法实现——
+这在 GPU 上的效率远高于逐元素操作。
+在实践中，缩放点积注意力的效果与加法注意力相当，
+但速度快得多。
+此外，点积在几何上有清晰的含义：
+$q^\top k = \|q\| \|k\| \cos\theta$，
+即两个向量的相似度由它们之间的夹角决定。
+这使得注意力权重具有直觉上的可解释性——
+内容越相似（夹角越小），注意力越高。
+\end{whybox}
+
+\section{多头注意力：同时关注不同关系}
+
+单个注意力头只能学习一种关注模式。
+但在语言中，词与词之间存在多种关系：
+语法关系（主语--谓语）、语义关系（同义词、反义词）、
+指代关系（代词指向哪个实体）、位置关系（相邻的词往往相关）。
+
+多头注意力（Multi-Head Attention, MHA）的解决方案是：
+\textbf{并行运行多个注意力头，每个头独立学习不同的关注模式}。
+
+\begin{equation}
+  \mathrm{MultiHead}(Q, K, V) =
+  \mathrm{Concat}(\mathrm{head}_1, \ldots, \mathrm{head}_h) \, W^O
+\end{equation}
+其中 $\mathrm{head}_i = \mathrm{Attention}(Q W_i^Q, K W_i^K, V W_i^V)$。
+
+每个头使用自己的投影矩阵（$W_i^Q, W_i^K, W_i^V$），
+在不同的子空间中计算注意力。
+最后将所有头的输出拼接起来，通过一个线性层 $W^O$ 融合。
+
+\subsection{为什么多头比单头好？}
+
+直觉上，多头注意力的好处是\textbf{分工}——
+不同的头可以专注于不同类型的语言关系。
+Clark 等人~\cite{clark2019bert}
+在对 BERT 的注意力模式进行可视化分析后发现，
+不同的头确实学到了截然不同的模式：
+
+\begin{itemize}[noitemsep]
+  \item 某些头专注于\textbf{局部上下文}（如相邻词），
+        类似于 n-gram 模型
+  \item 某些头关注\textbf{语法依赖}，
+        如主语和谓语之间的一致性关系，
+        即使它们相距很远
+  \item 某些头追踪\textbf{指代关系}——
+        「他」指向哪个人物，「它」指向哪个对象
+  \item 某些头负责\textbf{分隔符注意力}——
+        大量注意力集中在句号、逗号等标点符号上，
+        可能用于分割句子结构
+\end{itemize}
+
+从数学角度看，多头注意力的总参数量与单头注意力相同。
+如果模型维度为 $d$，头数为 $h$，
+那么每个头的维度为 $d_k = d/h$。
+单头注意力的投影矩阵大小为 $d \times d$，
+多头注意力中每个头的投影矩阵大小为 $d \times d/h$，
+$h$ 个头加起来仍然是 $d \times d$。
+因此，多头注意力\textbf{不增加参数量}，
+但通过在不同子空间中并行计算，获得了更丰富的表示能力。
+
+现代 LLM（如 LLaMA 3、DeepSeek-V3）通常使用 32--128 个注意力头。
+
+\subsection{从 MHA 到 MQA 到 GQA：效率的演进}
+
+MHA 的问题在推理时暴露无遗。
+在自回归生成中，每生成一个新 token，
+都需要用到之前所有 token 的 $K$ 和 $V$。
+为了避免重复计算，这些 $K, V$ 会被缓存——
+这就是 \textbf{KV cache}。
+
+对于标准 MHA，每个头都有独立的 $K$ 和 $V$ 矩阵。
+一个 70B 参数模型处理 128K token 的上下文时，
+KV cache 的大小为：
+\[
+  2 \times n_{\mathrm{layers}} \times n_{\mathrm{heads}}
+  \times \mathrm{seq\_len} \times d_{\mathrm{head}} \times \mathrm{bytes}
+\]
+代入典型值（80 层、64 头、128K 序列、128 维、FP16），
+$2 \times 80 \times 64 \times 128{,}000 \times 128 \times 2 \approx 335$\,GB——
+远超单块 GPU 的显存。
+
+\textbf{Multi-Query Attention（MQA）}~\cite{shazeer2019mqa}
+是 Shazeer 在 2019 年提出的激进方案：
+\textbf{所有查询头共享一套 $K, V$}。
+KV cache 从 $h$ 套降到 1 套，内存减少到 $1/h$。
+代价是质量下降——
+所有头被迫使用相同的 KV 信息，表达能力受限。
+
+\textbf{分组查询注意力}（Grouped-Query Attention, GQA）
+是 Ainslie 等人（2023）提出的折中方案~\cite{ainslie2023gqa}，被 LLaMA 2 广泛采用~\cite{dubey2024llama3}：
+将多个查询头分成若干组，每组共享一套 KV。
+例如，32 个查询头分成 8 组，只需要 8 套 KV——
+KV cache 减少到原来的 $1/4$，
+而质量几乎没有损失。
+
+GQA 处于两个极端之间：
+
+\begin{center}
+\begin{tabular}{lccc}
+\hline
+\textbf{方法} & \textbf{KV 头数} & \textbf{KV cache 大小} & \textbf{质量} \\
+\hline
+MHA  & $h$（全部独立） & $1\times$ & 最高 \\
+GQA  & $h/g$（分组共享） & $1/g$ & 接近 MHA \\
+MQA  & 1（全部共享） & $1/h$ & 可能下降 \\
+\hline
+\end{tabular}
+\end{center}
+
+GQA 在质量和效率之间找到了最优平衡，
+是目前几乎所有主流 LLM 的标准选择。
+LLaMA 3 使用 $h = 32, g = 4$（即 8 组 KV 头），
+DeepSeek-V2 则走得更远，采用了 MLA（下文详述）。
+
+\section{位置编码：让模型知道词的位置}
+
+注意力机制有一个本质特性：
+\textbf{它对输入的排列是不变的}。
+也就是说，如果你打乱输入词的顺序，
+注意力的计算结果不会改变——
+因为点积只关心内容，不关心位置。
+
+但语言显然是有顺序的。
+「狗咬了人」和「人咬了狗」包含完全相同的词，
+但意思截然相反。
+模型必须知道每个词在句子中的位置。
+
+\subsection{从绝对到相对位置编码}
+
+最初的 Transformer~\cite{vaswani2017attention} 使用正弦函数生成固定的位置编码，
+直接加到词嵌入上：
+\begin{align}
+  \mathrm{PE}(pos, 2i) &= \sin\!\left(\frac{pos}{10000^{2i/d}}\right) \\
+  \mathrm{PE}(pos, 2i+1) &= \cos\!\left(\frac{pos}{10000^{2i/d}}\right)
+\end{align}
+这种方法有两个问题：
+一是模型只在有限长度上训练，无法自然泛化到更长的序列；
+二是绝对位置并不是最有用的信息——
+对于语言理解来说，
+「这两个词相距 3 个位置」（相对位置）
+比「这个词在第 47 个位置」（绝对位置）更重要。
+
+BERT 使用了可学习的绝对位置编码——
+为每个位置学习一个独立的向量。
+这比正弦编码更灵活，
+但仍然是绝对位置，且不能泛化到训练时未见过的长度。
+
+ALiBi（Attention with Linear Biases）~\cite{press2022alibi}
+提出了另一种方案：
+不修改嵌入，而是在注意力分数上直接加一个与距离成正比的偏置。
+距离越远的 token 对，偏置越大（越负），注意力越低。
+这自然编码了「近距离优先」的归纳偏置。
+
+但最终胜出的是 RoPE。
+
+\subsection{RoPE：旋转位置编码}
+
+RoPE（Rotary Position Embedding）~\cite{su2021rope}
+是当前所有主流 LLM 的标准位置编码方案。
+它的核心思想优雅而巧妙：
+\textbf{通过在复数空间中旋转向量来编码位置}。
+
+\subsubsection{核心直觉}
+
+为什么用「旋转」来编码位置？
+考虑二维平面上的两个向量 $\mathbf{q}$ 和 $\mathbf{k}$。
+如果我们分别将它们旋转角度 $m\theta$ 和 $n\theta$，
+它们的点积变成：
+\[
+  \tilde{\mathbf{q}}^\top \tilde{\mathbf{k}}
+  = \|\mathbf{q}\| \|\mathbf{k}\| \cos(\alpha + (m-n)\theta)
+\]
+其中 $\alpha$ 是原始夹角。
+注意，结果只依赖于\textbf{相对位置} $m - n$，
+而不是绝对位置 $m$ 或 $n$！
+这正是我们想要的性质。
+
+而且，旋转角度 $(m-n)\theta$ 意味着
+相对距离越大，注意力分数的衰减越快——
+这提供了一种自然的\textbf{远程衰减}（long-range decay）效应，
+让模型更关注近距离的 token，
+同时仍保留对远距离 token 的感知能力。
+
+\subsubsection{数学公式}
+
+对于位置 $m$ 的查询向量和位置 $n$ 的键向量，
+RoPE 分别对它们施加旋转：
+\begin{equation}
+  \tilde{q}_m = R(\theta, m) \, q_m, \quad
+  \tilde{k}_n = R(\theta, n) \, k_n
+\end{equation}
+其中 $R(\theta, m)$ 是一个旋转矩阵，
+每对相邻维度 $(2i, 2i+1)$ 按角度 $m \theta_i$ 旋转：
+\begin{equation}
+  R(\theta_i, m) = \begin{pmatrix}
+    \cos(m \theta_i) & -\sin(m \theta_i) \\
+    \sin(m \theta_i) & \cos(m \theta_i)
+  \end{pmatrix}, \quad
+  \theta_i = 10000^{-2i/d}
+\end{equation}
+
+关键在于：旋转后的查询和键做点积时，
+$\tilde{q}_m^\top \tilde{k}_n$ 只依赖于\textbf{相对位置 $m - n$}，
+而不是绝对位置 $m$ 或 $n$。
+这是因为旋转矩阵满足 $R(m)^\top R(n) = R(n - m)$。
+
+$\theta_i$ 的设计也很有讲究：
+低维度（$i$ 小）对应较大的 $\theta_i$，旋转速度快，
+捕捉短距离的位置模式（如相邻词的语法关系）。
+高维度（$i$ 大）对应较小的 $\theta_i$，旋转速度慢，
+捕捉长距离的位置模式（如段落间的主题关联）。
+这种多尺度编码使得模型能同时捕捉局部和全局的位置关系。
+
+\subsubsection{上下文长度外推}
+
+RoPE 的一个实际挑战是\textbf{上下文长度外推}——
+模型在 4K 长度上训练后，能否推广到 32K 或 128K？
+
+直接外推通常会失败，因为模型没有见过高位置的旋转角度。
+几种主流的解决方案：
+
+\textbf{位置插值}（Position Interpolation）~\cite{chen2023extending}：
+将长序列的位置缩放到训练时的范围。
+例如，32K 的位置映射到 $[0, 4K)$，
+相当于压缩了位置空间。
+需要少量微调来适应压缩后的位置表示。
+
+\textbf{NTK-aware 插值}~\cite{bloc97ntk}：
+不是均匀缩放所有维度的频率，
+而是按频率的高低差异化缩放——
+高频维度（短距离模式）少缩放，
+低频维度（长距离模式）多缩放。
+这保留了局部位置精度，同时扩展了全局位置范围。
+NTK 名称来源于神经正切核（Neural Tangent Kernel）理论的类比。
+
+\textbf{YaRN}（Yet another RoPE extensioN）进一步改进了 NTK-aware 插值，
+结合了温度缩放和频率分段调整。
+
+LLaMA 3 和 DeepSeek-V3 都使用了某种形式的 RoPE 频率调整
+来支持 128K+ 的上下文长度。
+
+\section{前馈网络与激活函数}
+
+Transformer 的每一层由两个子层组成：注意力层和前馈网络（FFN）层。
+如果说注意力层负责「让词与词交流」，
+那么 FFN 层则负责「在每个位置上独立地处理信息」。
+
+\subsection{激活函数的演进}
+
+激活函数的演进历史反映了深度学习社区对非线性建模的认知深化。
+
+\textbf{ReLU}（2010s 主流）：$\mathrm{ReLU}(x) = \max(0, x)$。
+计算简单、训练快，但存在「死亡 ReLU」问题——
+一旦某个神经元的输入为负，梯度为零，该神经元永久失活。
+原始 Transformer 的 FFN 就使用 ReLU：
+$\mathrm{FFN}(x) = \max(0, xW_1 + b_1) W_2 + b_2$。
+
+\textbf{GELU}（Gaussian Error Linear Unit, 2016）~\cite{hendrycks2016gelu}：
+$\mathrm{GELU}(x) = x \cdot \Phi(x)$，
+其中 $\Phi(x)$ 是标准正态分布的累积分布函数。
+GELU 对负值不是硬截断，而是软性抑制，
+提供了更平滑的梯度。BERT 和 GPT-2 使用了 GELU。
+
+\textbf{SiLU/Swish}（2017）~\cite{ramachandran2017swish}：
+$\mathrm{Swish}(x) = x \cdot \sigma(\beta x)$，
+其中 $\sigma$ 是 sigmoid 函数，$\beta$ 通常为 1。
+Swish 在数学上与 GELU 非常接近，
+但形式更简洁。Google Brain 通过自动搜索发现了这个激活函数。
+
+\textbf{SwiGLU}（2020）~\cite{shazeer2020glu}：
+将 Swish 与门控线性单元（GLU）结合：
+\begin{equation}
+  \mathrm{SwiGLU}(x) = \left(\mathrm{Swish}(x W_1) \odot (x W_3)\right) W_2
+\end{equation}
+其中 $\mathrm{Swish}(x) = x \cdot \sigma(x)$，
+$\odot$ 是逐元素乘法。SwiGLU 引入了一个门控机制——
+$xW_3$ 控制哪些信息被通过，
+$\mathrm{Swish}(xW_1)$ 提供非线性变换。
+
+\subsection{为什么门控机制有效？}
+
+门控机制的核心思想是\textbf{信息过滤}。
+在标准 FFN 中，所有信息经过相同的非线性变换。
+在门控 FFN 中，模型学习了一个「开关」——
+决定哪些维度的信息应该通过，哪些应该被抑制。
+这类似于 LSTM 中的遗忘门和输入门。
+
+直觉上，语言模型在每个位置上需要做两件事：
+（1）提取有用的特征，（2）过滤无关的噪声。
+门控机制让模型显式地学习这两个步骤，
+而不是将它们混在一起。
+
+Shazeer~\cite{shazeer2020glu} 的实验表明，
+在控制参数量相同的条件下，
+SwiGLU 在多个基准上一致优于 ReLU 和 GELU。
+这个优势虽然不大（通常 1--3 个百分点），
+但在大规模训练中累积起来就是显著的差异。
+
+\begin{whybox}[为什么 FFN 的隐藏维度是 $8d/3$？]
+原始 Transformer 中 FFN 的隐藏维度是 $4d$（$d$ 是模型维度）。
+FFN 有两个矩阵 $W_1 \in \mathbb{R}^{d \times 4d}$ 和 $W_2 \in \mathbb{R}^{4d \times d}$，
+总参数量为 $2 \times 4d^2 = 8d^2$。
+SwiGLU 引入了第三个权重矩阵 $W_3$，增加了约 50\% 的参数。
+为了保持总参数量不变（$3 \times d \times d_{\mathrm{ffn}} = 8d^2$），
+隐藏维度从 $4d$ 缩小到 $d_{\mathrm{ffn}} = 8d/3 \approx 2.67d$。
+这样 SwiGLU 在相同参数预算下，
+性能优于更大的 ReLU FFN。
+实践中，这个值通常被取整到 256 的倍数
+以便于 GPU tensor core 对齐，
+例如 LLaMA 3-8B 使用 $d = 4096, d_{\mathrm{ffn}} = 14336$
+（恰好是 $3.5d$，略大于 $8d/3$）。
+\end{whybox}
+
+\section{层归一化：训练的稳定器}
+
+深层神经网络的训练面临一个根本挑战：
+随着层数增加，各层的输入分布可能剧烈变化，
+导致训练不稳定甚至发散。
+
+层归一化（Layer Normalization）通过对每一层的输入做标准化来缓解这个问题。
+现代 LLM 做了两个关键改进。
+
+\subsection{Pre-Norm vs Post-Norm}
+
+原始 Transformer 在注意力/FFN \textbf{之后}做归一化（Post-Norm）：
+\[
+  x' = \mathrm{Norm}(x + \mathrm{SubLayer}(x))
+\]
+现代模型在\textbf{之前}做归一化（Pre-Norm）：
+\[
+  x' = x + \mathrm{SubLayer}(\mathrm{Norm}(x))
+\]
+
+这两种位置看似只是微小的差异，但影响深远。
+
+\textbf{Pre-Norm 的优势}在于残差连接的梯度流。
+在 Pre-Norm 中，残差连接形成了一条从最后一层到第一层的
+「梯度高速公路」——$x' = x + f(\mathrm{Norm}(x))$，
+其中 $\partial x'/\partial x = I + \partial f / \partial x$。
+即使 $\partial f / \partial x$ 很小或为零，
+梯度也能通过恒等映射 $I$ 畅通无阻地反向传播。
+这使得训练 100+ 层的深层模型成为可能。
+
+\textbf{Post-Norm 的优势}在于归一化后的表示更稳定。
+由于归一化在残差连接之后，
+每一层的输出都被归一化到统一尺度，
+理论上表示能力更强。
+但代价是深层模型容易出现梯度消失或训练不稳定。
+
+实践中，几乎所有现代 LLM 都选择 Pre-Norm——
+训练稳定性比微小的表示能力差异更重要。
+DeepSeek-V3 在 Pre-Norm 基础上进一步引入了
+额外的辅助损失来防止训练崩溃。
+
+\subsection{RMSNorm：去掉均值，只留尺度}
+
+标准 LayerNorm 的计算过程包括两步：
+均值平移（center）和尺度归一化（scale）：
+\begin{equation}
+  \mathrm{LayerNorm}(x) = \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \cdot \gamma + \beta
+\end{equation}
+其中 $\mu = \frac{1}{d}\sum_{i} x_i$ 是均值，
+$\sigma^2 = \frac{1}{d}\sum_{i}(x_i - \mu)^2$ 是方差，
+$\gamma$ 和 $\beta$ 是可学习的缩放和偏移参数。
+
+\textbf{RMSNorm}~\cite{zhang2019rms} 去掉了均值平移操作，
+只做尺度归一化：
+\begin{equation}
+  \mathrm{RMSNorm}(x) = \frac{x}{\sqrt{\frac{1}{d}\sum_{i=1}^{d} x_i^2 + \epsilon}} \cdot \gamma
+\end{equation}
+
+从数学上分析，LayerNorm 的均值平移操作
+相当于将向量投影到垂直于全 1 向量 $\mathbf{1}$ 的超平面上。
+Zhang 和 Sennrich~\cite{zhang2019rms} 的研究表明，
+\textbf{归一化的主要贡献来自尺度不变性，而非均值平移}。
+去掉均值平移不影响模型质量，
+但节省了计算均值和减去均值的操作——
+在大规模模型中，这带来了约 10--15\% 的归一化层加速。
+RMSNorm 还去掉了偏移参数 $\beta$，进一步简化了模型。
+
+\section{Flash Attention：让注意力更快}
+
+注意力机制的计算复杂度是 $O(n^2)$——
+对于长序列，这既是计算瓶颈，也是内存瓶颈。
+标准实现需要在 GPU 的高带宽内存（HBM）中存储完整的 $n \times n$ 注意力矩阵。
+
+\subsection{GPU 内存层次结构}
+
+要理解 Flash Attention 为什么有效，
+必须先理解 GPU 的内存层次：
+
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+\textbf{层级} & \textbf{容量} & \textbf{带宽} \\
+\hline
+寄存器（Register） & $\sim$KB / SM & $\sim$TB/s \\
+SRAM（片上缓存） & 20\,MB（A100） & $\sim$19\,TB/s \\
+HBM（高带宽内存） & 80\,GB（A100） & $\sim$2\,TB/s \\
+\hline
+\end{tabular}
+\end{center}
+
+SRAM 的带宽是 HBM 的约 \textbf{10 倍}，
+但容量只有 HBM 的约 \textbf{1/4000}。
+标准注意力实现将 $Q, K, V$ 和 $n \times n$ 注意力矩阵都存在 HBM 中，
+计算过程不断在 HBM 和 SRAM 之间搬运数据，
+而 GPU 的算术单元大部分时间在等待数据传输。
+这就是为什么标准注意力是 \textbf{memory-bound}（内存带宽受限）
+而非 compute-bound（计算受限）的。
+
+\subsection{核心算法：分块计算}
+
+Flash Attention~\cite{dao2022flashattention,dao2023flashattention2}
+的核心洞察是：
+\textbf{注意力计算是内存带宽瓶颈的（memory-bound），而非计算瓶颈的}。
+GPU 的算术运算速度远快于内存读写速度。
+标准实现在 HBM 和 SRAM 之间来回搬运数据的时间，
+远超实际的矩阵运算时间。
+
+Flash Attention 的解决方案是\textbf{分块计算（tiling）}：
+\begin{enumerate}[noitemsep]
+  \item 将 $Q$ 分成块 $Q_1, Q_2, \ldots$，将 $K, V$ 也分成对应的块
+  \item 对于每个 $Q$ 块，依次加载 $K, V$ 的块到 SRAM
+  \item 在 SRAM 中完成 $Q_i K_j^\top$ 的计算、softmax、以及与 $V_j$ 的乘法
+  \item 使用\textbf{在线 softmax}（online softmax）算法
+        增量地更新输出——
+        不需要先计算整行的注意力分数再做 softmax，
+        而是在处理每个 $K, V$ 块时动态更新 softmax 的分母
+  \item 最终结果直接写回 HBM，中间的 $n \times n$ 注意力矩阵\textbf{从不存储}
+\end{enumerate}
+
+结果是：Flash Attention 在数学上\textbf{完全等价}于标准注意力
+（不是近似！），但内存占用从 $O(n^2)$ 降至 $O(n)$，
+速度提升 2--4$\times$。
+
+\begin{corebox}[在线 softmax 的关键]
+标准 softmax 需要两遍扫描：第一遍求分母 $\sum_j e^{s_j}$，
+第二遍归一化。
+在线 softmax 在一遍扫描中完成：
+维护一个运行中的最大值 $m$ 和分母 $l$，
+每处理一个新块时更新：
+\[
+  m_{\mathrm{new}} = \max(m_{\mathrm{old}}, m_{\mathrm{block}}), \quad
+  l_{\mathrm{new}} = l_{\mathrm{old}} \cdot e^{m_{\mathrm{old}} - m_{\mathrm{new}}}
+  + l_{\mathrm{block}} \cdot e^{m_{\mathrm{block}} - m_{\mathrm{new}}}
+\]
+这使得分块计算在数学上精确等价于一次性计算。
+\end{corebox}
+
+\subsection{Flash Attention 的演进}
+
+\textbf{Flash Attention 1}~\cite{dao2022flashattention}（2022）
+引入了基本的分块算法和 IO-awareness 概念。
+在 A100 GPU 上实现了 2--4$\times$ 的加速和显著的内存节省。
+
+\textbf{Flash Attention 2}~\cite{dao2023flashattention2}（2023）
+在算法层面做了优化：
+\begin{itemize}[noitemsep]
+  \item 减少了非矩阵乘法操作的数量（这些操作在 GPU 上效率较低）
+  \item 改进了 GPU 线程块和 warp 之间的并行化策略
+  \item 将序列长度维度的并行化改为在注意力头和 batch 维度上并行
+  \item 在 A100 上达到了理论峰值 FLOPS 的 50--73\%，
+        而 Flash Attention 1 仅达到 25--40\%
+\end{itemize}
+
+\textbf{Flash Attention 3}（2024）~\cite{shah2024flashattention3}
+针对 H100 GPU（Hopper 架构）的新特性做了深度优化。
+Flash Attention 2 的设计面向 Ampere 架构（A100），
+在 H100 上仅能达到约 35\% 的利用率——
+远未充分利用 Hopper 的新硬件能力。
+Flash Attention 3 通过三项关键技术释放了 Hopper 的潜力：
+
+\textbf{（1）Warp 专业化与异步流水线}。
+Hopper 架构引入了两个关键新特性：
+\textbf{WGMMA}（Warp Group Matrix Multiply Accumulate）指令
+可以直接从共享内存执行矩阵乘法，
+\textbf{TMA}（Tensor Memory Accelerator）
+可以异步地在 HBM 和共享内存之间搬运数据。
+Flash Attention 3 将 warp 分为\textbf{生产者}和\textbf{消费者}两组：
+生产者 warp 使用 TMA 异步加载下一个数据块到共享内存，
+消费者 warp 使用 WGMMA 对当前数据块执行矩阵乘法。
+通过环形共享内存缓冲区，
+数据加载和计算可以完全\textbf{重叠}——
+GPU 不再有任何空闲周期等待数据。
+
+\textbf{（2）两阶段 GEMM-softmax 流水线（Ping-Pong 调度）}。
+注意力计算中有两次矩阵乘法：$QK^\top$ 和 $\mathrm{softmax} \times V$。
+传统实现必须等 $QK^\top$ 完成后才能开始 softmax，
+再等 softmax 完成后才能执行 $\times V$。
+Flash Attention 3 将相邻迭代的操作交错执行——
+在第 $j+1$ 次迭代的 $QK^\top$ 计算同时，
+执行第 $j$ 次迭代的 softmax。
+这种 ping-pong 调度进一步隐藏了非矩阵乘法操作的延迟。
+
+\textbf{（3）FP8 块量化与不相干处理}。
+H100 的 FP8 tensor core 提供高达 \textbf{1.98 PFLOPS} 的理论峰值。
+Flash Attention 3 利用\textbf{块量化}（block quantization）
+将 FP16 的 $Q, K$ 在块级别转换为 FP8，
+配合\textbf{不相干处理}（incoherent processing）——
+通过随机正交变换使量化误差分布更均匀。
+结果是 FP8 Flash Attention 3 的数值误差
+比 baseline FP8 注意力低 \textbf{2.6$\times$}，
+吞吐量接近 \textbf{1.2 PFLOPS}。
+
+\begin{center}
+\begin{tabular}{lcccc}
+\hline
+\textbf{版本} & \textbf{GPU} & \textbf{精度} & \textbf{吞吐量} & \textbf{峰值利用率} \\
+\hline
+标准注意力 & A100 & FP16 & --- & $<$20\% \\
+Flash Attention 1 & A100 & FP16 & --- & 25--40\% \\
+Flash Attention 2 & A100 & FP16 & --- & 50--73\% \\
+Flash Attention 3 & H100 & FP16 & 740 TFLOPS & $\sim$75\% \\
+Flash Attention 3 & H100 & FP8 & $\sim$1.2 PFLOPS & $\sim$60\% \\
+\hline
+\end{tabular}
+\end{center}
+
+Flash Attention 3 使得在 H100 上处理超长上下文变得实际可行——
+740 TFLOPS 的 FP16 吞吐量意味着
+处理 128K 上下文的注意力计算时间
+比 Flash Attention 2 在 A100 上快约 3--4$\times$
+（考虑 H100 本身的硬件提升）。
+FP8 模式更是将吞吐量推到 PFLOPS 级别，
+为 1M+ token 的上下文处理开辟了道路。
+
+截至 2026 年初，尚未有官方的 ``Flash Attention 4'' 发布，
+但 Flash Attention 3 已在 GTC 2025 上
+被 Tri Dao 演示了面向 Blackwell（B200）架构的优化方向——
+包括利用 B200 的第五代 Tensor Core（FP4 支持）
+和更大的 SRAM（每 SM 提升至 32\,MB 级别）。
+
+Flash Attention 已经成为所有现代 LLM 训练和推理的基础设施，
+集成在 PyTorch 2.0+、Hugging Face Transformers、
+以及几乎所有主流训练框架中。
+值得注意的是，Flash Attention 的 IO-awareness 理念
+也被应用到了 SSM 领域——
+Mamba-2 的 SSD 算法就采用了类似的分块策略
+来最大化 GPU 硬件利用率。
+
+\section{MLA：DeepSeek 的注意力压缩}
+
+DeepSeek-V2 引入了\textbf{多头潜在注意力}
+（Multi-head Latent Attention, MLA），
+进一步解决 KV cache 的内存瓶颈。
+
+\subsection{动机与设计思想}
+
+GQA 通过共享 KV 减少了 KV 头的数量，
+但每个 KV 头的维度不变。
+MLA 的思路不同：\textbf{将 KV 投影到低维潜在空间}。
+
+核心观察是：在高维空间中，
+$K$ 和 $V$ 矩阵存在大量冗余——
+它们的有效秩（effective rank）远低于矩阵维度。
+MLA 利用这个低秩结构，
+将 KV 压缩到一个低维的\textbf{潜在向量} $c$。
+
+\subsection{数学形式}
+
+具体而言，MLA 不直接缓存 $K$ 和 $V$，
+而是缓存一个压缩的\textbf{潜在向量} $c$（维度远小于 $K, V$），
+在计算注意力时再将 $c$ 投影回 $K, V$：
+\begin{equation}
+  c = W_{\mathrm{down}} \, x, \quad
+  K = W_K^{\mathrm{up}} \, c, \quad
+  V = W_V^{\mathrm{up}} \, c
+\end{equation}
+其中 $W_{\mathrm{down}} \in \mathbb{R}^{d_c \times d}$（$d_c \ll d$）
+是下投影矩阵。
+
+关键的工程细节是：在推理时，
+$W_K^{\mathrm{up}}$ 可以被吸收到查询的投影矩阵中，
+使得注意力的计算可以直接在低维空间 $d_c$ 中完成，
+无需将 $c$ 显式展开为 $K$。
+这进一步减少了推理时的计算量。
+
+\subsection{压缩效果}
+
+通过将 KV 压缩到 $d_c$ 维（DeepSeek-V2 中 $d_c = 512$，
+而原始 KV 维度为 $n_h \times d_h = 128 \times 128 = 16{,}384$），
+MLA 将 KV cache 减少到 GQA 的约 $1/6$，
+同时保持与 MHA 相当的质量。
+
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+\textbf{方法} & \textbf{每 token KV cache 大小} & \textbf{相对大小} \\
+\hline
+MHA（64 头） & $2 \times 64 \times 128 = 16{,}384$ & $1\times$ \\
+GQA（8 KV 头） & $2 \times 8 \times 128 = 2{,}048$ & $1/8$ \\
+MQA（1 KV 头） & $2 \times 1 \times 128 = 256$ & $1/64$ \\
+MLA（$d_c = 512$） & $512$ & $\sim 1/32$ \\
+\hline
+\end{tabular}
+\end{center}
+
+这在长上下文推理时尤为关键：
+处理 128K token 的上下文时，
+MLA 的 KV cache 仅为标准 MHA 的约 3\%，
+使得在单机上处理超长上下文成为可能。
+DeepSeek-V3 和后续版本都采用了 MLA，
+这是 DeepSeek 系列模型在推理效率上领先的关键因素之一。
+
+\begin{warnbox}[MLA 的限制]
+MLA 的低秩压缩假设了 KV 空间中的冗余性。
+对于需要极高注意力精度的任务
+（如需要精确回忆长文档中特定细节），
+压缩可能带来信息损失。
+DeepSeek 的解决方案是对 RoPE 部分单独处理——
+位置编码对应的 KV 分量不经过压缩，
+直接存储在 cache 中。
+这增加了少量额外存储，
+但确保了位置信息的完整性。
+\end{warnbox}
+
+\section{完整的 Transformer 块}
+
+让我们把所有组件组装在一起，
+看一个完整的现代 Transformer 块（如 LLaMA 3 风格）是什么样的：
+
+\begin{lstlisting}[caption={A complete modern Transformer block}]
+class TransformerBlock(nn.Module):
+    def __init__(self, d_model, n_heads, n_kv_heads, ffn_dim):
+        super().__init__()
+        self.attn_norm = RMSNorm(d_model)
+        self.attention = GQAttention(d_model, n_heads, n_kv_heads)
+        self.ffn_norm = RMSNorm(d_model)
+        self.ffn = SwiGLUFFN(d_model, ffn_dim)
+
+    def forward(self, x, freqs_rope, mask=None):
+        # Pre-Norm + GQA + Residual
+        h = x + self.attention(
+            self.attn_norm(x), freqs_rope, mask
+        )
+        # Pre-Norm + SwiGLU FFN + Residual
+        out = h + self.ffn(self.ffn_norm(h))
+        return out
+
+class LLM(nn.Module):
+    def __init__(self, vocab_size, d_model, n_layers, ...):
+        super().__init__()
+        self.embed = nn.Embedding(vocab_size, d_model)
+        self.layers = nn.ModuleList([
+            TransformerBlock(d_model, ...) for _ in range(n_layers)
+        ])
+        self.norm = RMSNorm(d_model)
+        self.head = nn.Linear(d_model, vocab_size, bias=False)
+
+    def forward(self, tokens):
+        x = self.embed(tokens)
+        freqs = precompute_rope_freqs(...)
+        for layer in self.layers:
+            x = layer(x, freqs)
+        x = self.norm(x)
+        logits = self.head(x)
+        return logits
+\end{lstlisting}
+
+这段代码展示了一个完整 LLM 的结构：
+词嵌入层将 token ID 映射为向量，
+经过多个 Transformer 块（每个块包含 RMSNorm + GQA + RMSNorm + SwiGLU FFN），
+最后通过线性层输出词表维度的 logits。
+这个 logits 经过 softmax 就是模型预测的下一个 token 的概率分布。
+
+\subsection{参数量分析}
+
+一个典型的 7B 参数模型
+（如 LLaMA 3-8B，实际 8.03B 参数）的配置为：
+$d_{\mathrm{model}} = 4096$，$n_{\mathrm{layers}} = 32$，
+$n_{\mathrm{heads}} = 32$，$n_{\mathrm{kv\_heads}} = 8$（GQA），
+$d_{\mathrm{ffn}} = 14336$（SwiGLU 的 $8d/3$），
+词表 128K。
+
+将这些数字代入，
+让我们逐项计算参数量：
+
+\textbf{嵌入层}：$128{,}000 \times 4096 \approx 0.52B$
+
+\textbf{每个 Transformer 块}：
+\begin{itemize}[noitemsep]
+  \item 注意力层 $Q$ 投影：$4096 \times 4096 = 16.8M$
+  \item 注意力层 $K$ 投影（GQA，8 头）：$4096 \times (8 \times 128) = 4.2M$
+  \item 注意力层 $V$ 投影（同 $K$）：$4.2M$
+  \item 输出投影 $W^O$：$4096 \times 4096 = 16.8M$
+  \item FFN $W_1$：$4096 \times 14336 = 58.7M$
+  \item FFN $W_3$（SwiGLU gate）：$4096 \times 14336 = 58.7M$
+  \item FFN $W_2$：$14336 \times 4096 = 58.7M$
+  \item 2 个 RMSNorm（$\gamma$ 参数）：$2 \times 4096 = 8K$
+  \item 每块合计：$\sim 218M$
+\end{itemize}
+
+\textbf{32 层合计}：$32 \times 218M \approx 6.98B$
+
+\textbf{输出层}：LLaMA 3-8B 使用\textbf{非共享}（untied）嵌入，
+输出投影层有独立的参数：$128{,}000 \times 4096 \approx 0.52B$
+
+\textbf{总计}：$0.52B\text{（嵌入）} + 6.98B\text{（Transformer 层）} + 0.52B\text{（输出头）} + 0.01B\text{（RMSNorm 等）} \approx 8.03B$
+
+这与 LLaMA 3-8B 公布的 8.03B 参数吻合。
+注意：如果嵌入层与输出层共享权重（tied embeddings），
+参数量将减少约 0.5B 至 $\sim$7.5B。
+LLaMA 3 选择 untied embeddings 以获得更好的模型质量。
+
+\subsection{三种架构风格}
+
+虽然代码展示的是 decoder-only 架构（GPT 风格），
+但 Transformer 实际上有三种主要变体：
+
+\textbf{Encoder-only（BERT 风格）}：
+只有 encoder，使用双向注意力——
+每个 token 可以同时关注前面和后面的 token。
+适合理解型任务（分类、命名实体识别、问答）。
+通过 Masked Language Model（MLM）预训练。
+代表：BERT、RoBERTa、ALBERT。
+
+\textbf{Encoder-Decoder（T5 风格）}：
+encoder 处理输入序列（双向注意力），
+decoder 生成输出序列（单向注意力 + 对 encoder 的交叉注意力）。
+适合序列到序列任务（翻译、摘要）。
+代表：T5、BART、原始 Transformer。
+
+\textbf{Decoder-only（GPT 风格）}：
+只有 decoder，使用因果注意力（causal attention）——
+每个 token 只能关注它自己和前面的 token。
+通过 next-token prediction 预训练。
+代表：GPT 系列、LLaMA、DeepSeek、Claude。
+
+\begin{whybox}[为什么 decoder-only 最终胜出？]
+decoder-only 架构在生成任务上胜出有几个关键原因：
+\begin{enumerate}[noitemsep]
+  \item \textbf{训练效率}：在 next-token prediction 中，
+        序列中的每个位置都是一个训练样本——
+        $n$ 个 token 提供 $n-1$ 个训练信号。
+        而 MLM 只对随机遮盖的 15\% token 计算损失。
+  \item \textbf{统一的接口}：所有任务都可以表述为
+        「给定上文，生成下文」——
+        不需要为不同任务设计不同的头（head）。
+        理解和生成使用同一个模型，同一组参数。
+  \item \textbf{涌现能力}：in-context learning、
+        chain-of-thought reasoning 等涌现能力
+        天然适合自回归生成的范式。
+  \item \textbf{规模优势}：在大规模预训练中，
+        decoder-only 的简单性使得工程实现更高效，
+        更容易扩展到万亿参数。
+\end{enumerate}
+这并不意味着 encoder 架构消亡了——
+BERT 风格的模型在嵌入（embedding）和检索任务上仍然活跃。
+但对于通用语言模型，decoder-only 是 2024--2026 年的唯一选择。
+\end{whybox}
+
+\begin{keybox}[Transformer 层的完整计算流程]
+一个现代 Transformer 层（如 LLaMA 3）的前向传播：
+\begin{enumerate}[noitemsep]
+  \item $x_1 = x + \mathrm{GQA}(\mathrm{RMSNorm}(x))$
+        \quad {\small // Pre-Norm + 分组查询注意力 + 残差连接}
+  \item $x_2 = x_1 + \mathrm{SwiGLU}(\mathrm{RMSNorm}(x_1))$
+        \quad {\small // Pre-Norm + SwiGLU FFN + 残差连接}
+\end{enumerate}
+将这样的层堆叠 32--128 次，就构成了一个完整的 LLM。
+\end{keybox}
+
+\section{Transformer 成功的根本原因}
+
+回顾完所有组件后，让我们思考一个更深层的问题：
+\textbf{为什么 Transformer 如此成功？}
+在它之前，RNN（循环神经网络）和 CNN（卷积神经网络）
+也可以处理序列数据，为什么被 Transformer 完全取代了？
+
+\subsection{RNN/LSTM 的根本瓶颈}
+
+\textbf{RNN 的瓶颈}在于\textbf{顺序性}。
+RNN 逐步处理序列中的每个位置，
+第 $t$ 步的计算必须等待第 $t-1$ 步完成。
+这不仅使得并行化困难（训练慢），
+更关键的是信息必须通过一个固定维度的\textbf{隐状态瓶颈}
+在时间步之间传递——
+对于长序列，早期信息会被后来的信息覆盖。
+
+虽然 LSTM 和 GRU 通过门控机制缓解了梯度消失问题，
+但信息衰减仍然是根本性的。
+LSTM 的记忆容量受限于隐状态维度（通常 512--2048），
+无论序列多长，所有信息都必须被压缩到这个固定大小的向量中。
+这就好比要求你用一张小纸条传递整本书的内容——
+必然会丢失大量信息。
+
+更严重的是训练速度问题。
+在 RNN 中，$n$ 个时间步的计算是\textbf{串行}的，
+无法被 GPU 的数千个核心并行处理。
+对于一个 100K token 的序列，
+RNN 需要 100K 步串行计算，
+而 Transformer 的注意力可以在一步中完成所有位置的交互。
+这个并行化优势使得 Transformer 在相同硬件上的训练速度
+比 RNN 快\textbf{一到两个数量级}。
+
+\subsection{CNN 用于序列建模的局限}
+
+\textbf{CNN 的瓶颈}在于\textbf{局部性}。
+卷积操作天然具有固定的感受野——
+每个位置只能「看到」前后若干个位置。
+要捕捉远距离依赖，需要堆叠很多层
+（每层扩大感受野），效率低下。
+
+一个卷积核大小为 $k$ 的 CNN，
+需要 $O(n/k)$ 层才能让两个相距 $n$ 的位置直接交互。
+对于 $n = 128K$、$k = 5$ 的情况，需要约 25K 层——
+这在实践中完全不可行。
+
+虽然有扩张卷积（dilated convolution）等技巧可以加速感受野增长，
+但 CNN 始终缺乏在两个任意位置之间建立直接连接的能力。
+
+\subsection{Transformer 的优势总结}
+
+\textbf{Transformer 的优势}在于它直接建模
+\textbf{任意两个位置之间的关系}——
+注意力机制允许位置 1 直接与位置 1000 交互，
+不需要中间位置作为「中继」。
+而且注意力的计算是完全\textbf{并行}的——
+所有位置同时参与，充分利用 GPU 的并行计算能力。
+
+\begin{center}
+\begin{tabular}{lccc}
+\hline
+\textbf{特性} & \textbf{RNN/LSTM} & \textbf{CNN} & \textbf{Transformer} \\
+\hline
+最大路径长度 & $O(n)$ & $O(\log_k n)$ & $O(1)$ \\
+训练并行度 & 低（串行） & 高（并行） & 高（并行） \\
+长距离依赖 & 差（信息衰减） & 中（需要深网络） & 强（直接注意力） \\
+每层计算量 & $O(n \cdot d^2)$ & $O(k \cdot n \cdot d^2)$ & $O(n^2 \cdot d)$ \\
+\hline
+\end{tabular}
+\end{center}
+
+当然，Transformer 也有代价：$O(n^2)$ 的复杂度。
+但 Flash Attention 等技术在很大程度上缓解了这个问题。
+而且在实践中，Transformer 的训练效率
+（单位计算量学到的知识）远高于 RNN 和 CNN，
+因此即使单步计算量更大，总体效率仍然更优。
+
+\subsection{Attention is All You Need 的深远影响}
+
+Vaswani 等人~\cite{vaswani2017attention}
+发表的这篇论文影响了几乎所有的 AI 领域，
+远超其最初的机器翻译应用：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{NLP}：BERT、GPT 系列、T5 等所有现代语言模型
+  \item \textbf{计算机视觉}：Vision Transformer（ViT）证明 Transformer
+        可以替代 CNN 处理图像
+  \item \textbf{语音}：Whisper 等模型用 Transformer 处理音频
+  \item \textbf{蛋白质结构}：AlphaFold 2 的核心是 Transformer
+  \item \textbf{多模态}：GPT-4V、Gemini 等多模态模型统一处理文本、图像、音频
+  \item \textbf{科学计算}：天气预报（GraphCast）、
+        分子设计、代码生成等领域
+\end{itemize}
+
+这种跨领域的统治力是前所未有的——
+没有哪个单一架构曾经在如此多的领域中同时成为最优选择。
+
+\subsection{挑战者：状态空间模型}
+\label{sec:ssm-challengers}
+
+2024--2026 年，状态空间模型（State Space Model, SSM）
+从学术探索走向了工程实践，
+成为 Transformer 最有力的挑战者。
+以 Mamba~\cite{gu2024mamba}、RWKV~\cite{peng2025rwkv7} 为代表的
+SSM 架构在长序列处理上具有 $O(n)$ 的复杂度优势，
+吸引了广泛的关注和跟进工作。
+
+\subsubsection{SSM 的核心原理}
+
+SSM 的核心是一个连续时间的线性动力系统：
+\begin{equation}
+  h'(t) = A h(t) + B x(t), \quad y(t) = C h(t)
+\end{equation}
+离散化后变成递归形式：
+$h_t = \bar{A} h_{t-1} + \bar{B} x_t$，$y_t = C h_t$。
+关键在于：隐状态 $h_t$ 的维度是\textbf{固定的}，
+不随序列长度增长。
+处理 1K 和 100K token 使用相同大小的隐状态——
+这就是 $O(n)$ 复杂度的来源。
+
+Mamba（2023）的关键创新是\textbf{选择性机制}——
+矩阵 $\bar{B}$ 和 $C$ 不再是固定参数，
+而是依赖于当前输入 $x_t$ 动态生成的。
+这使得模型可以选择性地记住或遗忘信息，
+类似于 LSTM 的门控机制，
+但具有更高的并行化潜力。
+
+\subsubsection{Mamba-2：结构化状态空间对偶}
+
+Mamba-2~\cite{dao2024mamba2}（2024）提出了
+\textbf{结构化状态空间对偶}（Structured State Space Duality, SSD）理论，
+揭示了 SSM 和注意力之间的深层数学联系——
+两者本质上都是\textbf{结构化矩阵}的不同参数化形式。
+具体而言，SSD 证明了选择性 SSM 等价于一种特殊的半可分矩阵
+（semiseparable matrix），
+而标准注意力等价于一种因果掩码矩阵。
+
+这个理论联系带来了直接的工程收益：
+\begin{itemize}[noitemsep]
+  \item \textbf{训练速度提升 2--8$\times$}：
+        Mamba-2 利用 SSD 的矩阵结构，
+        将计算分解为可高效并行的块矩阵乘法，
+        充分利用 GPU tensor core 的硬件特性
+  \item \textbf{状态空间扩大 8$\times$}：
+        Mamba-1 的状态维度为 $N = 16$，
+        Mamba-2 扩大到 $N = 128$——
+        更大的状态意味着更强的信息存储能力，
+        部分缓解了「信息瓶颈」问题
+  \item \textbf{更优的并行化}：
+        Mamba-2 的 SSD 算法天然支持 tensor parallelism，
+        只需每层 1 次 all-reduce（与 Transformer 相同），
+        而 Mamba-1 需要 2 次
+\end{itemize}
+
+\subsubsection{RWKV-7：递归的另一条路线}
+
+RWKV~\cite{peng2025rwkv7} 是 Linux Foundation 支持的开源项目，
+走了与 Mamba 不同的技术路线。
+RWKV-7（代号 ``Goose''，2025 年 3 月发布）
+引入了\textbf{广义 delta 规则}——
+一种具有向量门控和自适应学习率的状态更新机制。
+
+RWKV-7 的关键特性：
+\begin{itemize}[noitemsep]
+  \item \textbf{恒定内存和推理时间}：
+        与 Mamba 相同，每个 token 的推理复杂度为 $O(1)$
+        （不随序列长度增长）
+  \item \textbf{状态追踪能力}：
+        RWKV-7 能执行状态追踪（state tracking）
+        并识别所有正则语言——
+        这超越了 Transformer 在标准复杂度猜想下的 $\mathrm{TC}^0$ 限制
+  \item \textbf{多语言性能}：
+        2.9B 参数的 RWKV-7 在多语言任务上达到 3B 级别 SoTA，
+        尽管训练 token 数量（3.1T）远少于同级别的 Transformer 模型
+  \item \textbf{训练可并行化}：
+        尽管是递归架构，
+        RWKV-7 的训练仍然可以通过分块并行化高效进行
+\end{itemize}
+
+\subsubsection{混合架构：两者兼得}
+
+纯 SSM 模型在需要精确回忆（exact recall）的任务上
+仍然弱于 Transformer——
+例如「在长文档中找到一个特定句子并逐字复制」。
+这是因为固定维度的隐状态
+无法像注意力的 $n \times n$ 矩阵那样
+保留对每个 token 的精确访问。
+
+\textbf{混合架构}（Hybrid Architecture）
+因此成为了更实际的方向——
+在一个模型中交替使用注意力层和 SSM/线性递归层：
+
+\textbf{Jamba 1.5}（AI21 Labs，2024，ICLR 2025）~\cite{jamba2024}：
+Transformer-Mamba-MoE 三者结合的混合架构。
+Jamba 1.5-Large 有 94B 活跃参数（MoE 总参数更大），
+Jamba 1.5-Mini 有 12B 活跃参数。
+两个版本都支持 256K token 的有效上下文长度——
+在发布时是开源权重模型中最长的。
+Jamba 的关键设计选择是\textbf{不均匀混合}——
+大约 1:7 的比例交替 Transformer 层和 Mamba 层，
+Transformer 层负责全局信息整合，
+Mamba 层负责高效的局部处理。
+实测吞吐量在长上下文场景下显著优于纯 Transformer 模型。
+
+\textbf{Zebra-LLaMA}（AMD，2025）~\cite{zebra2025}：
+将 SSM 层和 MLA（多头潜在注意力）层交替组合，
+从已有的预训练 Transformer 权重初始化，
+通过少量后训练（post-training）达到接近 Transformer 的精度，
+同时获得接近 SSM 的推理效率。
+这种「从现有 Transformer 转换」的思路，
+大幅降低了混合架构的训练成本。
+
+\textbf{OLMo Hybrid}（AI2，2026）~\cite{olmo2026hybrid}：
+用 Gated DeltaNet 层替换标准 Transformer 中的
+滑动窗口注意力层，保留部分全局注意力层。
+7B 参数的 OLMo Hybrid 在标准预训练和中期训练评估中
+全面优于同规模的纯 Transformer 模型 OLMo 3。
+更重要的是，AI2 从理论上证明了
+混合架构的表达能力\textbf{严格超过}
+纯 Transformer 和纯线性 RNN——
+混合模型可以表达两者都无法单独表达的任务。
+
+\begin{center}
+\begin{tabular}{lcccc}
+\hline
+\textbf{架构} & \textbf{推理复杂度} & \textbf{训练并行} & \textbf{精确回忆} & \textbf{代表模型} \\
+\hline
+纯 Transformer & $O(n^2)$ & 高 & 强 & GPT-4o, LLaMA 3 \\
+纯 SSM & $O(n)$ & 中--高 & 弱 & Mamba-2, RWKV-7 \\
+混合架构 & $O(n)$--$O(n^2)$ & 高 & 中--强 & Jamba 1.5, OLMo Hybrid \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{SSM 在 frontier 模型中的采用现状}
+
+截至 2026 年 3 月，所有 frontier 模型
+（GPT-4.5、Claude、Gemini、DeepSeek-V3、LLaMA 4）
+仍然使用纯 Transformer 或 Transformer-MoE 架构作为主体。
+\textbf{没有任何 frontier 模型完全采用 SSM 层。}
+
+但混合架构正在快速进入中小规模模型：
+Jamba 1.5、OLMo Hybrid、Nvidia Nemotron 3 Nano、
+IBM Granite 4、Qwen 3.5 等模型
+都在不同程度上引入了线性递归层。
+Nathan Lambert 在 2026 年 3 月的分析中指出：
+混合架构正经历「到处同时被采用」的时刻~\cite{lambert2026hybrid}。
+
+这场竞争的本质不是「SSM 替代 Transformer」，
+而是\textbf{最优的注意力与递归的混合比例是什么？}
+一些初步的经验规则开始浮现：
+\begin{itemize}[noitemsep]
+  \item 大约 10--20\% 的层使用全局注意力
+        足以保持精确回忆能力
+  \item SSM/递归层在处理局部依赖
+        和长距离的「渐进式」信息整合时效率更高
+  \item 混合架构在长上下文推理中的 KV cache 显著更小
+        （SSM 层不需要 KV cache）
+\end{itemize}
+
+\begin{whybox}[为什么 SSM 至今未能取代 Transformer？]
+SSM 的 $O(n)$ 复杂度优势是真实的，
+但面临几个实际障碍：
+\begin{enumerate}[noitemsep]
+  \item \textbf{硬件生态}：
+        7 年来，整个 GPU 软件栈
+        （CUDA 库、编译器、推理引擎）
+        都围绕矩阵乘法和注意力优化。
+        SSM 的扫描操作（scan）缺乏同级别的硬件支持
+  \item \textbf{工程惯性}：
+        训练框架（Megatron、DeepSpeed）、
+        推理引擎（vLLM、TensorRT-LLM）
+        都深度优化了 Transformer 的执行路径。
+        支持新架构需要大量工程投入
+  \item \textbf{精确回忆的差距}：
+        在需要从长上下文中精确检索信息的任务上，
+        注意力的 $n \times n$ 精确匹配
+        仍然优于 SSM 的压缩隐状态
+  \item \textbf{规模验证不足}：
+        截至 2026 年初，最大的纯 SSM 模型仅有 $\sim$3B 参数，
+        而 frontier Transformer 已到万亿参数规模。
+        SSM 在超大规模下的表现仍是未知数
+\end{enumerate}
+未来的赢家大概率是混合架构——
+保留注意力的精确性，
+同时利用 SSM 的效率优势。
+\end{whybox}
+
+\subsection{新型注意力变体}
+\label{sec:new-attention-variants}
+
+2024--2025 年，研究者们不仅在探索 Transformer 的替代品，
+也在改进注意力机制本身。
+两个值得关注的方向是
+\textbf{差分注意力}（Differential Attention）
+和\textbf{原生稀疏注意力}（Native Sparse Attention）。
+
+\subsubsection{差分 Transformer（DIFF Transformer）}
+
+Microsoft Research 提出的 DIFF Transformer~\cite{ye2024diff}
+（ICLR 2025 Oral）瞄准了注意力机制的一个根本缺陷：
+\textbf{标准注意力会将过多的权重分配给无关 token}。
+
+即使在 softmax 归一化后，
+大量无关 token 的注意力分数虽然单个很小，
+但加起来仍然构成显著的噪声。
+这种「注意力噪声」导致模型容易被无关上下文干扰，
+是幻觉（hallucination）和 in-context learning
+对示例顺序敏感等问题的根源之一。
+
+DIFF Transformer 的解决方案在概念上优雅而简洁：
+\textbf{用两个独立的 softmax 注意力图之差来计算注意力}：
+\begin{equation}
+  \mathrm{DiffAttn}(Q, K, V) =
+  \left(\mathrm{softmax}\!\left(\frac{Q_1 K_1^\top}{\sqrt{d}}\right)
+  - \lambda \cdot \mathrm{softmax}\!\left(\frac{Q_2 K_2^\top}{\sqrt{d}}\right)\right) V
+\end{equation}
+其中 $Q_1, Q_2, K_1, K_2$ 分别是查询和键的两个独立投影，
+$\lambda$ 是可学习的标量参数。
+
+这种差分操作的物理直觉类似于\textbf{降噪}——
+两个 softmax 注意力图的共同噪声模式在相减时被消除，
+保留下来的是真正有区分度的注意力信号。
+结果是注意力分布变得更加稀疏和精确，
+模型更能聚焦于真正相关的 token。
+
+实验表明 DIFF Transformer 的优势：
+\begin{itemize}[noitemsep]
+  \item \textbf{参数效率}：
+        DIFF Transformer 仅需约 65\% 的模型参数
+        或训练 token 就能达到与标准 Transformer 相当的语言建模性能
+  \item \textbf{幻觉缓解}：
+        在问答和摘要任务中显著降低幻觉率——
+        因为模型更少被无关上下文「误导」
+  \item \textbf{ICL 鲁棒性}：
+        in-context learning 的准确率更高，
+        且对示例排列顺序的敏感度大幅降低——
+        这曾被认为是注意力机制的顽疾
+  \item \textbf{长上下文}：
+        在长上下文建模和关键信息检索任务上表现更优
+  \item \textbf{激活异常值减少}：
+        注意力输出中的异常值更少，有利于量化和高效推理
+\end{itemize}
+
+后续工作 DEX~\cite{kong2025dex}（NeurIPS 2025）
+进一步证明了差分注意力的优势可以
+\textbf{廉价地移植到已有的预训练模型}——
+通过在输出值矩阵上添加轻量级差分操作，
+仅需不到 0.01\% 的适应数据
+即可显著提升预训练 LLM 的性能。
+
+\subsubsection{原生稀疏注意力（NSA）}
+
+DeepSeek 提出的
+原生稀疏注意力（Native Sparse Attention, NSA）~\cite{yuan2025nsa}
+（ACL 2025）从另一个角度优化注意力——
+\textbf{不是修改注意力的计算方式，而是减少参与注意力计算的 token 数量}。
+
+传统的稀疏注意力方法（如 Longformer、BigBird）
+通常在推理时通过固定模式（如滑动窗口 + 全局 token）
+跳过部分注意力计算。
+但这些方法有两个根本问题：
+（1）固定的稀疏模式无法适应不同的输入内容；
+（2）训练时仍然使用全注意力，
+训练和推理的不一致导致质量损失。
+
+NSA 的核心创新是\textbf{动态分层稀疏策略}，
+结合了三种互补的注意力分支：
+\begin{enumerate}[noitemsep]
+  \item \textbf{压缩分支}（Compression）：
+        将连续的 token 块压缩为粗粒度的摘要表示，
+        保持全局上下文感知
+  \item \textbf{选择分支}（Selection）：
+        基于重要性评分动态选择关键 token，
+        实现细粒度的信息检索
+  \item \textbf{滑动窗口分支}（Sliding Window）：
+        保留局部上下文的完整注意力，
+        确保短距离依赖不受影响
+\end{enumerate}
+
+关键的工程突破是 NSA 可以\textbf{端到端训练}——
+不需要先用全注意力训练再蒸馏到稀疏模型。
+在 64K 长度的序列上，NSA 在解码、前向传播和反向传播
+三个阶段都实现了对全注意力的显著加速，
+同时在通用基准、长上下文任务和指令推理上
+保持或超过全注意力模型的性能。
+
+\begin{corebox}[注意力机制的演化谱系]
+从 2017 年的标准注意力到 2025 年，
+注意力机制已经形成了丰富的变体谱系：
+\begin{itemize}[noitemsep]
+  \item \textbf{MHA → GQA → MLA}：减少 KV cache 内存
+  \item \textbf{Flash Attention 1 → 2 → 3}：利用 GPU 内存层次加速
+  \item \textbf{DIFF Transformer}：差分降噪，提升注意力精度
+  \item \textbf{NSA}：动态稀疏，减少参与计算的 token 数量
+  \item \textbf{iRoPE}：交替有/无位置编码，改善长上下文外推
+\end{itemize}
+这些创新不是互斥的——
+NSA 可以与 MLA 结合（如 DeepSeek-V3.2 的 MLA + DSA），
+DIFF Transformer 可以与 Flash Attention 集成。
+未来的模型很可能会组合多种注意力优化。
+\end{corebox}
+
+\section{词嵌入：让词进入向量空间}
+
+在 Transformer 的所有组件之前，
+还有一个基础但至关重要的步骤：
+\textbf{将离散的 token ID 转换为连续的向量}。
+这个过程由\textbf{嵌入层}（Embedding Layer）完成。
+
+嵌入层本质上是一个查找表——
+一个 $V \times d$ 的矩阵（$V$ 是词表大小，$d$ 是模型维度），
+每一行是一个 token 的向量表示。
+给定 token ID $t$，嵌入向量就是矩阵的第 $t$ 行。
+
+这些嵌入向量在训练过程中通过梯度下降学习。
+训练结束后，语义相近的词在向量空间中会距离较近——
+「国王」和「女王」的嵌入向量之间的距离
+小于「国王」和「苹果」之间的距离。
+更有趣的是，这些向量之间会出现有意义的\textbf{方向}：
+经典的例子是 $\vec{\text{King}} - \vec{\text{Man}} + \vec{\text{Woman}} \approx \vec{\text{Queen}}$，
+说明嵌入空间捕获了「性别」的概念方向。
+
+在一些 LLM 中，嵌入层和最后的输出层
+（将隐状态映射回词表维度）\textbf{共享权重}——
+这被称为 tied embeddings。
+直觉上，一个 token 的「输入表示」和「输出表示」
+应该是一致的。权重共享可以减少参数量
+（对于 128K 词表、4096 维模型，节省约 0.5B 参数）。
+但近年来的趋势是使用\textbf{非共享}（untied）嵌入——
+例如 LLaMA 3 系列就使用独立的输出投影层，
+实验表明这在大词表场景下能获得更好的模型质量。
+
+\begin{whybox}[嵌入层是否需要缩放？]
+在原始 Transformer 中，嵌入向量会乘以 $\sqrt{d}$。
+原因是：随机初始化的嵌入向量的模长（$L^2$ 范数）与 $\sqrt{d}$ 成正比，
+而位置编码的模长固定为 1。
+如果不缩放，位置信息会在嵌入信息中被淹没。
+乘以 $\sqrt{d}$ 使两者在同一数量级。
+现代模型（使用 RoPE 而非加法位置编码）通常不需要这个缩放，
+因为 RoPE 直接作用于注意力计算而非嵌入空间。
+\end{whybox}
+
+
+%% ============================================================
+%% NEW REFERENCES (to be added to refs.bib):
+%% ainslie2023gqa = Ainslie, Joshua et al. "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints." EMNLP 2023. arXiv:2305.13245.
+%% clark2019bert = Clark, Kevin et al. "What Does BERT Look At? An Analysis of BERT's Attention." ACL 2019 Workshop BlackboxNLP.
+%% shazeer2019mqa = Shazeer, Noam. "Fast Transformer Decoding: One Write-Head is All You Need." arXiv:1911.02150, 2019.
+%% press2022alibi = Press, Ofir et al. "Train Short, Test Long: Attention with Linear Biases Enables Input Length Generalization." ICLR 2022.
+%% chen2023extending = Chen, Shouyuan et al. "Extending Context Window of Large Language Models via Positional Interpolation." arXiv:2306.15595, 2023.
+%% bloc97ntk = bloc97. "NTK-Aware Scaled RoPE." Reddit/GitHub, 2023.
+%% hendrycks2016gelu = Hendrycks, Dan and Gimpel, Kevin. "Gaussian Error Linear Units (GELUs)." arXiv:1606.08415, 2016.
+%% ramachandran2017swish = Ramachandran, Prajit et al. "Searching for Activation Functions." arXiv:1710.05941, 2017.
+%% shah2024flashattention3 = Shah, Jay et al. "FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision." arXiv:2407.08608, 2024.
+%% gu2024mamba = Gu, Albert and Dao, Tri. "Mamba: Linear-Time Sequence Modeling with Selective State Spaces." arXiv:2312.00752, 2023 (COLM 2024).
+%%
+%% --- ADDED 2026-03-08 ---
+%% dao2024mamba2 = Dao, Tri and Gu, Albert. "Transformers are SSMs: Generalized Models and Efficient Algorithms Through Structured State Space Duality." ICML 2024. arXiv:2405.21060.
+%% peng2025rwkv7 = Peng, Bo et al. "RWKV-7 'Goose' with Expressive Dynamic State Evolution." arXiv:2503.14456, 2025.
+%% jamba2024 = Jamba Team. "Jamba: A Hybrid Transformer-Mamba Language Model." ICLR 2025. arXiv:2403.19887, 2024.
+%% zebra2025 = Yang, Mingyu et al. "Zebra-Llama: Towards Extremely Efficient Hybrid Models." NeurIPS 2025. OpenReview, 2025.
+%% olmo2026hybrid = Merrill, William et al. "OLMo Hybrid: From Theory to Practice." Allen Institute for AI, 2026.
+%% lambert2026hybrid = Lambert, Nathan. "OLMo Hybrid and Future LLM Architectures." Interconnects AI, March 2026.
+%% ye2024diff = Ye, Tianzhu et al. "Differential Transformer." ICLR 2025 Oral. arXiv:2410.05258, 2024.
+%% kong2025dex = Kong, Chaerin et al. "Understanding Differential Transformer Unchains Pretrained Self-Attentions." NeurIPS 2025.
+%% yuan2025nsa = Yuan, Jingyang et al. "Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention." ACL 2025. arXiv:2502.11089, 2025.
+%% ============================================================
