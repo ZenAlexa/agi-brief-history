@@ -753,6 +753,130 @@ MoE 的真正优势在大规模模型上：
 MoE 是唯一的选择。
 \end{whybox}
 
+\section{2025--2026 年 MoE 架构的爆发}
+\label{sec:moe-explosion}
+
+2025 年下半年至 2026 年初，
+MoE 从少数模型的架构选择演变为前沿中国模型的\textbf{标准范式}。
+短短几个月内，至少 9 个主要模型采用了 MoE 架构，
+总参数规模从 80B 跨越到 1T，
+而活跃参数却压缩到惊人的低水平。
+
+\begin{center}
+\begin{tabular}{llrrll}
+  \hline
+  \textbf{模型} & \textbf{发布日期} & \textbf{总参数} & \textbf{活跃参数}
+  & \textbf{专家配置} & \textbf{亮点} \\
+  \hline
+  DeepSeek V4$^\star$ & 2026 年 4 月（预期） & $\sim$1T & $\sim$320B
+  & -- & + Engram + mHC \\
+  Kimi K2.5 & 2026 年 1 月 & 1T & 32B
+  & 384（8 active） & Agent Swarm \\
+  GLM-5 & 2026 年 2 月 & 744B & 40B
+  & -- & 零 NVIDIA 训练 \\
+  Qwen 3.5 & 2026 年 2 月 & 397B & 17B
+  & -- & Gated Delta Networks \\
+  Qwen3-Next & 2025 年 9 月 & 80B & 3B
+  & 512（10+1 active） & 超稀疏激活 \\
+  Hunyuan 2.0 & 2025 年 12 月 & 406B & 32B
+  & -- & 腾讯 \\
+  MiniMax M2.5 & 2026 年 2 月 & 230B & 10B
+  & -- & SWE-bench 80.2\% \\
+  Step 3.5 Flash & 2026 年 2 月 & 196B & 11B
+  & -- & 单卡 RTX 4090 可运行 \\
+  豆包 Seed 2.0 & 2026 年 2 月 & -- & --
+  & -- & AIME 98.3\% \\
+  \hline
+\end{tabular}
+
+\small $^\star$\,DeepSeek V4 截至 2026 年 3 月尚未正式发布，
+参数为预期值。
+\end{center}
+
+这张表格揭示了 2025--2026 年 MoE 生态的三个核心趋势。
+
+\subsection{超稀疏激活}
+
+MoE 的稀疏度正在被推向新的极端。
+DeepSeek-V3 的激活率约为 5.5\%（37B / 671B），
+已经令人印象深刻——
+但 \textbf{Qwen3-Next} 将这个数字压低到了
+\textbf{3.75\%}（3B / 80B）。
+
+Qwen3-Next 使用了 512 个路由专家，
+每个 token 仅激活 10+1 个（10 个路由 + 1 个共享）。
+80B 的模型只需要 3B 的推理计算量——
+这意味着一个具有 80B 参数知识容量的模型，
+推理成本仅相当于一个小型 3B 稠密模型。
+激活比例从 DeepSeek-V3 的 1:18 演进到 Qwen3-Next 的 1:27，
+超稀疏激活正在成为 MoE 设计的新前沿。
+
+\subsection{消费级硬件部署}
+
+\textbf{Step 3.5 Flash} 证明了 196B 参数的 MoE 模型
+可以在\textbf{单块 RTX 4090}（24\,GB 显存）上运行。
+11B 的活跃参数经过 4-bit 量化后仅需约 6\,GB，
+其余参数通过专家卸载动态加载。
+
+这打破了``大模型需要大集群''的思维定式——
+MoE 的稀疏激活特性使得总参数量不再是部署的瓶颈，
+活跃参数量才是。
+当活跃参数降到 10--17B 范围时，
+消费级 GPU 就足以提供可接受的推理体验。
+
+\subsection{总参数与活跃参数的分离}
+
+从上表可以清晰看到，
+行业正在收敛到一个模式：
+\textbf{10--40B 的活跃参数 + 200B--1T 的总参数}。
+这意味着知识容量（总参数）和推理成本（活跃参数）
+被彻底解耦——
+模型可以拥有巨大的知识储备，
+但每次推理只调用极小一部分。
+
+DeepSeek V4（预期）的 $\sim$320B 活跃参数是一个例外——
+它选择了更高的活跃参数来支持原生多模态理解与生成、
+Engram 长期记忆和 mHC（流形约束超连接）等创新架构，
+代价是更高的推理成本。
+这也表明：活跃参数量的选择
+最终取决于模型需要\textbf{同时在线}的能力复杂度。
+
+\section{MoE 理论的新进展}
+\label{sec:moe-theory-2026}
+
+伴随 MoE 在实践中的爆发，
+理论层面也涌现了重要的新成果。
+
+\textbf{Optimal Expert-Attention Allocation}% NEW REF: expertattention2026 = Optimal Expert-Attention Allocation in MoE, arXiv:2603.10379, 2026
+（arXiv:2603.10379，2026 年 3 月）
+将神经 Scaling Laws 扩展到了 MoE 架构。
+传统 Scaling Laws 将模型视为同质的参数集合，
+而 MoE 模型中存在两种本质不同的计算单元：
+\textbf{专家层}（负责知识检索和领域特化）和
+\textbf{注意力层}（负责上下文交互和信息整合）。
+这篇论文研究了在固定计算预算下，
+如何最优地分配计算资源到专家层和注意力层——
+结论是最优分配比例与模型规模和任务类型密切相关，
+且与直觉中``注意力更重要''的假设不完全一致。
+
+\textbf{LatentMoE}（arXiv:2601.18089，2026 年 1 月）% NEW REF: latentmoe2026 = LatentMoE: Toward Optimal Accuracy per FLOP and Parameter in MoE, arXiv:2601.18089, 2026
+探索了在 MoE 中实现\textbf{每 FLOP 和每参数最优精度}的路径。
+它通过在潜在空间（latent space）中执行路由和专家计算，
+减少了路由决策的维度，
+同时在理论上保证了与标准 MoE 相同的表达能力。
+这为进一步压缩 MoE 的推理成本提供了理论基础。
+
+\textbf{NVIDIA Megatron Core MoE}（arXiv:2603.07685，2026 年 3 月）% NEW REF: megatron_core_moe_2026
+则从系统层面解决了 MoE 训练中
+\textbf{内存、通信与计算的三方耦合}问题。
+在大规模 MoE 训练中，
+增大专家数量会同时增加内存占用（专家权重）、
+通信量（All-to-All 传输）和计算模式的碎片化——
+这三者的交互使得单独优化任一维度可能恶化其他维度。
+Megatron Core MoE 通过全栈协同设计，
+将专家并行、张量并行和流水线并行
+纳入统一的抽象层，系统化地平衡这些约束。
+
 
 %% ============================================================
 % NEW REF: jacobs1991moe = Adaptive Mixtures of Local Experts, Jacobs et al., Neural Computation 1991
@@ -771,3 +895,6 @@ MoE 是唯一的选择。
 % NEW REF: milo2025 = MiLo: Efficient Quantized MoE Inference with Low-Rank Compensators, Huang et al., arXiv 2025
 % NEW REF: lynx2025 = Lynx: Enabling Efficient MoE Inference via Dynamic Batch-Aware Expert Selection, arXiv 2025
 % NEW REF: moespeq2025 = MoE-SpeQ: Speculative Quantized Decoding with Expert Prefetching for MoE, Wang et al., arXiv 2025
+% NEW REF: expertattention2026 = Optimal Expert-Attention Allocation in MoE, arXiv:2603.10379, 2026
+% NEW REF: latentmoe2026 = LatentMoE: Toward Optimal Accuracy per FLOP and Parameter in MoE, arXiv:2601.18089, 2026
+% NEW REF: megatron_core_moe_2026 = NVIDIA Megatron Core MoE: Full-Stack System Co-Design for MoE Training, NVIDIA, arXiv:2603.07685, 2026

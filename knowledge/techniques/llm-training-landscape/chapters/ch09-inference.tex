@@ -126,6 +126,24 @@ $x_q$ 是量化后的整数值。
         B200 GPU 的 NVFP4 Tensor Core 算力
         达到 FP8 的 $2\times$，
         使得 4-bit 推理在数据中心场景中首次变得实用。
+  \item \textbf{MXFP8}（Microscaling FP8）：
+        AWS Trainium3 采用的新一代 8-bit 浮点标准。
+        与传统 FP8 的关键区别在于
+        MXFP8 引入了\textbf{微缩放}（microscaling）机制——
+        在细粒度的元素组（通常 32 个元素）级别
+        共享一个缩放因子，
+        相比 per-tensor 缩放提供了更好的精度保持。
+        Trainium3 原生支持 MXFP8 用于训练和推理，
+        标志着 FP8 变体正在从 NVIDIA 专属格式
+        走向跨平台标准化。
+  \item \textbf{ExpertsInt8}（AI21 Jamba）：
+        专为 MoE 架构设计的量化方案。
+        核心洞察是 MoE 模型中\textbf{不同专家}的权重分布差异巨大，
+        传统的统一量化策略无法很好地适应。
+        ExpertsInt8 为每个专家独立计算量化参数，
+        使得 Jamba 的 94B 活跃参数 MoE 模型
+        能够在单台机器上运行，
+        大幅降低了 MoE 推理的硬件门槛。
 \end{itemize}
 
 \subsection{Post-Training Quantization（PTQ）}
@@ -820,6 +838,38 @@ CLaSp~\cite{chen2025clasp}（In-Context Layer Skip）
 推测解码的加速效果尤为显著——
 因为推理过程中的许多步骤是结构化的、可预测的。
 
+\subsection{Speculative Speculative Decoding（SSD）}
+
+2026 年 3 月，Stanford、Princeton 与 Together AI 的联合团队
+（Tri Dao 参与共同作者）提出了
+\textbf{Speculative Speculative Decoding（SSD）}——
+将推测解码中的「推测」和「验证」两个阶段\textbf{并行化}。
+
+传统推测解码是串行的：
+草稿模型生成候选 $\to$ 目标模型验证 $\to$
+接受/拒绝 $\to$ 草稿模型再次生成。
+验证阶段目标模型工作时，草稿模型处于空闲状态。
+SSD 的核心洞察是：
+在目标模型进行验证的同时，
+草稿模型可以\textbf{预测}验证可能的结果，
+并为每种可能的结果\textbf{预先准备}下一轮的草稿 token。
+当验证结果返回时，
+直接选取对应的预生成草稿继续，无需等待。
+
+这种「推测的推测」策略
+在 H200 上实现了 \textbf{3.6$\times$} 的吞吐量提升，
+显著超过传统推测解码的 2--3$\times$。
+
+\textbf{QSpec} 是与 SSD 互补的另一项创新：
+它为推测解码的草稿模型和验证模型
+设计了\textbf{互补的量化方案}。
+传统做法对两个模型使用相同的量化策略，
+但 QSpec 发现联合激活-权重量化
+在多步推理场景中会导致性能退化。
+通过为草稿模型和验证模型分别优化量化配置，
+QSpec 在不损失推测解码数学无损性的前提下
+进一步提升了端到端速度。
+
 
 \section{Continuous Batching：提升服务吞吐}
 
@@ -997,6 +1047,35 @@ Mooncake 还引入了\textbf{预测性早期拒绝}（Early Rejection）——
 vLLM v0.11 也引入了 disaggregated serving 支持，
 配合 Wide Expert Parallel（Wide-EP）实现了
 DeepSeek-R1 在 H200 集群上 2,200 tok/s/GPU 的吞吐。
+
+\subsection{多模态与 MoE 专用推理架构}
+
+随着模型从纯文本走向多模态、从稠密走向 MoE，
+推理架构也在相应进化。
+
+\textbf{vLLM-Omni}（arXiv:2602.02204）
+提出了\textbf{全解耦}的多模态推理架构，
+支持\textbf{任意到任意}（any-to-any）的多模态模型服务——
+文本、图像、视频、音频的输入输出可以任意组合。
+其核心设计将不同模态的 prefill、decode 和生成阶段
+完全解耦到独立的计算节点上，
+每个模态的处理流水线可以独立扩缩容。
+这解决了多模态模型在生产部署中的关键痛点：
+不同模态的计算特征差异巨大
+（视频 prefill 计算密集、文本 decode 带宽密集），
+统一调度会导致严重的资源浪费。
+
+\textbf{MoE-SpAc}（arXiv:2603.09983）
+专门针对 MoE 模型在\textbf{异构边缘设备}上的推理优化。
+核心思想是\textbf{推测性激活}（speculative activation）——
+预测即将被路由到的专家，
+提前将其权重从慢速存储加载到快速内存中。
+这对于资源受限的边缘设备尤为重要：
+MoE 模型的总参数量远大于设备内存容量，
+必须按需加载专家，
+而加载延迟是推理速度的主要瓶颈。
+MoE-SpAc 通过路由预测机制将专家加载延迟隐藏在计算过程中，
+使得大型 MoE 模型在边缘设备上的推理变得实用。
 
 \subsection{Dual-Batch 与异步调度}
 

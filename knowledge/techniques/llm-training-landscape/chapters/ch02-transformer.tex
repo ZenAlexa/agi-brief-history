@@ -719,6 +719,28 @@ FP8 模式更是将吞吐量推到 PFLOPS 级别，
 包括利用 B200 的第五代 Tensor Core（FP4 支持）
 和更大的 SRAM（每 SM 提升至 32\,MB 级别）。
 
+\textbf{Flash Attention 3 的生产部署}（2026 年 3 月）
+标志着 FA3 从论文进入真正的工业级应用。
+在 Blackwell GPU 上，FA3 通过 \textbf{cuTile} 实现了
+面向生产环境的高效注意力内核，
+引入了多项工程优化：
+FMA（fused multiply-add）模式减少了指令数量，
+fast math 路径在精度可接受的场景下进一步提升吞吐量，
+loop splitting 和 adaptive tiling 根据实际序列长度
+动态调整分块策略以最大化硬件利用率。
+
+在 PyTorch 生态中，FA3 已作为 \texttt{third\_party} 子模块
+正式集成到主仓库中。
+值得注意的是，FA3 的硬件支持已不再局限于 H100——
+通过适配层实现了对 A100（Ampere 架构）的支持，
+使得更广泛的 GPU 集群可以受益于 FA3 的优化。
+
+此外，针对 DeepSeek 的 MLA 架构，
+社区开发了 \textbf{FlashMLA} 实现——
+在 Flash Attention 的 IO-aware 框架上
+专门优化了 MLA 的低秩 KV 投影计算路径，
+使得 MLA 在推理中的实际速度进一步提升。
+
 Flash Attention 已经成为所有现代 LLM 训练和推理的基础设施，
 集成在 PyTorch 2.0+、Hugging Face Transformers、
 以及几乎所有主流训练框架中。
@@ -802,6 +824,106 @@ DeepSeek 的解决方案是对 RoPE 部分单独处理——
 这增加了少量额外存储，
 但确保了位置信息的完整性。
 \end{warnbox}
+
+\section{mHC：流形约束超连接}
+\label{sec:mhc}
+
+2025 年 12 月 31 日，DeepSeek 发表了一篇
+可能对下一代模型架构产生深远影响的论文——
+\textbf{mHC}（Manifold-Constrained Hyper-Connections）
+~\cite{mhc2025}（arXiv:2512.24880），
+由 DeepSeek CEO 梁文锋联合署名。
+这篇论文瞄准了深度学习中一个
+被使用了近十年却鲜少被质疑的基础组件：
+\textbf{残差连接}（residual connections）。
+
+\subsection{残差连接的隐患}
+
+残差连接自 ResNet（2015）以来一直是
+深度网络的标配。
+其核心思想 $x' = x + f(x)$ 保证了梯度
+可以通过恒等映射 $I$ 畅通无阻地反向传播，
+使得训练数百层深的网络成为可能。
+当代所有主流 LLM 的每一个 Transformer 块
+都依赖残差连接。
+
+但 DeepSeek 的研究揭示了一个
+此前被忽视的严重问题：
+当残差连接被推广为
+\textbf{超连接}（Hyper-Connections）——
+即允许跨层的加权连接而非简单的 $x + f(x)$——
+\textbf{信号放大效应会失控}。
+在不加约束的超连接设计中，
+连接权重矩阵的谱范数可以自由增长，
+导致信号在深层网络中被逐层放大。
+
+\subsection{3000x 信号放大问题}
+
+论文中的实验数据令人触目惊心：
+在一个 27B 参数的模型中，
+使用\textbf{无约束超连接}后，
+信号振幅在前向传播过程中
+被放大了超过 \textbf{3000 倍}——
+这种爆炸式增长直接摧毁了训练的稳定性，
+模型完全无法收敛。
+
+问题的数学根源在于：
+超连接的权重矩阵 $W_{\mathrm{conn}}$ 是一般矩阵，
+其特征值可以大于 1。
+经过 $L$ 层传播后，信号的放大倍数
+最坏情况下与 $\|W_{\mathrm{conn}}\|^L$ 成正比——
+当 $L = 100$ 且 $\|W_{\mathrm{conn}}\| = 1.1$ 时，
+放大倍数约为 $1.1^{100} \approx 13{,}781$ 倍。
+
+\subsection{Sinkhorn-Knopp 约束}
+
+mHC 的核心解决方案是
+将超连接的权重矩阵约束在
+\textbf{双随机矩阵流形}上。
+
+双随机矩阵（doubly-stochastic matrix）的定义是：
+所有元素非负，且每行之和与每列之和都等于 1。
+这类矩阵的谱范数恰好等于 1——
+意味着信号经过矩阵变换后
+\textbf{不会被放大}，只会被重新分配。
+
+将一般矩阵投影到双随机矩阵流形上的方法是
+经典的 \textbf{Sinkhorn-Knopp 算法}——
+交替对行和列做归一化，
+几次迭代即可收敛到满足约束的矩阵。
+这个投影操作在每次前向传播时执行，
+计算开销极小。
+
+\subsection{实验效果}
+
+mHC 在 3B、9B、27B 三个规模的模型上进行了验证：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{信号放大控制}：从 3000x 降低到仅 \textbf{1.6x}——
+        几乎完全消除了不受控的信号放大
+  \item \textbf{推理精度提升}：在 BIG-Bench Hard 推理基准上
+        获得约 \textbf{+7\%} 的准确率提升
+  \item \textbf{训练开销极低}：mHC 的额外计算开销
+        仅为总训练成本的约 \textbf{6.7\%}——
+        Sinkhorn-Knopp 投影的计算量
+        相比注意力和 FFN 的矩阵乘法微不足道
+  \item \textbf{27B 模型成功训练}：
+        在无约束超连接完全失败的 27B 规模下，
+        mHC 保证了训练的稳定收敛
+\end{itemize}
+
+\begin{corebox}[mHC 的架构意义]
+mHC 的重要性在于它质疑了一个看似``已解决''的基础问题。
+残差连接从 2015 年沿用至今几乎未被修改，
+而 mHC 证明了更灵活的跨层连接模式
+（在正确约束下）可以显著提升模型能力。
+考虑到 DeepSeek CEO 梁文锋亲自参与了这篇论文，
+mHC 很可能是\textbf{未来 DeepSeek V4 架构的核心组件之一}——
+用流形约束的超连接替代简单的残差连接，
+让深层网络中的信息流动更加高效。
+注意：截至 2026 年 3 月，DeepSeek V4 尚未正式发布，
+mHC 在 V4 中的具体应用方式仍有待确认。
+\end{corebox}
 
 \section{完整的 Transformer 块}
 
@@ -1209,6 +1331,62 @@ Nathan Lambert 在 2026 年 3 月的分析中指出：
         （SSM 层不需要 KV cache）
 \end{itemize}
 
+\subsubsection{Mamba-3：推理优先的 SSM}
+
+2026 年初，Tri Dao 和 Albert Gu 等人发表了 Mamba-3，
+获选 ICLR 2026 Oral 论文。
+Mamba-3 提出了``推理优先''（inference-first）的 SSM 设计哲学，
+围绕三项关键改进重新设计了 SSM 的核心计算：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{改进的离散化}（improved discretization）：
+        更精确地将连续时间动力系统映射到离散递归形式，
+        减少了离散化引入的近似误差
+  \item \textbf{复数动力学}（complex dynamics）：
+        在复数域上定义状态转移矩阵 $\bar{A}$，
+        使模型能够捕捉振荡模式和周期性依赖——
+        这在实数域中难以高效表达
+  \item \textbf{MIMO 更新}（Multiple-Input Multiple-Output）：
+        允许多个输入通道同时更新多个输出通道，
+        突破了 Mamba-1/2 中 SISO 结构的表达瓶颈
+\end{itemize}
+
+Mamba-3 保持了 SSM 的核心优势——
+\textbf{线性计算复杂度和恒定内存占用}，
+同时在语言建模质量上进一步缩小了与 Transformer 的差距。
+其``推理优先''的设计理念意味着
+架构选择从一开始就面向高效推理场景优化，
+而非先追求训练性能再做推理适配。
+
+\subsubsection{NVIDIA Nemotron Nano 2：工业级混合架构}
+
+NVIDIA 在 Nemotron Nano 2 中将混合架构
+从学术探索推进到了工业部署阶段。
+Nemotron Nano 2 基于 \textbf{Nemotron-H 架构}——
+一种 Mamba-Transformer 混合设计，
+将模型中\textbf{大部分自注意力层替换为 Mamba-2 层}，
+仅保留少量全局注意力层用于精确信息检索。
+
+在 9B 参数规模下，Nemotron Nano 2 在多项标准基准上
+达到了 SOTA 水平，同时推理吞吐量显著高于
+同规模的纯 Transformer 模型。
+这一结果表明，混合架构不仅在学术指标上有竞争力，
+在真实部署场景的性能--效率权衡中
+同样是更优的选择。
+
+\subsubsection{RWKV-X：稀疏注意力与递归记忆的融合}
+
+RWKV 系列的最新迭代 RWKV-X 探索了一种新的融合方向——
+将\textbf{稀疏注意力}与\textbf{递归记忆}相结合，
+实现百万 token 级别的线性复杂度解码。
+不同于 Jamba 等混合架构
+在层级别交替使用注意力和 SSM，
+RWKV-X 在单层内部融合了两种机制：
+稀疏注意力用于选择性地回忆关键信息，
+递归记忆用于维护连续的上下文状态。
+这种设计在 1M token 的长序列解码中
+保持了线性的计算和内存复杂度。
+
 \begin{whybox}[为什么 SSM 至今未能取代 Transformer？]
 SSM 的 $O(n)$ 复杂度优势是真实的，
 但面临几个实际障碍：
@@ -1352,6 +1530,48 @@ DIFF Transformer 可以与 Flash Attention 集成。
 未来的模型很可能会组合多种注意力优化。
 \end{corebox}
 
+\subsubsection{Nexus：高阶注意力}
+
+Huawei 在 2025 年 12 月提出的
+Nexus~\cite{nexus2025}（arXiv:2512.03377）
+从数学基础层面重新审视了注意力机制的表达瓶颈。
+标准 softmax 注意力的核心操作是 $QK^\top$——
+一个\textbf{双线性}运算，其输出矩阵的秩
+受限于 $\min(d_k, n)$。
+当 $d_k$ 远小于 $n$（在长序列中常见），
+注意力矩阵是\textbf{低秩}的，
+无法表达复杂的多 token 交互模式。
+
+Nexus 通过\textbf{递归框架}实现高阶注意力——
+将标准的二阶交互（$Q$ 与 $K$ 的点积）
+扩展为可配置阶数的高阶交互。
+直觉上，二阶注意力回答的是
+``token A 与 token B 有多相关？''，
+而高阶注意力可以同时建模
+``token A、B、C 三者之间的关系是什么？''。
+这种多元交互能力使得
+注意力矩阵突破了低秩瓶颈，
+在需要复杂推理的任务上展现出显著优势。
+
+\subsubsection{Google Sequential Attention}
+
+Google 在 2026 年初提出了 \textbf{Sequential Attention}——
+一种将注意力计算分解为\textbf{有序阶段}的新范式。
+不同于标准注意力一次性计算所有 token 之间的交互，
+Sequential Attention 将信息处理分为多个逐步深化的阶段：
+每个阶段处理不同粒度或不同类型的依赖关系，
+后续阶段在前一阶段的输出基础上进一步精化。
+
+这种分阶段设计带来了两个实际优势：
+一是推理速度更快——
+早期阶段可以快速筛选相关信息，
+避免后续阶段对所有 token 做昂贵的精细计算；
+二是上下文质量更高——
+分层处理使模型在长序列中更好地保持信息的结构化组织，
+减少了单一注意力层中的信息混淆。
+Google 预计将在 2026--2027 年间
+将 Sequential Attention 集成到 Gemini 和 Search 产品线中。
+
 \section{词嵌入：让词进入向量空间}
 
 在 Transformer 的所有组件之前，
@@ -1416,4 +1636,8 @@ DIFF Transformer 可以与 Flash Attention 集成。
 %% ye2024diff = Ye, Tianzhu et al. "Differential Transformer." ICLR 2025 Oral. arXiv:2410.05258, 2024.
 %% kong2025dex = Kong, Chaerin et al. "Understanding Differential Transformer Unchains Pretrained Self-Attentions." NeurIPS 2025.
 %% yuan2025nsa = Yuan, Jingyang et al. "Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention." ACL 2025. arXiv:2502.11089, 2025.
+%%
+%% --- ADDED 2026-03-12 ---
+%% mhc2025 = DeepSeek-AI. "Manifold-Constrained Hyper-Connections." arXiv:2512.24880, December 2025.
+%% nexus2025 = Huawei. "Nexus: Higher-Order Attention via Recursive Framework." arXiv:2512.03377, December 2025.
 %% ============================================================

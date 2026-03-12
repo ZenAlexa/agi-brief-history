@@ -829,6 +829,15 @@ veScale-FSDP 通过结构感知的分片策略保留了参数的原始形状，
 使得 Muon 等矩阵级优化器可以与 FSDP 无缝集成——
 这对于 Kimi K2、Gemini 等使用 Muon 优化器的前沿模型尤为重要。
 
+\textbf{NVIDIA Megatron Core MoE}（arXiv:2603.07685，2026 年 3 月）% NEW REF: megatron_core_moe_2026
+专门针对 MoE 架构的训练提出了\textbf{全栈协同设计}方案。
+MoE 训练中内存、通信和计算三者之间存在强耦合约束——
+增大专家数量会增加内存和通信开销，
+减小专家粒度会改变计算特性。
+Megatron Core MoE 通过统一的抽象层
+将专家并行、张量并行和流水线并行的交互形式化，
+为大规模 MoE 训练提供了系统化的工程解决方案。
+
 \subsection{十万卡级别的训练集群}
 \label{sec:100k-gpu}
 
@@ -1724,6 +1733,92 @@ LLaMA 3~\cite{dubey2024llama3} 报告的 MFU 为 38--43\%
 换算成成本是数万美元。
 这就是为什么基础设施工程师对每一个百分点都精打细算。
 
+\section{国产算力上的大模型训练}
+\label{sec:domestic-training}
+
+2025--2026 年，中国大模型训练的一个重大突破是
+\textbf{摆脱对 NVIDIA GPU 的依赖}。
+在美国持续收紧半导体出口管制的背景下，
+国产 AI 芯片生态从``可用''逐步进化到``能训练前沿模型''。
+
+\subsection{GLM-5：零 NVIDIA 依赖的前沿模型}
+
+2026 年 2 月 12 日，智谱 AI 发布了 GLM-5——% NEW REF: glm5_2026 = GLM-5 Technical Report, Zhipu AI, 2026
+一个 744B 参数的大语言模型，
+在 28.5T token 上训练完成。
+GLM-5 的历史意义在于：
+\textbf{它完全在 100,000 块华为昇腾 910B 处理器上训练，
+没有使用任何一块 NVIDIA GPU}。
+这是第一个达到前沿水平的``零 NVIDIA'' AI 模型。
+
+更早的 2026 年 1 月 16 日，
+智谱发布的 \textbf{GLM-Image} 是第一个% NEW REF: glmimage_2026 = GLM-Image: First SOTA Multimodal Model on Domestic Chips, Zhipu AI, 2026
+在国产芯片上训练的 SOTA 多模态模型，
+使用华为昇腾 Atlas 800T A2 服务器和 MindSpore 框架完成训练，
+一度登顶 Hugging Face 全球排行榜第一。
+
+\subsection{华为昇腾 910C}
+
+昇腾 910C 是目前最强的国产 AI 训练芯片，
+其核心规格为：
+\begin{itemize}[noitemsep]
+  \item \textbf{算力}：$\sim$800 TFLOPS（FP16），
+        接近 NVIDIA A100（312 TFLOPS）的 2.5 倍，
+        但仍落后于 H100（989 TFLOPS）约 20\%。
+  \item \textbf{显存}：96\,GB HBM2e，带宽 1800\,GB/s。
+  \item \textbf{互联}：HCCS（Huawei Cache Coherence System）
+        提供节点内 GPU 间互联。
+\end{itemize}
+
+华为 2026 年计划生产约 600,000 块 910C
+（相比 2025 年近乎翻倍），
+加上其他型号，全年国产 AI 芯片总产量预计达到约 160 万块。
+昇腾的后续路线图包括 950PR $\to$ 950DT $\to$ 960 $\to$ 970，
+持续缩小与 NVIDIA 旗舰的性能差距。
+
+\subsection{DeepSeek 的昇腾适配}
+
+DeepSeek 已原生支持昇腾平台，
+提供\textbf{一行代码的 CUDA $\to$ CANN 转换}——
+开发者只需极少的代码改动即可将模型迁移到昇腾硬件。
+在推理场景下，昇腾上的性能约为 H100 的 60\%，
+通过手写 CANN 算子可进一步优化。
+
+DeepSeek V4 在正式发布前，
+甚至优先向国产芯片厂商提供了预发布版本进行适配测试——
+这一举动的战略意义不言而喻。
+
+\subsection{长周期训练的稳定性挑战}
+
+尽管国产芯片在算力上已接近可用水平，
+\textbf{长周期训练的稳定性}仍是最大的工程瓶颈。
+DeepSeek 研究员金宇晨指出：
+``长训练过程中的稳定性是中国芯片面临的最大挑战。''
+
+这与前文讨论的 loss spike 问题密切相关，
+但在国产芯片上问题更加严峻：
+芯片级的数值精度差异、互联协议的成熟度、
+以及驱动和框架软件栈的稳定性，
+都可能在数周的连续训练中放大为难以追溯的训练异常。
+GLM-5 在 100,000 块 910B 上的成功训练
+正是攻克这一难题的里程碑式成就。
+
+\begin{keybox}[国产算力的战略意义]
+美国半导体出口管制的有效性正在被侵蚀。
+从 2024 年的``勉强可用''到 2026 年的``能训练前沿模型''，
+国产芯片生态经历了质的飞跃：
+\begin{itemize}[noitemsep]
+  \item GLM-5 证明了 744B 参数模型可以完全在国产芯片上训练。
+  \item DeepSeek 的原生昇腾支持降低了迁移门槛。
+  \item 2026 年 160 万块国产 AI 芯片的产能
+        为大规模训练提供了硬件基础。
+\end{itemize}
+这并不意味着国产芯片已完全追平 NVIDIA——
+在单芯片性能、软件生态成熟度和长期训练稳定性上，
+差距依然存在。
+但``能训练''和``不能训练''之间的鸿沟已经被跨越。
+\end{keybox}
+
 
 %% ============================================================
 % NEW REF: muennighoff2023scaling = Scaling Data-Constrained Language Models, Muennighoff et al., NeurIPS 2023
@@ -1747,3 +1842,6 @@ LLaMA 3~\cite{dubey2024llama3} 报告的 MFU 为 38--43\%
 % NEW REF: wen2025optimizers = Fantastic Pretraining Optimizers and Where to Find Them, Wen et al., arXiv 2025
 % NEW REF: mtp2024 = Better & Faster Large Language Models via Multi-token Prediction, Gloeckle et al., ICML 2024
 % NEW REF: aynetdinov2025mtp = Pre-Training Curriculum for Multi-Token Prediction in Language Models, Aynetdinov & Akbik, ACL 2025
+% NEW REF: glm5_2026 = GLM-5 Technical Report, Zhipu AI, 2026
+% NEW REF: glmimage_2026 = GLM-Image: First SOTA Multimodal Model on Domestic Chips, Zhipu AI, 2026
+% NEW REF: megatron_core_moe_2026 = NVIDIA Megatron Core MoE: Full-Stack System Co-Design for MoE Training, NVIDIA, arXiv:2603.07685, 2026

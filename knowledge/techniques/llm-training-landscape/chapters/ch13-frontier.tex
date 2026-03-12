@@ -84,6 +84,77 @@ Google 的 Gemini 2.5 Pro（内置 ``thinking'' 模式，
 Grok 3（xAI，2025 年 2 月，内置 ``Big Brain'' 推理模式）；
 Qwen-QwQ（阿里巴巴，开源的推理专用模型）。
 
+\subsection{2026 年春季：中国推理模型的「集体爆发」}
+
+2025 年 12 月至 2026 年 2 月，中国 AI 实验室掀起了一波前所未有的推理模型发布潮。
+路透社将其描述为``抢先竞争''（preemptive competition）——
+六家中国头部实验室在三周内密集发布旗舰模型，
+形成了 2026 年春季的``模型发布海啸''。
+
+\textbf{DeepSeek V3.2/V3.2-Speciale}（2025 年 12 月）
+将竞赛级推理能力推向了新高度：
+国际数学奥林匹克（IMO）获得金牌（35/42 分），
+国际大学生程序设计竞赛（ICPC）取得第二名，
+国际信息学奥林匹克（IOI）第十名，
+AIME 2025 达到 96.0\%——超越了 GPT-5-High 的表现。
+这些成绩标志着 LLM 的推理能力已经在最严苛的竞赛环境中
+达到了人类顶尖选手的水平。
+
+\textbf{DeepSeek V4}（预计 2026 年 4 月发布）
+是 DeepSeek 的下一代旗舰模型，目前仍在开发中。
+据接近 DeepSeek 的消息源透露，V4 预计将实现多项突破：
+万亿参数级 MoE 架构（约 1T 总参数，$\sim$320B 活跃参数），
+原生多模态（文本/图像/视频/音频的统一理解与生成），
+100 万 token 上下文窗口，
+以及基于 Engram 论文的长期记忆（LTM）机制。
+特别值得关注的是，V4 据报道针对华为昇腾 910B/C 进行了专门优化，
+并在预发布阶段刻意未向 NVIDIA 和 AMD 提供预览访问——
+这被视为中国 AI 芯片独立路线的重要信号。
+
+\textbf{豆包 Seed 2.0 Pro}（2026 年 2 月 14 日，字节跳动）
+在数学推理和代码能力上全面超越同期竞品：
+AIME 2025 达到 98.3\%（创当时最高纪录），
+Codeforces rating 达到 3020（超越 99.9\% 的人类选手），
+SWE-bench Verified 76.5\%。
+Seed 2.0 Pro 的发布证明了字节跳动
+在大规模基础模型训练上的快速追赶能力。
+
+\textbf{Kimi K2.5}（2026 年 1 月 27 日，月之暗面）
+是 Kimi 系列首个万亿参数模型，
+采用 1T 总参数、384 个专家（8 个活跃/token）的 MoE 架构。
+其最大创新是 \textbf{Agent Swarm} 系统——
+通过 PARL（Parallel Agent Reinforcement Learning）协议
+协调多达 100 个子 Agent 并行执行任务，
+最长可运行 1500 步，实现 80\% 的运行时间缩减。
+AIME 2025 达到 96.1\%，HMMT 达到 95.4\%。
+Kimi K2.5 同时也是 Kimi 系列首个多模态旗舰，
+搭载了 MoonViT-3D（400M 视觉编码器）。
+
+\textbf{阶跃星辰 Step 3.5 Flash}（2026 年 2 月 2 日）
+在极致效率上做出了突破：
+196B 总参数、11B 活跃参数的 MoE 架构，
+可以在单块 RTX 4090（24GB 显存）上运行。
+AIME 2025 达到 97.3\%——
+以不到 GPT-5 百分之一的推理成本
+实现了接近 GPT-5 的推理性能。
+Step AI 的 CTO 曾坦言，
+DeepSeek R1 的推理范式对其构成了``降维打击''，
+促使他们从纯 scaling 路线转向效率优化。
+
+\begin{corebox}[2026 年春季模型发布潮的竞争动态]
+2025 年 12 月至 2026 年 2 月的密集发布潮
+不仅仅是技术进步的自然结果，
+更是竞争策略的产物。
+路透社的报道证实了这种``抢先竞争''的逻辑：
+各实验室争相在 DeepSeek V4 正式发布前
+占领话语权和用户心智。
+六家头部实验室（DeepSeek、字节跳动、月之暗面、阶跃星辰、智谱、阿里巴巴）
+在三周内全部发布了旗舰模型——
+几乎所有模型都以开放权重发布，
+并伴随着激进的定价策略。
+这种竞争强度在全球 AI 领域前所未有。
+\end{corebox}
+
 \begin{whybox}[推理时计算 vs.\ 训练时计算的经济学]
 一个深刻的趋势转变正在发生：
 传统的 Scaling Laws 关注训练时计算——
@@ -209,6 +280,39 @@ Gemini 3 更进一步，原生支持图像和音频的生成。
 避免某种模态的能力被其他模态「挤压」，
 是一个活跃的研究方向。
 
+\subsection{2026 年多模态的新突破}
+
+2026 年初，多模态模型出现了几个值得关注的新方向：
+
+\textbf{原生多模态成为标配}。
+DeepSeek V4（预计 2026 年 4 月）将是 DeepSeek 首个
+原生多模态模型——文本、图像、视频、音频的统一理解与生成
+不再通过外挂编码器实现，而是在预训练阶段联合学习。
+这标志着中国开源模型在多模态技术路线上
+追上了 GPT-4o 和 Gemini 3 的原生多模态范式。
+
+\textbf{Kimi K2.5 的 MoonViT-3D}（2026 年 1 月 27 日）
+引入了 400M 参数的 3D 视觉编码器——
+这是 Kimi 系列首个多模态旗舰模型。
+MoonViT-3D 通过三维时空建模
+对视频内容的理解能力显著优于传统的 2D 视觉编码器，
+特别是在需要理解运动、因果关系和空间推理的任务上。
+
+\textbf{GLM-Image}（2026 年 1 月 16 日，智谱 AI）
+具有里程碑意义——它是首个完全在国产芯片上训练的
+SOTA 级多模态模型，
+使用华为昇腾 Atlas 800T A2 集群和昇思 MindSpore 框架，
+实现了多模态理解和图像生成的双重能力，
+且未使用任何 NVIDIA GPU。
+这证明了国产芯片生态已经具备支撑前沿多模态训练的能力。
+
+\textbf{OpenRouter Healer Alpha}（2026 年 3 月 11 日）
+以匿名形式在 OpenRouter 平台上线，
+被描述为``frontier omni-modal model''——
+支持视觉、听觉和推理的统一处理。
+其身份尚未公开确认，但其能力表现
+引发了关于多模态模型评估标准化的广泛讨论。
+
 \section{Agent：从对话到行动}
 
 LLM 正在从「回答问题」演进为「执行任务」。
@@ -272,6 +376,22 @@ Agent 的能力取决于它可以使用的工具。
 MCP 的意义类似于 HTTP 之于 Web——
 一个统一的协议使得生态系统可以繁荣发展。
 
+\textbf{MCP 生态系统的爆发式增长}（2025 年底--2026 年初）
+验证了这一判断。
+截至 2026 年 3 月，MCP 相关工具的下载量已超过 9700 万次。
+2025 年 12 月，Anthropic 将 MCP 捐赠给
+Linux 基金会旗下的 Agentic AI Foundation，
+使其成为由行业共同治理的中立标准。
+2026 年 1 月，OpenAI、Google 和 Microsoft
+先后宣布在各自的 Agent 框架中采用 MCP——
+这标志着 MCP 从 Anthropic 的专有协议
+正式成为行业事实标准（de facto standard）。
+2026 年 1 月 26 日发布的 \textbf{MCP Apps}
+进一步扩展了 MCP 的能力边界——
+Agent 不再只能调用后端 API，
+还可以通过 MCP Apps 呈现交互式 UI 组件，
+使 Agent 的输出从纯文本升级为富交互体验。
+
 \subsection{代码 Agent：最成熟的落地场景}
 \label{sec:code-agents}
 
@@ -292,6 +412,16 @@ Claude Code 的设计理念是
 \textbf{给予 Agent 与人类开发者相同的工具和权限}——
 不是通过 API 读取代码片段，
 而是像人类一样在真实的开发环境中工作。
+\textbf{Claude Code 2.0}（2026 年 2 月 24 日）
+将这一理念推向了新阶段：
+引入多 Agent 编排（orchestration）——
+主 Agent 可以将子任务分派给专门化的子 Agent；
+持久化项目记忆（persistent project memory）——
+跨会话保留项目上下文和决策历史；
+原生 CI/CD 集成——
+Agent 可以直接触发构建、测试和部署流水线，
+将代码 Agent 从辅助工具升级为
+软件工程工作流的核心参与者。
 
 \textbf{Devin}（Cognition AI）
 是另一种路线的代码 Agent——
@@ -313,9 +443,14 @@ Agent 模式可以自动运行终端命令和管理文件。
 
 SWE-bench（修复真实 GitHub issue）
 的解决率已经从 2024 年初的 $\sim$5\%
-提升到 2026 年初的 $\sim$60\%+，
-这意味着 Agent 已经能够独立完成
-大多数的真实软件工程任务。
+提升到 2026 年初的 $\sim$79\%
+（Claude Opus 4.6 Thinking 在 SWE-bench Verified 上的成绩），
+MiniMax M2.5 更是达到了 80.2\%。
+然而，SWE-bench Verified 的高分可能部分受到数据污染的影响。
+更能反映真实能力的 \textbf{SWE-bench Pro}
+（包含 1,865 个多语言问题的更严格版本）
+显示当前最优模型的解决率仅为 $\sim$44\%——
+这表明从 benchmark 到真实软件工程仍有相当距离。
 
 \begin{corebox}[代码 Agent 的使用范式演变]
 代码 Agent 的使用范式正在经历三个阶段：
@@ -353,9 +488,30 @@ AutoGen（Microsoft）、CrewAI、LangGraph 等。
 Agent 之间的通信（通常以自然语言进行）
 本身消耗大量 tokens，
 而且 Agent 间的误解可能导致任务偏离方向。
-当前的研究表明，
+早期的研究表明，
 对于大多数任务，一个能力足够强的单 Agent
 比多个能力较弱的 Agent 协作更有效。
+
+然而，2026 年初的进展正在改变这一判断。
+\textbf{Kimi K2.5 Agent Swarm}（2026 年 1 月 27 日）
+是多 Agent 协作的一个重要突破——
+通过 PARL（Parallel Agent Reinforcement Learning）协议，
+一个主 Agent 可以协调多达 100 个子 Agent 并行执行任务，
+单次任务最长可运行 1500 步。
+关键创新在于 PARL 协议减少了 Agent 间的自然语言通信开销，
+转而使用结构化的任务分解和结果汇聚机制，
+实现了 80\% 的运行时间缩减。
+这表明多 Agent 系统的效率瓶颈不在于概念本身，
+而在于协调协议的设计。
+
+\textbf{OpenRouter Hunter Alpha}（2026 年 3 月 11 日）
+是另一个值得关注的信号——
+这个以匿名形式上线的模型被描述为
+``1T 参数 + 1M 上下文''的 Agent 专用模型，
+其规格与 DeepSeek V4 的传闻高度吻合。
+无论其真实身份如何，
+``为 Agent 而生''的模型设计理念
+正在成为下一代基础模型的核心考量。
 
 \subsection{Agent 的可靠性挑战}
 
@@ -426,13 +582,13 @@ B200 GPU 提供 9 PFLOPS 的 FP4 性能
 完全放入 GPU 显存中进行推理，
 消除了多机通信的延迟。
 
-\textbf{Vera Rubin 架构}（预计 2026 年下半年发布）
+\textbf{Vera Rubin 架构}（2026 年 1 月 CES 正式发布）
 是 NVIDIA 的下一代平台。
-据已公布的信息，
-Rubin GPU 将采用 3nm 工艺，
+Rubin GPU 采用 3nm 工艺（2025 年 8 月已 tape out），
 搭配 HBM4 内存（每 GPU 可能达到 256GB+，
-带宽超过 8 TB/s），
-计算性能预计再翻倍。
+带宽超过 8 TB/s）。
+NVIDIA 声称 Vera Rubin 将实现推理成本降低至 Blackwell 的 1/10，
+性能提升 5 倍——这意味着推理经济学将发生根本性变化。
 Vera Rubin Ultra 将是完整平台版本，
 包含 CPU（Vera，基于 ARM 架构）和 GPU（Rubin）的集成。
 
@@ -447,12 +603,14 @@ AMD 的 Instinct 系列正在成为 NVIDIA 的真正竞争对手：
 （更大的模型可以放入单 GPU），
 微软 Azure 和 Oracle Cloud 都已部署 MI300X 集群。
 
-\textbf{MI350 系列}（预计 2025 年底--2026 年初量产）
+\textbf{MI350 系列}（2025 年底--2026 年初量产）
 基于全新的 CDNA 4 架构和 3nm 工艺，
-采用 chiplet 设计，
-提供 288GB HBM3e 显存。
+采用 chiplet 设计。
+旗舰产品 \textbf{MI355X DLC} 以液冷机架形式交付——
+单机架 128 块 GPU，提供 36TB HBM3e 显存
+和 2.6 exaflops 的 FP8 计算能力，
+直接对标 NVIDIA GB200 NVL72。
 AMD 在 Hot Chips 2025 上展示了 MI350 的 node-to-rack 扩展架构，
-目标是在系统级能效（perf/watt）上与 NVIDIA Blackwell 竞争。
 MI350 的关键卖点是
 \textbf{开源软件栈}——ROCm 生态的持续改善
 使得越来越多的训练框架
@@ -460,8 +618,9 @@ MI350 的关键卖点是
 降低了迁移成本。
 
 \textbf{MI400}（路线图上为 2026 年底--2027 年）
-将是 AMD 的下一个大跳跃，
-但具体技术细节尚未公布。
+将是 AMD 的下一个大跳跃——
+基于 2nm 工艺，目标是达到 yottaflops 级别的系统计算能力，
+这将是 AI 加速器领域有史以来最激进的性能目标。
 
 \subsection{Google TPU：垂直整合的典范}
 
@@ -484,9 +643,17 @@ HBM 容量翻倍。
 v6e 特别针对推理场景优化，
 是 Gemini 模型的主要推理硬件。
 
-Google 即将推出的 \textbf{TPU v7}
-预计将带来又一个代际性能飞跃，
-特别是在 HBM 带宽和 ICI 通信速度上。
+Google 已正式发布 \textbf{TPU v7（代号 Ironwood）}——
+这是 TPU 历史上首个以``推理优先''（inference-first）设计理念
+打造的版本。
+单芯片提供 4,614 TFLOPS 的峰值算力
+（相比 v5p 的 459 TFLOPS 提升了 10 倍），
+单个 Ironwood pod 可容纳 9,216 块芯片，
+形成一个通过 ICI 高速互连的超大规模推理集群。
+Ironwood 的``推理优先''设计意味着
+Google 判断推理（而非训练）将成为
+未来 AI 计算资源消耗的主要场景——
+这与推理时计算（test-time compute）的趋势高度一致。
 TPU 的独特优势在于
 Google 可以端到端优化
 从编译器（XLA）到框架（JAX）到模型架构（Gemini）
@@ -508,7 +675,9 @@ AWS 可以将自研芯片的成本优势传递给用户。
 
 \textbf{Trainium3}（2025 年 12 月 GA，AWS 的第四代 AI 芯片）
 是一个重大升级——
-采用 3nm 工艺（与 NVIDIA Blackwell 同代），
+采用 3nm 工艺，是当前\textbf{已量产的最先进制程 AI 芯片}
+（与 NVIDIA Blackwell 同代），
+单芯片提供 2.52 PFLOPS 的峰值算力，
 被 SemiAnalysis 称为
 ``Amazon Basics 版的 GB200 NVL72''。
 Trn3 UltraServers 将 64 块 Trainium3 芯片
@@ -516,9 +685,14 @@ Trn3 UltraServers 将 64 块 Trainium3 芯片
 提供接近 NVIDIA GB200 NVL72 的系统级训练性能，
 但价格预计低 30--40\%。
 \textbf{Trainium4}（已进入路线图，预计 2027 年）
-将进一步提升每芯片的计算密度。
+将进一步提升每芯片的计算密度，
+并宣布支持 \textbf{NVLink Fusion}——
+允许 Trainium 芯片通过 NVIDIA NVLink 互连与 NVIDIA GPU 混合组网。
+这是一个打破传统供应商边界的大胆举措，
+意味着未来的 AI 集群可能不再是单一供应商的同构系统。
 
-Anthropic 是 Trainium 的重要早期客户——
+Anthropic 是 Trainium 的\textbf{锚定客户}（anchor customer）——
+据报道 Anthropic 已采购约 100 万块 Trainium 芯片。
 Claude 模型的部分训练和推理已经运行在 Trainium 上，
 这对验证非 NVIDIA 硬件的可行性具有标志性意义。
 
@@ -536,6 +710,92 @@ NVIDIA 仍然占据 AI 训练市场约 80\%+ 的份额，
 但 NVIDIA 的 CUDA 生态仍然是其最大的护城河——
 迁移到其他硬件的软件适配成本是许多团队犹豫的主要原因。
 \end{keybox}
+
+\section{国产芯片生态：从替代品到主力军}
+\label{sec:domestic-chips}
+
+在全球 AI 加速器竞争加剧的同时，
+中国国产 AI 芯片正在经历从``被迫替代''到``主动选择''的转型。
+2026 年初的一系列里程碑事件
+表明国产芯片生态已经跨越了``可用''的门槛，
+正在向``好用''迈进。
+
+\subsection{华为昇腾：中国 AI 芯片的中流砥柱}
+
+\textbf{昇腾 910C}
+是当前中国 AI 训练的主力芯片——
+提供约 800 TFLOPS 的 FP16 算力，
+配备 96GB HBM2e 显存。
+虽然在绝对性能上仍与 NVIDIA H100 存在差距
+（H100 提供约 1979 TFLOPS FP16 和 80GB HBM3），
+但 910C 的性能已经足以支撑千亿参数级模型的训练。
+据行业估算，2026 年 910C 的计划出货量约为 60 万块，
+将成为中国 AI 基础设施的核心供给。
+
+华为的芯片路线图展现了激进的演进节奏：
+\textbf{昇腾 910C} → \textbf{昇腾 950PR}
+（2026 年 Q1，搭载华为自研 HBM）→
+\textbf{昇腾 950DT}（2026 年 Q4）→
+\textbf{昇腾 960}（2027 年）→
+\textbf{昇腾 970}（2028 年）。
+特别值得关注的是 950PR 将首次采用华为自研 HBM——
+这意味着华为正在追求从芯片设计到封装存储的
+全栈自主可控，减少对 SK 海力士和三星的依赖。
+
+\subsection{``零 NVIDIA'' 训练的里程碑}
+
+\textbf{GLM-5}（2026 年 2 月 12 日，智谱 AI）
+是中国 AI 发展史上的一个分水岭——
+744B 参数的模型完全在 100,000 块华为昇腾 910B 上训练，
+\textbf{零 NVIDIA 依赖}。
+GLM-5 使用了 28.5 万亿 token 的训练数据，
+其性能在多项基准测试上达到了国际一线水平。
+这是首次有千亿参数级基础模型完全脱离 NVIDIA 生态完成训练，
+证明了国产芯片在大规模训练场景中的工程可行性。
+
+同期发布的 \textbf{GLM-Image}（2026 年 1 月 16 日）
+进一步验证了国产芯片在多模态训练中的能力——
+它是首个完全在国产芯片上训练的 SOTA 级多模态模型，
+使用华为昇腾 Atlas 800T A2 集群和昇思 MindSpore 框架。
+
+\subsection{DeepSeek 的国产芯片战略}
+
+DeepSeek V4 的芯片策略值得特别关注。
+据报道，DeepSeek 在 V4 的预发布阶段
+将预览访问权限提供给了国产芯片厂商，
+但\textbf{刻意排除了 NVIDIA 和 AMD}。
+这一决策背后的逻辑是多层次的：
+一方面，针对昇腾 910B/C 的专门优化
+可以确保模型在国产芯片上的原生性能；
+另一方面，这也是对中国 AI 芯片生态的战略支持。
+
+DeepSeek 还提供了便捷的国产芯片适配方案：
+通过其开源工具链，开发者只需\textbf{一行代码}
+即可将 CUDA 调用转换为华为 CUNN（CANN）调用，
+大幅降低了从 NVIDIA GPU 迁移到昇腾的门槛。
+
+\subsection{其他国产芯片力量}
+
+\textbf{寒武纪}（Cambricon）
+是另一支重要的国产 AI 芯片力量——
+2026 年的芯片出货目标为 50 万块，
+公司估值已达约 880 亿美元（约 6,400 亿人民币）。
+寒武纪在推理加速器领域尤其有竞争力，
+多家中国互联网公司已采用寒武纪芯片进行推理部署。
+
+\begin{warnbox}[国产芯片的核心挑战：长周期训练稳定性]
+尽管国产芯片在单芯片性能和集群规模上已取得显著进步，
+但\textbf{长周期训练稳定性}仍然是最大的技术挑战。
+训练一个千亿参数模型通常需要数月时间，
+在此期间任何硬件故障、驱动 bug 或数值不稳定
+都可能导致训练中断和 checkpoint 回滚。
+NVIDIA 在这方面有十余年的工程积累和广泛的用户验证，
+而国产芯片生态的成熟度仍在快速追赶中。
+GLM-5 在十万块 910B 上成功完成训练，
+正是对这一挑战的有力回答——
+但将这种能力从少数头部团队推广到更广泛的用户群体，
+仍需要整个生态系统的持续投入。
+\end{warnbox}
 
 \section{端侧模型：让 AI 无处不在}
 
@@ -624,6 +884,23 @@ Qwen3-0.6B~\cite{qwen2025qwen3} 和 Gemma 3-1B
 量化技术（如 GGUF Q4\_K\_M）和
 推理优化（如 llama.cpp 的 ARM NEON 和 Metal 优化）
 使得在消费级硬件上运行 7B--14B 的模型成为现实。
+
+\textbf{2026 年春季的端侧模型新进展}进一步扩展了这一趋势：
+\textbf{Qwen 3.5 小模型系列}（2026 年 3 月 3 日）
+开源了 0.8B/2B/4B/9B 四个规格，
+均以 Apache 2.0 许可证发布，
+特别针对端侧推理场景优化。
+\textbf{阶跃星辰 Step 3.5 Flash}（2026 年 2 月 2 日）
+的 196B/11B MoE 架构展示了另一种可能——
+通过极致的 MoE 稀疏化（仅 5.6\% 的参数活跃），
+将原本需要数据中心级硬件的推理能力
+压缩到单块 RTX 4090（24GB）上运行。
+更值得关注的是，
+arXiv:2512.15943 的研究表明，
+在 Agent 工具调用（tool calling）场景中，
+精心微调的小型 LLM 可以\textbf{超越}大型模型的表现——
+这意味着端侧模型在 Agent 生态中
+可能扮演比传统认知更重要的角色。
 
 端侧模型的核心能力保留策略包括：
 \textbf{知识蒸馏}——用大模型的输出训练小模型，
@@ -910,40 +1187,100 @@ DeepSeek-R1~\cite{deepseekr1} 的发布
 （3）开源模型的性能达到商用水平后，
 API 定价将面临巨大的下行压力。
 
+\subsection{2026 年春季：开源的``定义性时刻''}
+
+如果说 DeepSeek-R1 是开源的``第一枪''，
+那么 2026 年春季的模型发布潮则是``全面突破''。
+几乎所有中国头部实验室在这一波发布中
+都选择了\textbf{开放权重}发布：
+GLM-5（744B，MIT 许可证）、
+Kimi K2.5（1T MoE，Apache 2.0）、
+Qwen 3.5（397B/17B，Apache 2.0）、
+阶跃星辰 Step 3.5 Flash（196B/11B，MIT 许可证）。
+
+这带来了几个深远的影响：
+
+\textbf{中国开源的全球影响力}：
+中国模型在 HuggingFace 上的使用占比
+从 2024 年的 1.2\% 飙升至 2026 年初的 \textbf{30\%}——
+这是一个数量级的跳跃。
+中文 NLP 不再是开源社区的边缘话题，
+而是与英文模型并驾齐驱的主流力量。
+
+\textbf{价格战加速智能民主化}：
+开源模型的性能追平闭源模型后，
+API 定价发生了剧烈的下行压力。
+MiniMax 的 API 定价仅为 GPT-5 的 1/10 到 1/20；
+豆包的定价比 GPT-5.2 便宜 3.7--5.9 倍；
+Qwen 的 API 比同级别闭源模型便宜 60\%。
+``Intelligence too cheap to meter''
+（智能便宜到不值得计量）
+这句借自核能时代的预言正在成为现实——
+对于大多数应用场景，LLM 调用的成本
+已经不再是阻碍采用的因素。
+
 \section{总结与展望}
 
 2025--2026 年的 LLM 领域
-正在经历多条技术和产业路线的同时演进：
+正在经历多条技术和产业路线的同时演进，
+且竞争烈度达到了前所未有的水平：
 
 \textbf{推理能力的系统化}——
 从提示工程到专用推理模型再到可配置推理预算，
 模型正在学会「思考」而非仅仅「回忆」。
 test-time compute 正在成为
 与训练 compute 同等重要的资源维度。
+2026 年春季的中国模型竞赛表明，
+AIME 95\%+ 已经是旗舰模型的``入场门槛''，
+推理能力的差异化正在向更难的竞赛级别和真实世界任务转移。
 
-\textbf{Agent 的落地}——
+\textbf{长期记忆（LTM）作为 2026 年的``皇冠''能力}——
+DeepSeek 的 Engram 论文和 Google 的 Titans 架构
+标志着 LLM 正在超越传统的上下文窗口限制，
+向真正的``记忆''能力演进。
+LTM 不是更长的 context window——
+它是一种让模型在运行时自主管理和检索知识的新范式，
+可能从根本上改变 AI 系统与人类的交互方式。
+
+\textbf{Agent 生态的成熟}——
 从概念验证到生产工具，
 代码 Agent 已经改变了软件工程的工作流程。
-SWE-bench 60\%+ 的解决率
+SWE-bench Verified 接近 80\% 的解决率
 标志着 Agent 从「玩具」跨入了「工具」的阶段。
+MCP 从 Anthropic 的专有协议成长为
+由 Linux 基金会治理、OpenAI/Google/Microsoft 共同采用的行业标准——
+Agent 生态系统终于有了自己的``HTTP 时刻''。
 
-\textbf{硬件竞争的加剧}——
-NVIDIA 的垄断正在被 AMD、Google、AWS 逐步打破。
-多供应商策略降低了行业对单一供应商的依赖，
-也加速了算力成本的下降。
+\textbf{国产芯片的战略性突破}——
+GLM-5 在十万块昇腾 910B 上完成``零 NVIDIA''训练，
+标志着中国 AI 芯片独立路线的工程可行性已被验证。
+从``被迫替代''到``主动选择''的转变，
+可能重塑全球 AI 算力的地缘格局。
+
+\textbf{硬件竞争的全面加剧}——
+NVIDIA 的垄断正在被 AMD、Google、AWS、华为等多方力量打破。
+Vera Rubin 的 10 倍推理成本降低、
+TPU v7 Ironwood 的``推理优先''设计、
+Trainium3 的 3nm 制程、
+以及 NVLink Fusion 模糊供应商边界的跨界互连——
+多供应商策略正从``可选''变为``必选''。
 
 \textbf{端侧 AI 的崛起}——
 NPU 硬件的进步使得 3B--7B 模型在手机上成为现实。
+Step 3.5 Flash 证明了 MoE 稀疏化可以将数据中心级能力
+压缩到消费级 GPU 上运行。
 端云混合推理将成为 AI 服务的标准架构。
 
 \textbf{监管框架的形成}——
-EU AI Act、美国各州立法、中国审批制度
-正在塑造 AI 公司的运营边界。
+EU AI Act 的 GPAI 条款已于 2025 年 8 月生效，
+MCP 被捐赠给 Linux 基金会标志着 Agent 治理的标准化。
 合规成本将成为 AI 商业化的重要变量。
 
-\textbf{开源与闭源的融合}——
-开源模型在性能上持续逼近闭源模型，
-但「完全开源」仍然稀缺。
+\textbf{开源的``定义性胜利''}——
+开源模型不仅在性能上持续逼近闭源模型，
+更在 2026 年春季实现了市场份额的质变——
+中国开源模型占 HuggingFace 使用量的 30\%，
+价格战使得``智能太便宜，不值得计量''正在成为现实。
 行业可能走向一种混合格局——
 基础模型开源，增值服务闭源。
 
@@ -958,7 +1295,17 @@ LLM 技术的发展速度令人目眩。
 这是一个激动人心的时代。
 从 Shannon 的信息论到 DeepSeek 的 GRPO，
 从 Transformer 的注意力机制到 MoE 的稀疏激活，
+从十万块国产芯片上训练出的零 NVIDIA 模型
+到 MCP 协议将 Agent 生态推向``HTTP 时刻''——
 每一步都是人类对「什么是智能」这个根本问题的持续探索。
+
+2026 年的竞争强度前所未有：
+六家中国头部实验室三周内密集发布旗舰模型，
+开源与闭源的边界日益模糊，
+国产芯片的独立路线从愿景变为现实，
+Agent 从``能用''走向``好用''。
+在这场竞赛中，技术进步的速度
+已经超越了大多数从业者的预期。
 
 而这段旅程，才刚刚开始。
 
@@ -1076,4 +1423,56 @@ GRPO 背后是让模型通过探索自我发现推理策略的强化学习理念
 %%   author  = {{Ben Allal}, Loubna and Lozhkov, Anton and Bakouch, Elie and others},
 %%   journal = {arXiv preprint arXiv:2502.02737},
 %%   year    = {2025},
+%% }
+%%
+%% --- New references added for 2026-03-12 update ---
+%%
+%% @article{deepseek2026engram,
+%%   title   = {Conditional Memory via Scalable Lookup},
+%%   author  = {DeepSeek-AI},
+%%   journal = {arXiv preprint},
+%%   year    = {2026},
+%%   note    = {Published 2026-01-12, Liang Wenfeng co-authored},
+%% }
+%%
+%% @article{smallllm2024toolcalling,
+%%   title   = {Small LLMs Outperform Large Models for Agent Tool Calling},
+%%   author  = {Various},
+%%   journal = {arXiv preprint arXiv:2512.15943},
+%%   year    = {2024},
+%% }
+%%
+%% @misc{glm5_2026,
+%%   title   = {{GLM-5}: 744B Parameter Model Trained on 100,000 Huawei Ascend 910B},
+%%   author  = {Zhipu AI},
+%%   year    = {2026},
+%%   note    = {Released 2026-02-12, first frontier model with zero NVIDIA dependency},
+%% }
+%%
+%% @misc{kimik25_2026,
+%%   title   = {{Kimi K2.5}: 1T MoE Model with Agent Swarm},
+%%   author  = {Moonshot AI},
+%%   year    = {2026},
+%%   note    = {Released 2026-01-27, PARL protocol for multi-agent coordination},
+%% }
+%%
+%% @misc{step35flash_2026,
+%%   title   = {{Step 3.5 Flash}: 196B/11B MoE for Consumer Hardware},
+%%   author  = {StepFun},
+%%   year    = {2026},
+%%   note    = {Released 2026-02-02, runs on RTX 4090},
+%% }
+%%
+%% @misc{doubao_seed2_2026,
+%%   title   = {{Doubao Seed 2.0 Pro}},
+%%   author  = {ByteDance},
+%%   year    = {2026},
+%%   note    = {Released 2026-02-14, AIME 98.3\%, Codeforces 3020},
+%% }
+%%
+%% @misc{claudecode2_2026,
+%%   title   = {{Claude Code 2.0}: Multi-Agent Orchestration for Software Engineering},
+%%   author  = {Anthropic},
+%%   year    = {2026},
+%%   note    = {Released 2026-02-24},
 %% }

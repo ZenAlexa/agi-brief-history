@@ -1485,6 +1485,130 @@ RLVR 的核心理念是：
 GRPO + RLVR 的组合已经在多项推理基准上
 超越了传统的 RLHF + PPO 方法。
 
+\subsection{RLVR：从技巧到主导范式}
+
+2025 年被 Sebastian Raschka 在年度综述中称为
+``the year of RLVR and GRPO''——
+RLVR（Reinforcement Learning with Verifiable Rewards）
+已从 DeepSeek-R1 验证的技巧性方法，
+演化为后训练阶段的\textbf{主导范式}。
+从 RLHF → DPO → GRPO → RLVR 的演进轨迹清晰可见：
+每一步都在减少对人类标注的依赖，
+同时提升模型的推理能力。
+DeepSeek-R1 证明了纯 RL 可以激励推理行为的涌现；
+后 R1 时代的研究聚焦于让这一范式
+更高效、更有理论基础、并拓展到开放式任务。
+
+\subsubsection{GRPO 的理论推广}
+
+% NEW REF: zhang2026fgrpo = Zhang et al., "f-GRPO: Unifying GRPO through f-Divergence", arXiv:2602.05946, 2026
+
+\textbf{f-GRPO}（arXiv:2602.05946, 2026 年 2 月）
+提出了基于 f-散度（f-divergence）的统一框架。
+原始 GRPO 隐式使用的是 KL 散度作为策略约束，
+而 f-GRPO 将其推广到任意 f-散度，
+同时提出了混合 on/off-policy 的 \textbf{f-HAL} 变体。
+这个统一框架使得研究者可以通过选择不同的 $f$ 函数
+（如 $\chi^2$ 散度、Hellinger 距离等）
+来调节策略更新的保守程度。
+
+% NEW REF: nvidia2026igrpo = NVIDIA, "iGRPO: Iterative Group Relative Policy Optimization", arXiv:2602.09000, 2026
+
+\textbf{iGRPO}（NVIDIA, arXiv:2602.09000）
+提出了迭代式 GRPO（Iterative GRPO），
+引入\textbf{动态自条件化}（dynamic self-conditioning）机制。
+iGRPO 通过两阶段扩展解决了标准 GRPO 在数学推理中
+产生\textbf{不一致解}的问题——
+同一问题的不同采样可能得到不同的推理路径和答案，
+iGRPO 通过迭代优化使策略收敛到一致的高质量解。
+
+% NEW REF: clipo2026 = "CLIPO: Contrastive Learning in Policy Optimization", arXiv:2603.10101, 2026
+
+\textbf{CLIPO}（arXiv:2603.10101, 2026 年 3 月）
+将对比学习引入策略优化（Contrastive Learning in Policy Optimization），
+对 RLVR 进行了推广。
+通过在组内构建正负样本对，
+CLIPO 利用对比损失增强策略优化信号，
+在稀疏奖励场景下表现优于标准 GRPO。
+
+% NEW REF: pgrpo2026 = "Personalized GRPO for Heterogeneous Preference Alignment", arXiv:2603.10009, 2026
+
+\textbf{Personalized GRPO}（arXiv:2603.10009）
+将 GRPO 扩展到\textbf{异质偏好对齐}场景——
+不同用户群体可能有不同的偏好，
+传统的统一奖励函数无法满足这种多样性需求。
+Personalized GRPO 通过条件化奖励函数
+实现了面向不同偏好群体的差异化优化。
+
+\subsubsection{偏好优化方法的理论统一}
+
+% NEW REF: unify2026 = "Unifying RLHF, DPO, IPO, KTO, and SimPO", arXiv:2601.06108, 2026
+
+2026 年 1 月的一项重要理论工作（arXiv:2601.06108）
+从统一的数学框架出发，
+形式化地证明了 RLHF、DPO、IPO、KTO、SimPO
+都可以被视为同一优化目标的不同特例。
+这个统一视角解释了为什么不同方法在实践中
+常常表现相近——它们本质上在优化同一目标函数的不同近似。
+更重要的是，这个框架为设计新的偏好优化算法
+提供了理论指导：研究者可以在统一框架内
+系统性地探索新的算法变体，
+而不是依赖启发式设计。
+
+\subsubsection{RLVR 向开放式任务的扩展}
+
+RLVR 的核心限制在于需要\textbf{可验证的奖励信号}——
+这在数学和代码领域自然成立，
+但如何扩展到开放式任务（写作、分析、对话）？
+2025--2026 年出现了多个解决方案：
+
+\textbf{多选题重构法}（arXiv:2511.02463）
+将开放式任务转化为可验证的多选题形式。
+例如，将「写一段关于气候变化的分析」
+重构为「以下四段分析中哪个最准确、最全面？」——
+模型的选择可以被自动验证。
+这种方法虽然损失了一定的任务自然性，
+但巧妙地将 RLVR 的适用范围扩展到了原本不可验证的领域。
+
+% NEW REF: ibm2026vprm = IBM, "Verifiable Process Reward Models", arXiv:2601.17223, 2026
+% NEW REF: huawei2026chain = Huawei, "From Verifiable Dot to Reward Chain", arXiv:2601.18533, 2026
+
+\textbf{可验证过程奖励模型}（IBM, arXiv:2601.17223）
+超越了结果验证，提出了\textbf{过程级}的可验证奖励。
+不仅验证最终答案是否正确，
+还验证中间推理步骤是否合理——
+通过形式化约束（如数学等式、逻辑一致性检查）
+实现自动化的步骤级验证。
+
+华为的``从可验证点到奖励链''（arXiv:2601.18533）
+进一步提出了将离散的可验证检查点
+串联为完整奖励链的方法，
+在长推理链场景下提供更密集的训练信号。
+
+% NEW REF: re2_2026 = "Re^2: Reducing Redundant Reasoning Steps in RLVR", arXiv:2603.07197, 2026
+
+\textbf{Re\textsuperscript{2}}（arXiv:2603.07197）
+解决了 RLVR 训练后模型的一个常见问题——
+经过 RLVR 训练的模型倾向于生成
+\textbf{不必要的低质量推理步骤}。
+模型为了最大化获得正确答案的概率，
+会过度展开推理链，加入冗余的验证和重复步骤。
+Re\textsuperscript{2} 通过优化推理效率，
+在保持推理准确率的同时显著减少了推理长度。
+
+\begin{corebox}[从 RLHF 到 RLVR 的演进轨迹]
+从 RLHF → DPO → GRPO → RLVR 的演进代表了一条清晰的路径：
+\textbf{减少人类标注依赖，增强推理能力}。
+RLHF 需要大量人类偏好标注和独立的奖励模型；
+DPO 去掉了奖励模型但仍需偏好数据；
+GRPO 去掉了 critic 网络并简化了训练流程；
+RLVR 进一步用自动化验证器替代了人类偏好标注。
+DeepSeek-R1 证明了纯 RL 可以激励推理行为的涌现；
+后 R1 时代的工作让这一范式更加高效（f-GRPO、iGRPO）、
+理论上更完备（统一框架）、
+并且逐步扩展到开放式任务（多选题重构、可验证过程奖励）。
+\end{corebox}
+
 \subsection{GRPO 的训练代码}
 
 让我们看一下 GRPO 训练的核心逻辑：

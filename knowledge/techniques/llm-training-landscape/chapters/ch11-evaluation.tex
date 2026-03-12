@@ -170,6 +170,67 @@ GPQA（博士级科学问题）$\to$ FrontierMath（研究级数学）。
 我们需要的不仅是更难的题目，
 还需要更好的评估\textbf{范式}。
 
+\subsubsection{传统基准的饱和（2026 年现状）}
+
+2026 年初，基准饱和问题变得更加严峻。
+多个前沿模型在 \textbf{AIME 2025} 上的准确率超过 96\%——
+Doubao Seed 2.0 Pro 达到 98.3\%，
+Step 3.5 Flash 达到 97.3\%，
+Kimi K2.5 达到 96.1\%，
+Qwen3-Max-Thinking 在部分配置下甚至报告 100\%。
+当多个模型都能做对几乎所有题目时，
+基准就失去了区分度。
+
+社区正在转向更难的替代品作为新的区分器：
+\textbf{HMMT}（Harvard-MIT Mathematics Tournament）
+和 \textbf{GPQA Diamond} 成为区分前沿模型的新标准。
+而 \textbf{HLE}（Humanity's Last Exam）
+代表了评估的最远边界——
+GLM-4.7 在 HLE 上仅达到 42.8\%，
+说明即使是最强的 frontier 模型
+距离全面的人类专家水平仍然相当遥远。
+
+\subsubsection{OpenRouter 匿名模型评测}
+
+一种全新的评估范式正在 OpenRouter 平台上自发形成：
+\textbf{匿名模型投放}（stealth model deployment）。
+模型提供者以匿名身份将新模型发布到 OpenRouter，
+用户在不知道模型身份的情况下进行测试和反馈，
+完全消除了品牌偏见对评估结果的影响。
+
+这一实践始于 2025 年底的 \textbf{Quasar Alpha}，
+随后出现了 Optimus Alpha、Aurora Alpha、Pony Alpha 等匿名模型，
+每一个都引发了社区的激烈讨论和身份猜测。
+2026 年 3 月 11 日发布的 \textbf{Hunter Alpha}
+号称具有「1T 参数 + 1M 上下文」的规格——
+其参数规格与预期中的 DeepSeek V4 高度吻合。
+同期发布的 \textbf{Healer Alpha} 被描述为
+``frontier omni-modal model''。
+
+匿名模型评测的价值在于：
+它提供了一个\textbf{品牌无关}的能力评估环境。
+用户对模型的评价完全基于输出质量，
+不受「这是 GPT 还是 Claude」的先验预期影响。
+这种评估方式可以看作是
+Chatbot Arena 盲评理念的一种自然延伸。
+
+\subsubsection{Arena-Lite：基于锦标赛的评估}
+
+\textbf{Arena-Lite}（EMNLP 2025）提出了
+一种基于\textbf{锦标赛制}的直接比较评估方法。
+与传统评估依赖基线模型输出不同，
+Arena-Lite 让模型之间进行\textbf{直接对决}，
+消除了对参考输出的依赖。
+这解决了 AlpacaEval 等基准
+受限于基线模型质量的问题——
+当基线模型本身不够好时，
+评估结果的可信度也随之降低。
+
+截至 2026 年 3 月，各主要评估平台上
+排名最前的模型包括：
+Claude Opus 4.6、GPT-5.4、DeepSeek V3.2、
+Gemini 3 Pro、Qwen 3.5。
+
 \section{基准测试全景}
 
 主流基准测试覆盖不同能力维度：
@@ -347,10 +408,30 @@ SWE-bench 经历了三个版本的演进：
         由人类工程师审核的 500 个高质量子集。
         确保每个任务的测试用例足够严格。
         曾被广泛用作标准评估集。
-  \item \textbf{SWE-bench Pro}（2026 年，提议中）：
-        针对 Verified 版本出现的污染问题而提出的更新，
+  \item \textbf{SWE-bench Pro}（Scale AI SEAL，2026 年）：
+        针对 Verified 版本出现的污染问题而推出的升级版本，
+        包含 \textbf{1,865 个多语言编程问题}
+        （不再局限于 Python），
         使用私有测试用例和更严格的防泄露措施。
+        截至 2026 年 3 月，最高分约 \textbf{44\%}——
+        同一模型在 Pro 上的分数大约只有 Verified 的一半，
+        更真实地反映了实际的软件工程能力。
 \end{itemize}
+
+SWE-bench 的演进揭示了一个重要模式：
+截至 2026 年 3 月，SWE-bench Verified 的最高分
+已达到约 \textbf{79.2\%}（Claude Opus 4.6 Thinking），
+但学界已普遍认为 Verified 版本存在\textbf{部分污染}——
+一些模型可能在训练数据中接触过测试用例的讨论和解决方案。
+SWE-bench Pro 的推出正是对这一问题的直接回应。
+同一模型在 Verified 上 $\sim$79\%、在 Pro 上 $\sim$44\% 的巨大落差，
+生动说明了\textbf{基准测试的污染程度直接影响评估结论的可靠性}。
+
+\textbf{其他代码智能体基准}也在快速发展：
+\textbf{Terminal Bench 2.0} 测试模型在终端环境中的操作能力，
+\textbf{BrowseComp} 评估模型在浏览器环境中的信息检索与操作能力。
+这些基准将代码评估从「修 bug」扩展到了
+更广泛的「计算机使用」能力维度。
 
 \subsection{长上下文}
 \begin{itemize}[noitemsep]
@@ -989,6 +1070,60 @@ RAG 的关键技术组件：
   \item \textbf{AdvBench}：对抗性提示集合，
         测试模型在面对刻意诱导时的安全性。
 \end{itemize}
+
+\subsubsection{2026 年的安全评估新进展}
+
+2026 年初，安全评估领域出现了几项
+具有理论和实践意义的重要突破。
+
+\textbf{对齐验证不可能定理}（arXiv:2603.08761，2026 年 3 月）
+从数学上证明了一个\textbf{根本性的理论极限}：
+对于 AI 系统的对齐验证，
+\textbf{完备性}（soundness）、
+\textbf{通用性}（generality）和
+\textbf{可计算性}（tractability）
+三者\textbf{无法同时满足}。
+这意味着不存在一种既完备、又通用、又高效的方法
+来验证 AI 系统是否已经正确对齐。
+这一结果类似于 Rice 定理在程序分析中的地位——
+它不是说对齐验证不可能，
+而是说\textbf{任何实际的验证方法都必须在三者之间做出取舍}。
+这对安全评估的实践有深远影响：
+我们需要接受「不完美的安全保障」是常态，
+并设计能在约束条件下最大化安全性的评估方案。
+
+\textbf{AutoControl Arena}（arXiv:2603.07427）
+提出了一种\textbf{自动化}的 frontier AI 风险评估框架，
+专门针对\textbf{逻辑幻觉}（logic hallucination）问题——
+模型在推理过程中看似逻辑连贯但实际违反基本推理规则的情况。
+与传统的安全评估（主要关注有害内容生成）不同，
+AutoControl Arena 关注的是模型在\textbf{高风险决策}场景中
+推理错误但自信输出的风险。
+
+\textbf{PersistBench}（arXiv:2602.01146）
+首次系统性地评估了 \textbf{Long-Term Memory（LTM）}
+带来的安全风险。
+随着模型开始支持跨会话的持久记忆，
+新的安全威胁浮现：
+\begin{itemize}[noitemsep]
+  \item \textbf{跨域记忆泄露}：模型将用户 A 的会话信息
+        错误地关联到用户 B 的上下文中。
+  \item \textbf{记忆诱导的谄媚}（memory-induced sycophancy）：
+        模型利用记忆中的用户偏好来调整回答，
+        导致越来越迎合用户的错误观点
+        而非提供准确信息。
+\end{itemize}
+PersistBench 为 LTM 安全性建立了首个标准化评估框架。
+
+\textbf{MCP 协议治理}也在 2025 年底迈出了关键一步。
+Model Context Protocol（MCP）于 2025 年 12 月
+被捐赠给 Linux Foundation 的
+\textbf{Agentic AI Foundation}，
+成为首个由行业级治理结构管理的 Agent 工具协议。
+OpenAI、Google、Microsoft 等主要厂商均已采纳 MCP，
+累计下载量超过 9700 万次。
+这标志着 Agent 安全从各自为战的防御
+走向了标准化的治理框架。
 
 \subsection{对齐税}
 

@@ -449,6 +449,18 @@ DeepSeek-R1~\cite{deepseekr1} 是推理时缩放领域的里程碑。
 它首次证明了\textbf{纯粹的强化学习}（无需人类推理示范）
 就能让模型自发地发展出复杂的推理能力。
 
+2025 年 9 月，R1 论文以封面文章发表于
+\textit{Nature}（Vol.~645, Issue~8081, 2025 年 9 月 17 日），
+成为\textbf{首篇通过 Nature 独立同行评审的 LLM 论文}。
+梁文锋（Liang Wenfeng）为通讯作者。
+Nature 编辑部以``AI can learn to show its workings through trial and error''为题
+发表评论，确认了 R1 的核心发现：
+纯 RL（无需人类标注的推理轨迹）能够激励高级推理行为的涌现——
+包括自我反思（self-reflection）、
+验证（verification）和动态策略调整（dynamic strategy adaptation）。
+这一里程碑标志着 LLM 推理研究
+从工程实践迈入了经由严格同行评审认可的科学领域。
+
 \subsection{R1-Zero：从 RL 中涌现的推理}
 
 在 R1 的完整训练之前，
@@ -600,6 +612,63 @@ o3 和 o4-mini 引入了\textbf{工具使用}能力——
 搜索网页、执行代码、分析图像，
 将工具调用和推理无缝结合。
 这代表了从「纯思考」到「思考 + 行动」的范式转变。
+
+\subsection{推理基准的军备竞赛（2025--2026）}
+
+DeepSeek-R1 发表后，推理模型的竞争进入白热化阶段。
+2025 年末至 2026 年初，多个模型在传统推理基准上
+取得了接近天花板的成绩：
+
+\begin{table}[H]
+\centering\small
+\caption{推理模型基准成绩（2025 年末至 2026 年初）}
+\begin{tabularx}{\linewidth}{l X r}
+\toprule
+\textbf{模型} & \textbf{关键成绩} & \textbf{发布时间} \\
+\midrule
+\textbf{DeepSeek V3.2-Speciale} &
+  IMO 金牌（35/42）、ICPC 第 2 名（492/600）、IOI 第 10 名、AIME 96.0\%（超越 GPT-5-High 94.6\%） &
+  2025-12 \\
+\textbf{Doubao Seed 2.0 Pro} &
+  AIME 2025 98.3\%、Codeforces Rating 3020 &
+  2026-02 \\
+\textbf{Step 3.5 Flash} &
+  AIME 97.3\%，仅 11B 活跃参数（196B 总参数 MoE） &
+  2026-02 \\
+\textbf{Kimi K2.5} &
+  AIME 96.1\%、HMMT 95.4\%、GPQA Diamond 87.6\% &
+  2026-01 \\
+\textbf{Qwen3-Max-Thinking} &
+  AIME/HMMT 部分基准宣称 100\% &
+  2025-09+ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+值得注意的是 \textbf{DeepSeek V3.2-Speciale} 的竞赛表现：
+IMO 金牌（35/42 分）意味着模型的数学推理能力
+已经达到了国际数学奥林匹克顶尖选手的水平，
+而 ICPC 第 2 名和 IOI 第 10 名
+则证明了这种推理能力可以迁移到编程竞赛领域。
+\textbf{Step 3.5 Flash} 尤其引人关注——
+它仅用 11B 活跃参数就达到了 AIME 97.3\%，
+证明了小型 MoE 架构配合高质量推理训练
+可以在效率和性能之间取得惊人的平衡。
+
+\begin{warnbox}[基准饱和与评估范式转移]
+多个模型在 AIME 上突破 96\% 甚至宣称 100\%，
+这种\textbf{分数向天花板收敛}的现象
+表明传统推理基准正在快速饱和。
+当区分度消失时，基准就失去了评估价值。
+
+下一代有意义的评估正在转向更接近真实世界的任务：
+\textbf{SWE-bench Pro}（1,865 个多语言真实代码修复任务，
+当前最高约 44\%）衡量的是工程推理能力；
+\textbf{BrowseComp}（Web agent 任务）
+衡量的是模型在开放环境中的规划和执行能力。
+这些基准的天花板远高于 AIME，
+更能区分不同模型的实际推理水平。
+\end{warnbox}
 
 
 \section{工具增强推理}

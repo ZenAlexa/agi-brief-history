@@ -20,7 +20,10 @@ Gemini 2.5 Pro    & 1M tokens   & 未公开       & 2025.03 \\
 Gemini 3 Pro/Flash & 1--2M tokens & 未公开      & 2025--2026 \\
 Claude Sonnet 4.5 / Opus 4.5 & 200K--1M tokens & 未公开 & 2025--2026 \\
 GPT-5 系列        & 400K tokens & 未公开       & 2025--2026 \\
-Kimi K2.5          & 256K tokens & RoPE 变体    & 2025 \\
+DeepSeek-V3.2     & 1M tokens   & YaRN + MLA   & 2026.02 \\
+Kimi K2.5          & 256K tokens & RoPE 变体    & 2026.01 \\
+Qwen3-Next        & 262K--1M tokens & YaRN 变体 & 2026 \\
+GLM-4.7           & 200K tokens & RoPE 变体    & 2025.12 \\
 Jamba 1.5-Large   & 256K tokens & RoPE + SSM   & 2024.08 \\
 DeepSeek-V3       & 128K tokens & YaRN + MLA   & 2024.12 \\
 LLaMA 3.1 405B    & 128K tokens & RoPE + 频率调整 & 2024.07 \\
@@ -35,6 +38,16 @@ Google 的 Gemini 系列稳定支持 1--2M token。
 Anthropic 的 Claude 系列在 2025--2026 年
 将上下文扩展到了 200K--1M token。
 OpenAI 的 GPT-5 系列达到了 400K token。
+
+值得注意的是，\textbf{1M token 上下文在 2026 年初已成为事实上的标准}。
+DeepSeek 在 2026 年 2 月 11 日悄然将 V3.2 的上下文窗口
+从 128K 升级到 1M——没有发布公告，
+用户在使用中自行发现了这一变化。
+Kimi K2.5 支持 256K 原生上下文，
+Qwen3-Next 原生支持 262K 并可扩展至 1M，
+GLM-4.7 支持 200K 上下文和 128K 最大输出长度。
+这意味着长上下文竞争的焦点
+已经从``能否支持 1M''转向``能否有效利用 1M''。
 
 但这些数字背后隐藏着艰巨的工程和科学挑战——
 让模型「看到」长文本和让模型「理解」长文本，
@@ -835,6 +848,292 @@ Anthropic 在 2025 年下半年
 \end{itemize}
 \end{whybox}
 
+\section{稀疏注意力的新进展}
+\label{sec:sparse-attention-2026}
+
+2026 年初，多项研究在稀疏注意力方向取得了突破，
+为长上下文推理提供了更高效的计算范式。
+这些工作的共同目标是：
+在不显著损失质量的前提下，
+减少长序列中实际参与注意力计算的 token 数量。
+
+\subsection{Token Sparse Attention}
+
+Token Sparse Attention~\cite{tokensparse2026}（arXiv:2602.03216）
+提出了一种\textbf{逐头 Q/K/V 压缩}策略。
+不同于 NSA 在 token 级别做选择，
+Token Sparse Attention 在每个注意力头内部
+对 Q、K、V 向量进行独立的压缩，
+根据每个头学到的重要性分数
+动态决定哪些 token 的表示需要保留完整精度，
+哪些可以被压缩或跳过。
+这种逐头的精细化控制
+避免了``一刀切''式的全局稀疏策略
+在某些头上过度丢弃信息的问题。
+
+\subsection{Double-P 分层稀疏注意力}
+
+Double-P~\cite{doublep2026}（arXiv:2602.05191）
+引入了\textbf{分层 top-$p$ 稀疏注意力}机制。
+其核心思想是将稀疏选择分为两个层次：
+第一层 top-$p$ 在粗粒度（token 块级别）上筛选相关区域，
+第二层 top-$p$ 在精细粒度（单 token 级别）上
+从候选区域中选择最相关的 token。
+这种两级筛选策略
+既保持了全局上下文的感知能力，
+又避免了在完整序列上做精细排序的计算开销。
+
+\subsection{DySCO：动态注意力缩放}
+
+DySCO（Dynamic Scaling for Context Optimization）
+~\cite{dysco2026}（arXiv:2602.22175）
+提出了一种基于\textbf{检索头}（retrieval heads）
+的动态注意力缩放机制。
+研究发现，Transformer 中存在少数``检索头''——
+这些头在长上下文任务中负责精确检索远距离信息。
+DySCO 识别这些检索头后，
+动态调整不同头的注意力计算范围：
+检索头保持对完整上下文的注意力，
+非检索头使用更激进的稀疏策略。
+这种自适应策略在不同任务上
+自动找到效率和质量的平衡点。
+
+\subsection{``Lost in the Middle'' 的精确理论}
+
+2026 年 3 月，``Lost in the Middle''
+效应首次获得了严格的理论解释~\cite{lostmiddle2026}（arXiv:2603.10123）。
+研究者从 Transformer 的因果注意力结构出发，
+数学地证明了 U 型注意力分布是
+自回归训练目标和 softmax 归一化
+在有限精度下的\textbf{必然结果}——
+而非模型容量不足或训练数据不足导致的偶然现象。
+这一理论结果意味着：
+在不改变基本架构的前提下，
+仅靠增加训练数据或模型参数
+\textbf{无法彻底消除} lost-in-the-middle 效应。
+解决方案必须来自架构层面的创新——
+如稀疏注意力、分层处理、
+或下文将讨论的长期记忆机制。
+
+\subsection{UltraLong-8B：从 128K 到 4M 的高效训练}
+
+UltraLong-8B~\cite{ultralong2025}（arXiv:2504.06214）
+证明了一个令人振奋的可能性：
+通过精心设计的多阶段训练策略，
+一个仅有 8B 参数的模型可以从 128K
+高效地扩展到 \textbf{4M token} 的上下文长度。
+关键技术包括渐进式 RoPE 频率调整、
+分阶段长度扩展训练、以及
+针对超长序列的数据采样策略。
+这表明超长上下文并不必然需要超大参数模型——
+训练方法论的创新可以让中等规模模型
+也具备百万级上下文处理能力。
+
+\section{长期记忆：超越传统上下文窗口}
+\label{sec:long-term-memory}
+
+2026 年，长上下文领域迎来了一个根本性的范式转变——
+从``如何让上下文窗口更长''
+转向``如何让模型具有真正的长期记忆''。
+传统的上下文窗口无论多长，
+都受限于一个根本约束：
+窗口内的所有 token 必须参与注意力计算，
+计算和内存成本与窗口大小成正比（甚至平方关系）。
+
+长期记忆（Long-Term Memory, LTM）
+的核心思想是将``记忆''与``计算''分离——
+让模型拥有一个远大于上下文窗口的
+持久化知识存储，
+在需要时以极低的成本检索。
+
+\subsection{DeepSeek Engram：条件记忆}
+
+2026 年 1 月 12 日，DeepSeek 发表了
+一篇可能重塑 LLM 架构范式的论文——
+``Conditional Memory via Scalable Lookup:
+A New Axis of Sparsity for LLMs''
+~\cite{engram2026}（arXiv:2601.07372），
+同样由 CEO 梁文锋联合署名。
+
+\subsubsection{核心洞察：Transformer 缺少查找原语}
+
+Engram 论文的出发点是一个深刻的观察：
+\textbf{Transformer 架构缺少原生的知识查找原语}。
+当前模型回忆事实知识时，
+必须通过多层注意力和 FFN 的计算来``模拟''检索——
+这是一种极其低效的方式。
+就好比一个图书馆员
+每次找书都不查目录，
+而是把所有书从头到尾翻一遍。
+
+Engram 模块通过引入一种
+\textbf{现代化的 N-gram 嵌入}实现了 $O(1)$ 的查找操作。
+给定输入的局部上下文（几个相邻 token），
+Engram 直接从一个巨大的嵌入表中
+查找对应的知识表示——
+不需要经过注意力计算。
+
+\subsubsection{U 型缩放定律}
+
+论文最引人注目的发现之一是
+关于稀疏模型容量分配的\textbf{U 型缩放定律}：
+在给定的总参数预算下，
+分配给 Engram 记忆的最优比例约为 \textbf{75\%}——
+也就是说，一个高效的稀疏模型
+应该将四分之三的容量用于存储可查找的知识，
+仅用四分之一的容量用于计算。
+
+这个发现挑战了现有模型的设计惯例——
+当前 LLM 几乎将所有参数都用于计算
+（注意力和 FFN 层），
+没有专门的知识存储空间。
+
+\subsubsection{部署优势}
+
+Engram 的另一个重要特性是
+其存储可以放在\textbf{主机内存}（host memory）上
+而非昂贵的 HBM 上。
+即使是 100B 参数规模的 Engram 存储，
+放在主机内存中也仅带来\textbf{不到 3\% 的吞吐量损失}——
+因为 Engram 的查找操作是简单的表查询，
+不需要 GPU 的高速计算能力。
+这意味着在相同的 GPU 硬件上，
+可以``免费''地为模型添加
+数十倍于 GPU 显存容量的知识存储。
+
+DeepSeek 已在 GitHub 上以 Apache 2.0 许可
+开源了 Engram 实现（\texttt{deepseek-ai/Engram}，
+截至 2026 年 3 月获得 3,840 个 star）。
+Engram 被认为是
+DeepSeek 实现 1M 上下文窗口的关键赋能技术之一。
+
+\begin{keybox}[Engram 与传统方法的对比]
+Engram 的条件记忆与已有的长上下文方法是互补的：
+\begin{itemize}[noitemsep]
+  \item \textbf{vs. 长上下文窗口}：
+        上下文窗口适合处理当前会话中的信息，
+        Engram 适合存储模型需要``永久记住''的知识
+  \item \textbf{vs. RAG}：
+        RAG 需要外部检索系统和向量数据库，
+        Engram 将检索内置到模型架构中，
+        延迟更低且无需外部依赖
+  \item \textbf{vs. KV cache 压缩}：
+        KV cache 压缩减少了计算中间结果的存储，
+        Engram 增加了独立于计算的知识存储
+\end{itemize}
+\end{keybox}
+
+\subsection{Google Titans：神经记忆架构}
+
+2025 年 12 月，Google 发表了
+\textbf{Titans 架构}~\cite{titans2025}，
+引入了\textbf{Neural Memory 模块}——
+一种可在运行时自我更新的长期记忆机制，
+其设计灵感来源于生物大脑的记忆系统。
+
+Titans 的核心架构将模型分为三个组件：
+\begin{itemize}[noitemsep]
+  \item \textbf{短期注意力核心}（Short-Term Attention Core）：
+        标准的 Transformer 注意力层，
+        负责处理当前窗口内的精确上下文交互
+  \item \textbf{长期神经记忆}（Long-Term Neural Memory）：
+        一个在推理时持续更新的神经网络模块，
+        能够将跨越数百万 token 的信息
+        压缩存储为持久化的记忆表示。
+        不同于 RNN 的隐状态，
+        神经记忆通过自监督学习目标
+        在运行时动态更新其参数——
+        真正实现了``边推理边学习''
+  \item \textbf{持久记忆}（Persistent Memory）：
+        存储不随输入变化的任务知识，
+        类似于模型的``先验知识''
+\end{itemize}
+
+Titans 的突破性在于：
+它能够处理\textbf{数百万 token}的输入，
+同时保持跨越数周甚至数月对话的记忆连续性。
+Google 将其称为``AI 失忆症的终结''——
+传统模型在每次对话结束后
+就``忘记''了所有交互内容，
+而 Titans 的神经记忆可以在对话间持续积累知识。
+
+从计算效率的角度看，
+Titans 结合了 RNN 的处理速度
+和 Transformer 的表示精度——
+神经记忆模块的更新操作在时间复杂度上
+类似于 RNN 的状态更新（$O(1)$ per token），
+而短期注意力核心保证了
+局部上下文的精确处理。
+
+\subsection{Agent 记忆系统的爆发}
+
+随着 LLM Agent（智能体）从研究原型走向生产部署，
+Agent 的长期记忆管理在 2026 年初
+成为了研究的焦点领域。
+与模型层面的长期记忆不同，
+Agent 记忆系统关注的是
+\textbf{在多次交互和长时间跨度中
+管理和利用经验知识}。
+
+\subsubsection{代表性工作}
+
+\textbf{AriadneMem}：
+面向``终身 Agent''的记忆架构，
+能够将分散在不同时间和不同任务中的
+相关证据``穿针引线''般连接起来，
+并通过主动的状态更新机制
+保持记忆的一致性和时效性。
+
+\textbf{PersistBench}：
+首个针对 Agent 长期记忆的安全性基准，
+揭示了两个重要风险：
+（1）\textbf{跨域泄漏}——Agent 在处理任务 A 时
+积累的敏感信息可能在任务 B 中被无意泄露；
+（2）\textbf{记忆诱导的谄媚}（memory-induced sycophancy）——
+Agent 可能过度迎合记忆中记录的用户偏好，
+而非提供客观的最优建议。
+
+\textbf{Adaptive Memory Structures}：
+根据上下文自适应地选择记忆类型
+（工作记忆、情景记忆、语义记忆），
+而非使用单一的记忆存储。
+这种设计模仿了人类认知心理学中的
+多存储记忆模型。
+
+\textbf{MemoryLLM}：
+将持久化记忆 token 通过自注意力机制
+融合到模型的前向传播中。
+记忆 token 作为额外的 KV 对
+参与每一层的注意力计算，
+无需修改模型架构即可实现记忆增强。
+
+2026 年 3 月发表的综述论文
+``Memory for Autonomous LLM Agents''
+~\cite{agentmemory2026}（arXiv:2603.07670）
+对这一快速发展的领域进行了全面梳理，
+将 Agent 记忆系统分类为
+读取、写入、管理和组织四个维度，
+并指出\textbf{记忆安全}将成为
+Agent 大规模部署前必须解决的关键问题。
+
+\begin{warnbox}[长期记忆的开放问题]
+长期记忆虽然前景广阔，但仍面临多项挑战：
+\begin{itemize}[noitemsep]
+  \item \textbf{记忆可靠性}：如何确保长期记忆中的信息
+        不会随时间``腐化''或产生虚假关联？
+  \item \textbf{遗忘机制}：有选择地遗忘过时信息
+        与``不可学习''（machine unlearning）的
+        隐私合规需求如何协调？
+  \item \textbf{评估困难}：如何系统地评估
+        跨越数天、数周时间跨度的记忆能力？
+        现有的基准测试远未解决这个问题
+  \item \textbf{安全风险}：PersistBench 已经表明
+        长期记忆可能引入新的安全攻击面。
+        记忆中毒（memory poisoning）
+        可能成为新型攻击向量
+\end{itemize}
+\end{warnbox}
+
 \begin{corebox}[长上下文的未来方向]
 截至 2026 年初，长上下文领域有几个值得关注的研究方向：
 \begin{enumerate}[noitemsep]
@@ -845,10 +1144,17 @@ Anthropic 在 2025 年下半年
         天然适合超长上下文
   \item \textbf{稀疏注意力训练}：
         DeepSeek 的 NSA 证明了稀疏注意力可以端到端训练，
-        不再需要全注意力预训练后蒸馏的两阶段流程
+        不再需要全注意力预训练后蒸馏的两阶段流程。
+        Token Sparse Attention、Double-P、DySCO 等后续工作
+        在 2026 年初进一步丰富了稀疏注意力的技术工具箱
   \item \textbf{KV cache 压缩}：
         MLA（DeepSeek）、GQA、动态 KV 驱逐等技术
         持续降低长上下文推理的内存开销
+  \item \textbf{长期记忆}：
+        Engram（DeepSeek）和 Titans（Google）
+        开辟了``计算与记忆分离''的新范式，
+        Agent 记忆系统的爆发
+        进一步将记忆管理推向工程实践
   \item \textbf{无限上下文}：
         Ring Attention + 流水线并行使得
         理论上可以处理任意长度的序列，
@@ -867,4 +1173,14 @@ Anthropic 在 2025 年下半年
 %% chroma2025contextrot = Hong, Kelly et al. "Context Rot: How Increasing Input Tokens Impacts LLM Performance." Chroma Technical Report, July 2025.
 %% liu2023lost = Liu, Nelson et al. "Lost in the Middle: How Language Models Use Long Contexts." arXiv:2307.03172, 2023.
 %% anthropic2025contexteng = Anthropic. "Context Engineering for AI Agents." Anthropic Blog, 2025.
+%%
+%% --- ADDED 2026-03-12 ---
+%% engram2026 = DeepSeek-AI. "Conditional Memory via Scalable Lookup: A New Axis of Sparsity for LLMs." arXiv:2601.07372, January 2026.
+%% titans2025 = Google Research. "Titans: Learning to Memorize at Test Time." arXiv:2501.00663, December 2025.
+%% tokensparse2026 = "Token Sparse Attention: Per-Head Q/K/V Compression for Long-Context Attention." arXiv:2602.03216, February 2026.
+%% doublep2026 = "Double-P: Hierarchical Top-p Sparse Attention." arXiv:2602.05191, February 2026.
+%% dysco2026 = "DySCO: Dynamic Attention-Scaling via Retrieval Heads." arXiv:2602.22175, February 2026.
+%% lostmiddle2026 = "Lost in the Middle: An Exact Theory of Transformer Position Bias." arXiv:2603.10123, March 2026.
+%% ultralong2025 = "UltraLong-8B: Efficient Training from 128K to 4M Tokens." arXiv:2504.06214, 2025.
+%% agentmemory2026 = "Memory for Autonomous LLM Agents: A Comprehensive Survey." arXiv:2603.07670, March 2026.
 %% ============================================================
