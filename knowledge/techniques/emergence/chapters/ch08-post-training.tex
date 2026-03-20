@@ -504,7 +504,7 @@ RLHF 提供的是\textbf{序关系}，在所有可能的回答空间中定义了
     minimum width=28mm, minimum height=12mm, align=center, font=\small\bfseries},
   data/.style={rectangle, rounded corners=2pt, draw=figGray, fill=figLightGray,
     minimum width=24mm, minimum height=9mm, align=center, font=\footnotesize},
-  arrow/.style={-{Stealth[length=2.5mm]}, thick, figBlue},
+  arrow/.style={-{Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt, figBlue},
   label/.style={font=\scriptsize\itshape, figGray},
 ]
 % Main pipeline stages
@@ -1140,7 +1140,7 @@ DPO~\cite{rafailov2023dpo}（Direct Preference Optimization）
   model/.style={rectangle, rounded corners=3pt, draw=#1, fill=#1!10,
     minimum width=22mm, minimum height=10mm, align=center, font=\footnotesize\bfseries},
   model/.default=figBlue,
-  arrow/.style={-{Stealth[length=2.5mm]}, thick, #1},
+  arrow/.style={-{Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt, #1},
   arrow/.default=figBlue,
   label/.style={font=\scriptsize, #1},
   label/.default=figGray,
