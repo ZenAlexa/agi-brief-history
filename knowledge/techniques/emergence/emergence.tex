@@ -210,7 +210,7 @@
         font=\fontsize{7.5}{9}\coversans\selectfont,
         text width=48mm, align=left]
     at ([xshift=5mm, yshift=-12mm]current page.north west)
-    {LLM Observatory\\[1pt]Technical Reference};
+    {LLM Observatory\\[1pt]Monograph Series};
 
   % === Top rule (gold, spans from band to right edge) ===
   \fill[coverAccent]
@@ -220,16 +220,22 @@
 
   % === Main title (large, bold, dominant) ===
   \node[anchor=north west, coverTitle,
-        font=\fontsize{30}{37}\coversans\bfseries\selectfont,
-        text width=9cm]
+        font=\fontsize{42}{50}\coversans\bfseries\selectfont,
+        text width=10cm]
     at ([xshift=68mm, yshift=-44mm]current page.north west)
-    {The Complete\\Journey of\\LLM Training};
+    {Emergence};
+
+  % === Chinese title ===
+  \node[anchor=north west, coverSub,
+        font=\fontsize{16}{22}\selectfont]
+    at ([xshift=68mm, yshift=-72mm]current page.north west)
+    {涌现：AGI 的诞生};
 
   % === Subtitle (bold serif, Springer LNAI teal) ===
   \node[anchor=north west, coverBand,
         font=\fontsize{14}{18}\coverserif\bfseries\itshape\selectfont]
-    at ([xshift=68mm, yshift=-100mm]current page.north west)
-    {From Data to Intelligence};
+    at ([xshift=68mm, yshift=-96mm]current page.north west)
+    {The Birth of AGI};
 
   % === Gold rule ===
   \draw[coverAccent, line width=1.2pt]
