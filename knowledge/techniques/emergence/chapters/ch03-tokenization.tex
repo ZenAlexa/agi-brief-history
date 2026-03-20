@@ -419,9 +419,9 @@ widest (3) & \texttt{w i d \underline{est\_}} \\
 \node[font=\scriptsize, text=figGreen!80!black, right=8mm of r3d, align=left]
   {\textrm{Final:} \texttt{[n, e, w, est\_]}};
 
-% --- Vertical progression arrows (centered on merge pair) ---
-\draw[arr] ($(r1d.south)!0.5!(r1e.south) + (0, -7mm)$) -- ++(0, -5mm);
-\draw[arr] ($(r2d.south)!0.5!(r2e.south) + (0, -7mm)$) -- ++(0, -5mm);
+% --- Vertical progression arrows (pointing to merged result in next round) ---
+\draw[arr] ($(r1d.south)!0.5!(r1e.south) + (0, -8mm)$) -- (r2d.north);
+\draw[arr] ($(r2d.south)!0.5!(r2e.south) + (0, -8mm)$) -- (r3d.north);
 
 \end{tikzpicture}
 \caption{BPE merge operations on “newest.” Each round merges the highest-frequency adjacent pair:

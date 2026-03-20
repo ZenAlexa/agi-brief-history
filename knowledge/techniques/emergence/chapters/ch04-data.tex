@@ -445,17 +445,17 @@ SlimPajama 通过更激进的 MinHash 去重
 
 % === Phase backgrounds (drawn first, behind everything) ===
 \begin{scope}[on background layer]
-  % Phase 1: Extraction & filtering (row 1)
+  % Phase 1: Extraction & filtering (row 1, centered around nodes)
   \fill[figBlue!4, rounded corners=4pt]
-    (-1.8, -0.85) rectangle (14.7, 1.35);
-  % Phase 2: Curation (row 2)
+    (-2.0, -0.85) rectangle (13.4, 1.35);
+  % Phase 2: Curation (row 2, centered around nodes)
   \fill[figOrange!4, rounded corners=4pt]
-    (-1.8, -4.05) rectangle (14.7, -1.85);
+    (-2.0, -4.05) rectangle (13.4, -1.85);
 \end{scope}
 
 % Phase labels
-\node[font=\tiny\itshape, text=figBlue!50, anchor=north west] at (-1.0, 1.3) {Extraction \& Filtering};
-\node[font=\tiny\itshape, text=figOrange!50, anchor=north west] at (-1.0, -1.9) {Curation \& Packaging};
+\node[font=\tiny\itshape, text=figBlue!50, anchor=north west] at (-1.8, 1.3) {Extraction \& Filtering};
+\node[font=\tiny\itshape, text=figOrange!50, anchor=north west] at (-1.8, -1.9) {Curation \& Packaging};
 
 % === Row 1: Extraction & Filtering ===
 \node[stage=figBlue] (crawl) at (0, 0) {Common Crawl\\[-1pt]{\scriptsize (raw HTML)}};

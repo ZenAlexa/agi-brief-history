@@ -891,78 +891,80 @@ Ulysses 对 Grouped-Query Attention（GQA）友好，
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-  % Isometric axes: x goes right, y goes up-right (depth), z goes up
-  x={(1.0cm, 0cm)},
-  y={(0.5cm, 0.38cm)},
-  z={(0cm, 1.0cm)},
+  >=Stealth,
   gpu/.style={
-    rectangle, rounded corners=1pt,
-    minimum width=9mm, minimum height=9mm,
-    inner sep=1pt, line width=0.6pt,
-    font=\scriptsize\ttfamily
+    rectangle, rounded corners=1.5pt,
+    minimum width=8mm, minimum height=6.5mm,
+    inner sep=0.5pt, line width=0.5pt,
+    font=\fontsize{5.5}{6.5}\selectfont\ttfamily
   },
+  pparr/.style={-{Stealth[length=1.8pt,width=1.8pt]}, figOrange!70, line width=0.5pt},
+  tpline/.style={figGreen!60, line width=0.6pt, densely dashed},
+  dpline/.style={figBlue!40, line width=0.5pt, densely dotted},
 ]
+% --- Grid constants ---
+\def\PPsep{2.6}   % horizontal: between PP stages
+\def\DPsep{1.4}   % vertical: between DP ranks
+\def\TPoff{0.95}   % horizontal offset for TP=1 within cell
 
-% --- Bottom layer (TP rank 0) ---
+% --- GPU nodes: 4(DP) x 4(PP) x 2(TP) = 32 GPUs ---
 \foreach \dp in {0,...,3} {
   \foreach \pp in {0,...,3} {
-    \node[gpu, draw=figBlue!50, fill=figBlue!8, text=figBlue!80!black]
-      (b-\dp-\pp) at (\dp*2.0, \pp*1.6, 0)
-      {\dp,\pp,0};
+    % TP rank 0 (left, blue)
+    \node[gpu, draw=figBlue!50, fill=figBlue!10, text=figBlue!80!black]
+      (b\dp\pp) at (\pp*\PPsep, -\dp*\DPsep) {\dp,\pp,0};
+    % TP rank 1 (right, red)
+    \node[gpu, draw=figRed!40, fill=figRed!10, text=figRed!70!black]
+      (t\dp\pp) at (\pp*\PPsep+\TPoff, -\dp*\DPsep) {\dp,\pp,1};
+    % TP connection (green dashed)
+    \draw[tpline] (b\dp\pp.east) -- (t\dp\pp.west);
   }
 }
 
-% --- Top layer (TP rank 1) ---
-\foreach \dp in {0,...,3} {
-  \foreach \pp in {0,...,3} {
-    \node[gpu, draw=figRed!50, fill=figRed!8, text=figRed!80!black]
-      (t-\dp-\pp) at (\dp*2.0, \pp*1.6, 1.8)
-      {\dp,\pp,1};
-  }
-}
-
-% --- TP connections (vertical, green dashed) ---
-\foreach \dp in {0,...,3} {
-  \foreach \pp in {0,...,3} {
-    \draw[figGreen!50, line width=0.5pt, densely dashed]
-      (b-\dp-\pp.north) -- (t-\dp-\pp.south);
-  }
-}
-
-% --- PP connections (depth direction, orange arrows) ---
-% Bottom layer only (top layer mirrors)
+% --- PP arrows (orange, between pipeline stages) ---
 \foreach \dp in {0,...,3} {
   \foreach \pp in {0,...,2} {
-    \pgfmathtruncatemacro{\ppnext}{\pp+1}
-    \draw[figOrange!60, line width=0.5pt,
-          -{Stealth[length=2pt,width=2pt]}]
-      (b-\dp-\pp.north east) -- (b-\dp-\ppnext.south west);
+    \pgfmathtruncatemacro{\ppn}{\pp+1}
+    \draw[pparr] (t\dp\pp.east) -- (b\dp\ppn.west);
   }
 }
 
-% --- DP indication: highlight one row with blue line ---
-\draw[figBlue!40, line width=0.5pt, densely dotted]
-  (b-0-0.west) -- (b-1-0.west) -- (b-2-0.west) -- (b-3-0.east);
+% --- DP connections (blue dotted, between data-parallel ranks) ---
+\foreach \pp in {0,...,3} {
+  \foreach \dp in {0,...,2} {
+    \pgfmathtruncatemacro{\dpn}{\dp+1}
+    \draw[dpline] (b\dp\pp.south) -- (b\dpn\pp.north);
+    \draw[dpline] (t\dp\pp.south) -- (t\dpn\pp.north);
+  }
+}
+
+% --- PP stage labels (top) ---
+\foreach \pp in {0,...,3} {
+  \node[font=\scriptsize, text=figOrange!80!black]
+    at (\pp*\PPsep + 0.5*\TPoff, 0.8) {Stage \pp};
+}
+
+% --- DP rank labels (left) ---
+\foreach \dp in {0,...,3} {
+  \node[font=\scriptsize, text=figBlue!80!black, anchor=east]
+    at (-0.5, -\dp*\DPsep) {DP \dp};
+}
 
 % --- Axis arrows ---
 \draw[figGray!50, line width=0.6pt, -{Stealth[length=2.5pt,width=2.5pt]}]
-  (-0.6, -0.5, 0) -- (8.2, -0.5, 0)
-  node[pos=1.0, below left, font=\scriptsize, text=figBlue!80!black]
-  {DP $\times 4$};
-\draw[figGray!50, line width=0.6pt, -{Stealth[length=2.5pt,width=2.5pt]}]
-  (-0.6, -0.5, 0) -- (-0.6, 5.8, 0)
-  node[pos=1.0, above left, font=\scriptsize, text=figOrange!80!black, rotate=37]
+  (-0.3, -3*\DPsep-0.6) -- (3*\PPsep+\TPoff+0.5, -3*\DPsep-0.6)
+  node[pos=1.0, below left, font=\scriptsize, text=figOrange!80!black]
   {PP $\times 4$};
 \draw[figGray!50, line width=0.6pt, -{Stealth[length=2.5pt,width=2.5pt]}]
-  (-0.6, -0.5, 0) -- (-0.6, -0.5, 2.6)
-  node[pos=1.0, left, font=\scriptsize, text=figGreen!80!black]
-  {TP $\times 2$};
+  (-0.8, 0.5) -- (-0.8, -3*\DPsep-0.5)
+  node[pos=1.0, below, font=\scriptsize, text=figBlue!80!black]
+  {DP $\times 4$};
 
 % --- Legend box ---
 \node[anchor=north west, draw=figGray!25, rounded corners=2pt,
       fill=white, inner sep=5pt, line width=0.5pt,
       font=\scriptsize, align=left]
-  at (8.8, 5.5, 0) {%
+  at (3*\PPsep+\TPoff+0.6, 0.8) {%
     \textcolor{figGreen!80!black}{\rule[0.5ex]{6pt}{0.6pt}\kern1pt\rule[0.5ex]{2pt}{0.6pt}\kern1pt\rule[0.5ex]{6pt}{0.6pt}}
     ~TP: NVLink (900\,GB/s)\\[2pt]
     \textcolor{figOrange!80!black}{$\longrightarrow$}

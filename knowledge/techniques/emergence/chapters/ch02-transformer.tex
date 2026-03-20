@@ -399,6 +399,8 @@ $h$ 个头加起来仍然是 $d \times d$。
   proj/.style={box, fill=figBlue!8, draw=figBlue!50, minimum width=18mm},
   head/.style={box, fill=figOrange!8, draw=figOrange!50, minimum width=24mm},
   merge/.style={box, fill=figGreen!8, draw=figGreen!50},
+  splitbar/.style={box, fill=figLightGray, draw=figGray!40,
+    minimum width=68mm, minimum height=6mm, font=\scriptsize},
   arr/.style={-{Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt, figGray!70},
   lab/.style={font=\scriptsize, text=figGray},
 ]
@@ -410,30 +412,39 @@ $h$ 个头加起来仍然是 $d \times d$。
 \node[proj, above=12mm of input, xshift=-22mm] (wq) {$W^Q$};
 \node[proj, above=12mm of input] (wk) {$W^K$};
 \node[proj, above=12mm of input, xshift=22mm] (wv) {$W^V$};
-\node[lab, above=0.5mm of wq] {Query};
-\node[lab, above=0.5mm of wk] {Key};
-\node[lab, above=0.5mm of wv] {Value};
+\node[lab, above=1mm of wq] {Query};
+\node[lab, above=1mm of wk] {Key};
+\node[lab, above=1mm of wv] {Value};
+
+% Input -> Projections
 \draw[arr] (input.north -| wq) -- (wq);
 \draw[arr] (input.north) -- (wk);
 \draw[arr] (input.north -| wv) -- (wv);
 
+% Split/Reshape bar (replaces the 9-arrow fan-out)
+\node[splitbar, above=8mm of wk] (split)
+  {Reshape: $(n,\, d) \to (n,\, h,\, d_k)$};
+
+% Projections -> Split (3 clean vertical arrows)
+\draw[arr] (wq.north) -- (wq.north |- split.south);
+\draw[arr] (wk.north) -- (split.south);
+\draw[arr] (wv.north) -- (wv.north |- split.south);
+
 % Heads
-\node[head, above=20mm of wq] (h1) {Head$_1$};
-\node[head, above=20mm of wk] (h2) {Head$_2$};
-\node[font=\small, text=figGray, above=20mm of $(wk)!0.5!(wv)$] {$\cdots$};
-\node[head, above=20mm of wv] (hh) {Head$_h$};
+\node[head, above=10mm of split, xshift=-24mm] (h1) {Head$_1$};
+\node[head, above=10mm of split] (h2) {Head$_2$};
+\node[head, above=10mm of split, xshift=24mm] (hh) {Head$_h$};
+\node[font=\small, text=figGray] at ($(h2.east)!0.5!(hh.west)$) {$\cdots$};
 
 % Head formula (side annotation)
 \node[lab, right=6mm of hh, text width=36mm, align=left] {%
   $\displaystyle\text{head}_i = \text{softmax}\!\Bigl(\frac{Q_i K_i^\top}{\sqrt{d_k}}\Bigr)\! V_i$\\[4pt]
   $d_k = d/h$};
 
-% Q,K,V -> Heads (staggered heights to reduce overlap)
-\foreach \h/\col/\yoff in {h1/figBlue/3mm, h2/figOrange/6mm, hh/figGray/9mm} {
-  \draw[arr, \col!60] (wq.north) -- ++(0,\yoff) -| (\h.south west);
-  \draw[arr, \col!60] (wk.north) -- ++(0,\yoff) -| (\h.south);
-  \draw[arr, \col!60] (wv.north) -- ++(0,\yoff) -| (\h.south east);
-}
+% Split -> Heads (3 clean vertical arrows)
+\draw[arr] (h1.south |- split.north) -- (h1.south);
+\draw[arr] (split.north) -- (h2.south);
+\draw[arr] (hh.south |- split.north) -- (hh.south);
 
 % Concat
 \node[merge, above=12mm of h2, minimum width=58mm] (concat)

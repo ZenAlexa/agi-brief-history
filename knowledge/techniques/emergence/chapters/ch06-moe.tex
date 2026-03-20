@@ -113,84 +113,83 @@ Qwen3-Next 将这一逻辑推到了极端：
 \centering
 \begin{tikzpicture}[
   >=Stealth,
-  node distance=8mm and 12mm,
+  node distance=8mm and 10mm,
   every node/.style={font=\small},
   box/.style={draw, rounded corners=3pt, minimum height=10mm,
-              minimum width=25mm, inner sep=8pt, align=center},
-  expert/.style={box, fill=figBlue!15, draw=figBlue!60},
-  router/.style={box, fill=figOrange!20, draw=figOrange!70},
-  shared/.style={box, fill=figGreen!15, draw=figGreen!60},
-  combine/.style={box, fill=figRed!12, draw=figRed!60},
+              minimum width=22mm, inner sep=6pt, align=center},
+  expert/.style={box, fill=figBlue!12, draw=figBlue!50},
+  router/.style={box, fill=figOrange!15, draw=figOrange!60},
+  shared/.style={box, fill=figGreen!12, draw=figGreen!50},
+  combine/.style={box, fill=figRed!10, draw=figRed!50},
   input/.style={box, fill=figLightGray, draw=figGray},
-  arrow/.style={->, thick, figGray},
-  dasharrow/.style={->, thick, dashed, figGray!60},
+  arrow/.style={->, line width=0.7pt, figGray!70},
+  dasharrow/.style={->, line width=0.7pt, dashed, figGray!50},
 ]
 
 % Input
-\node[input] (input) {Token $\mathbf{x}$\\(隐状态 $d$-维)};
+\node[input] (input) {Token $\mathbf{x}$\\{\scriptsize 隐状态 $d$-维}};
 
 % Router
-\node[router, above=12mm of input] (router) {Router\\$W_r \mathbf{x} \to \mathbb{R}^N$};
+\node[router, above=10mm of input] (router) {Router\\$W_r \mathbf{x} \to \mathbb{R}^N$};
 
 % Top-K selection
-\node[box, fill=figOrange!10, draw=figOrange!50,
-      above=10mm of router, minimum width=35mm] (topk)
-      {Top-K 选择 + Softmax\\$g_1, g_2, \ldots, g_K$};
+\node[box, fill=figOrange!8, draw=figOrange!40,
+      above=8mm of router, minimum width=32mm] (topk)
+      {Top-K + Softmax\\{\scriptsize $g_1, g_2, \ldots, g_K$}};
 
-% Experts - spread out horizontally
-\node[expert, above left=14mm and 30mm of topk] (e1) {Expert 1};
-\node[expert, above left=14mm and 0mm of topk] (e2) {Expert $i$};
-\node[expert, above right=14mm and 30mm of topk] (eN) {Expert $N$};
+% Experts in a compact row
+\node[expert, above=14mm of topk, xshift=-24mm] (e1) {Expert 1};
+\node[expert, above=14mm of topk] (e2) {Expert $i$};
+\node[expert, above=14mm of topk, xshift=24mm] (eN) {Expert $N$};
+\node[font=\normalsize, text=figGray] at ($(e2.east)!0.5!(eN.west)$) {$\cdots$};
 
-% Dots between experts
-\node[above right=14mm and 12mm of topk, font=\large] {$\cdots$};
+% Shared expert (same level as experts, further right)
+\node[shared, above=14mm of topk, xshift=54mm] (shared) {Shared\\Expert};
 
-% Shared expert (on the right side)
-\node[shared, right=25mm of topk] (shared) {Shared\\Expert};
-
-% Combine
-\node[combine, above=55mm of topk] (combine)
-     {加权求和\\$\mathbf{y} = \sum g_i \cdot E_i(\mathbf{x}) + E_s(\mathbf{x})$};
+% Combine (wide enough to span all experts + shared)
+\node[combine, above=14mm of e2, xshift=15mm, minimum width=88mm] (combine)
+     {加权求和\quad $\mathbf{y} = \sum g_i \cdot E_i(\mathbf{x}) + E_s(\mathbf{x})$};
 
 % Output
-\node[input, above=10mm of combine] (output)
-     {Output $\mathbf{y}$\\(残差连接后)};
+\node[input, above=8mm of combine] (output)
+     {Output $\mathbf{y}$\quad{\scriptsize (残差连接后)}};
 
-% Arrows: input -> router -> topk
+% --- Arrows: main flow ---
 \draw[arrow] (input) -- (router);
 \draw[arrow] (router) -- (topk);
 
-% Arrows: topk -> experts (selected)
-\draw[arrow, figBlue] (topk.north) -- ++(0, 4mm) -| (e1.south)
+% Arrows: topk -> experts (clean fan-out)
+\draw[arrow, figBlue] (topk.north) -- ++(0, 3.5mm) -| (e1.south)
      node[pos=0.75, left, font=\scriptsize, figBlue] {$g_1$};
 \draw[arrow, figBlue] (topk.north) -- (e2.south)
      node[pos=0.5, right, font=\scriptsize, figBlue] {$g_i$};
-\draw[arrow, figBlue] (topk.north) -- ++(0, 4mm) -| (eN.south)
+\draw[arrow, figBlue] (topk.north) -- ++(0, 3.5mm) -| (eN.south)
      node[pos=0.75, right, font=\scriptsize, figBlue] {$g_K$};
 
-% Arrow: input -> shared expert (bypass router, wider clearance for topk)
-\draw[arrow, figGreen] (input.east) -- ++(14mm, 0) |- (shared.south)
-     node[pos=0.25, right, font=\scriptsize, figGreen] {全部 token};
+% Arrows: experts -> combine (all straight up into combine bottom)
+\draw[arrow, figBlue] (e1.north) -- (e1.north |- combine.south);
+\draw[arrow, figBlue] (e2.north) -- (e2.north |- combine.south);
+\draw[arrow, figBlue] (eN.north) -- (eN.north |- combine.south);
 
-% Arrows: experts -> combine
-\draw[arrow, figBlue] (e1.north) |- (combine.west);
-\draw[arrow, figBlue] (e2.north) -- (combine.south);
-\draw[arrow, figBlue] (eN.north) |- ([yshift=2mm]combine.east);
-
-% Arrow: shared -> combine (offset to avoid overlap with eN arrow)
-\draw[arrow, figGreen] (shared.north) |- ([yshift=-2mm]combine.east);
+% Arrow: shared -> combine (straight up)
+\draw[arrow, figGreen] (shared.north) -- (shared.north |- combine.south);
 
 % Arrow: combine -> output
 \draw[arrow] (combine) -- (output);
 
-% Annotations
-\node[right=3mm of router, font=\scriptsize, text=figGray, text width=28mm]
-     {线性投影\\无偏置、无激活函数\\参数量 $\sim d \times N$};
+% Bypass: input -> shared (clean right-side path, no overlap)
+\draw[arrow, figGreen, rounded corners=3pt]
+  (input.east) -- ++(42mm, 0) |- (shared.south)
+  node[pos=0.12, above, font=\scriptsize, figGreen] {全部 token};
 
-% Inactive experts annotation
-\draw[dasharrow] (topk.west) -- ++(-15mm, 0)
-     node[left, font=\scriptsize, text=figGray!80, text width=22mm, align=right]
-     {未选中的 $N{-}K$\\个专家不参与\\计算（零 FLOP）};
+% Router annotation (LEFT side, away from bypass arrow)
+\node[left=4mm of router, font=\scriptsize, text=figGray, text width=22mm, align=right]
+     {线性投影\\无偏置、无激活\\参数 ${\sim}\, d \!\times\! N$};
+
+% Inactive experts annotation (LEFT side)
+\draw[dasharrow] (topk.west) -- ++(-12mm, 0)
+     node[left, font=\scriptsize, text=figGray!70, text width=20mm, align=right]
+     {未选中 $N{-}K$ 个\\专家零 FLOP};
 
 \end{tikzpicture}
 \caption{MoE 层的架构示意图。输入 token 经过轻量级路由器选出 Top-K 个专家，
