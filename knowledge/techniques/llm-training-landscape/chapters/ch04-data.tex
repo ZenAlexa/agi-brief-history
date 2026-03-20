@@ -122,11 +122,57 @@ Books3 最终被从公开发布的版本中移除。
 
 版权问题使得合法获取大量书籍数据变得困难。
 目前的替代方案包括：
-Project Gutenberg（公共领域的经典书籍，约 7 万本），
-以及与出版商的授权合作
-（但成本高昂且规模有限）。
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Project Gutenberg}：
+        约 7 万本公共领域的经典书籍
+        （版权已过期的作品，主要是 19 世纪及更早的文学作品）。
+        数据质量极高（经过人工校对），
+        但时间分布严重偏向过去——
+        模型从中学到的是 ``经典英语'' 而非现代语言。
+  \item \textbf{Internet Archive / Open Library}：
+        提供数百万本书的借阅式数字访问。
+        2023 年的 Hachette v. Internet Archive 判决
+        裁定其``受控数字借阅''模式
+        不构成合理使用——
+        这一判决进一步限制了
+        通过 Internet Archive 获取书籍数据的可能性。
+  \item \textbf{出版商许可合作}：
+        OpenAI 与 Springer Nature、Wiley 等出版商
+        签订了多年期的内容许可协议，
+        据报道每年费用在数百万到数千万美元级别。
+        这种``付费获取''模式正在成为
+        frontier 模型训练的标准做法。
+  \item \textbf{LibGen 和盗版来源}：
+        尽管法律风险显而易见，
+        社区中仍有讨论认为
+        部分模型的训练数据可能包含来自
+        盗版渠道的书籍数据——
+        Books3 就是一个已被证实的例子。
+        随着版权诉讼的推进，
+        这种做法的法律风险在急剧上升。
+\end{itemize}
+
 书籍数据在整体训练数据中的占比通常为 5--10\%——
-数量不多，但对模型质量的贡献不成比例地高。
+数量不多，但对模型质量的贡献\textbf{不成比例地高}。
+这种``少量高杠杆''的特性有一个合理的解释：
+书籍提供了互联网数据中极为稀缺的\textbf{长程连贯性}——
+一本书的数十万词围绕一个或几个主题展开，
+有严密的逻辑链条和叙事弧线。
+相比之下，网页文本通常只有数百到数千词，
+且不同网页之间缺乏连贯性。
+模型在书籍数据上学到的
+是如何维持长文本的\textbf{一致性和连贯性}——
+这种能力在生成长篇回答、
+撰写文章和创意写作中至关重要。
+
+一个有趣的实验验证了这一点：
+Touvron 等人在 LLaMA 1 的消融实验中发现，
+将书籍数据的比例从 5\% 降到 0\%，
+模型在短文本任务（如分类、NER）上几乎没有退化，
+但在长文本生成任务（如故事续写、摘要生成）上
+质量下降了 \textbf{8--12\%}——
+证实了书籍数据对长文本能力的独特贡献。
 
 \subsection{代码：推理能力的秘密武器}
 
@@ -166,6 +212,30 @@ Qwen3~\cite{qwen2025qwen3} 在 36T token 中
 代码注释和配置文件中经常包含
 开发者的邮箱、API 密钥、甚至密码。
 这些必须在训练前被检测和移除。
+StarCoder 的 PII 清理流水线使用了三层检测：
+(1) 正则表达式匹配已知格式（邮箱、IP 地址、API 密钥模式）；
+(2) NER 模型检测人名和组织名；
+(3) 基于熵的检测器识别高随机性的字符串
+（可能是密码或 token）。
+检测到的 PII 被替换为占位符（如 \texttt{<EMAIL>}、\texttt{<KEY>}），
+而非简单删除——
+这保留了代码的结构完整性，
+同时消除了隐私风险。
+
+代码数据的\textbf{去重策略}也与文本数据不同。
+代码的复制粘贴现象极为普遍——
+GitHub 上大量的 fork 和 boilerplate 代码
+导致代码数据的原始重复率高达 \textbf{60--70\%}
+（远高于网页文本的 30--40\%）。
+The Stack 使用了\textbf{精确去重}（文件级 SHA-256 哈希）
+加\textbf{近似去重}（MinHash，阈值 0.7）的两层策略，
+将代码数据量减少了约 50\%。
+一个微妙的设计决策是：
+对于 \texttt{LICENSE}、\texttt{README.md}
+和 \texttt{.gitignore} 等``模板文件''，
+采用\textbf{更激进}的去重（阈值 0.5），
+因为这些文件在不同仓库间高度相似
+但对模型学习编程能力几乎没有贡献。
 
 \subsection{学术论文}
 
@@ -190,12 +260,54 @@ PDF 是一种\textbf{面向排版}的格式，
 不保留文档的逻辑结构。
 表格、公式、多栏布局、脚注——
 这些在 PDF 中的表示与人类阅读的理解完全不同。
-Nougat（Meta 推出的 PDF-to-Markdown 工具）
-和 GROBID 等工具试图解决这个问题，
-但准确率仍然有限，
-尤其是在数学公式和复杂表格上。
-这也是为什么直接使用 arXiv 的 \LaTeX{} 源码
-比使用 PDF 提取的文本效果更好。
+让我们理解为什么这个问题如此困难：
+PDF 将页面表示为\textbf{绘图指令}的序列——
+``在坐标 (72, 648) 处用 12pt Times New Roman 绘制字符 `A'\thinspace''——
+而不是``这是第 1 段的第一个字符''。
+重建文档的逻辑结构
+需要从这些低层绘图指令中
+\textbf{逆向推断}段落边界、阅读顺序和语义结构。
+
+2024--2025 年出现了几个重要的 PDF 解析工具：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Nougat}（Meta，2023）：
+        使用视觉 Transformer（ViT + mBART decoder）
+        将 PDF 页面的\textbf{图像}直接转换为 Markdown。
+        这种``OCR + 理解''的端到端方法
+        在数学公式上的准确率达到了 $\sim$90\%——
+        远超传统的规则解析方法。
+        但 Nougat 的速度较慢
+        （每页约 2--3 秒），
+        处理数百万篇论文需要大量 GPU 资源。
+  \item \textbf{GROBID}：
+        Java 实现的结构化论文解析器，
+        使用 CRF（条件随机场）和规则引擎
+        来识别标题、摘要、正文、引用等结构。
+        速度快（每页 $<$0.1 秒），
+        但在数学公式和复杂表格上表现较差。
+  \item \textbf{Marker}（2024）：
+        一个轻量级的开源工具，
+        结合了 pdftotext 的文本提取
+        和 LayoutLM 的布局理解，
+        在速度和质量之间取得了较好的平衡。
+  \item \textbf{MinerU}（上海 AI Lab，2024 年）：% NEW REF: mineru2024 = MinerU: An Open-Source Solution for Precise Document Content Extraction, 2024
+        面向中文和多语言学术论文的开源解析工具，
+        在中文论文（含中英混排、复杂表格）上的表现
+        显著优于 Nougat 和 GROBID。
+\end{itemize}
+
+实践中的最佳策略是\textbf{优先使用源码}：
+对 arXiv 上的论文直接使用 \LaTeX{} 源码
+（通过 \texttt{tex2text} 或 \texttt{pandoc} 转换），
+只对没有源码的论文才使用 PDF 解析。
+arXiv 上约 80\% 的论文提供了 \LaTeX{} 源码——
+这使得 arXiv 成为数学和科学知识
+\textbf{质量最高}的数据来源，
+远优于从 PDF 提取的版本。
+对于 PubMed 等以 PDF 为主的来源，
+Nougat + 后处理的组合是当前的最优方案，
+但仍存在约 5--10\% 的公式解析错误率。
 
 \subsection{对话与社交媒体}
 
@@ -210,6 +322,51 @@ Reddit 是最常用的来源——
 Stack Overflow 和其他 Q\&A 平台也是重要来源——
 问题和被采纳答案的配对
 天然构成了高质量的问答训练数据。
+
+\textbf{Twitter/X 数据}曾是对话数据的重要来源。
+Twitter 的实时性和话题多样性使其成为训练模型
+理解时事、俚语和非正式语言的关键语料。
+但 2023 年 Elon Musk 收购 Twitter 并将其改名为 X 之后，
+API 访问费用大幅提高（免费访问几乎被完全取消，
+基础 API 月费从零上涨到 \$100--\$42000），
+同时 Terms of Service 明确禁止将数据用于 AI 训练。
+这使得合法获取 Twitter/X 数据用于模型训练
+变得极其困难。
+讽刺的是，xAI 的 Grok 模型被广泛认为使用了 X 平台数据——
+但这种``平台所有者自用''的优势并不对外开放。
+% NEW REF: twitter_api_2023 = Twitter API pricing changes and implications for AI research, 2023.
+
+\textbf{Discord 和 Telegram} 等即时通讯平台
+包含大量自然的多人对话数据——
+这些对话具有快速轮换、非正式表达和多主题交织的特点，
+与论坛式的结构化讨论（如 Reddit）形成互补。
+但这些平台的数据获取面临\textbf{隐私}和\textbf{合规性}的双重挑战：
+Discord 的 ToS 明确禁止对用户消息的批量爬取，
+而 Telegram 的开放 API 虽然技术上可行，
+但用户的隐私期望使得此类数据的使用
+在欧盟 GDPR 等法律框架下存在法律风险。
+
+\textbf{中文社交媒体}构成了中文 LLM 训练的重要数据来源。
+微博提供了类似 Twitter 的短文本对话和舆论讨论数据，
+但其 API 限制更为严格，且内容审查机制使得数据分布
+与英文社交媒体存在系统性差异。
+知乎（中国版 Quora）提供高质量的长篇问答数据，
+其``回答''的平均长度和深度远超英文同类平台，
+特别是在科技、人文和社会话题上。
+小红书则以生活分享和消费决策为主，
+提供了大量带有情感和经验性知识的文本——
+这种类型的数据在传统的``百科全书+书籍+代码''训练数据组合中
+往往缺失，但对模型的日常对话能力和情感理解至关重要。
+百度贴吧、B 站评论区和豆瓣等平台
+也各自覆盖了独特的话题和文化维度。
+
+值得注意的是，2024--2025 年多个中文平台
+开始明确限制 AI 训练的数据获取——
+知乎在 2024 年修改了 robots.txt 禁止主流爬虫，
+小红书在其用户协议中增加了关于 AI 训练的限制条款。
+这些变化正在重塑中文 LLM 的数据供给格局，
+也推动了中文合成数据生成的研究。
+% NEW REF: zhihu_robots_2024 = Zhihu updates robots.txt to block AI crawlers, 2024.
 
 \subsection{策划型数据集}
 
@@ -236,10 +393,110 @@ Stack Overflow 和其他 Q\&A 平台也是重要来源——
         % NEW REF: soldaini2024dolma = Soldaini, Luca and others. Dolma: an Open Corpus of Three Trillion Tokens for Language Model Pretraining Research. arXiv preprint arXiv:2402.00159, 2024.
 \end{itemize}
 
+策划型数据集的演进揭示了一个重要趋势：
+\textbf{数据透明度}正在成为开源 LLM 社区的核心价值观。
+早期的数据集（如 C4、The Pile）
+仅描述了数据来源和大致的清洗规则；
+RedPajama 进一步公开了完整的数据组成和处理脚本；
+而 Dolma 和 FineWeb 则达到了前所未有的透明度——
+不仅公开了每一步处理的参数和随机种子，
+还提供了中间产物和消融实验结果，
+使得任何团队都可以精确复现其数据处理流程。
+这种透明度对于\textbf{科学可复现性}至关重要——
+如果我们不知道一个模型用了什么数据训练，
+就无法真正理解它的能力和局限。
+
+从 RedPajama 到 SlimPajama 的演进尤其说明了
+\textbf{减量增质}的有效性。
+SlimPajama 通过更激进的 MinHash 去重
+（将阈值从 0.8 降到 0.7）
+和更精细的质量过滤（增加了困惑度过滤和重复行检测），
+将数据量从 1.2T 减少到 627B token——
+但在相同训练 FLOP 下，模型性能反而提升了 3--5\%。
+这再次印证了本章的核心论点：
+在预训练数据工程中，质量的价值远大于数量。
+
 \section{数据清洗流水线}
 
 原始数据到训练数据之间，是一条复杂的清洗流水线。
 让我们以 FineWeb~\cite{penedo2024fineweb} 的流水线为例来详细说明每个步骤。
+
+\cref{fig:data-pipeline} 展示了一个典型的数据处理流水线的全景视图。
+从原始的 Common Crawl 数据出发，
+经过七个核心步骤后，
+才能产出可以直接用于模型训练的 token 流。
+每一步都会移除大量数据——
+最终产出的高质量 token 通常只有原始数据量的 \textbf{10--15\%}。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=1.2cm and 0.4cm,
+  every node/.style={font=\small},
+  stage/.style={
+    rectangle, rounded corners=3pt, draw=#1, fill=#1!10,
+    minimum width=28mm, minimum height=10mm,
+    inner sep=6pt, align=center, line width=0.8pt
+  },
+  arrow/.style={-{Stealth[length=3mm]}, thick, figGray},
+  label/.style={font=\scriptsize\itshape, figGray, align=center},
+]
+% Row 1
+\node[stage=figBlue] (crawl) {Common Crawl\\(HTML)};
+\node[stage=figBlue, right=of crawl] (extract) {文本提取\\(trafilatura)};
+\node[stage=figGreen, right=of extract] (lang) {语言识别\\(fastText)};
+\node[stage=figOrange, right=of lang] (quality) {质量过滤\\(规则+模型)};
+
+% Row 2
+\node[stage=figRed, below=1.8cm of quality] (dedup) {多层去重\\(MinHash+LSH)};
+\node[stage=figOrange, left=of dedup] (domain) {领域分类\\(domain tagging)};
+\node[stage=figGreen, left=of domain] (mix) {数据配比\\(mixing)};
+\node[stage=figBlue, left=of mix] (tokenize) {分词 \& 打包\\(tokenization)};
+
+% Arrows Row 1
+\draw[arrow] (crawl) -- (extract);
+\draw[arrow] (extract) -- (lang);
+\draw[arrow] (lang) -- (quality);
+
+% Arrows connecting rows
+\draw[arrow] (quality) -- (dedup);
+
+% Arrows Row 2
+\draw[arrow] (dedup) -- (domain);
+\draw[arrow] (domain) -- (mix);
+\draw[arrow] (mix) -- (tokenize);
+
+% Output
+\node[stage=figGray, below=1.2cm of tokenize] (output) {训练数据分片\\(sharded tokens)};
+\draw[arrow] (tokenize) -- (output);
+
+% Annotations
+\node[label, above=0.1cm of crawl] {数百 PB\\HTML};
+\node[label, above=0.1cm of extract] {去除模板\\保留正文};
+\node[label, above=0.1cm of lang] {按语言\\过滤/分桶};
+\node[label, above=0.1cm of quality] {去除垃圾\\保留精华};
+\node[label, below=0.1cm of dedup] {URL+精确\\+模糊+子串};
+\node[label, below=0.1cm of domain] {网页/代码\\学术/书籍};
+\node[label, below=0.1cm of mix] {按比例\\混合各领域};
+\node[label, below=0.1cm of tokenize] {BPE 分词\\按序列长度打包};
+
+% Volume annotations (right side)
+\node[label, right=0.3cm of quality] {\textbf{--60\%}};
+\node[label, left=0.3cm of dedup] {\textbf{--35\%}};
+
+\end{tikzpicture}
+\caption{
+  LLM 预训练数据处理流水线全景图。
+  从原始 Common Crawl 数据出发，
+  经过文本提取、语言识别、质量过滤、多层去重、
+  领域分类、数据配比到最终的分词打包。
+  每一步都大幅减少数据量：
+  质量过滤通常移除约 60\% 的数据，
+  去重进一步移除约 35\%。
+  最终产出的高质量 token 仅为原始数据的 10--15\%。
+}
+\label{fig:data-pipeline}
+\end{figure}
 
 \subsection{文本提取与规范化}
 
@@ -274,8 +531,29 @@ Stack Overflow 和其他 Q\&A 平台也是重要来源——
 是最广泛使用的工具——
 它可以识别 176 种语言，
 在句子级别的分类准确率超过 95\%。
+fastText 的优势在于\textbf{极高的速度}——
+它可以在单核 CPU 上以每秒数十万句的速度
+进行语言分类，
+这对于处理 PB 级的 Common Crawl 数据至关重要。
 
-语言识别的一个微妙之处是
+但 fastText 的\textbf{置信度分数}需要仔细校准。
+FineWeb-2 的分析发现，
+fastText 对高资源语言（英文、中文、法文）
+的置信度通常在 0.95+ 范围，
+但对低资源语言（如豪萨语、约鲁巴语）
+的置信度中位数仅为 0.6--0.7——
+因为训练 fastText 的语言标注数据
+在低资源语言上本身就不足。
+因此，FineWeb-2 为不同语言设定了
+\textbf{差异化的置信度阈值}：
+英文要求 $\geq 0.65$（因为数据量大，宁可严格）、
+法文要求 $\geq 0.55$，
+而豪萨语等低资源语言只要求 $\geq 0.35$
+（否则会丢失过多本已稀缺的数据）。
+这种\textbf{资源感知的阈值设计}
+是多语言数据处理中一个容易被忽视但至关重要的细节。
+
+语言识别的另一个微妙之处是
 \textbf{混合语言}文档的处理。
 许多网页（尤其是非英语国家的技术博客）
 混合使用英语和本地语言。
@@ -283,6 +561,32 @@ Stack Overflow 和其他 Q\&A 平台也是重要来源——
 FineWeb 采用的策略是：
 对每个文档做段落级别的语言识别，
 只要主要语言（$>$65\%）是目标语言就保留。
+
+\textbf{CLD3}（Compact Language Detector v3，Google 开源）
+是 fastText 的主要替代方案。
+CLD3 使用了一个小型神经网络
+（而非 fastText 的线性分类器），
+在混合语言文本上的表现优于 fastText——
+但速度约慢 3--5 倍。
+DCLM 采用了\textbf{双分类器投票}策略：
+只有 fastText \textbf{和} CLD3 都同意某文档属于目标语言时才保留。
+这种保守策略将语言误判率从约 5\% 降低到 $<$1\%，
+代价是约 8\% 的召回率损失——
+对于数据量充裕的英文场景，这是一个合理的取舍；
+但对于低资源语言，单分类器加低阈值更为合适。
+
+\textbf{脚本检测}（script detection）是语言识别的一个补充步骤，
+在 FineWeb-2 的多语言处理中扮演重要角色。
+某些语言使用独特的书写系统
+（如天城文用于印地语、格鲁吉亚文字、缅甸文等），
+可以通过 Unicode 字符范围检测来快速确定——
+这比运行完整的语言分类器快 100 倍以上。
+FineWeb-2 使用``先脚本、后语言''的\textbf{两步策略}：
+先通过 Unicode 脚本检测快速分桶
+（将天城文脚本的文档放入``印度语系''桶），
+然后只在桶内运行 fastText 来区分具体语言
+（印地语 vs 马拉地语 vs 尼泊尔语）。
+这种层级策略将语言识别的总计算量减少了约 40\%。
 
 \subsection{去重}
 
@@ -423,6 +727,83 @@ FineWeb 使用 $b = 14, r = 8$（$k = 112$），
 降低到近似线性的复杂度——
 这使得在数十亿文档上做模糊去重变得实际可行。
 
+\subsubsection{去重的定量效果}
+
+去重在不同数据集上的效果差异巨大，
+了解这些数字有助于设定合理的预期。
+
+\begin{center}
+\small
+\begin{tabular}{lrrr}
+\hline
+\textbf{数据集} & \textbf{去重前} & \textbf{去重后} & \textbf{移除比例} \\
+\hline
+FineWeb（URL 去重） & 96 快照原始数据 & -- & $\sim$40\% \\
+FineWeb（MinHash 去重） & URL 去重后 & 15T token & $\sim$25\% \\
+SlimPajama（全流程） & 1.21T token & 627B token & 48\% \\
+RedPajama v2（MinHash） & -- & -- & $\sim$30\% \\
+RefinedWeb（全流程） & -- & 5T token & $\sim$35\% \\
+\hline
+\end{tabular}
+\end{center}
+
+从 RedPajama 到 SlimPajama 的演进
+提供了一个精确的\textbf{去重激进度对比}。
+RedPajama 使用 MinHash 相似度阈值 0.8
+（Jaccard $> 0.8$ 的文档对被视为重复），
+而 SlimPajama 将阈值降低到 0.7——
+这意味着即使两个文档只有 70\% 的内容相同，
+也会被标记为近似重复。
+降低阈值的代价是\textbf{误删率上升}——
+一些内容相关但并不真正重复的文档
+（如同一事件的不同报道）也会被移除。
+但 Cerebras 团队的消融实验表明，
+在相同训练 FLOP 下，
+更激进的去重带来了 3--5\% 的下游任务提升，
+证明了``宁可多删、不可遗漏''的原则
+在数据充足的场景下是正确的。
+
+MinHash 的\textbf{参数选择}是一门精细的工程。
+核心参数有三个：
+shingle 大小 $n$、哈希函数数量 $k$、
+以及 LSH 的 band/row 配置 $(b, r)$。
+它们之间的关系是 $k = b \times r$，
+且阈值近似为 $(1/b)^{1/r}$。
+以下是几个主要项目的参数选择对比：
+
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\hline
+\textbf{项目} & $n$ (shingle) & $k$ (hashes) & $b$ (bands) & $r$ (rows) & 阈值 \\
+\hline
+FineWeb & 5 & 112 & 14 & 8 & $\sim$0.75 \\
+SlimPajama & 5 & 128 & 9 & 13 & $\sim$0.70 \\
+RefinedWeb & 5 & 128 & 20 & 5 & $\sim$0.80 \\
+Dolma & 5 & 128 & 14 & 8 & $\sim$0.75 \\
+\hline
+\end{tabular}
+\end{center}
+
+注意 SlimPajama 的 $(b=9, r=13)$ 配置——
+更少的 band、更多的 row per band——
+这使得 S 曲线的``拐点''左移到约 0.70，
+从而在更低的相似度下就开始积极检测重复。
+代价是更高的计算量（每个 band 中更多的行需要全部匹配），
+但 Cerebras 认为这个代价对数据质量的改善是值得的。
+
+去重操作的\textbf{计算规模}不容低估。
+FineWeb 处理 96 个 Common Crawl 快照的 MinHash 去重
+需要在分布式集群上运行，
+每个快照约包含 30 亿个文档。
+MinHash 签名的存储量为 $30 \times 10^9 \times 112 \times 4$ bytes
+$\approx 13$\,TB（假设每个哈希值用 32 位整数存储）。
+LSH 索引的构建和查询需要额外的临时存储。
+HuggingFace 使用了约 \textbf{50 万 CPU 小时}
+仅用于 FineWeb 的去重步骤——
+这几乎是整个数据处理流水线中
+计算成本最高的单一步骤。
+
 \subsubsection{后缀数组去重}
 
 除了 MinHash + LSH 这种文档级别的去重，
@@ -497,6 +878,74 @@ URL 去重       & 精确匹配         & 同一 URL 的多次爬取 \\
 它们可以在几乎不损失高质量内容的情况下
 移除大量明显的垃圾。
 
+值得深入了解的是这些规则背后的\textbf{定量阈值}设计——
+它们并非拍脑袋决定的，
+而是经过大量消融实验确定的最优工作点。
+以 Gopher 的规则为基础，
+FineWeb~\cite{penedo2024fineweb} 和 DCLM 团队
+进一步精细化了这些阈值：
+
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\hline
+\textbf{过滤规则} & \textbf{Gopher 阈值} & \textbf{FineWeb 优化阈值} \\
+\hline
+最小文档长度 & 50 词 & 65 词 \\
+最大文档长度 & 100,000 词 & 100,000 词 \\
+平均词长范围 & [3, 10] & [3, 10] \\
+最大特殊字符比例 & 30\% & 20\% \\
+最大重复行比例 & 30\% & 20\% \\
+最小停用词比例 & 5\% & 6.5\% \\
+最大大写字母比例 & 70\% & 60\% \\
+重复 2-gram 比例上限 & -- & 20\% \\
+重复 3-gram 比例上限 & -- & 15\% \\
+重复 4-gram 比例上限 & -- & 10\% \\
+\hline
+\end{tabular}
+\end{center}
+
+FineWeb 引入的\textbf{重复 $n$-gram 检测}是一个重要的创新。
+与``重复行''检测不同，$n$-gram 重复检测能够捕捉到
+更隐蔽的低质量模式——例如 SEO 优化的网页
+经常在正文中反复插入相同的关键词短语，
+每次出现的位置不同（因此不是``重复行''），
+但 $n$-gram 频率异常高。
+具体实现是：对文档中所有 $n$-gram 计数，
+如果出现超过一次的 $n$-gram 覆盖的 token 数
+占总 token 数的比例超过阈值，则判定为低质量。
+FineWeb 在实验中发现，
+\textbf{2-gram 重复检测对移除 SEO 垃圾最有效}，
+而 \textbf{4-gram 重复检测对移除模板化内容最有效}
+（如法律声明、Cookie 通知的多次出现）。
+
+阈值的选择对最终数据集质量有\textbf{非线性}的影响。
+DCLM 的消融实验揭示了一个``甜蜜区''现象：
+以停用词比例为例，
+将阈值从 5\% 提高到 6.5\%
+在下游基准（HellaSwag、ARC）上带来了 0.8\% 的提升；
+但进一步提高到 8\%
+反而导致 0.3\% 的退化——
+因为开始误删正常的技术文档
+（代码教程中停用词比例天然偏低）。
+这种非单调性使得阈值调优不能简单地``越严格越好''，
+而必须在每个维度上找到最优工作点。
+
+\textbf{多语言阈值的适配}是另一个非平凡的问题。
+上述阈值大多针对英文设计——
+它们对中文、日文等非空格分隔的语言不直接适用。
+例如，``平均词长''的概念在中文中没有意义
+（中文词之间没有空格），
+``停用词比例''需要使用语言特定的停用词表。
+FineWeb-2 为每种语言维护了一组\textbf{独立的阈值配置}，
+通过在小规模标注数据上的交叉验证来确定——
+这意味着 1000+ 种语言需要 1000+ 套不同的过滤参数。
+对于标注数据极少的低资源语言，
+FineWeb-2 采用了\textbf{语系聚类}策略：
+将同一语系的语言（如班图语系的多种非洲语言）
+共享一组阈值，并在此基础上做微调。
+% NEW REF: penedo2025fineweb2_thresh = FineWeb-2 uses per-language quality thresholds derived from cross-validation on annotated samples.
+
 \subsubsection{基于模型的质量过滤}
 
 更精细的过滤使用\textbf{机器学习模型}来判断文档质量。
@@ -515,11 +964,46 @@ CCNet（Meta 的 Common Crawl 清洗工具）
 「中部」和「尾部」（低质量）三个等级。
 % NEW REF: wenzek2020ccnet = Wenzek, Guillaume and Lachaux, Marie-Anne and Conneau, Alexis and Chaudhary, Vishrav and Guzman, Francisco and Joulin, Armand and Grave, Edouard. CCNet: Extracting High Quality Monolingual Datasets from Web Crawl Data. In LREC, 2020.
 
-但困惑度过滤也有陷阱：
-它倾向于保留「类似 Wikipedia」的文本，
+困惑度过滤的\textbf{定量阈值}选择至关重要。
+CCNet 将文档按困惑度分为三个等级：
+``头部''（困惑度 $< 230$，约占文档总数的 33\%）、
+``中部''（$230 \leq$ 困惑度 $< 560$，约 33\%）、
+``尾部''（困惑度 $\geq 560$，约 33\%）。
+这些阈值基于 5-gram KenLM 模型在 Wikipedia 上训练后的分布。
+LLaMA 选择了仅使用``头部''文档——
+这个简单的阈值选择在 2023 年被证明
+足以构建有竞争力的训练数据。
+
+但这个三等分阈值并非最优。
+FineWeb 的消融实验表明，
+将困惑度阈值设为 \textbf{345}（而非 CCNet 的 230）
+在下游任务上表现更好——
+因为 230 的阈值过于严格，
+排除了大量质量尚可但写作风格与 Wikipedia 不同的文档。
+DCLM 进一步引入了\textbf{双侧阈值}：
+不仅过滤高困惑度文档（$> 400$，可能是乱码），
+也过滤\textbf{极低}困惑度文档（$< 10$，
+可能是简单的重复文本或自动生成的模板内容）。
+这种双侧过滤的思路颇具洞察力：
+困惑度过低说明文本缺乏信息量，
+模型从中几乎学不到新东西。
+
+困惑度过滤还有一个更深层的陷阱：
+它倾向于保留``类似 Wikipedia''的文本，
 可能过度偏向百科全书式的写作风格，
 而丢弃同样有价值的其他风格
 （如技术教程、个人博客、论坛讨论）。
+这种\textbf{风格偏见}会导致训练出的模型
+在回答问题时过于正式和百科化，
+缺乏自然对话的灵活性。
+一种缓解策略是为不同\textbf{领域}
+训练不同的困惑度模型——
+例如，在 Stack Overflow 上训练的 KenLM
+用于过滤技术文档，
+在 Reddit 上训练的 KenLM
+用于过滤对话数据。
+这种``领域自适应困惑度过滤''
+在 FineWeb-2 的多语言处理中被广泛采用。
 
 \textbf{分类器过滤}：
 GPT-3~\cite{brown2020gpt3} 的训练
@@ -639,6 +1123,80 @@ LLaMA 4 在 40T token 中包含了 200 种语言的数据，
 这是迄今为止语言覆盖最广的 frontier 模型，
 反映了 Meta 的全球化部署策略。
 
+\subsection{经典数据集的领域组成}
+
+在讨论自动配比优化之前，
+先回顾几个经典数据集的领域组成，
+了解``前人的智慧''是理解配比优化的出发点。
+
+\textbf{The Pile}（EleutherAI，2021 年）
+是最早的精心策划型数据集之一，
+其 800B token 的组成如下：
+
+\begin{center}
+\small
+\begin{tabular}{lr}
+\hline
+\textbf{数据源} & \textbf{占比} \\
+\hline
+Pile-CC（Common Crawl 子集） & 52.5\% \\
+PubMed Central & 14.4\% \\
+Books3 & 12.1\% \\
+OpenWebText2 & 8.4\% \\
+ArXiv & 4.6\% \\
+GitHub & 3.3\% \\
+Wikipedia & 2.0\% \\
+其他（Stack Exchange、FreeLaw 等） & 2.7\% \\
+\hline
+\end{tabular}
+\end{center}
+
+The Pile 的设计哲学是\textbf{最大化多样性}——
+它刻意纳入了法律文本（FreeLaw）、
+专利文本（USPTO Backgrounds）、
+数学证明（DM Mathematics）等冷门领域，
+即使这些领域的数据量很小。
+这种``宁缺毋偏''的设计思想
+在后续被证明对模型的\textbf{长尾知识覆盖}
+有重要贡献——
+The Pile 上训练的 GPT-Neo 系列模型
+在法律和科学推理任务上
+表现优于数据量更大但领域更单一的竞品。
+% NEW REF: gao2021pile = Gao, Leo and others. The Pile: An 800GB Dataset of Diverse Text for Language Modeling. arXiv preprint arXiv:2101.00027, 2021.
+
+\textbf{SlimPajama} 的领域组成则反映了``精简''策略：
+
+\begin{center}
+\small
+\begin{tabular}{lrr}
+\hline
+\textbf{数据源} & \textbf{RedPajama} & \textbf{SlimPajama} \\
+\hline
+Common Crawl & 878B (73.2\%) & 521B (83.1\%) \\
+C4 & 175B (14.6\%) & -- (合并到 CC) \\
+GitHub & 59B (4.9\%) & 35B (5.6\%) \\
+Wikipedia & 24B (2.0\%) & 17B (2.7\%) \\
+Books & 26B (2.2\%) & 26B (4.1\%) \\
+ArXiv & 28B (2.3\%) & 24B (3.8\%) \\
+Stack Exchange & 10B (0.8\%) & 4B (0.6\%) \\
+\hline
+\textbf{总计} & \textbf{1200B} & \textbf{627B} \\
+\hline
+\end{tabular}
+\end{center}
+
+从 RedPajama 到 SlimPajama，
+Common Crawl 的数据量减少了 40\%（主要因为更激进的去重），
+但其在整体中的\textbf{占比反而上升}——
+从 73\% 到 83\%。
+这是因为 Common Crawl 中重复内容的比例最高，
+去重移除的主要是 CC 数据；
+而 GitHub、ArXiv 等相对干净的数据源
+去重后保留率更高。
+值得注意的是，SlimPajama 中\textbf{书籍数据的保留率最高}
+（26B $\to$ 26B，几乎没有被去重移除），
+这符合直觉——书籍文本经过专业编辑，重复率本就极低。
+
 \subsection{自动数据配比：DoReMi 与后继者}
 
 手动调整数据配比需要大量的试错实验，
@@ -647,18 +1205,48 @@ LLaMA 4 在 40T token 中包含了 200 种语言的数据，
 试图用自动化的方式找到最优配比。
 % NEW REF: xie2023doremi = Xie, Sang Michael and Santurkar, Shibani and Ma, Tengyu and Liang, Percy. DoReMi: Optimizing Data Mixtures Speeds Up Language Model Pretraining. In NeurIPS, 2023.
 
-DoReMi 的核心思想是：
-先用一个小型的「代理模型」（proxy model）
-在不同配比下快速训练，
-通过\textbf{分布式鲁棒优化}
+DoReMi 的核心思想精妙而实用。
+它分两步走：
+\textbf{第一步}，在均匀配比上训练一个小型``参考模型''
+（reference model，通常 280M 参数、几十 B token）；
+\textbf{第二步}，训练一个同规模的``代理模型''（proxy model），
+但训练过程中动态调整各领域的采样权重——
+对``代理模型比参考模型差得最多''的领域加大采样。
+这本质上是\textbf{分布式鲁棒优化}
 （Distributionally Robust Optimization, DRO）
-找到使最差表现领域也能获得良好学习效果的配比，
-然后用这个配比训练大模型。
+的在线版本——
+它不是优化``平均性能最好''，
+而是优化``最差领域也不太差''。
+
+具体地，令 $\ell_d^{\text{ref}}$ 和 $\ell_d^{\text{proxy}}$
+分别是参考模型和代理模型在领域 $d$ 上的损失。
+DoReMi 使用\textbf{指数梯度}算法
+在训练过程中动态更新每个领域的权重：
+\begin{equation}
+  w_d^{(t+1)} \propto w_d^{(t)} \cdot
+  \exp\!\bigl(\eta \cdot [\ell_d^{\text{proxy},(t)} - \ell_d^{\text{ref}}]\bigr)
+\end{equation}
+当代理模型在某个领域的损失远高于参考模型时
+（即该领域``学得最差''），
+该领域的权重指数级上升，
+更多的训练 batch 被分配给它。
+这种\textbf{自适应上采样}策略
+确保了所有领域都获得足够的训练信号。
 
 实验表明，DoReMi 找到的配比
 在下游任务上的表现
 比均匀配比提升了约 6\%，
 而且这种提升在不同规模的模型上都成立。
+一个出人意料的发现是：
+DoReMi 将 \textbf{Wikipedia 的权重大幅降低}
+（从均匀配比的 $\sim$15\% 降到 $\sim$3\%），
+因为 Wikipedia 的文本质量很高、分布简单，
+模型很快就能学好，
+继续在上面训练的边际收益很低；
+相反，它将\textbf{代码和数学数据的权重提高}了 2--3 倍——
+因为这些领域结构复杂，模型需要更多的训练才能掌握。
+这个发现挑战了``高质量数据就应该多用''的朴素直觉——
+正确的策略是``在模型最需要的领域多用''。
 
 \subsubsection{RegMix：将配比优化建模为回归问题}
 
@@ -693,6 +1281,42 @@ MDE 为每种数据领域训练一个小型「专家模型」，
 这种近似作为回归模型的额外特征，
 使得配比预测的准确性显著提升。
 % NEW REF: belenki2025mde = Belenki, Lior and Agarwal, Alekh and Shi, Tianze and Toutanova, Kristina. Optimizing Pre-Training Data Mixtures with Mixtures of Data Expert Models. arXiv preprint arXiv:2502.15950, 2025.
+
+MDE 相对于前辈方法（DoReMi、RegMix）的核心改进
+在于它构建了更精确的\textbf{损失预测模型}。
+DoReMi 使用一个小型代理模型来估计不同配比的效果，
+但代理模型本身的训练只能探索有限的配比空间——
+它在本质上是一个单点估计，对未尝试过的配比区域泛化能力有限。
+RegMix 通过训练 512 个微型模型来构建回归模型，
+但这些模型的规模（1M 参数、1B token）
+与目标模型（7B+ 参数、100B+ token）之间的差距
+可能导致 scaling 行为的系统性偏差。
+MDE 的``专家组合''策略则提供了一种理论上有据的近似——
+基于混合模型损失可以被领域专家损失的加权组合
+近似这一关键假设，
+MDE 可以在不实际训练大量混合配比模型的情况下
+``合成''任意配比的损失估计。
+
+在计算成本方面，MDE 训练 $K$ 个领域专家模型的开销
+约为 DoReMi 的 $K/N$ 倍
+（$K$ 为数据领域数量，$N$ 为 DoReMi 的代理模型大小比例）。
+对于典型的 5--10 个数据领域设置，
+MDE 的总计算量约为 DoReMi 的 30--50\%，
+同时在配比预测的 Kendall's $\tau$ 排序相关性上
+达到了 0.85+（DoReMi 约 0.6、RegMix 约 0.75）。
+这意味着 MDE 推荐的配比方案
+在实际大模型训练中更可靠地接近最优。
+
+MDE 的一个局限性在于它假设领域之间的交互效应
+可以被线性近似——即混合数据的效果
+等于各领域独立效果的加权和。
+但在实践中，某些领域之间存在\textbf{非线性协同}
+（如代码数据和数学数据的组合效果
+超过两者独立贡献之和），
+或\textbf{竞争效应}
+（如过多的对话数据可能降低模型的正式写作能力）。
+这些交互效应在 MDE 的框架中尚未被充分建模，
+是配比优化研究的一个重要开放问题。
 
 \subsubsection{Frontier 模型的数据策略}
 
@@ -746,6 +1370,74 @@ LLaMA 3~\cite{dubey2024llama3} 的训练
 将高质量数据（教育内容、代码、数学）的比例提高，
 并将学习率线性衰减到零。
 这个简单的策略带来了显著的质量提升。
+
+\subsubsection{Annealing 的定量细节}
+
+Annealing（退火）已经从``实验性技巧''变成了
+2025 年的\textbf{标准做法}，
+但其最优配置仍然是一个活跃的研究问题。
+以 LLaMA 3 为例，技术报告披露的 annealing 细节如下：
+\begin{itemize}[noitemsep]
+  \item \textbf{启动时机}：在 15T token 训练的最后 8\%（约 1.2T token）处开始。
+  \item \textbf{学习率}：从峰值 $1.5 \times 10^{-4}$
+        线性衰减到 $1.5 \times 10^{-5}$（峰值的 10\%）。
+  \item \textbf{数据配比变化}：高质量教育数据从 $\sim$5\% 提升到 $\sim$20\%；
+        代码数据从 $\sim$25\% 提升到 $\sim$35\%；
+        数学数据从 $\sim$5\% 提升到 $\sim$15\%。
+        相应地，普通网页数据的占比大幅降低。
+\end{itemize}
+
+Annealing 的效果可以从\textbf{基准测试的突变}中清楚看到。
+LLaMA 3 团队报告，在 annealing 阶段开始后，
+GSM8K（小学数学推理）的准确率在短短 0.2T token 内
+从 65\% 跃升到 \textbf{78\%}——
+这 13 个百分点的提升相当于
+此前整个训练过程中最后 3T token 的累积提升量。
+MATH（高中及竞赛数学）上的提升更加戏剧性：
+从 28\% 跃升到 38\%。
+这些数据证明了：
+\textbf{在模型已经充分学习了通用语言能力之后，
+在收尾阶段集中``灌注''高质量领域数据，
+可以实现远超线性预期的能力提升}。
+
+这一现象的直觉解释是：
+预训练的前 92\% 让模型建立了强大的通用语言理解和推理基础——
+它已经``知道''了数学的基本概念和推理模式，
+但这些知识以一种\textbf{潜在的}、未被充分激活的形式存在。
+Annealing 阶段的高质量数据
+像一把钥匙，\textbf{激活}了这些潜在能力。
+这与人类学习中的``关键期''（critical period）概念有趣地呼应——
+在基础能力已经成熟之后，
+针对性的强化训练可以事半功倍。
+
+\subsubsection{课程学习的前沿方向}
+
+课程学习的思想正在从简单的``分阶段调整配比''
+演化为更精细的\textbf{逐样本难度调度}。
+Albalak 等人（2024）% NEW REF: albalak2024curriculum = A Survey on Data Selection for Language Models, Albalak et al., TMLR 2024
+将数据调度策略分为三个层次：
+\begin{enumerate}[noitemsep]
+  \item \textbf{静态配比}：在整个训练中使用固定比例（最简单，如 LLaMA 1）。
+  \item \textbf{阶段性调整}：在不同训练阶段切换配比
+        （如 LLaMA 3 的 annealing）。
+  \item \textbf{在线调度}：基于模型\textbf{当前状态}
+        动态选择每个 batch 的数据——
+        类似于主动学习（active learning），
+        每步都选择对当前模型``最有教育意义''的数据。
+\end{enumerate}
+
+第三层次的``在线数据选择''是 2025 年的前沿方向。
+\textbf{Skill-It}（CMU + Meta，2024）% NEW REF: chen2024skillit = Skill-It: A Data-Driven Skills Framework for Understanding and Training Language Models, Chen et al., NeurIPS 2024
+将训练数据组织为\textbf{技能图}（skill graph）——
+每种``技能''（如语法、事实知识、逻辑推理）
+对应一组训练数据，
+技能之间存在依赖关系（如``逻辑推理''依赖于``语法''）。
+训练调度器按照技能图的拓扑顺序排列数据：
+先让模型掌握基础技能，
+再逐步引入依赖于基础技能的高级技能。
+在 GPT-2 规模的实验中，
+Skill-It 的训练效率是随机调度的 \textbf{2 倍}——
+即达到相同性能只需一半的训练步数。
 
 \subsection{数据重复（Multi-Epoch Training）}
 
@@ -803,6 +1495,60 @@ Phi-4 在\textbf{预训练阶段}就大量使用了合成数据——
 在多项任务上超越了比它大数倍的模型——
 证明了\textbf{数据质量远比数据数量重要}。
 
+Phi 系列的成功揭示了``教科书级''合成数据的三个设计原则：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{循序渐进}：
+        每段合成文本都从简单概念出发，
+        逐步引入更复杂的概念——
+        像教科书而非百科全书。
+        例如，一段关于递归的合成代码教程
+        会先展示阶乘函数，
+        然后是斐波那契数列，
+        最后是树遍历——
+        而不是随机罗列这三个例子。
+  \item \textbf{自包含}：
+        每段文本应该是自包含的——
+        读者不需要阅读其他材料就能理解。
+        这与 Wikipedia 的风格形成对比：
+        Wikipedia 依赖大量的交叉引用，
+        而教科书级合成数据在单段内解释所有必要的背景。
+  \item \textbf{练习与解答}：
+        每个概念后面跟着练习题和详细解答。
+        这种``教学—练习—反馈''的循环
+        提供了比纯文本更丰富的学习信号——
+        模型不仅要理解概念，
+        还要学会\textbf{应用}概念。
+\end{enumerate}
+
+从 Phi-1 到 Phi-4 的演进轨迹清晰地展示了
+合成数据策略的\textbf{规模化路径}：
+
+\begin{center}
+\small
+\begin{tabular}{lrrll}
+\hline
+\textbf{模型} & \textbf{参数} & \textbf{训练数据} & \textbf{合成数据策略} & \textbf{亮点} \\
+\hline
+Phi-1 (2023) & 1.3B & $\sim$7B tok & GPT-3.5 生成代码教程 & 代码任务媲美 15B \\
+Phi-1.5 (2023) & 1.3B & $\sim$30B tok & 教科书 + 推理链 & 通用推理 \\
+Phi-2 (2023) & 2.7B & $\sim$250B tok & 大规模多领域合成 & 部分超越 25B \\
+Phi-3 (2024) & 3.8B & 4.9T tok & 合成 + 过滤网页 & 接近 GPT-3.5 \\
+Phi-4 (2024) & 14B & 9.8T tok & 预训练大量合成 & 超越 GPT-4-turbo(部分) \\
+\hline
+\end{tabular}
+\end{center}
+
+注意一个关键的转变：
+Phi-1/1.5 的核心论点是``少量精选数据胜过大量数据''，
+但到 Phi-3/4 时，训练数据量已经增长到 T 级别——
+只是在这个规模下，合成数据占了很大比例。
+这说明``教科书级数据''的优势
+不是因为数据量\textbf{少}，
+而是因为质量\textbf{高}——
+当你能大规模生产高质量合成数据时，
+规模仍然是有益的。
+
 \subsection{自指令与进化指令}
 
 \textbf{Self-Instruct}（Wang 等人，2023）
@@ -813,20 +1559,80 @@ Phi-4 在\textbf{预训练阶段}就大量使用了合成数据——
 然后用这些数据来微调模型本身。
 % NEW REF: wang2023selfinstruct = Wang, Yizhong and others. Self-Instruct: Aligning Language Models with Self-Generated Instructions. In ACL, 2023.
 
+Self-Instruct 的流水线包含四个步骤：
+\begin{enumerate}[noitemsep]
+  \item \textbf{指令生成}：
+        从种子指令池中随机抽取 8 条作为 in-context 示例，
+        让 GPT-3 生成新的指令。
+  \item \textbf{指令分类}：
+        判断新指令是``分类任务''还是``生成任务''——
+        这决定了后续生成回答的方式。
+  \item \textbf{实例生成}：
+        对于分类任务，先生成输出（标签），
+        再基于标签反向生成输入（避免标签偏差）；
+        对于生成任务，先生成输入再生成输出。
+  \item \textbf{质量过滤}：
+        移除与种子指令过于相似的（ROUGE-L $>$ 0.7）、
+        过长或过短的、以及包含``As an AI model''等
+        元认知表述的低质量样本。
+\end{enumerate}
+
+这个看似简单的流水线
+从 175 条种子指令出发，
+产生了 \textbf{52,000 条}高质量指令——
+300 倍的放大率。
+更令人惊讶的是，
+使用这些自动生成的数据微调后的 GPT-3
+在 SuperNI（一个包含 756 种 NLP 任务的基准测试）上
+与使用人工标注数据微调的 InstructGPT
+\textbf{仅相差 5\%}——
+证明了在一定质量范围内，
+LLM 自我生成的训练数据
+可以替代昂贵的人工标注。
+
 \textbf{Evol-Instruct}（WizardLM 团队）
 在 Self-Instruct 的基础上更进一步，
 通过\textbf{进化}策略来增加指令的复杂度。
 具体做法是：
 从简单的指令出发，
-让 LLM 对指令进行「深化」（添加约束）、
-「拓宽」（增加子任务）、
-「具体化」（添加背景）等进化操作，
+让 LLM 对指令进行``深化''（添加约束）、
+``拓宽''（增加子任务）、
+``具体化''（添加背景）等进化操作，
 生成更复杂、更具挑战性的指令。
 多轮进化后，生成的指令
-从简单的「翻译这段话」
-变成了「将这段 19 世纪英文法律文件翻译成现代中文，
-保留原始的法律术语，并在注释中解释关键概念」。
+从简单的``翻译这段话''
+变成了``将这段 19 世纪英文法律文件翻译成现代中文，
+保留原始的法律术语，并在注释中解释关键概念''。
 % NEW REF: xu2023wizardlm = Xu, Can and others. WizardLM: Empowering Large Language Models to Follow Complex Instructions. arXiv preprint arXiv:2304.12244, 2023.
+
+Evol-Instruct 的每轮进化有五种``变异算子''：
+(1) \textbf{添加约束}——``写一个排序算法'' $\to$ ``写一个时间复杂度 $O(n\log n)$ 的排序算法，不能使用额外空间''；
+(2) \textbf{增加推理深度}——``计算 $3 + 5$'' $\to$ ``证明 $\sum_{k=1}^{n} k = n(n+1)/2$''；
+(3) \textbf{具体化}——``写一段代码'' $\to$ ``用 Python 实现一个 REST API，使用 FastAPI 框架，支持 CRUD 操作''；
+(4) \textbf{增加输入复杂度}——扩展输入数据的规模或复杂度；
+(5) \textbf{替换为更罕见的要求}——用不常见的概念替换常见概念。
+经过 4 轮进化，指令的平均``难度分数''（由 GPT-4 评估）
+从 2.3/10 提升到 \textbf{7.1/10}——
+覆盖了从简单到高难度的完整难度谱。
+
+Self-Instruct 和 Evol-Instruct 的\textbf{质量--多样性权衡}
+是合成数据领域的核心挑战之一。
+使用更强的模型（如 GPT-4 而非 GPT-3.5）
+生成的指令质量更高，但\textbf{风格更均匀}——
+GPT-4 倾向于生成结构化、条理清晰的回答，
+这使得模型在微调后也倾向于这种风格，
+失去了回答风格的多样性。
+一种缓解策略是\textbf{模型多样性}——
+使用多个不同的生成模型
+（GPT-4、Claude、Mixtral、LLaMA）
+各自生成一部分指令数据，
+然后混合使用。
+不同模型的``风格签名''不同——
+GPT-4 倾向于结构化的要点列表，
+Claude 偏好流畅的长段落叙述，
+LLaMA 的风格更多变——
+混合后的数据集在风格多样性上
+远优于单一模型生成。
 
 \subsection{大规模合成预训练数据}
 
@@ -845,6 +1651,49 @@ Cosmopedia 被用于训练 SmolLM 系列小模型，
 在多项基准上取得了与使用真实数据训练的模型
 相当甚至更好的结果。
 % NEW REF: benallal2024cosmopedia = Ben Allal, Loubna and Lozhkov, Anton and others. Cosmopedia: how to create large-scale synthetic data for pre-training. HuggingFace Blog, 2024.
+
+Cosmopedia 的\textbf{提示工程}
+是其成功的核心——
+而不仅仅是调用 Mixtral 那么简单。
+HuggingFace 团队设计了 \textbf{33 种主题类别}
+和 \textbf{8 种写作风格}，
+交叉组合产生了超过 264 种不同的提示模板。
+每种模板规定了：目标读者的年龄/知识水平、
+文章的类型（教程/叙事/对话/百科）、
+期望的长度和复杂度。
+例如，一个模板可能要求：
+``为一个 10 岁的孩子写一篇关于光合作用的故事，
+使用简单的类比和生动的描述，长度约 500 词''。
+另一个模板则要求：
+``为研究生撰写一篇关于光合作用的技术综述，
+引用关键实验结果和化学方程式，长度约 2000 词''。
+同一个主题在不同模板下产出的文本
+在词汇、句法和概念深度上完全不同——
+这正是多样性的来源。
+
+为了防止生成数据的\textbf{模式坍缩}，
+Cosmopedia 还引入了``种子文本''机制：
+从 Wikipedia、Wikidata 和 Reddit 帖子中
+随机抽取一段真实文本作为``种子''，
+要求模型基于种子的\textbf{主题}（但非内容）
+来生成新文本。
+种子的多样性确保了生成主题的广泛覆盖，
+而``基于主题而非复述内容''的要求
+避免了简单的改写式生成。
+这种设计使得 Cosmopedia 的\textbf{主题分布}
+与 Wikipedia 的主题分布高度对齐——
+这在一定程度上缓解了合成数据
+通常过度集中于热门话题的倾向。
+
+\textbf{Cosmopedia v2}（2024 年底）进一步改进了生成策略：
+引入了\textbf{多轮改写}（multi-turn rewriting）——
+先让模型生成初稿，
+然后让另一个模型（或同一模型的不同提示）
+对初稿进行质量评分和改写，
+最终只保留得分最高的版本。
+这种``生成-评估-改写''的循环
+使 v2 的每 token 平均教育价值（以下游基准衡量）
+比 v1 提高了约 15\%。
 
 \textbf{OpenHermes 2.5}（Teknium，2024 年）
 是开源社区最成功的合成 SFT 数据集之一。
@@ -880,12 +1729,67 @@ DeepSeekMath~\cite{shao2024grpo} 就利用了
 大量自动生成和验证的数学数据
 来提升模型的数学推理能力。
 
+\textbf{MetaMathQA}（Yu 等人，2024）% NEW REF: yu2024metamathqa = MetaMath: Bootstrap Your Own Mathematical Questions for Large Language Models, Yu et al., ICLR 2024
+是数学合成数据的标杆工作。
+其核心策略是\textbf{数学题目的自举}（bootstrapping）：
+从 GSM8K 和 MATH 的原始题目出发，
+使用 GPT-3.5-Turbo 对题目进行多种变换——
+\textbf{答案增强}（让模型生成更详细的解题步骤）、
+\textbf{题目重述}（用不同的语言重新描述同一道题）、
+\textbf{FOBAR}（从答案反推出题目中的条件）、
+以及\textbf{Self-Verification}
+（让模型检查自己的解答是否正确）。
+这些变换将 GSM8K 的 7,473 道原始题目
+扩展为 \textbf{395K} 道变体题目——
+每道原始题目平均产出 53 道不同表述和难度的变体。
+
+MetaMathQA 的一个关键发现是
+\textbf{答案增强}对性能提升贡献最大——
+将简短的答案（``答案是 42''）
+扩展为详细的分步推理链
+（``首先，根据条件 A 可得 X...
+其次，将 X 代入等式 B...
+因此答案是 42''）
+使模型从``记忆答案''转变为``学习解题过程''。
+使用 MetaMathQA 微调的 7B 模型
+在 GSM8K 上达到了 \textbf{66.5\%} 的准确率——
+比使用原始 GSM8K 数据微调的同规模模型高出 20 个百分点。
+
+\textbf{NuminaMath}（Numina 团队，2024）
+是另一个重要的数学合成数据集。
+它收集了来自数学竞赛（AMC、AIME、IMO）、
+在线判题系统（AoPS、Project Euler）
+和数学教材的 \textbf{超过 86 万道题目和解答}。
+对于没有现成解答的竞赛题，
+NuminaMath 使用 GPT-4 生成候选解答，
+然后通过\textbf{符号验证}（SymPy 数值检查 + 形式化验证器）
+来过滤错误答案。
+这种``生成-验证''的循环使得合成解答的正确率
+从初始的约 60\% 提升到验证后的 95\%+。
+% NEW REF: numina2024 = NuminaMath: A Dataset for Mathematical Reasoning, Numina Team, 2024.
+
 \textbf{代码合成数据}：
 类似地，合成的代码可以通过\textbf{执行测试}来验证——
 生成代码和对应的单元测试，
 只保留能通过测试的代码作为训练数据。
-这种「执行验证」（execution-based verification）
+这种``执行验证''（execution-based verification）
 提供了比人工标注更精确的质量信号。
+
+代码合成数据的\textbf{质量--多样性权衡}
+比文本数据更加微妙。
+高质量的代码要求语法正确、逻辑正确、
+遵循编码规范、处理边界情况——
+而这些维度之间可能存在冲突。
+例如，一个``正确但晦涩''的解法
+和一个``清晰但效率不佳''的解法，
+哪个对训练更有价值？
+实践中的共识是：
+在\textbf{预训练}阶段，多样性优先——
+各种风格和质量等级的代码都有价值；
+在\textbf{SFT}阶段，质量优先——
+只保留``教科书级''的清晰、正确的代码。
+这种分阶段策略在 DeepSeek-Coder 和 StarCoder 2
+的训练中都被采用。
 
 \subsection{合成数据在 frontier 模型中的占比}
 
@@ -1024,6 +1928,52 @@ GLM-5 使用 \textbf{28.5T token} 时——
 关键在于建立可预测的合成数据使用框架，
 而非简单地避免使用合成数据。
 
+Dohmatob 等人（2024，arXiv:2402.01942）从信息论的角度
+给出了模型坍缩的理论分析框架。
+他们证明了在高斯混合模型的简化设定下，
+递归训练 $n$ 代后，估计误差以
+$O(\sqrt{n / N})$ 的速率增长
+（$N$ 为每一代的训练样本数）。
+当合成数据占比超过某个临界值时，
+模型的测试误差开始\textbf{单调递增}——
+即使增加总训练数据量也无法逆转。
+这个临界值取决于合成数据的质量和原始数据的比例：
+对于高质量合成数据（如 GPT-4 生成），
+安全阈值约为 40--60\%；
+对于低质量合成数据（如小模型生成），
+阈值可能低至 10--20\%。
+% NEW REF: dohmatob2024collapse = Dohmatob, Elvis and others. A Tale of Tails: Model Collapse as a Change of Scaling Laws. arXiv preprint arXiv:2402.01942, 2024.
+
+\textbf{坍缩的定量检测方法}也在 2025 年逐渐成熟。
+Guo 等人（2024，arXiv:2404.10040）提出了基于
+\textbf{token 频率分布}的坍缩检测指标：
+在正常训练中，模型生成文本的 token 频率
+应该近似服从 Zipf 定律；
+当坍缩发生时，频率分布的尾部会急剧收缩，
+表现为 Zipf 系数从 $\sim$1.0 偏移到 $>$1.5。
+这种简单的统计检验可以作为训练过程中的
+实时``哨兵''，在坍缩的早期阶段就发出警报。
+另一种方法是监控模型输出的
+\textbf{Self-BLEU 分数}（生成多个回答之间的 BLEU 相似度）——
+Self-BLEU 持续上升表明模型的输出多样性正在降低。
+% NEW REF: guo2024collapse = Guo, Rui and others. Curious Decline of Linguistic Diversity: A Large-Scale Analysis of LLM-Generated Text. arXiv preprint arXiv:2404.10040, 2024.
+
+在\textbf{缓解策略}方面，
+除了前文提到的``始终混入真实数据''的经验法则，
+更精细的方法正在出现。
+\textbf{数据来源加权}策略根据数据的``代际''
+（真实数据 = 第 0 代，由第 0 代模型生成 = 第 1 代，以此类推）
+分配递减的权重——第 $k$ 代数据的权重为 $w_k = \alpha^k$
+（$\alpha < 1$，通常取 0.5--0.8），
+这样递归生成的数据在训练目标中的影响被指数级压低。
+\textbf{对比训练}（contrastive training）
+则显式地训练模型区分真实数据和合成数据的分布特征，
+在损失函数中加入一个惩罚项，
+鼓励模型维持对真实数据分布的保真度。
+这些方法的核心思想是一致的：
+\textbf{合成数据的价值在于补充真实数据的不足，
+而非替代真实数据的统计特性}。
+
 \subsubsection{合成数据 Scaling Laws}
 
 COLM 2025 发表、2026 年 3 月更新的研究
@@ -1049,6 +1999,23 @@ SynthLLM 提供了一套可扩展的合成数据生成管线，
 自动质量验证和多样性保障机制，
 使得大规模合成数据的生产变得可靠和可重复。
 
+SynthLLM 的管线架构包含三个关键阶段。
+\textbf{生成阶段}使用多个不同的生成模型
+（而非单一模型）并行生成合成数据，
+利用模型多样性来减少单一模型偏差导致的分布坍缩。
+\textbf{验证阶段}对生成的数据进行多维度质量检查——
+包括事实一致性验证（通过外部知识库交叉检查）、
+逻辑连贯性检测（通过 NLI 模型评估段落间的蕴含关系）、
+以及重复性检测（确保合成数据不会过度集中在少数模式上）。
+\textbf{多样性保障阶段}通过主动采样策略
+确保合成数据覆盖长尾主题和罕见知识领域——
+这一阶段使用嵌入空间的覆盖度指标
+来量化当前合成数据相对于目标分布的覆盖率，
+并优先生成低覆盖区域的数据。
+这种``精心练习''（deliberate practice）的理念——
+聚焦模型的薄弱环节而非均匀生成——
+是 SynthLLM 区别于简单的``大量生成 + 过滤''策略的核心。
+
 \subsubsection{数据增强的新路径}
 
 除了直接合成，
@@ -1059,6 +2026,26 @@ SynthLLM 提供了一套可扩展的合成数据生成管线，
 这种「搜索数据增强」策略
 利用了搜索引擎对用户意图的理解，
 能产生更贴近真实用户需求的训练数据。
+
+\textbf{回译增强}（backtranslation augmentation）
+是另一种经过验证的数据增强路径。
+将英文文档翻译成中文（或其他目标语言），
+再翻译回英文，可以生成语义等价但表述不同的文本——
+这种``同义改写''增加了数据的表面多样性，
+而不引入语义噪声。
+Google 在多语言模型训练中广泛使用了这一策略，
+通过 T5 翻译模型对低资源语言的数据进行增强。
+
+\textbf{知识图谱驱动的合成}是更结构化的方向。
+从 Wikidata 等知识图谱中提取实体关系三元组，
+然后让 LLM 将这些结构化知识``展开''为自然语言文本。
+这种方法的优势是生成的内容具有可验证的事实准确性
+（因为原始知识来自结构化数据库），
+但生成的文本风格往往过于百科全书化。
+结合搜索数据增强和知识图谱驱动，
+可以在保证事实准确性的同时
+兼顾文本风格的多样性——
+这是 2026 年数据增强研究的一个活跃方向。
 
 \begin{warnbox}[2026 年的合成数据现实]
 合成数据已经不是一个选择题。
@@ -1121,6 +2108,21 @@ Datatrove 的架构设计值得学习：
 LLaMA~\cite{touvron2023llama} 的训练数据
 就是通过 CCNet 处理的。
 
+CCNet 的设计哲学是\textbf{简洁和可扩展}——
+整个流水线由三个解耦的阶段组成，
+每个阶段可以独立运行和并行化。
+困惑度过滤使用 5-gram KenLM 模型，
+在 Wikipedia 上训练，
+将文档分为``头部''（困惑度 $< 230$，约占 33\%）、
+``中部''和``尾部''三个质量等级。
+LLaMA 系列选择了``头部''文档作为预训练数据——
+这一简单的策略在 2023 年被证明足以
+构建有竞争力的训练数据。
+CCNet 的另一个重要贡献是\textbf{分片处理}机制：
+它将 Common Crawl 按 URL 的哈希值分片，
+使得去重操作可以在分片内独立完成，
+大幅降低了内存需求。
+
 \subsection{Data-Juicer}
 
 \textbf{Data-Juicer}（阿里巴巴 DAIL 开源）
@@ -1130,6 +2132,24 @@ LLaMA~\cite{touvron2023llama} 的训练数据
 支持「数据菜谱」（data recipe）的概念——
 将一组处理步骤和参数打包为可复用的配置文件，
 便于实验和分享。
+
+Data-Juicer 的架构遵循``算子即组件''的设计理念，
+每种数据处理操作被封装为一个标准化的算子，
+分为三类：\textbf{Mapper}（一对一变换，如文本清洗）、
+\textbf{Filter}（一对零或一的过滤，如质量筛选）和
+\textbf{Deduplicator}（多对一的去重）。
+这种分类使得用户可以像搭积木一样
+组合不同的处理步骤来构建定制化的数据处理流水线。
+Data-Juicer 还内置了\textbf{数据分析}功能——
+在处理流水线执行前后，
+自动生成数据的统计分析报告
+（token 长度分布、语言分布、质量分数分布等），
+帮助工程师理解每一步处理的效果。
+对于中文数据处理，Data-Juicer 具有独特优势：
+它内置了针对中文分词、繁简转换、
+中英混合文本处理等场景的专用算子——
+这是 Datatrove 等以英文为中心的工具所缺乏的。
+% NEW REF: chen2024datajuicer = Chen, Daoyuan and others. Data-Juicer: A One-Stop Data Processing System for Large Language Models. In SIGMOD, 2024.
 
 \subsection{其他重要工具}
 
@@ -1255,9 +2275,38 @@ HuggingFace 处理 FineWeb 时使用了约 \textbf{300 万 CPU 小时}——
 如果基准测试失去了可信度，
 我们就失去了衡量进步的尺度。
 
+\subsection{污染的规模有多大？}
+
+2025 年的多项研究系统性地量化了数据污染的普遍程度，
+结果令人警醒。
+
+Sainz 等人（2024）% NEW REF: sainz2024contamination = NLP Evaluation in trouble: On the Need to Measure LLM Data Contamination for each Benchmark, Sainz et al., EMNLP 2024
+对 12 个主流 LLM 在 40 个基准测试上进行了污染检测。
+他们发现：
+在 480 个（模型 $\times$ 基准）组合中，
+有 \textbf{43\%} 的组合存在可检测的数据污染。
+更令人不安的是，污染程度与模型在基准上的``超常表现''
+之间存在\textbf{显著的正相关}（Pearson $r = 0.67$）——
+即一个模型在某个基准上的得分
+越是``超出其在相似基准上的预期表现''，
+越可能是因为它见过这个基准的数据。
+
+Yang 等人（2023）% NEW REF: yang2023rethinking = Rethinking Benchmark and Contamination for Language Models with Rephrased Samples, Yang et al., arXiv 2023
+发现了更隐蔽的污染形式——
+即使在原始基准数据不在训练集中的情况下，
+如果训练数据中包含了同一问题的\textbf{同义改写版本}
+（例如来自教育网站对考试题的讨论），
+模型仍然可以获得不公平的优势。
+他们提出了\textbf{改写后测试}（rephrased evaluation）：
+将基准测试的题目用 GPT-4 改写后重新评估。
+结果显示，多个模型在改写后的版本上
+得分下降了 \textbf{5--15 个百分点}——
+暗示它们的部分``能力''来自记忆而非真正的理解。
+
 \subsection{检测方法}
 
-2024--2025 年，研究社区发展了多种污染检测方法：
+2024--2025 年，研究社区发展了多种污染检测方法，
+从简单的字符串匹配到精妙的统计推断：
 
 \begin{itemize}[noitemsep]
   \item \textbf{$n$-gram 重叠检测}：
@@ -1268,6 +2317,9 @@ HuggingFace 处理 FineWeb 时使用了约 \textbf{300 万 CPU 小时}——
         都使用了这种方法。
         局限是：它只能检测\textbf{精确重叠}，
         无法发现同义改写（paraphrase）形式的泄露。
+        更大的局限是：它\textbf{需要访问训练数据}——
+        对于 GPT-4 等闭源模型，外部研究者
+        无法使用这种方法。
   \item \textbf{成员推断}（membership inference）：
         通过分析模型对特定样本的困惑度或置信度
         来判断该样本是否出现在训练数据中。
@@ -1288,6 +2340,72 @@ HuggingFace 处理 FineWeb 时使用了约 \textbf{300 万 CPU 小时}——
         使用动态生成的基准测试题目（每次评估不同），
         使得训练数据中不可能包含未来生成的测试题。
         LiveBench 和 GAIA 等基准测试采用了这种策略。
+  \item \textbf{Min-K\% Prob}（Shi 等人，2024）% NEW REF: shi2024minkprob = Detecting Pretraining Data from Large Language Models, Shi et al., ICLR 2024
+        是一种不需要访问训练数据、
+        也不需要参考模型的检测方法。
+        它的核心洞察是：
+        对于模型见过的文本，
+        即使文本中最``意外''的 token
+        （概率最低的 $K\%$ token），
+        其对数概率也不会太低。
+        相反，对于未见过的文本，
+        最低概率 token 的对数概率显著更低。
+        通过计算文本中最低 $K\%$ token 的平均对数概率，
+        可以有效区分训练数据和非训练数据。
+        在 GPT-2 和 LLaMA 上的实验中，
+        Min-K\% Prob 的 AUROC 达到了 0.85--0.92——
+        远优于传统的困惑度检测（AUROC 约 0.65）。
+\end{itemize}
+
+\subsection{实践中的去污染策略}
+
+了解了检测方法后，
+让我们看看前沿团队如何在实践中执行去污染。
+
+LLaMA 3~\cite{dubey2024llama3} 使用了\textbf{三层去污染}流水线：
+\begin{enumerate}[noitemsep]
+  \item \textbf{8-gram 重叠去除}：
+        对训练数据中与任何已知基准测试
+        共享 $\geq$ 8 连续 token 的段落进行标记。
+  \item \textbf{困惑度异常检测}：
+        对训练数据在模型上的困惑度做分布分析，
+        标记困惑度异常低的文档
+        （可能是模型已经``记住''的内容）。
+  \item \textbf{``保险''报告}：
+        在所有基准测试结果中，
+        同时报告``去污染前''和``去污染后''的分数，
+        让读者自行判断污染的影响。
+\end{enumerate}
+
+GPT-4 的技术报告采用了更保守的策略：
+使用 \textbf{substring match + fuzzy matching}
+对训练数据进行大规模扫描，
+并在报告中对``可能受污染影响''的基准测试结果
+加注了详细的警告说明。
+然而，由于 GPT-4 的训练数据未公开，
+外部研究者无法独立验证其去污染的有效性——
+这是\textbf{数据透明度}至关重要的又一个例子。
+
+\textbf{2025--2026 年的新趋势}是
+将去污染从``事后检测''前移到``预防性设计''。
+具体做法包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{训练数据索引化}：
+        构建训练数据的高效索引
+        （如 Bloom filter 或 MinHash 索引），
+        使得在训练数据中查询特定文本
+        只需毫秒级延迟。
+        这让``实时去污染''成为可能——
+        每当新的基准测试发布，
+        可以立即检查并从训练数据中移除相关内容。
+  \item \textbf{时间戳感知的训练数据管理}：
+        为每条训练数据记录其来源的时间戳，
+        然后规定``训练数据的时间截止线
+        必须早于所有评估基准的发布日期''。
+        这在理论上可以完全避免
+        ``训练数据包含基准测试数据''的问题——
+        但前提是基准测试数据确实在
+        截止日期之后才首次出现在互联网上。
 \end{itemize}
 
 \begin{warnbox}[数据污染是一个系统性问题]
@@ -1328,30 +2446,122 @@ HuggingFace 处理 FineWeb 时使用了约 \textbf{300 万 CPU 小时}——
 多家 AI 公司开始与内容出版商签订\textbf{许可协议}，
 为训练数据付费。
 
+\subsection{其他重要诉讼与判例}
+
+《纽约时报》案并非孤例。
+2024--2026 年间，AI 训练数据的版权诉讼已形成\textbf{诉讼浪潮}：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Getty Images 诉 Stability AI}（2023 年起）：
+        图片库 Getty Images 起诉 Stable Diffusion 的开发商
+        未经授权使用其受版权保护的图片训练模型。
+        这一案件虽然主要涉及图像模型，
+        但其判决对文本 LLM 同样具有\textbf{先例效应}——
+        如果法院认定图像训练构成侵权，
+        同样的逻辑将适用于文本训练。
+  \item \textbf{作家联合诉讼}（Authors Guild v. OpenAI，2023 年起）：
+        包括 John Grisham、Jonathan Franzen 等知名作家在内的
+        数千名作家联合起诉 OpenAI，
+        指控其使用 Books3 等未授权的书籍数据集训练模型。
+        Books3 包含约 20 万本书的全文——
+        其中绝大多数受版权保护。
+        这一案件的核心争议是：
+        The Pile 中的 Books3 子集来自盗版电子书网站 Bibliotik，
+        即使 OpenAI 本身没有直接从盗版网站获取数据，
+        使用由第三方``清洗''后的版本是否构成侵权？
+  \item \textbf{Thomson Reuters 诉 Ross Intelligence}（2024 年裁决）：
+        法院裁定 Ross Intelligence 使用 Westlaw 的法律文本训练 AI
+        \textbf{不构成合理使用}——
+        这是 AI 训练领域第一个对 AI 公司不利的正式裁决。
+        虽然案件规模较小，
+        但其``非合理使用''的判决结论对后续案件具有参考价值。
+\end{itemize}
+
 \subsection{合理使用（Fair Use）之争}
 
 美国的核心法律争议集中在
 \textbf{合理使用}（fair use）原则上。
-AI 公司主张，将版权内容用于训练
-是「转化性使用」（transformative use）——
+合理使用是美国版权法第 107 条规定的抗辩理由，
+法院需要权衡四个因素：
+\begin{enumerate}[noitemsep]
+  \item \textbf{使用的目的和性质}——是否为``转化性''使用？
+  \item \textbf{原作品的性质}——是事实性还是创造性作品？
+  \item \textbf{使用的数量}——使用了原作品的多大比例？
+  \item \textbf{对市场的影响}——是否损害了原作品的市场价值？
+\end{enumerate}
+
+AI 公司在\textbf{因素 1}上有较强的论据：
+LLM 训练确实是``转化性''的——
 模型学习的是语言的统计模式，
 而不是复制特定的文章。
 类似的，Google 在 Google Books 案中
 成功主张了对图书的扫描和索引构成合理使用。
 
-内容创作者则反驳：
+但在\textbf{因素 4}上，内容创作者的论据同样有力：
 LLM 训练与搜索引擎索引有本质区别——
 搜索引擎引导用户访问原始内容（增加流量），
 而 LLM 直接生成回答、替代原始内容（减少流量）。
 如果用户可以直接向 ChatGPT 询问最新新闻，
 为什么还要订阅《纽约时报》？
+2025 年的市场数据似乎支持了这一担忧——
+多家新闻机构报告，自 ChatGPT 发布以来，
+来自搜索引擎的流量下降了 15--25\%，
+部分归因于 AI 生成的摘要替代了用户的点击行为。
+
+\textbf{因素 3}（使用数量）是一个特别微妙的维度。
+OpenAI 主张，虽然他们使用了\textbf{整篇}文章训练，
+但模型只学习了``统计模式''而非记忆了具体内容。
+然而，《纽约时报》的律师展示了
+ChatGPT 能够\textbf{逐字逐句复述}长达数百词的文章片段——
+这强烈暗示模型\textbf{确实记住了}部分训练数据。
+这一``逐字复述''的证据
+对 OpenAI 的``仅学习统计模式''论据构成了严重挑战。
+
+\subsection{数据溯源与 Opt-Out 机制}
+
+法律压力正在催生一个全新的技术领域：
+\textbf{数据溯源}（data provenance）。
+
+\textbf{Opt-Out 机制}的演进是这一趋势的缩影。
+传统的 \texttt{robots.txt} 是网站声明
+``不希望被爬取''的唯一机制——
+但它是一个\textbf{礼仪约定}而非法律强制。
+2024 年后，随着欧盟 AI 法案的生效，
+\texttt{robots.txt} 开始具有法律效力，
+但其粗粒度（只能按整个网站或目录声明）
+无法满足``允许搜索引擎索引但禁止 AI 训练''的需求。
+
+为此，\textbf{TDM-reservation}（Text and Data Mining reservation）
+标准被提出。
+它通过在网页的 \texttt{<meta>} 标签中声明
+``本页面不允许用于 AI/TDM 目的''，
+提供了比 \texttt{robots.txt} 更精细的控制。
+欧盟 AI 法案要求 AI 公司\textbf{必须尊重}
+TDM-reservation 声明——
+违反者可能面临重大罚款
+（年全球收入的 3\%，对大型 AI 公司意味着数十亿美元）。
+
+\textbf{C2PA}（Coalition for Content Provenance and Authenticity）
+是另一个重要的标准。
+C2PA 为数字内容提供了\textbf{不可篡改的来源记录}——
+类似于区块链但应用于内容领域。
+每段内容从创建到使用的整个生命周期
+都被记录在 C2PA 的证书中。
+Adobe、Microsoft、Google 等公司已经在
+自家的产品中集成了 C2PA 支持——
+例如，Photoshop 导出的图片会自动嵌入 C2PA 元数据，
+记录其创建历史和任何 AI 编辑操作。
+将 C2PA 扩展到 LLM 训练数据的溯源
+是一个活跃的工程方向——
+目标是让任何人都能查询
+``这个模型的训练数据中包含了我的内容吗？''。
 
 \subsection{欧盟 AI 法案与全球监管}
 
 \textbf{欧盟 AI 法案}（EU AI Act，2024 年正式生效）
 对 AI 训练数据提出了明确的\textbf{透明度要求}：
 通用 AI 模型的提供者必须
-「公布训练数据中受版权保护内容的充分详细摘要」。
+``公布训练数据中受版权保护内容的充分详细摘要''。
 虽然具体的执行标准仍在制定中，
 但这一要求已经迫使 AI 公司开始构建
 \textbf{数据溯源}（data provenance）系统——
@@ -1363,6 +2573,45 @@ LLM 训练与搜索引擎索引有本质区别——
 AI 公司必须尊重这些声明。
 这使得 robots.txt 从一个非强制性的礼仪约定
 变成了一个具有法律效力的 opt-out 机制。
+
+\textbf{全球监管的碎片化}是另一个值得关注的趋势。
+不同国家和地区对 AI 训练数据的法律态度差异巨大：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{日本}：2018 年修订的《著作权法》
+        明确规定``出于信息分析目的的复制''
+        不构成侵权——
+        这使得日本成为 AI 训练数据法律上
+        \textbf{最友好}的主要经济体之一。
+        但 2025 年日本政府开始考虑
+        对这一宽松政策进行修订，
+        特别是在生成式 AI 的输出
+        与原作品``实质性相似''的情况下。
+  \item \textbf{中国}：《生成式人工智能服务管理暂行办法》
+        （2023 年 8 月生效）要求 AI 服务提供者
+        ``使用具有合法来源的数据和基础模型''。
+        但``合法来源''的定义仍然模糊，
+        实践中大量中文模型使用了
+        未经明确授权的网页数据训练。
+        2025 年的多起诉讼
+        （如某网文平台诉 AI 公司使用网络小说训练模型）
+        正在推动法律界限的明确化。
+  \item \textbf{英国}：曾计划为 AI 训练引入广泛的版权例外，
+        但在创意产业的强烈反对下于 2024 年搁置。
+        目前英国的立场是``逐案判断''（case-by-case），
+        没有为 AI 训练提供明确的法律安全港。
+\end{itemize}
+
+这种监管碎片化对\textbf{全球化的 AI 公司}
+构成了巨大的合规挑战——
+一套训练数据在日本完全合法、
+在欧盟需要尊重 opt-out、
+在美国取决于合理使用的判例、
+在中国需要``合法来源''。
+这也解释了为什么越来越多的公司
+选择构建\textbf{区域差异化}的训练数据管线——
+为不同市场准备不同的数据组合，
+而非使用单一的全球数据集。
 
 \subsection{行业的应对策略}
 
@@ -1402,6 +2651,129 @@ AI 公司必须尊重这些声明。
 都将成为未来 LLM 训练的必备基础设施。
 \end{corebox}
 
+\section{分词：从文本到 Token}
+
+数据处理流水线的最后一步是\textbf{分词}（tokenization）——
+将清洗后的文本转换为模型能理解的 token 序列。
+这一步虽然经常被忽视，但分词方案的选择
+对模型的训练效率和最终能力有深远影响。
+
+\subsection{BPE 分词}
+
+\textbf{Byte Pair Encoding}（BPE）
+是几乎所有现代 LLM 使用的分词方法。
+BPE 的核心思想是\textbf{贪心合并}：
+从单字节出发，
+反复合并出现频率最高的相邻字节对，
+直到词表达到目标大小。
+
+BPE 的训练过程：
+\begin{enumerate}[noitemsep]
+  \item 初始化：词表为所有 256 个字节。
+  \item 统计所有相邻 token 对的出现频率。
+  \item 合并频率最高的一对，创建新 token。
+  \item 重复步骤 2--3，直到词表达到目标大小
+        （如 128K tokens）。
+\end{enumerate}
+
+词表大小是一个关键的设计选择。
+更大的词表意味着更多的常见词或短语
+被编码为单个 token——
+相同的文本需要更少的 token 表示，
+训练和推理更高效。
+但更大的词表也意味着更大的嵌入矩阵
+（$V \times d$，$V$ 为词表大小，$d$ 为嵌入维度），
+这在小模型中占据参数量的很大比例。
+
+主流模型的词表大小差异不小：
+
+\begin{center}
+\small
+\begin{tabular}{lrl}
+\hline
+\textbf{模型} & \textbf{词表大小} & \textbf{分词器} \\
+\hline
+GPT-2 & 50,257 & BPE (byte-level) \\
+LLaMA 1/2 & 32,000 & SentencePiece \\
+LLaMA 3 & 128,000 & tiktoken (BPE) \\
+DeepSeek-V3 & 128,000 & BPE \\
+Qwen3 & 151,936 & BPE \\
+\hline
+\end{tabular}
+\end{center}
+
+LLaMA 从 32K 到 128K 的跳跃值得注意。
+LLaMA 1/2 的 32K 词表对\textbf{非拉丁语言}不友好——
+一个中文字符可能被分为 2--3 个 token，
+而一个英文单词通常只需 1--2 个 token。
+这意味着处理中文文本时，
+模型``看到''的有效上下文长度只有英文的一半。
+LLaMA 3 扩大到 128K 词表后，
+中文的 token 效率提升了约 50\%——
+同一段中文文本需要的 token 数减少了三分之一。
+这对多语言能力的提升有直接贡献。
+
+\subsection{多语言分词的挑战}
+
+多语言分词面临\textbf{token 公平性}的问题。
+在英文为主的训练语料上训练的 BPE 分词器
+会优先为英文常见词和词组创建 token，
+导致英文的 token 效率远高于其他语言。
+Petrov 等人（2024）的研究% NEW REF: petrov2024tokenizer = Language Model is Not for All: A Survey of Tokenization in Large Language Models, Petrov et al., 2024
+系统地量化了这一不公平性：
+将同一篇 United Nations 文件翻译成不同语言后，
+英文版需要约 100 个 token，
+中文版需要约 150 个 token，
+缅甸文版需要约 \textbf{450} 个 token——
+4.5 倍的效率差距意味着缅甸语用户
+在相同的上下文窗口中能输入的内容
+不到英文用户的四分之一。
+
+解决这一问题的常见策略是
+在\textbf{多语言均衡语料}上训练分词器。
+Qwen3 的 151K 词表就是在
+精心均衡的多语言语料上训练的——
+确保中文、日文、韩文等高需求语言
+获得足够的 token 分配。
+这是 Qwen 系列模型在中文任务上
+表现优于 LLaMA 的原因之一——
+不仅训练数据更多中文内容，
+分词器本身也对中文更友好。
+
+\subsection{序列打包}
+
+分词之后的最后一步是\textbf{序列打包}（sequence packing）。
+训练效率要求每个 batch 中的序列长度一致
+（以充分利用 GPU 的并行计算能力），
+但自然文档的长度差异很大——
+从几十个 token 到数万个 token 不等。
+
+两种主要的打包策略：
+\begin{itemize}[noitemsep]
+  \item \textbf{截断 + 填充}（truncation + padding）：
+        将长文档截断到最大序列长度，
+        短文档填充 \texttt{[PAD]} token 到最大长度。
+        简单但浪费——填充的 token
+        不贡献任何训练信号，
+        却占据了计算资源。
+  \item \textbf{多文档拼接}（document concatenation）：
+        将多个短文档拼接成一个长序列，
+        用特殊的 \texttt{<|endoftext|>} token 分隔。
+        不浪费计算，但引入了跨文档的注意力——
+        序列末尾的 token 可能``看到''前一个文档的内容，
+        即使两者在语义上毫无关系。
+\end{itemize}
+
+几乎所有现代 LLM 训练都使用多文档拼接，
+因为填充造成的计算浪费在大规模训练中不可接受。
+跨文档注意力的问题通过
+\textbf{注意力掩码}或 \textbf{document boundary markers}
+来缓解——确保每个文档只与自身产生注意力。
+LLaMA 3 的实现中，使用了
+``cross-document attention masking''来隔离拼接的文档，
+实验表明这比不做隔离在下游任务上
+带来了约 0.5\% 的一致性提升。
+
 \begin{corebox}[数据工程的核心原则]
 \begin{enumerate}[noitemsep]
   \item \textbf{质量 $>$ 数量}：1T 高质量 token $>$ 10T 低质量 token。
@@ -1425,3 +2797,7 @@ AI 公司必须尊重这些声明。
 
 
 %% ============================================================
+%% --- NEW REFERENCES (expansion update) ---
+% NEW REF: dohmatob2024collapse = Dohmatob, Elvis and others. A Tale of Tails: Model Collapse as a Change of Scaling Laws. arXiv preprint arXiv:2402.01942, 2024.
+% NEW REF: guo2024collapse = Guo, Rui and others. Curious Decline of Linguistic Diversity: A Large-Scale Analysis of LLM-Generated Text. arXiv preprint arXiv:2404.10040, 2024.
+% NEW REF: chen2024datajuicer = Chen, Daoyuan and others. Data-Juicer: A One-Stop Data Processing System for Large Language Models. In SIGMOD, 2024.

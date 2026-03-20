@@ -1,0 +1,3007 @@
+\chapter{2026 年春季编年史——Agent 大战与全球模型竞赛}
+\label{ch:agent-wars}
+%% ============================================================
+
+2025 年 12 月至 2026 年 3 月，
+LLM 领域经历了有史以来最密集的技术迭代。
+在不到 100 天的时间里，
+至少 15 个 frontier 级模型密集发布，
+三大 Agent SDK 先后开源，
+MCP 从 Anthropic 的内部协议成长为由 Linux 基金会治理的行业标准，
+代码 Agent 从辅助工具进化为半自主的工程伙伴。
+这不是一个线性渐进的故事，
+而是多条技术路线同时达到临界点后引发的\textbf{链式反应}。
+
+本章以编年体的方式记录这段历史，
+目标不是罗列事件，
+而是揭示事件之间的因果链条——
+为什么这些事情在\textbf{此刻}同时发生？
+为什么是\textbf{这些}团队取得了突破？
+这些突破将如何重塑 AI 产业的格局？
+
+\section{MCP：Agent 世界的 HTTP 时刻}
+\label{sec:mcp-http-moment}
+
+如果要为 Agent 时代选定一个``分水岭''，
+MCP（Model Context Protocol）从 Anthropic 的专有协议
+到行业标准的演变是最有力的候选。
+这段历史的节奏之快、影响之深远，
+值得逐月追溯。
+
+\subsection{从内部协议到开源标准}
+
+MCP 的故事始于 2024 年 11 月——
+Anthropic 将其作为 Agent 与外部工具交互的标准协议开源发布。
+彼时，Agent 工具调用的生态碎片化严重：
+OpenAI 有 function calling，Google 有 tool use API，
+Anthropic 有自己的 tool use 格式，
+开源社区使用各种自定义的工具调用约定。
+每个工具提供商需要为每个 LLM 平台分别适配——
+这与互联网早期每个网站需要为每个浏览器分别开发的混乱局面如出一辙。
+
+MCP 提出了一个优雅的解决方案：
+定义一个\textbf{通用的客户端-服务器协议}，
+在 LLM 应用（客户端）和工具/数据源（服务器）之间
+建立标准化的通信接口。
+技术上，MCP 使用 JSON-RPC 2.0 作为消息格式，
+支持两种传输方式：
+\texttt{stdio}（本地进程间通信）
+和 \textbf{Streamable HTTP}
+（2025 年 3 月 24 日在规范版本 2025-03-26 中引入，
+取代了早期的 HTTP+SSE 传输）。
+
+Streamable HTTP 的引入解决了早期 SSE 传输的三个工程问题：
+（1）SSE 要求始终保持长连接，
+在企业级部署中给负载均衡器造成压力；
+（2）会话范围模糊——SSE 连接断开后，
+客户端无法可靠地恢复到之前的会话状态；
+（3）安全性——持久连接增加了中间人攻击的攻击面。
+Streamable HTTP 将 MCP 请求建模为标准的 HTTP 请求-响应对，
+同时保留了通过 SSE 推送服务器端事件的能力——
+一种``按需建立连接''的设计，
+更适合云原生部署场景。
+
+\subsection{Linux 基金会接管：制度化的里程碑}
+
+2025 年 12 月 9 日，
+Linux 基金会正式宣布成立 \textbf{Agentic AI Foundation（AAIF）}，
+以 Anthropic 捐赠的 MCP 作为锚定项目。
+这一事件的意义超越了技术层面——
+它标志着 Agent 协议治理从\textbf{单一公司主导}
+转向\textbf{行业共同治理}。
+
+AAIF 的创始项目包括三个开源项目：
+MCP（Anthropic）、Goose（Block）和 AGENTS.md（OpenAI）。
+八大白金会员——AWS、Anthropic、Block、Bloomberg、
+Cloudflare、Google、Microsoft、OpenAI——
+构成了 AI 行业的核心联盟。
+这份名单本身就是一个信号：
+\textbf{竞争对手选择在协议层面合作}——
+正如 TCP/IP 和 HTTP 的历史所证明的，
+标准化协议的价值大于任何单一厂商的差异化优势。
+
+\subsection{全行业采纳的 90 天}
+
+从 2025 年 3 月到 2025 年底，
+MCP 经历了一轮闪电式的行业采纳：
+
+\textbf{OpenAI}（2025 年 3 月 26 日）。
+Sam Altman 在 X 上宣布 OpenAI 将在所有产品中支持 MCP。
+当天即在 Agents SDK 中提供 MCP 集成，
+ChatGPT Desktop 和 Responses API 随后跟进。
+2025 年 5 月 21 日，Responses API 正式支持
+所有远程 MCP 服务器——
+这意味着任何通过 MCP 标准接入的工具，
+都可以被 GPT 模型直接调用。
+
+\textbf{Google}（2025 年 5 月 13 日）。
+Google 宣布 Gemini 模型和 SDK 支持 MCP。
+2025 年 12 月 10 日，伴随 Gemini 3 的发布，
+Google Cloud 推出全托管远程 MCP 服务器，
+覆盖 Google Maps、BigQuery、GCE、GKE 等核心服务，
+\textbf{零额外费用}即时激活。
+通过 Apigee API 管理平台，
+企业可以将自有 API 暴露为 MCP 服务器——
+这是 MCP 从开发者工具向企业基础设施延伸的关键一步。
+
+\textbf{Microsoft/GitHub}（2025 年 4 月 4 日）。
+GitHub Copilot agent mode 连同 MCP 支持
+面向所有 VS Code 用户推出。
+2025 年 6 月 17 日，Visual Studio 正式支持 agent mode + MCP。
+2026 年 3 月 11 日，JetBrains IDE 中也迎来了
+主要的 agentic 能力升级——包括 custom agents、sub-agents
+和 plan agent 的全面 GA。
+
+\subsection{MCP Apps：从后端协议到前端交互}
+
+2026 年 1 月 26 日发布的 \textbf{MCP Apps}
+将 MCP 的能力边界从后端工具调用
+扩展到了\textbf{前端交互体验}。
+此前，Agent 的输出形式局限于纯文本和结构化数据；
+MCP Apps 允许工具返回\textbf{交互式 UI 组件}——
+仪表盘、表单、数据可视化、多步工作流——
+直接在对话界面中渲染。
+
+技术实现上，MCP Apps 引入了
+\texttt{ui://} 资源协议和
+\texttt{@modelcontextprotocol/ext-apps} SDK，
+通过沙箱 iframe 渲染 UI 组件，
+使用 JSON-RPC 在 Agent 和 UI 组件之间通信。
+ChatGPT、Claude、Goose 和 VS Code
+在发布时即支持 MCP Apps——
+这意味着一个 MCP App 可以同时工作在多个平台上，
+实现了``一次开发，多处运行''的生态效益。
+
+MCP Apps 的出现将 Agent 从
+``能调用工具的聊天机器人''
+升级为``能呈现复杂交互体验的工作平台''——
+这对企业级 Agent 应用尤其重要，
+因为许多业务流程需要用户在 Agent 输出的基础上
+进行交互式操作（如审批流程、数据筛选、配置管理）。
+
+\subsection{规范演进：从 2024-11-05 到 2025-11-25}
+
+MCP 规范以日期字符串（\texttt{YYYY-MM-DD}）作为版本标识，
+仅在发生不向后兼容的变更时递增。
+截至 2026 年初，当前规范版本为 \textbf{2025-11-25}，
+相较于初始版本引入了多项关键能力。
+
+\textbf{Elicitation}（2025-11-25 版本引入）。
+Elicitation 允许 MCP 服务器在处理请求的过程中
+\textbf{主动向用户索取额外信息}——
+这将 MCP 从单向的``服务器响应客户端请求''模式
+扩展为支持嵌套式交互的双向协议。
+Elicitation 支持两种模式：
+\textbf{Form 模式}（服务器通过 JSON Schema 定义表单结构，
+客户端生成输入界面，用户填写后返回结构化数据）
+和\textbf{URL 模式}（服务器将用户引导至外部 URL，
+用于涉及敏感信息的交互——
+如 OAuth 授权流程、支付流程、API 密钥输入——
+确保凭据永远不经过 MCP 客户端或 LLM 上下文）。
+URL 模式的安全设计尤为精妙：
+服务器通过 \texttt{elicitation/create} 请求发送 URL，
+客户端\textbf{必须}在用户明确同意后才能打开该 URL，
+\textbf{必须}展示完整 URL 供用户审查，
+\textbf{必须}在不允许客户端或 LLM 检视内容的安全环境中打开
+（如 iOS 的 SFSafariViewController 而非 WKWebView）。
+
+\textbf{Authorization Framework}。
+2025-11-25 版本规范化了 MCP 服务器的认证授权机制，
+基于 OAuth 2.0 / OIDC 标准。
+远程 MCP 服务器可以要求客户端通过
+标准的 OAuth 授权码流程获取访问令牌，
+并将用户身份（如 \texttt{sub} claim）与服务器端状态绑定。
+规范明确禁止了\textbf{Token Passthrough}模式——
+MCP 服务器不得将客户端的凭据直接传递给第三方服务，
+而必须作为独立的 OAuth 客户端与第三方交互。
+
+\textbf{Tool Annotations}。
+工具现在可以携带结构化的行为注解（如是否为只读操作、
+是否涉及外部网络请求、是否具有破坏性），
+供客户端在展示工具给用户时提供更精确的风险提示。
+但规范同时警告：来自不可信服务器的注解
+\textbf{不应被视为可靠的安全声明}。
+
+\subsection{FastMCP 3.0：MCP 服务器开发的事实标准}
+
+FastMCP 是 MCP 生态中最重要的服务器开发框架——
+据其维护者统计，\textbf{所有语言中约 70\% 的 MCP 服务器}
+基于某个版本的 FastMCP 构建，
+日下载量超过 100 万次。
+FastMCP 1.0 甚至被直接合并进了官方 MCP Python SDK。
+
+\textbf{FastMCP 3.0}（2025 年 2 月 18 日发布 v3.0.0，
+截至 2026 年 3 月已迭代至 v3.1.1，89 个 release）
+对架构进行了根本性重构，
+引入了 \textbf{Provider/Transform} 双层架构：
+
+\textbf{Provider 层}解决了``组件从何而来''的问题。
+v2 中所有工具必须在单一文件中注册；
+v3 引入了可插拔的 Provider 系统：
+\texttt{FileSystemProvider}（基于目录结构自动发现工具）、
+\texttt{OpenAPIProvider}（将 REST API 自动映射为 MCP 工具）、
+\texttt{ProxyProvider}（代理远程 MCP 服务器）、
+\texttt{SkillsProvider}（将 Agent 技能暴露为资源）。
+这使得一个 FastMCP 服务器可以\textbf{组合}多个数据源和 API，
+而无需手动编写每个工具的适配代码。
+
+\textbf{Transform 层}解决了``组件如何变形''的问题。
+Transform 可以对流经 Provider 链的组件进行
+重命名、命名空间隔离、过滤、版本控制和安全策略注入——
+实现了组件的声明式治理。
+
+v3 的其他关键特性包括：
+会话状态持久化（\texttt{ctx.set\_state()} / \texttt{ctx.get\_state()}）、
+动态能力适配（运行时启用/禁用组件）、
+OpenTelemetry 追踪（MCP 语义约定）、
+CLI 工具链（\texttt{fastmcp list/call/discover}）、
+以及 \texttt{-{}-reload} 热重载开发模式。
+
+\subsection{生态规模与增长}
+
+截至 2026 年 3 月，MCP 生态系统的规模已经令人瞩目：
+\begin{itemize}[noitemsep]
+  \item \textbf{SDK 下载量}：月度 SDK 下载量突破 9,700 万次
+        （2025 年 12 月捐赠时数据）
+  \item \textbf{MCP Registry}：约 2,000 个注册条目，
+        自 2025 年 9 月以来增长 407\%
+  \item \textbf{活跃服务器}：10,000+ 个公共 MCP 服务器
+  \item \textbf{FastMCP}：GitHub 23,800+ stars，
+        210+ 贡献者，7,800+ 依赖项目
+  \item \textbf{首届开发者峰会}：MCP Dev Summit North America，
+        2026 年 4 月 2--3 日，纽约
+\end{itemize}
+
+这些数字描绘了一个正在经历指数增长的生态系统。
+与 npm（JavaScript 包管理器）
+在 Node.js 早期的增长轨迹相比，
+MCP 的生态扩张速度更快——
+因为 MCP 服务器的开发门槛远低于传统的软件包，
+一个简单的 API 封装通常只需数十行代码。
+
+\subsection{企业部署模式}
+
+随着 MCP 从开发者工具向企业基础设施演进，
+几种典型的企业部署模式已经成形：
+
+\textbf{Gateway 模式}。
+企业通过 API 网关（如 Google Apigee、Kong、AWS API Gateway）
+统一暴露内部 API 为 MCP 服务器。
+Google Cloud 在 2025 年 12 月推出的全托管远程 MCP 服务器
+即采用此模式——
+通过 Apigee 将 BigQuery、GCE、GKE 等服务
+自动转换为 MCP 端点，零额外配置。
+
+\textbf{Sidecar 模式}。
+MCP 服务器作为微服务的 sidecar 部署，
+每个微服务自带其能力的 MCP 描述。
+Agent 通过服务发现机制定位可用工具——
+这与 Kubernetes 中的 service mesh 模式异曲同工。
+
+\textbf{Registry + Auth 模式}。
+企业维护一个内部 MCP Registry，
+所有服务器在 Registry 中注册并附带 OAuth 配置。
+Agent 通过 Registry 发现工具、
+通过 OAuth 获取授权、
+通过 Streamable HTTP 与服务器通信——
+整个流程在企业身份认证体系内闭环。
+
+\subsection{MCP 的深层架构解析}
+
+要理解 MCP 为什么能成为标准，
+需要深入其技术架构的设计哲学。
+
+\textbf{三大原语}。
+MCP 协议围绕三种核心原语构建：
+
+\textbf{Tools}（工具）——Agent 可以调用的操作。
+每个 Tool 通过 JSON Schema 声明其参数类型和返回值格式，
+Agent（通过 LLM 的 function calling 能力）
+选择合适的 Tool 并构造参数。
+关键设计决策是 Tool 的描述采用\textbf{自然语言}——
+``Search for files matching a pattern in the codebase''
+而非机器可读但人类难以理解的类型签名。
+这使得 LLM 可以直接通过语义理解来选择工具，
+而不需要精确的类型匹配——
+大大降低了工具开发的门槛。
+
+\textbf{Resources}（资源）——Agent 可以读取的数据源。
+资源通过 URI 寻址（如 \texttt{file:///path/to/doc}
+或 \texttt{db://users/123}），
+支持 MIME 类型声明，
+可以是静态的（文件内容）或动态的（实时数据）。
+资源与工具的分离是一个重要的设计选择——
+它允许 Agent 在不执行任何操作的情况下
+\textbf{只读地}获取上下文信息，
+减少了误操作的风险。
+
+\textbf{Prompts}（提示模板）——
+可复用的交互模板，
+包含预定义的指令结构和参数占位符。
+Prompt 原语使得 MCP 服务器不仅能提供``做什么''（Tool），
+还能提供``怎么做''（Prompt）——
+相当于工具附带了使用说明书。
+
+\textbf{客户端-服务器模型}的设计
+刻意选择了\textbf{不对称}的权力关系：
+MCP 客户端（LLM 应用端）拥有最终的控制权——
+它决定是否展示工具给 LLM、
+是否执行 LLM 请求的工具调用、
+如何呈现结果给用户。
+MCP 服务器（工具提供端）只能\textbf{声明}能力，
+不能\textbf{强制}客户端使用。
+这种不对称设计是安全模型的基础——
+客户端始终是``最后一道防线''，
+即使服务器被恶意控制，
+客户端也可以拒绝执行可疑的操作。
+
+\textbf{与 OpenAI Function Calling 的比较}
+揭示了 MCP 的差异化价值。
+OpenAI 的 function calling 是一种
+\textbf{LLM 输出格式}——
+模型在 completion 中输出结构化的 JSON 函数调用，
+由应用代码负责执行。
+MCP 是一种\textbf{通信协议}——
+它标准化了 LLM 应用与工具之间的发现、
+调用和结果返回的完整流程。
+二者不是竞争关系，而是不同层次的抽象：
+function calling 决定了``LLM 如何表达工具调用的意图''，
+MCP 决定了``这个意图如何被传递给正确的工具提供者
+并获取结果''。
+OpenAI 在自己的 Agents SDK 中支持 MCP，
+正是因为两者服务于不同的需求。
+
+\textbf{安全模型}是 MCP 设计中最深思熟虑的部分。
+MCP 规范定义了多层安全防线：
+\textbf{传输安全}（Streamable HTTP 支持 TLS）、
+\textbf{认证授权}（OAuth 2.0 / OIDC）、
+\textbf{Tool Annotations}（工具行为标注——
+是否为只读、是否涉及外部网络、是否具有破坏性）、
+以及\textbf{人在环路}原则——
+规范建议高风险操作必须经过用户确认。
+但规范也坦诚地承认了安全模型的局限：
+来自不可信服务器的 Tool Annotations
+\textbf{不应被视为可靠的安全声明}——
+恶意服务器可以将危险工具标记为``安全''。
+最终的安全保障必须来自客户端的独立验证，
+而不是依赖服务器的自我声明。
+
+\begin{whybox}[为什么 MCP 能成为标准？]
+回顾历史，协议标准化的成功通常需要三个条件：
+（1）\textbf{足够强的初始推动者}——Anthropic 作为 MCP 的创建者，
+自身就是 frontier LLM 的提供商，
+赋予了 MCP 天然的可信度；
+（2）\textbf{足够低的采纳成本}——MCP 基于 JSON-RPC，
+开发者不需要学习新的序列化格式或通信范式；
+（3）\textbf{竞争对手的合作意愿}——
+OpenAI、Google 和 Microsoft 选择采纳 MCP
+而非推出自己的竞争协议，
+是因为工具生态的碎片化对所有人都是成本。
+HTTP 的成功同样依赖于类似的动态——
+没有一家公司能独占网络协议，
+但所有人都从标准化中受益。
+\end{whybox}
+
+
+\section{Agent SDK 三国志}
+\label{sec:agent-sdk-wars}
+
+如果 MCP 定义了 Agent 与工具交互的``语言''，
+那么 Agent SDK 定义了 Agent 的``操作系统''——
+如何编排多个 Agent、如何管理任务流转、
+如何实现可靠的错误恢复。
+2025--2026 年，三家头部 AI 公司
+先后发布了各自的 Agent SDK，
+形成了三种截然不同的架构哲学。
+
+\subsection{Anthropic Agent SDK：CLI 运行时的编程化封装}
+
+Anthropic 的 Agent SDK（Python 包名 \texttt{claude-agent-sdk}，
+TypeScript 包名 \texttt{@anthropic-ai/claude-code}）
+在 2026 年初发布，
+其架构选择在三家 SDK 中最为独特——
+它本质上是 \textbf{Claude Code CLI 的编程化封装}。
+
+这意味着通过 SDK 创建的 Agent
+继承了 Claude Code 的全部内置能力：
+文件读写、bash 命令执行、git 操作、
+代码搜索（Glob/Grep）——
+这些工具不是通过 MCP 外挂的，
+而是 Agent 运行时的\textbf{原生能力}。
+Agent 在一个真实的开发环境中工作，
+拥有与人类开发者\textbf{相同的工具和权限}。
+
+SDK 的核心抽象包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{生命周期钩子}（Hooks）：
+        \texttt{PreToolUse}、\texttt{PostToolUse}、
+        \texttt{PermissionRequest}、\texttt{SubagentStart}、
+        \texttt{StopFailure}、\texttt{PostCompact}、
+        \texttt{Elicitation}、\texttt{Notification} 等事件钩子，
+        允许开发者在 Agent 的每个决策点插入自定义逻辑
+  \item \textbf{子代理系统}（Subagents）：
+        主 Agent 可以创建专门化的子 Agent，
+        每个子 Agent 独立运行、拥有自己的上下文和工具集
+  \item \textbf{会话管理}：
+        通过 \texttt{list\_sessions()} 和
+        \texttt{get\_session\_messages()}
+        实现会话持久化和跨会话上下文恢复
+  \item \textbf{运行时 MCP 管理}：
+        通过 \texttt{add\_mcp\_server()} 和
+        \texttt{remove\_mcp\_server()}
+        动态管理 Agent 可用的 MCP 工具
+  \item \textbf{Thinking 配置}：
+        可编程地控制 Agent 的推理预算
+\end{itemize}
+
+Hooks 系统的设计哲学值得深入剖析。
+与传统的事件监听器不同，
+Anthropic 的 Hooks 可以\textbf{拦截和修改} Agent 的行为——
+例如，\texttt{PreToolUse} 钩子不仅能记录工具调用，
+还能返回 \texttt{deny} 阻止调用、
+或返回修改后的参数重定向调用目标。
+\texttt{PermissionRequest} 钩子可以实现
+完全自定义的权限策略，
+替代 Claude Code 内置的 allow/deny 规则系统。
+这使得企业可以在不修改 Agent 核心逻辑的情况下
+注入合规审计、成本控制和安全策略——
+一种面向切面编程（AOP）在 Agent 系统中的应用。
+
+截至 2026 年 3 月，SDK 版本已迭代至 v0.1.48，
+在不到两个月内发布了近 20 个版本——
+体现了 Anthropic 在 Agent 开发工具上的激进迭代节奏。
+
+\subsection{OpenAI Agents SDK：API 编排框架}
+
+OpenAI 的 Agents SDK 于 2025 年 3 月 11 日开源发布，
+定位明确：\textbf{Swarm 框架的生产级演进}。
+（Swarm 于 2024 年 10 月发布，
+定位为实验性教育项目。GitHub 仓库上
+明确标注``Swarm is now replaced by the OpenAI Agents SDK''。）
+
+与 Anthropic SDK 的``CLI 运行时包装''路线不同，
+OpenAI SDK 是一个\textbf{纯 API 层面的编排框架}——
+它不提供内置的文件操作或代码执行能力，
+而是通过 Responses API 的 function calling 机制
+让 Agent 调用外部工具。
+
+SDK 的核心概念只有三个：
+\begin{itemize}[noitemsep]
+  \item \textbf{Agent}：LLM + Tools + Instructions 的组合
+  \item \textbf{Handoffs}：Agent 之间的任务转移机制——
+        一个 Agent 可以将当前任务``交接''给另一个 Agent，
+        附带完整的上下文
+  \item \textbf{Guardrails}：输入/输出验证器——
+        在 Agent 执行前后自动检查安全约束
+\end{itemize}
+
+这种极简设计的优势是\textbf{灵活性}——
+开发者可以自由组合 Agent、工具和验证器，
+不被框架的内置能力所限制。
+劣势是\textbf{开箱即用的能力较弱}——
+要实现与 Claude Code 类似的代码编辑能力，
+开发者需要自行集成文件操作工具。
+
+OpenAI SDK 发布当天即支持 MCP，
+并内置了 Tracing/Observability——
+所有 Agent 的决策路径、工具调用和中间结果
+都可以被记录和回放，
+对于调试多步骤 Agent 任务至关重要。
+
+\textbf{Tracing 架构}是 OpenAI SDK 相对于竞品的一大差异化优势。
+每次 Agent 运行会自动生成一棵完整的追踪树，
+记录每个 Agent 的推理过程、每次工具调用的输入/输出、
+每次 Handoff 的上下文传递内容、
+以及 Guardrails 的验证结果。
+追踪数据可以通过 OpenAI Dashboard 可视化回放——
+开发者可以像调试传统程序一样
+``逐步回放''一次多 Agent 工作流的完整执行路径，
+定位失败节点和性能瓶颈。
+这种内置的可观测性在 Agent 系统调试中价值巨大——
+传统的 \texttt{print} 调试法
+在多 Agent 并发执行的场景中几乎失效。
+
+SDK 还提供了 \textbf{Sessions} 机制——
+跨多次 Agent 运行的自动对话历史管理，
+以及 \textbf{Human-in-the-Loop} 原语——
+在 Agent 需要人类决策时暂停执行、
+等待人类输入后恢复，
+为关键决策点提供了结构化的干预接口。
+
+截至 2026 年 3 月，OpenAI Agents SDK 已迭代至 v0.12.5，
+GitHub 20,100+ stars，74 个 release，
+同时提供 Python 和 JavaScript/TypeScript 版本，
+支持 OpenAI 以及 100+ 其他 LLM 供应商——
+这种供应商无关的设计是 OpenAI 向开发者生态妥协的信号。
+
+\subsection{Google ADK：全栈多代理框架}
+
+Google 的 Agent Development Kit（ADK）
+于 2025 年 4 月 9 日在 Google Cloud NEXT 上开源发布，
+Python v1.0.0 于 2025 年 5 月 29 日发布，
+Go 语言支持于 2025 年 11 月 25 日发布，
+2025 年 12 月 11 日新增 Interactions API
+（有状态多轮代理工作流）。
+
+ADK 在三家 SDK 中覆盖范围最广——
+它不仅提供 Agent 编排能力，
+还包含从本地开发到云端部署的完整工具链：
+\textbf{Agent Engine Runtime}（Vertex AI 上的全托管部署）、
+\textbf{Interactions API}（有状态多轮工作流）、
+以及 \textbf{ADK 2.0 Alpha} 引入的 graph-based workflow
+（基于有向图的工作流定义）。
+
+Google ADK 的另一个独特贡献是
+\textbf{A2A（Agent-to-Agent）协议}——
+与 MCP 定义 Agent-工具交互不同，
+A2A 定义了\textbf{不透明 Agent 之间}的通信标准。
+这个``不透明''的限定至关重要：
+A2A 假设协作的 Agent 彼此不知道对方的内部状态、
+记忆或工具集——
+它们通过标准化的接口发现能力、协商交互模式、
+在长时间运行的任务上安全协作。
+
+A2A 的技术实现同样基于 JSON-RPC 2.0 over HTTP(S)，
+支持三种交互模式：
+同步请求-响应、SSE 流式传输和异步推送通知。
+Agent 通过 \textbf{Agent Card}（类似于 MCP 的能力声明）
+暴露自己的能力和连接参数，
+支持文本、文件和结构化 JSON 的富数据交换。
+截至 2026 年 3 月，A2A 提供 Python、Go、JavaScript、
+Java 和 .NET 五种语言的 SDK，
+GitHub 22,700+ stars——
+DeepLearning.AI 联合 Google Cloud 和 IBM Research
+已发布了专项课程。
+
+A2A 和 MCP 的分层关系可以这样理解：
+MCP 是``Agent-工具''层（垂直整合），
+A2A 是``Agent-Agent''层（水平协作）。
+一个完整的 Agent 系统可能同时使用两种协议——
+通过 MCP 调用数据库、API 和文件系统，
+通过 A2A 与其他 Agent 团队协调分工。
+两个协议都已纳入 Linux 基金会 AAIF 的治理范围，
+这种分层设计（工具协议 + 代理协议）
+正在成为 Agent 生态的标准架构模式。
+
+\subsection{三种哲学的对比}
+
+\begin{table}[H]
+\centering\small
+\caption{三大 Agent SDK 架构对比（2026 年 3 月）}
+\begin{tabularx}{\linewidth}{l X X X}
+\toprule
+\textbf{维度} & \textbf{Anthropic Agent SDK} & \textbf{OpenAI Agents SDK} & \textbf{Google ADK} \\
+\midrule
+发布时间 & 2026 年初 & 2025-03-11 & 2025-04-09 \\
+核心理念 & CLI 运行时包装 & API 编排框架 & 全栈多代理框架 \\
+内置工具 & 文件、bash、git & 无（需外部集成） & 部分 Google 服务 \\
+代理间通信 & Subagent 任务系统 & Handoffs & A2A 协议 \\
+工具标准 & 原生 + MCP & Function calling + MCP & Function calling + MCP \\
+部署模式 & 本地 CLI & 云/本地 & Vertex AI Agent Engine \\
+调试能力 & 终端输出 + JSONL 日志 & 内置 Tracing & Cloud Trace + Logging \\
+设计权衡 & 开箱即用 vs.\ 平台锁定 & 灵活 vs.\ 能力稀薄 & 全面 vs.\ 复杂 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+三种 SDK 的设计差异反映了
+三家公司对 Agent 的不同理解：
+Anthropic 认为 Agent 应该是
+\textbf{在真实环境中工作的开发者伙伴}；
+OpenAI 认为 Agent 应该是
+\textbf{通过 API 编排的轻量级服务}；
+Google 认为 Agent 应该是
+\textbf{在云基础设施上运行的企业级系统}。
+这三种路线并非互斥——
+它们各自适合不同的使用场景。
+但从 2026 年初的社区采纳来看，
+Anthropic 的 Agent SDK 因其``开箱即用''的代码编辑能力
+在开发者社区中获得了最高的满意度，
+而 OpenAI 的 Agents SDK 因其灵活性
+在企业级多 Agent 系统中更受欢迎。
+
+
+\section{代码 Agent：软件工程的范式革命}
+\label{sec:code-agents-revolution}
+
+如果用一个数字来概括代码 Agent 在两年内的进化，
+那就是 SWE-bench Verified 从 2024 年初的约 5\%
+到 2026 年初约 80\% 的解决率——
+\textbf{16 倍的能力跃升}。
+这不是渐进改良，而是范式革命。
+
+\subsection{Claude Code：从终端工具到多 Agent 平台}
+
+\textbf{Claude Code 1.0}（2025 年 2 月 24 日以研究预览版发布）
+最初只是一个终端工具——
+能对话、编辑文件、运行 bash 命令、管理 git 提交。
+但它的设计理念从一开始就与 IDE 插件截然不同：
+\textbf{给予 Agent 与人类开发者相同的工具和权限}。
+Agent 不是在沙箱中运行的代码片段生成器，
+而是在真实文件系统和 shell 环境中工作的开发伙伴。
+
+2025 年全年，Claude Code 经历了四个演进阶段，
+逐步发展出 MCP 集成、自定义斜杠命令、
+持久化项目记忆（\texttt{CLAUDE.md}）、
+headless 模式（无人值守自主编程）等核心能力。
+
+\textbf{Claude Code 2.0}（2026 年 2 月前后，伴随 Claude Opus 4.6 发布）
+引入了三个变革性功能：
+
+\textbf{Agent Teams}（研究预览版）。
+一条命令可以生成 2--16 个专门化 Agent 并行工作。
+每个 Agent 拥有独立的上下文和工具集，
+可以直接相互通信和协调。
+通过 \textbf{git worktree 支持}，
+每个 Agent 在独立的代码副本中工作，
+实现了真正的并行开发而不互相干扰——
+这解决了多 Agent 代码编辑中
+文件锁定和合并冲突的核心工程问题。
+Agent Teams 使用约 7 倍于单次会话的 token，
+但可以将复杂任务的完成时间缩短 70--80\%。
+通过 tmux 支持，用户可以逐 Agent 观察进度和重定向输出。
+
+\textbf{Background Agents}（v2.0.60+）。
+按 \texttt{Ctrl+B} 可以将子 Agent 移到后台继续运行，
+用户回到主会话继续其他工作。
+Agent 完成后自动返回结果——
+这实现了异步 Agent 编排的工作流，
+让开发者不再被单一 Agent 的执行时间所阻塞。
+
+\textbf{CI/CD 原生集成}。
+Agent 可以直接触发构建、测试和部署流水线，
+将代码 Agent 从辅助工具升级为
+软件工程工作流的\textbf{核心参与者}。
+
+截至 2026 年 3 月 20 日，
+Claude Code 版本已迭代至 v2.1.80，
+在 GitHub 上获得 80,200+ stars 和 6,600+ forks。
+v2.1.x 系列的迭代节奏极为激进——
+几乎每天一个版本——
+持续引入深化 Agent 能力的新功能：
+
+\textbf{\texttt{/remote-control}}（v2.1.79）。
+将终端会话桥接到 claude.ai/code 的 Web 界面，
+用户可以从浏览器甚至手机上继续终端中的工作。
+这打破了 CLI 工具``必须守在终端前''的限制——
+开发者可以在笔记本上启动一个复杂的重构任务，
+然后在手机上监控进度并提供指导。
+
+\textbf{AI 生成的会话标题}（v2.1.79）。
+每个会话根据第一条消息自动生成描述性标题，
+在多会话并行工作时提供快速导航——
+这是一个看似微小但实际上显著提升
+多任务工作流体验的设计决策。
+
+\textbf{MCP Elicitation 支持}（v2.1.76）。
+Agent 现在可以在任务中途弹出交互式对话框，
+向用户索取结构化输入——
+将 MCP 规范 2025-11-25 的 Elicitation 特性
+从协议层落地到了产品层。
+
+\textbf{百万 token 上下文}（v2.1.75）。
+Opus 4.6 的默认上下文窗口在 Max、Team 和 Enterprise 计划上
+扩展至 1M token——
+使 Agent 可以一次性理解整个大型代码库的结构。
+
+\textbf{\texttt{/loop} 命令}（v2.1.71）。
+定时循环执行提示或命令（如 \texttt{/loop 5m check the deploy}），
+实现了 cron 风格的周期性 Agent 任务——
+将 Agent 从``一次性执行''扩展到``持续监控''。
+
+\textbf{Effort 级别控制}（v2.1.72）。
+简化为 low/medium/high 三级，
+让用户在推理深度和响应速度之间精确权衡。
+
+Anthropic 报告 Claude 4 发布后收入增长 4.5 倍，
+Claude Code 已成为 Anthropic 增长最快的产品线。
+
+\subsection{Codex CLI：OpenAI 的终端对手}
+
+OpenAI 的 Codex CLI 于 2025 年 4 月 16 日首次发布，
+最初以 TypeScript/Node.js 实现。
+2025 年 6 月以 Rust 完全重写（基于 Ratatui TUI 框架），
+弃用了 Node 版本——
+这一技术选择反映了性能是终端工具的核心竞争力。
+
+2025 年 5 月 16 日，Codex 的云端版本在 ChatGPT 侧边栏发布，
+由专用的 codex-1 模型驱动。
+但真正的转折点是 2026 年 2 月 2 日发布的
+\textbf{Codex Desktop App}（macOS）——
+一个原生的多 Agent 管理界面。
+Desktop App 不是 CLI 的简单 GUI 包装，
+而是一个独立的 Agent 编排平台：
+支持同时运行多个并行任务，
+每个任务在独立的沙箱环境中执行，
+用户可以在一个统一的仪表盘中监控所有 Agent 的进度、
+审查代码变更和批准关键操作。
+2026 年 3 月 4 日 Windows 版本跟进——
+OpenAI 在 Codex 上的跨平台策略
+明显受到了 Claude Code 在 macOS 上成功的刺激。
+
+截至 2026 年 3 月 16 日，
+Codex CLI 已迭代至 rust-v0.115.0，
+在 GitHub 上获得 66,000+ stars。
+核心功能包括语法高亮、语音输入（空格键录音）、
+子 Agent fork、多 Agent CSV 工作流、
+实时 WebSocket 会话和 Smart Approvals。
+据 OpenAI 数据，每周超过 100 万开发者使用 Codex，
+自 2026 年 1 月以来使用量增长 5 倍。
+
+\subsection{编码 Agent 生态全景}
+
+2026 年初的编码 Agent 市场已经形成了清晰的分层：
+
+\textbf{自主级}（最大自主性，最少人类干预）。
+\textbf{Devin}（Cognition AI）是这个层级的代表。
+2025 年 7 月 14 日，Cognition 宣布收购 Windsurf，
+将 Devin 的自主编程能力与 IDE 的交互体验融合。
+这一收购发生在 Google 以 24 亿美元
+反向收购 Windsurf CEO Varun Mohan 和核心研发团队之后——
+AI 编程工具的并购整合正在加速。
+2025 年 9 月 8 日，Cognition 完成 4 亿美元融资，
+估值 102 亿美元。
+
+\textbf{终端级}（高自主性，命令行交互）。
+Claude Code 和 Codex CLI 是这个层级的双雄，
+但开源社区同样贡献了重要的终端 Agent。
+
+\textbf{Aider}（Paul Gauthier，2023 年至今）
+是最早的 AI pair programming 工具之一，
+以``精确的外科手术式代码修改''著称。
+截至 2026 年 3 月，Aider v0.86.0 拥有
+GitHub 42,200+ stars、PyPI 570 万+ 安装量，
+每周处理 150 亿+ token——
+位列 OpenRouter 应用使用量前 20。
+Aider 的独特之处在于其``自举''能力：
+最近版本中 88\% 的新代码
+\textbf{由 Aider 自身编写}——
+这是代码 Agent 自我改进能力的一个里程碑式指标。
+其代码库映射（repository map）技术——
+通过 Tree-sitter 分析代码库的 AST 结构
+为 LLM 提供精简但完整的代码库理解——
+已被多个竞品借鉴。
+
+\textbf{Goose}（Block，前 Square）
+是 AAIF 的三个创始项目之一，
+定位为``本地、可扩展的开源 AI 工程 Agent''。
+截至 2026 年 3 月 v1.28.0，
+GitHub 33,300+ stars，426 位贡献者，
+以 Rust（59.2\%）和 TypeScript（33.2\%）混合实现。
+Goose 的独特优势是 \textbf{LLM 无关性}——
+可以在不同 LLM 之间切换以优化成本和性能。
+它同时提供桌面应用和 CLI 两种交互方式，
+并且深度集成 MCP 服务器——
+作为 AAIF 创始项目，Goose 是 MCP 生态的早期验证者。
+
+\textbf{IDE 集成级}（中等自主性，图形化交互）。
+\textbf{Cursor} 以其 Agent Mode 领先——
+可自主分析代码库、进行多文件编辑、运行终端命令。
+2026 年 3 月引入 Subagents——
+独立的专业化 Agent 在主 Agent 控制下并行运行。
+Cursor 的三种模式（Plan/Ask/Agent）
+提供了渐进式的自主性控制。
+
+\textbf{Cline}（VS Code 扩展，Apache 2.0）
+是 IDE 集成级中的开源标杆，
+GitHub 59,200+ stars，5,000+ 贡献者。
+Cline 的核心设计原则是 \textbf{Human-in-the-Loop}——
+每次文件修改和终端命令都需要用户在 diff 视图中审批，
+在自动化与安全之间取得了谨慎的平衡。
+通过 MCP 集成，Cline 支持用户自定义工具扩展；
+通过 Computer Use 功能，
+Cline 可以启动浏览器、点击元素、输入文本并截图——
+实现了从代码编写到端到端测试的全链路自动化。
+Cline 支持 10+ AI 提供商
+（Anthropic、OpenAI、Google、AWS Bedrock、Azure 等），
+使其成为 Agent 生态中供应商锁定风险最低的选择之一。
+
+\textbf{GitHub Copilot} 的 agentic 能力
+经历了一段清晰的演进时间线：
+2025 年 2 月开始 agent mode 预览，
+2025 年 4 月 4 日面向所有 VS Code 用户推出
+agent mode + MCP 支持，
+2025 年 6 月 17 日 Visual Studio 正式支持，
+2026 年 1 月引入 Plan mode（Shift+Tab 切换），
+2 月新增模型选择器，
+2026 年 3 月 5 日代码审查切换到 agentic 架构，
+2026 年 3 月 11 日 JetBrains IDE 迎来重大 agentic 能力升级
+（custom agents、sub-agents、plan agent 全面 GA）。
+同月，Copilot coding agent 的启动速度提升 50\%，
+集成语义代码搜索进一步加速 Agent 工作效率。
+2026 年 3 月 5 日还公开预览了
+\textbf{Copilot coding agent for Jira}——
+将代码 Agent 的触发源从 GitHub Issues 扩展到项目管理工具。
+Copilot 的独特优势始终是与 GitHub 生态的深度集成——
+Agent 可以直接创建 PR、触发 Actions 工作流、
+跳过审批自动运行 Agent 发起的 CI 流水线。
+
+\textbf{Augment Code} 走了企业级路线——
+2026 年 2 月发布的 \textbf{Context Engine MCP}
+将其语义搜索引擎通过 MCP 开放给任何 MCP 兼容 Agent，
+在基准测试中使 Agent 性能提升 70\%+。
+其 \textbf{Intent} 产品（2026 年 2 月公开 Beta）
+引入了规范驱动的多 Agent 工作空间——
+\textbf{Coordinator}（任务分解和编排）、
+\textbf{Specialist}（领域专家执行）、
+\textbf{Verifier}（结果验证和回归测试）
+的三层编排模型。
+Intent 的核心理念是``specs are infrastructure''——
+将需求规范视为基础设施而非文档，
+Agent 从规范中自动推导实现策略，
+而非依赖自然语言指令的临场理解。
+Augment 取得了 SOC 2 Type II + ISO/IEC 42001 合规认证——
+这在代码 Agent 领域尚属首例，
+对企业级采纳的信心建设意义重大。
+2026 年 3 月 5 日，Augment 宣布 GPT-5.4
+成为其默认模型并限时免费——
+展示了 Agent 平台作为模型聚合层的商业模式灵活性。
+
+\textbf{OpenHands}（原名 OpenDevin，开源社区项目）
+代表了代码 Agent 开源运动的重要力量。
+OpenHands 的核心理念是构建一个
+\textbf{完全开源的 Devin 替代品}——
+提供从任务接收到代码交付的全流程自主编程能力，
+但不被任何商业公司控制。
+截至 2026 年初，OpenHands 在 SWE-bench Verified 上
+达到了约 55\% 的解决率——
+虽然低于商业竞品，但对于一个社区驱动的项目来说
+已经是令人印象深刻的成绩。
+OpenHands 的可插拔架构
+允许切换底层 LLM（支持 OpenAI、Anthropic、开源模型），
+对于成本敏感或需要数据主权的场景提供了灵活性。
+
+\textbf{SWE-agent}（Princeton NLP Group，2024 年发布）
+是学术界对代码 Agent 的重要贡献。
+SWE-agent 的核心创新是
+\textbf{Agent-Computer Interface（ACI）}的设计——
+一个为 LLM 量身定制的终端交互接口，
+使 LLM 能够更有效地浏览代码、
+定位文件和编辑代码。
+ACI 的设计洞察是：
+人类使用的 IDE 和终端界面
+是为\textbf{人类的认知特点}而设计的
+（如语法高亮、折叠代码块、搜索框），
+LLM 需要一个为\textbf{它的认知特点}而设计的接口
+（如结构化的文件树输出、
+精确的行号引用、原子化的编辑命令）。
+这个``为 AI 设计界面''的理念
+正在影响后续所有代码 Agent 的工具设计。
+
+\subsection{代码 Agent 的实际使用模式}
+
+到 2026 年初，
+代码 Agent 的实际使用模式已经明显分化。
+
+\textbf{``AI-first'' 开发}——
+从零开始，完全由 Agent 主导代码生成。
+适用于原型开发、
+标准化的 CRUD 应用和明确定义的小型功能。
+开发者的角色是``产品经理''——
+用自然语言描述需求，
+审查和测试 Agent 的输出。
+
+\textbf{``AI-augmented'' 开发}——
+人类主导架构设计和核心逻辑，
+Agent 负责实现细节、
+编写测试、重构和代码审查。
+这是 2026 年初最常见的使用模式——
+开发者和 Agent 形成``结对编程''的协作关系，
+Agent 承担约 40--60\% 的代码编写量。
+
+\textbf{``AI-supervised'' 维护}——
+Agent 在 CI/CD 管道中自动处理
+lint 修复、依赖更新、安全漏洞修补
+和简单的 bug 修复，
+人类仅在 Agent 无法自主解决时介入。
+Claude Code 的 headless 模式和
+GitHub Copilot 的 coding agent
+是这种模式的主要载体。
+多家科技公司报告，
+通过 AI-supervised 维护，
+它们的 bug 修复平均响应时间
+从数天缩短到了数小时。
+
+\textbf{代码审查的 AI 化}。
+2026 年 3 月，GitHub Copilot
+将其代码审查功能切换到\textbf{agentic 架构}——
+不再仅仅标注潜在问题，
+而是自主理解 PR 的完整上下文，
+分析代码变更对整体架构的影响，
+并生成具体的改进建议。
+这标志着代码 Agent 的影响
+从``写代码''扩展到了``审代码''——
+软件工程生命周期的另一半。
+
+\subsection{SWE-bench：从 5\% 到 80\% 的两年进化}
+
+SWE-bench 是衡量代码 Agent 真实工程能力的核心基准。
+它要求 Agent 修复来自真实 GitHub 仓库的 issue——
+不是教科书式的编程题，
+而是涉及多文件修改、测试编写和回归验证的完整工程任务。
+
+SWE-bench Verified（经人工验证的高质量子集）
+的解决率演变轨迹清晰地标注了 Agent 能力的进化节点：
+
+\begin{center}
+\begin{tabular}{llr}
+  \hline
+  \textbf{时间} & \textbf{里程碑模型} & \textbf{解决率} \\
+  \hline
+  2024 年初 & 早期 Agent 系统 & $\sim$5\% \\
+  2024 年中 & SWE-Agent (GPT-4) & $\sim$12\% \\
+  2024 年底 & Claude 3.5 Sonnet & $\sim$49\% \\
+  2025 年初 & Devin, OpenHands & $\sim$55\% \\
+  2025 年中 & Claude Sonnet 4 & $\sim$72\% \\
+  2025 年底 & Claude Opus 4.5 & $\sim$75\% \\
+  2026 年初 & Claude Opus 4.6 Thinking & 79.2\% \\
+  2026 年 2 月 & MiniMax M2.5 & 80.2\% \\
+  \hline
+\end{tabular}
+\end{center}
+
+然而，SWE-bench Verified 的高分
+可能部分受到数据污染和过拟合的影响。
+SWE-bench 官方已扩展出多个变体以应对这一问题：
+\textbf{SWE-bench Multilingual}（多语言覆盖）、
+\textbf{SWE-bench Multimodal}（多模态任务）
+和 \textbf{SWE-bench Lite}（轻量子集）。
+更严格的 \textbf{SWE-bench Pro}
+（包含 1,865 个多语言问题）
+显示当前最优系统的解决率仅为 $\sim$44\%——
+Augment Code 的 Auggie（基于 Opus 4.5）
+在 Agent Systems 排行榜得分 51.8\%。
+SWE-bench Pro 的分数之所以远低于 Verified，
+原因在于三个方法论差异：
+（1）问题来源从 Python 单语言扩展到多语言，
+Agent 必须处理不同的构建系统和测试框架；
+（2）问题复杂度更高，
+平均涉及的文件数和修改行数显著增加；
+（3）评估更严格——
+不仅检查测试是否通过，
+还验证修改是否引入了新的回归问题。
+从 benchmark 到真实软件工程仍有相当距离。
+
+\textbf{Terminal-Bench 2.0} 是另一个重要的 Agent 评估基准，
+它测量的不是代码修复能力，
+而是 Agent 在终端环境中的\textbf{通用工程能力}——
+包括编译 Linux 内核、配置 Git 服务器、
+生成 OpenSSL 证书、训练 FastText 模型等
+跨越系统管理、安全、数据科学和 DevOps 的 89 个任务。
+Terminal-Bench 2.0 的结果揭示了一个有趣的分层：
+Claude Opus 4.6 驱动的 ForgeCode 以约 82\% 的准确率领先，
+Gemini 3.1 Pro 驱动的 TongAgents 以约 80\% 紧随其后——
+这些数字证明 frontier 级模型在通用终端操作上
+已经达到了可靠的工程助手水平。
+
+\begin{warnbox}[编码范式的三个阶段]
+代码 Agent 正在推动软件工程范式的根本转变：
+
+\textbf{阶段一：补全}（2021--2023）——
+GitHub Copilot 风格，逐行或逐函数补全代码。
+人类主导写代码，AI 提供建议。
+改变的是打字速度，不是思维方式。
+
+\textbf{阶段二：对话式编程}（2023--2025）——
+通过自然语言描述需求，Agent 生成或修改代码块。
+人类审查并接受/拒绝。Cursor、Claude Code 主要在这个阶段。
+改变的是表达方式——从写代码到说需求。
+
+\textbf{阶段三：委托式编程}（2025--）——
+将完整的任务委托给 Agent。
+Agent 自主完成规划、实现和测试，
+人类仅在关键决策点介入。
+Claude Code 的 Agent Teams 和 Devin 指向这个方向。
+改变的是\textbf{角色}——从开发者到审查者。
+
+从阶段二到阶段三的跨越
+是 2026 年编码 Agent 面临的核心挑战，
+需要 Agent 具备更强的规划能力、
+错误恢复能力和对不确定性的处理能力。
+\end{warnbox}
+
+
+\section{Computer Use Agent：从代码到桌面}
+\label{sec:computer-use-agents}
+
+代码 Agent 在终端和 IDE 中工作，
+但人类的日常工作远不止写代码——
+我们在浏览器中查资料、在 Slack 中沟通、
+在 Google Docs 中写文档、在 Jira 中管理项目。
+\textbf{Computer Use Agent}（计算机使用代理）
+试图让 AI 像人类一样操作任意桌面应用——
+通过理解屏幕截图和控制鼠标/键盘来完成任务。
+
+\subsection{Claude Computer Use：截图-动作循环}
+
+Anthropic 在 2024 年 10 月率先发布了
+\textbf{Claude Computer Use}（beta），
+开创了``\textbf{截图 → 理解 → 动作}''的基本范式。
+
+工作流程是一个紧密的循环：
+（1）Agent 请求当前屏幕的截图；
+（2）Claude 的视觉理解能力分析截图内容——
+识别按钮、文本框、菜单、图标的位置和功能；
+（3）Agent 生成动作指令——
+移动鼠标到坐标 $(x, y)$、点击、
+输入文本、按下快捷键；
+（4）动作执行后，回到步骤 (1) 获取新的截图。
+
+这种基于\textbf{像素级理解}的方法有一个本质优势：
+\textbf{它不需要应用提供 API}。
+任何有图形界面的软件——
+无论是现代的 SaaS 应用还是遗留的桌面程序——
+都可以被 Computer Use Agent 操作。
+这对企业场景尤其重要，
+因为许多关键业务系统
+（ERP、CRM、内部工具）没有开放的 API，
+传统的 RPA（Robotic Process Automation）
+需要为每个应用定制脆弱的自动化脚本，
+而 Computer Use Agent 只需要``看屏幕''就能工作。
+
+2026 年初，Computer Use 的能力进一步提升：
+Claude Opus 4.6 的视觉理解精度
+使得 Agent 可以处理更复杂的界面——
+包括多层嵌套的菜单、
+动态渲染的 Web 应用和
+小字体、密集布局的专业软件界面。
+Claude Code 中的 Computer Use 集成
+允许 Agent 在编码过程中
+\textbf{启动浏览器测试应用}——
+写完前端代码后，
+Agent 可以自动打开浏览器验证渲染结果，
+发现问题后回到代码编辑中修复——
+实现了从代码到视觉验证的完整闭环。
+
+\subsection{浏览器自动化 Agent}
+
+浏览器是 Computer Use 的一个重要子领域。
+与通用桌面操作相比，
+浏览器环境有其独特的优势和挑战。
+
+\textbf{Playwright/Puppeteer 路线}。
+使用专业的浏览器自动化框架
+（如 Microsoft Playwright 或 Google Puppeteer）
+控制浏览器，
+Agent 可以通过 DOM（Document Object Model）
+直接定位和操作页面元素。
+这种方法比截图-动作循环更可靠——
+通过 CSS 选择器或 XPath 定位按钮
+比在截图中识别按钮的像素坐标更精确。
+但它需要浏览器的编程接口，
+无法在浏览器之外的应用中使用。
+
+\textbf{WebVoyager}（2024 年）
+和 \textbf{Agent-E}（2024--2025 年）
+是学术界和开源社区的浏览器 Agent 代表。
+WebVoyager 在 WebArena 基准上
+通过组合 LLM 推理和浏览器操作
+实现了超越单纯 LLM 推理的性能。
+Agent-E 采用了层次化的代理架构——
+高层``规划 Agent''负责将用户的目标
+分解为一系列网页操作步骤，
+低层``执行 Agent''负责在每个步骤中
+实际操控浏览器元素。
+
+\textbf{OpenAI 的 CUA（Computer-Using Agent）}
+在 2025 年初的 Operator 产品中亮相。
+Operator 允许 ChatGPT 用户
+直接请求 AI 在浏览器中完成任务——
+``帮我在 Amazon 上找到评价最高的无线鼠标并加入购物车''。
+Agent 在一个受控的浏览器环境中
+自主导航、搜索、比较和操作，
+在需要敏感操作（如输入信用卡信息）时
+暂停并请求用户接管。
+CUA 模式的核心挑战是\textbf{安全边界的定义}——
+在什么场景下 Agent 可以自主行动，
+在什么场景下必须暂停？
+这个问题没有通用的答案，
+需要根据具体的应用场景和用户的信任级别来定义。
+
+\subsection{OS 级别 Agent}
+
+Computer Use 的终极形态是 \textbf{OS-level Agent}——
+能够操作整个操作系统，
+在多个应用之间切换和协调。
+
+\textbf{OSWorld}~\cite{xie2024osworld}（2024 年）
+是评估 OS-level Agent 的开创性基准。
+它在 Ubuntu Linux 桌面环境中
+定义了 369 个涉及多应用协调的任务——
+如``从邮件中提取附件的数据，
+在 LibreOffice Calc 中创建图表，
+然后将图表粘贴到 Slides 中''。
+这些任务要求 Agent 在文件管理器、
+邮件客户端、电子表格和演示文稿
+之间无缝切换。
+
+截至 2026 年初，
+frontier 模型在 OSWorld 上的最高成功率仅为约 30\%——
+与 SWE-bench 的 80\% 形成鲜明对比。
+这个差距揭示了 OS-level 操作的独特难度：
+（1）\textbf{状态空间巨大}——
+一个桌面环境的可能状态远多于一个代码仓库；
+（2）\textbf{操作不可逆}——
+代码 Agent 可以通过 git 回滚错误修改，
+但关闭了一个未保存的文档就无法恢复；
+（3）\textbf{反馈延迟}——
+代码 Agent 可以通过运行测试获得即时反馈，
+OS 操作的结果通常需要更长时间才能验证。
+
+Windows 和 macOS 平台上的 OS-level Agent
+面临额外的挑战——
+截图质量、
+DPI 缩放导致的坐标偏移、
+系统权限弹窗的处理、
+以及跨应用的焦点管理
+都是实际部署中的工程难题。
+
+\begin{warnbox}[Computer Use Agent 的可靠性挑战]
+Computer Use Agent 面临的可靠性挑战
+比代码 Agent 更为严峻。
+在终端中工作的代码 Agent
+通过结构化的命令输出获取反馈——
+编译错误有明确的行号和错误信息。
+在图形界面中工作的 Computer Use Agent
+必须从截图的\textbf{像素}中推断操作是否成功——
+``按钮颜色变了是否意味着点击成功？
+页面加载中的旋转图标是否意味着操作正在执行？
+弹出的对话框是成功提示还是错误信息？''
+这些判断对人类来说是直觉性的，
+但对当前的视觉模型来说充满不确定性。
+此外，截图-动作循环的每一步
+都依赖于视觉理解的准确性——
+一次坐标误差可能导致点击到错误的按钮，
+触发不可预期的操作序列。
+这使得 Computer Use Agent 在生产环境中
+需要更严格的人在环路设计。
+\end{warnbox}
+
+
+\section{中国模型的集体爆发}
+\label{sec:chinese-model-tsunami}
+
+2025 年 12 月至 2026 年 2 月，
+中国 AI 实验室掀起了一波前所未有的模型发布潮。
+路透社将其定性为``抢跑式竞争''（preemptive competition）——
+各实验室争相在 DeepSeek V4 正式发布前
+占领话语权和用户心智。
+以下按时间顺序详细追溯这段历史。
+
+\subsection{前奏：DeepSeek 的架构创新（2025 年 12 月--2026 年 1 月）}
+
+DeepSeek 在 2025 年最后一天和 2026 年第二周
+连续发表了两篇可能重塑 LLM 架构的论文——
+这被普遍视为 V4 的核心技术储备。
+
+\textbf{mHC（Manifold-Constrained Hyper-Connections）}%
+（arXiv:2512.24880，2025 年 12 月 31 日，梁文锋联合署名）
+用 Sinkhorn-Knopp 算法替代沿用十年的残差连接。
+传统残差连接的隐患在于：
+经过 100+ 层的累积后，
+信号被放大约 3000 倍——
+这是深层 Transformer 训练不稳定的根源之一。
+
+Sinkhorn-Knopp 算法的具体工作方式如下：
+对于 Hyper-Connection 中的连接权重矩阵 $W$，
+算法通过交替归一化行和列——
+$W \leftarrow D_r^{-1} W D_c^{-1}$
+（$D_r$ 和 $D_c$ 分别为行和列的归一化对角矩阵）——
+迭代收敛至双随机矩阵
+（每行和每列之和均为 1）。
+这个约束将残差连接的信号空间
+投射到一个特定的流形（manifold）上，
+恢复了恒等映射的性质——
+当所有连接权重均匀分布时，
+mHC 退化为标准残差连接。
+实验表明，mHC 将信号放大从 3000 倍压缩至 1.6 倍，
+同时保持了梯度流动的畅通。
+论文还包含基础设施优化以确保效率，
+声称在``可忽略的额外开销''下实现了
+``切实的性能提升和更优的可扩展性''。
+
+\textbf{Engram（Conditional Memory via Scalable Lookup）}%
+（arXiv:2601.07372，2026 年 1 月 12 日，梁文锋联合署名）
+提出将``记忆''与``计算''分离。
+其核心洞察是 Transformer 缺少原生的知识查找原语——
+当前模型回忆事实时必须通过多层注意力``模拟''检索。
+Engram 通过现代化的 N-gram 嵌入实现 $O(1)$ 查找——
+具体来说，将知识存储为以 N-gram 为键的嵌入表，
+利用确定性寻址（deterministic addressing）
+而非注意力机制进行检索。
+确定性寻址还使得运行时预取成为可能——
+Engram 存储可以放在主机内存（DRAM）而非昂贵的 HBM 上，
+由 CPU 异步预取到 GPU，
+带来不到 3\% 的吞吐量损失。
+
+Engram 的 U 型缩放定律是论文最深刻的贡献。
+实验扩展 Engram 至 27B 参数，发现：
+在固定总参数预算下，
+模型性能随 Engram（记忆）占比先升后降，
+最优点出现在约 75\% 参数用于 Engram、
+仅 25\% 用于 MoE 计算的配置——
+这与直觉相反，
+因为传统 scaling law 假设更多计算参数总是更好。
+Engram 的解释是：
+对于主要涉及事实回忆的任务，
+$O(1)$ 查找远比 $O(n^2)$ 注意力高效，
+将参数``浪费''在注意力计算上反而是低效的。
+具体基准提升包括：
+MMLU +3.4、CMMLU +4.0、BBH +5.0、
+ARC-Challenge +3.7、HumanEval +3.0、MATH +2.4，
+多查询 NIAH 从 84.2 跃升至 97.0。
+
+\subsection{DeepSeek V3 的架构演进}
+
+在论文之外，DeepSeek 的模型本身也在持续迭代。
+\textbf{DeepSeek V3}（2024 年 12 月首发）
+采用 671B 总参数、37B 活跃参数的 MoE 架构，
+128K 上下文窗口，
+核心创新包括 \textbf{Multi-head Latent Attention（MLA）}
+（通过低秩投影压缩 KV cache，大幅降低推理显存占用）
+和 \textbf{DeepSeekMoE}
+（自 V2 验证的细粒度专家分配策略）。
+训练仅耗时 2.788M H800 GPU 小时——
+全程\textbf{零不可恢复 loss spike}，
+训练稳定性之高在大规模训练中极为罕见。
+V3 还引入了\textbf{无辅助损失的负载均衡策略}
+（auxiliary-loss-free load balancing），
+避免了传统 MoE 中辅助损失项对模型性能的负面影响，
+以及\textbf{Multi-Token Prediction（MTP）}训练目标——
+同时预测下一个和未来多个 token，提升训练信号密度。
+
+\textbf{DeepSeek V3.1}（2025 年中）和
+\textbf{V3.2}（2025 年底--2026 年初）
+在 V3 基础上持续优化。
+V3.2 引入的 \textbf{Sparse Attention} 机制
+是其最重要的推理效率改进——
+在长序列场景中，
+通过动态识别注意力模式中的稀疏区域
+跳过低贡献的注意力计算，
+在不损失质量的前提下显著加速推理。
+\textbf{DeepSeek V3.2-Speciale} 是专门针对竞赛级推理优化的变体，
+在 2025 年 IMO 获得金牌（35/42），
+ICPC 第 2 名，IOI 第 10 名——
+这些成绩代表了 LLM 在数学和算法推理上的最前沿。
+
+\subsection{前奏补遗：腾讯混元大模型}
+
+在 2026 年初的集中爆发之前，
+腾讯的混元大模型系列也值得记录。
+\textbf{Hunyuan-Large}（2024 年 11 月 5 日开源）
+是当时业界最大的开源 MoE 模型——
+389B 总参数、52B 活跃参数，
+支持 256K token 上下文。
+关键技术包括：
+\textbf{Grouped Query Attention + Cross-Layer Attention}
+将 KV cache 内存占用降低 50\%；
+\textbf{FP8 量化}在保持精度的同时
+实现 50\% 内存减少和 70\% 吞吐量提升；
+\textbf{专家级学习率缩放}
+（为不同专家分配不同的学习率）
+优化了 MoE 训练动态。
+MMLU 达到 88.4\%（预训练）/ 89.9\%（指令微调），
+以远小于 LLaMA 3.1 405B 的激活参数
+达到了可比的性能——
+MoE 架构的效率优势在此得到了充分验证。
+混元系列后续发展为 Hunyuan Turbos 等推理优化版本，
+在腾讯内部广泛部署于微信、QQ 和企业服务。
+
+\subsection{集中爆发期：三周内六家旗舰发布}
+
+从 2026 年 1 月 27 日到 2 月 16 日，
+短短三周内，六家中国头部实验室
+密集发布了各自的旗舰模型：
+
+\textbf{1 月 27 日——Kimi K2.5}（月之暗面）。
+Kimi 系列首个万亿参数模型，
+采用 1T 总参数、384 个专家（8 个活跃/token）的 MoE 架构。
+最大创新是 \textbf{Agent Swarm} 系统——
+通过 PARL（Parallel Agent Reinforcement Learning）协议
+协调多达 100 个子 Agent 并行执行任务，
+最长可运行 1500 步，实现 80\% 的运行时间缩减。
+PARL 协议的关键在于用结构化的任务分解
+替代了低效的自然语言通信——
+Agent 之间不再通过冗长的文本描述传递信息，
+而是通过精简的任务规格和结果摘要交互。
+搭载 MoonViT-3D（400M 视觉编码器），
+首次实现 Kimi 系列的多模态能力。
+AIME 2025 达到 96.1\%，HMMT 95.4\%。
+
+\textbf{2 月 2 日——Step 3.5 Flash}（阶跃星辰）。
+在极致效率上做出突破。
+196B 总参数、11B 活跃参数的 MoE 架构，
+仅 5.6\% 的参数激活率。
+\textbf{关键卖点}：可以在单块 RTX 4090（24GB 显存）上运行——
+11B 活跃参数经过 4-bit 量化后仅需约 6GB，
+其余参数通过专家卸载动态加载。
+AIME 2025 达到 97.3\%——
+以不到 GPT-5 百分之一的推理成本
+实现了接近 GPT-5 的推理性能。
+Step AI 的 CTO 曾坦言，
+DeepSeek R1 的推理范式对其构成了``降维打击''，
+促使他们从纯 scaling 路线转向效率优化。
+
+\textbf{2 月 12 日——GLM-5}（智谱 AI）。
+744B 参数，在 28.5T token 上训练完成。
+历史意义在于：\textbf{完全在 100,000 块华为昇腾 910B 上训练，
+零 NVIDIA 依赖}。
+这是第一个达到前沿水平的零 NVIDIA AI 模型，
+证明了国产芯片在大规模训练场景中的工程可行性。
+此前 2026 年 1 月 16 日发布的 GLM-Image
+更是第一个在国产芯片上训练的 SOTA 级多模态模型。
+
+\textbf{2 月 14 日——豆包 Seed 2.0 Pro}（字节跳动）。
+在数学推理和代码能力上全面超越同期竞品：
+AIME 2025 达到 98.3\%（创当时最高纪录），
+Codeforces rating 3020（超越 99.9\% 人类选手），
+SWE-bench Verified 76.5\%。
+证明了字节跳动在大规模基础模型训练上的快速追赶能力。
+
+\textbf{2 月前后——MiniMax M2.5}（MiniMax）。
+在 SWE-bench Verified 上达到 80.2\%——
+\textbf{超越同期所有闭源模型}。
+230B 总参数、10B 活跃参数的 MoE 架构。
+API 定价仅为 GPT-5 的 1/10--1/20——
+``智能太便宜以至于不值得计量''
+这句借自核能时代的预言正在成为现实。
+
+\textbf{2 月--3 月——Qwen 3.5}（阿里巴巴）。
+397B 旗舰模型，采用 Gated DeltaNet 混合架构
+（3:1 线性注意力/全注意力比例），
+支持 201 种语言和 262K 上下文。
+同步开源 0.8B/2B/4B/9B 全系列小模型，
+覆盖从云端到边缘的全场景。
+Qwen3.5-9B 在多项基准上超越了前代 Qwen3-30B——
+展示了训练方法论进步对小模型质量的杠杆效应。
+
+\subsection{竞争动态与战略分析}
+
+这波密集发布不仅仅是技术进步的自然结果，
+更是深层竞争策略的产物。
+
+\textbf{抢跑 DeepSeek V4}。
+几乎所有发布的时间窗口都卡在
+DeepSeek V4 预期发布（2026 年 4 月）之前。
+各实验室的计算很清晰：
+如果在 V4 发布后再推出自己的模型，
+话语权将被 V4 垄断。
+因此必须在 V4 之前建立自己的技术叙事。
+
+\textbf{开放权重的竞争性使用}。
+几乎所有模型都以开放权重发布——
+GLM-5（MIT 许可证）、Kimi K2.5（Apache 2.0）、
+Qwen 3.5（Apache 2.0）、Step 3.5 Flash（MIT 许可证）。
+开放权重不再是``理想主义的选择''，
+而是\textbf{竞争武器}——
+通过开源抢占开发者心智和生态位。
+
+\textbf{价格战加速智能民主化}。
+中国模型的 API 定价对闭源竞品构成了巨大的下行压力。
+MiniMax 的定价是 GPT-5 的 1/10--1/20，
+豆包比 GPT-5.2 便宜 3.7--5.9 倍，
+Qwen 的 API 比同级别闭源模型便宜 60\%。
+
+据 OpenRouter 统计，
+中国开源模型在全球开源 LLM 使用量中的占比
+从 2024 年的 1.2\% 飙升至 2026 年初的近 30\%——
+这是一个数量级的跳跃，
+标志着全球开源 AI 格局的根本性重构。
+
+\textbf{价格-性能的 Pareto 前沿}
+正在被中国模型重新定义。
+当一个开源模型
+（如 Step 3.5 Flash，RTX 4090 可运行）
+在 AIME 2025 上达到 97.3\%——
+接近 GPT-5 的水平——
+而推理成本低两个数量级时，
+闭源模型的``性能溢价''变得难以证明。
+企业客户选择闭源 API 的理由
+从``性能更好''转向了``服务保障更好''——
+SLA（服务等级协议）、技术支持、合规认证
+和供应商稳定性成为了主要的购买决策因素。
+这意味着 AI 行业的竞争焦点
+正在从\textbf{模型能力}转向\textbf{服务质量}——
+类似于云计算行业从``性能竞赛''
+转向``服务生态竞赛''的演进路径。
+
+\textbf{许可证策略的差异}值得关注。
+中国模型普遍选择了最宽松的许可证——
+MIT 或 Apache 2.0——
+没有附加任何使用限制。
+相比之下，Meta 的 LLaMA 系列
+使用了自定义的``Llama Community License''，
+对月活跃用户超过 7 亿的公司
+要求额外的许可申请。
+中国模型的无限制许可策略
+可能是一种``后发者的战略武器''——
+通过消除所有采纳壁垒
+最大化生态系统的增长速度。
+
+
+\section{闭源阵营的回应}
+\label{sec:closed-source-response}
+
+在中国模型的集体爆发面前，
+闭源阵营并未坐以待毙——
+2026 年 Q1 同样是闭源模型密集迭代的时期。
+
+\subsection{OpenAI：统一模型的持续迭代}
+
+GPT-5（2025 年 8 月）确立了统一模型的范式之后，
+OpenAI 以数周为单位的节奏持续迭代。
+
+\textbf{GPT-5.3-Codex}（2026 年 2 月）
+是 OpenAI 针对 agentic coding 的专项优化版本。
+其最引人注目的特征是
+\textbf{参与了自身的训练调试和部署}——
+OpenAI 工程师使用 GPT-5.3 来调试 GPT-5.3 的训练流程，
+形成了一个自我改进的闭环。
+这不是 PR 噱头——
+当 Agent 的能力足够强大时，
+将 Agent 用于自身的研发流程是自然的工程选择。
+
+\textbf{GPT-5.4}（2026 年 3 月）
+在推理基准上持续刷新纪录，
+进一步巩固了 GPT-5 系列在闭源模型中的领先地位。
+GPT-5 的统一架构——
+内置智能路由器自动判断何时快速响应、何时调用深度推理——
+已经从概念验证走向成熟，
+实质上将 GPT 系列和 o 系列合二为一。
+
+\subsection{Anthropic：Agentic Coding 的领先者}
+
+\textbf{Claude Opus 4.6 和 Sonnet 4.6}（2026 年 2 月）
+在 Terminal-Bench 2.0 和 Humanity's Last Exam 上
+取得最高分，首次为 Opus 级模型
+提供百万 token 上下文窗口（beta）。
+
+Claude Opus 4.6 在 SWE-bench Verified 上
+以 79.2\%（Thinking 模式）刷新了 agentic coding 纪录。
+其引入的\textbf{可配置 thinking budget}——
+用户可通过 API 设置 \texttt{budget\_tokens} 参数
+精确控制推理计算预算——
+使推理时缩放从``全有或全无''
+变成了连续可调的维度。
+
+Anthropic 在 Agent 领域的领先
+不仅体现在模型能力上，
+更体现在工具生态上：
+Claude Code + Agent SDK + MCP 构成了
+目前最完整的 Agent 开发技术栈。
+
+\subsection{Google：推理优先的 Gemini 3.1}
+
+\textbf{Gemini 3.1 Pro}（2026 年 2 月）
+以原生思维链推理和 1M token 上下文窗口
+进一步提升了复杂推理和 agentic 能力。
+Gemini 3.1 的定位清晰：
+不追求单一基准的极致分数，
+而是在多模态理解、工具使用和长上下文分析上
+提供均衡的 frontier 能力。
+
+Google 在 Agent 领域的独特优势是
+\textbf{垂直整合}——
+从芯片（TPU v7 Ironwood）到框架（JAX）
+到模型（Gemini）到 SDK（ADK）到云平台（Vertex AI），
+全栈由 Google 自研。
+这种整合在企业级 Agent 部署中
+提供了竞争对手难以匹配的端到端体验。
+
+
+\section{多 Agent 系统的成熟}
+\label{sec:multi-agent-maturity}
+
+2026 年初，多 Agent 系统从学术概念
+跨越到了工程实践的新阶段。
+这一转变的核心驱动力有三个：
+（1）单个模型的能力达到了可以作为可靠``组件''使用的门槛；
+（2）MCP 提供了标准化的工具交互协议；
+（3）Agent SDK 提供了编排基础设施。
+
+\subsection{多 Agent 编排模式}
+
+在深入具体系统之前，
+需要理解多 Agent 系统的四种基本编排模式——
+每种模式适用于不同类型的任务。
+
+\textbf{顺序模式（Sequential / Pipeline）}。
+Agent A 的输出作为 Agent B 的输入，
+Agent B 的输出作为 Agent C 的输入。
+适用于明确的线性流程——
+如``翻译 → 校对 → 排版''或``规划 → 实现 → 测试''。
+OpenAI Agents SDK 的 Handoffs 天然支持这种模式。
+优势是简单和可预测，
+劣势是无法利用并行性，
+且链条中任何一步的失败都会阻塞后续所有步骤。
+
+\textbf{并行模式（Parallel / Fan-out）}。
+多个 Agent 同时处理\textbf{独立的子任务}，
+结果汇聚后由汇聚 Agent 整合。
+适用于可分解的任务——
+如``同时在三个代码模块中添加日志''
+或``同时研究竞品 A、B、C 的定价策略''。
+Claude Code 的 Agent Teams 是并行模式的工程实现——
+通过 git worktree 实现文件系统级别的隔离，
+每个 Agent 在独立的代码副本中并行工作。
+优势是显著缩短任务完成时间（通常 70--80\%），
+劣势是汇聚阶段的合并冲突处理
+和 token 消耗的线性增长。
+
+\textbf{层次模式（Hierarchical / Manager-Worker）}。
+一个``经理''Agent 负责任务分解和分配，
+多个``工人''Agent 负责执行具体子任务，
+经理 Agent 汇总结果并做出全局决策。
+Kimi K2.5 的 Agent Swarm 和
+Augment Code 的 Coordinator-Specialist-Verifier
+都采用了层次模式。
+层次模式的关键设计决策是
+\textbf{经理 Agent 应该掌握多少信息}——
+如果经理了解所有细节，
+它的上下文窗口会被迅速填满；
+如果经理只看摘要，
+它可能做出基于不完整信息的次优决策。
+
+\textbf{辩论模式（Debate / Adversarial）}。
+多个 Agent 对同一个问题
+从不同角度提出论据，
+通过结构化的辩论过程达成更高质量的结论。
+这种模式不追求效率——
+它通过\textbf{冗余和对抗}来提高质量。
+在代码审查场景中，
+``开发 Agent''和``审查 Agent''的对抗
+可以发现单个 Agent 可能忽略的问题。
+在决策场景中，
+``乐观 Agent''和``悲观 Agent''的辩论
+可以产生更平衡的分析。
+Meta 的研究表明，
+在推理任务上，
+两个 Agent 的辩论可以比单个 Agent
+提升 5--10\% 的准确率~\cite{du2023debate}——
+但代价是 token 消耗增加 3--5 倍。
+
+\subsection{开源多 Agent 框架}
+
+除了三大 Agent SDK，
+开源社区也贡献了重要的多 Agent 框架。
+
+\textbf{CrewAI}（2024 年初发布，持续活跃迭代至 2026 年）
+采用了\textbf{角色驱动}的设计——
+每个 Agent 被赋予一个明确的``角色''
+（如``高级 Python 开发者''、``技术写作专家''、``QA 工程师''），
+Agent 的行为受其角色定义的约束。
+CrewAI 的核心抽象是
+\textbf{Crew}（团队）、\textbf{Agent}（成员）和 \textbf{Task}（任务）——
+开发者定义团队组成和任务目标，
+框架自动处理 Agent 之间的通信和任务分配。
+截至 2026 年 3 月，
+CrewAI GitHub 51,000+ stars，
+是社区中最受欢迎的多 Agent 框架之一。
+
+\textbf{AutoGen}（Microsoft Research，2023 年底发布）
+采用了\textbf{对话驱动}的设计——
+Agent 之间通过结构化的多轮对话来协作。
+AutoGen 的独特之处在于它将人类也视为
+对话中的一个``Agent''——
+人类可以在 Agent 对话的任何节点介入，
+提供指导或修正方向。
+AutoGen 0.4（2025 年重构版本）
+引入了异步消息传递和基于事件的编程模型，
+更好地支持长时间运行的 Agent 任务。
+
+\textbf{LangGraph}（LangChain 团队，2024 年发布）
+采用了\textbf{状态机}的设计——
+Agent 工作流被建模为一个有向图（directed graph），
+每个节点是一个处理步骤，
+边是状态转换条件。
+这种显式的图结构使得
+复杂的条件分支和循环
+比纯对话模式更容易实现和调试。
+LangGraph 的 \texttt{StateGraph} 抽象
+允许开发者精确控制
+``在什么条件下执行什么步骤''，
+适合需要确定性控制流的企业场景。
+
+\subsection{从``N 个 LLM 调用''到``Agent 团队''}
+
+早期的多 Agent 系统本质上是``多个 LLM 调用的编排''——
+每个 Agent 都是一次独立的 LLM 推理，
+通过自然语言传递上下文。
+这种方式的两个核心问题是
+\textbf{通信成本}（Agent 间的自然语言信息传递
+消耗大量 token 且容易丢失信息）
+和\textbf{协调开销}（谁负责分配任务？
+如何检测和处理 Agent 之间的冲突？）。
+
+2026 年初的三个系统展示了不同的解决方案。
+
+\textbf{Kimi K2.5 Agent Swarm}
+通过 PARL 协议用结构化的任务规格
+替代自然语言通信——
+Agent 之间交换的是精简的 JSON 任务描述和结果摘要，
+而非冗长的自然语言说明。
+这将通信 token 开销降低了约 80\%，
+同时允许多达 100 个子 Agent 并行执行。
+
+\textbf{Claude Code Agent Teams}
+通过 git worktree 实现了
+代码 Agent 之间的\textbf{物理隔离}——
+每个 Agent 在独立的文件系统副本中工作，
+消除了文件锁定和合并冲突的问题。
+Agent 之间通过 \texttt{SendMessage} 直接通信，
+主 Agent 负责任务分配和结果汇聚。
+
+\textbf{OpenAI Agents SDK Handoffs}
+提供了最轻量级的方案——
+Agent 之间通过 Handoff 机制传递完整的上下文，
+一个 Agent 可以将当前任务``移交''给另一个 Agent，
+附带到目前为止的全部信息。
+这种设计的优势是简单——
+不需要复杂的并行调度和冲突解决，
+代价是只支持串行协作而非并行。
+
+\subsection{Agent 可靠性：工程实践}
+
+多 Agent 系统面临的最大工程挑战
+是\textbf{错误的传播和放大}。
+在单 Agent 系统中，
+一个错误通常被限制在当前任务内；
+在多 Agent 系统中，
+一个 Agent 的错误输出可能被其他 Agent
+当作正确信息使用，
+导致错误在整个系统中级联传播。
+
+2026 年初的工程实践总结出了几种应对策略：
+
+\textbf{结果验证层}：
+每个 Agent 的输出在被其他 Agent 使用前，
+必须通过自动化验证（如代码编译检查、测试运行）。
+Claude Code 的 Agent Teams 中，
+子 Agent 完成的代码修改
+必须通过主 Agent 的代码审查才能合并。
+
+\textbf{沙箱隔离}：
+每个 Agent 在受限环境中运行，
+不能直接修改其他 Agent 的工作空间。
+git worktree 是代码 Agent 的自然沙箱机制。
+
+\textbf{渐进式授权}：
+Agent 不是一次性获得所有权限，
+而是根据任务进展逐步获得更高权限。
+Claude Code 的权限系统（allow/deny 规则）
+可以精细控制每个工具的授权策略。
+
+\textbf{人在环路}（Human-in-the-Loop）：
+在关键决策点（如删除文件、推送代码、
+修改基础设施配置）暂停并请求人类确认。
+这是可靠性的最终保障——
+但也是效率的瓶颈，
+理想的系统需要最小化人类干预的频率。
+
+%% --- TikZ: Agent Architecture Layers ---
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  layer/.style={
+    draw=#1!60, fill=#1!10, thick,
+    minimum width=100mm, minimum height=12mm,
+    rounded corners=3pt, font=\small\bfseries,
+    inner sep=6pt,
+  },
+  sublabel/.style={font=\scriptsize, #1, text width=90mm, align=center},
+  arr/.style={-{Stealth[length=2.5mm]}, thick, figGray},
+  >=Stealth,
+]
+
+% Layer 1: Human Interface (top)
+\node[layer=figBlue] (human) at (0, 6.0)
+  {\textcolor{figBlue!80}{人类交互层}};
+\node[sublabel=figBlue!70, below=0mm of human.south]
+  {自然语言指令 · 审批/确认 · 反馈};
+
+% Layer 2: Orchestration
+\node[layer=figOrange] (orch) at (0, 4.2)
+  {\textcolor{figOrange!80}{编排层（Orchestration）}};
+\node[sublabel=figOrange!70, below=0mm of orch.south]
+  {Agent SDK · Handoffs · Multi-Agent 协调 · 任务分解};
+
+% Layer 3: Reasoning
+\node[layer=figRed] (reason) at (0, 2.4)
+  {\textcolor{figRed!80}{推理层（Reasoning）}};
+\node[sublabel=figRed!70, below=0mm of reason.south]
+  {LLM Core · Extended Thinking · ReAct / Plan-and-Execute};
+
+% Layer 4: Tools
+\node[layer=figGreen] (tools) at (0, 0.6)
+  {\textcolor{figGreen!80}{工具层（Tools）}};
+\node[sublabel=figGreen!70, below=0mm of tools.south]
+  {MCP · Function Calling · Code Execution · Computer Use};
+
+% Layer 5: Memory
+\node[layer=figGray] (memory) at (0, -1.2)
+  {\textcolor{figGray}{记忆层（Memory）}};
+\node[sublabel=figGray!80, below=0mm of memory.south]
+  {短期（上下文窗口）· 长期（向量DB/文件）· 情景（执行轨迹）};
+
+% Arrows
+\draw[arr] (human.south) -- (orch.north);
+\draw[arr] (orch.south) -- (reason.north);
+\draw[arr] (reason.south) -- (tools.north);
+\draw[arr] (tools.south) -- (memory.north);
+
+% Bidirectional feedback
+\draw[arr, dashed, figBlue!50] ([xshift=45mm]memory.north) -- ++(0, 7.2)
+  node[midway, right, font=\tiny, figGray, text width=15mm, align=left]
+  {反馈\\循环};
+
+% Side labels
+\node[font=\tiny, figGray, rotate=90, anchor=south] at (-5.8, 2.4)
+  {自主性递增 $\longrightarrow$};
+\node[font=\tiny, figGray, rotate=90, anchor=north] at (5.8, 2.4)
+  {$\longleftarrow$ 控制性递增};
+
+\end{tikzpicture}
+\caption{Agent 系统的五层架构。
+从底层的记忆系统到顶层的人类交互，
+每一层都可以独立优化——
+MCP 标准化了工具层，
+Agent SDK 标准化了编排层，
+extended thinking 提升了推理层，
+而可靠性的终极保障来自人类交互层的审批机制。
+反馈循环贯穿所有层级：
+Agent 的执行结果更新记忆，
+记忆影响未来的推理和工具选择。}
+\label{fig:agent-architecture-layers}
+\end{figure}
+
+
+\section{Agent 评估：从基准到真实世界}
+\label{sec:agent-evaluation}
+
+Agent 的快速演进催生了一个关键需求：
+\textbf{如何可靠地评估 Agent 的能力？}
+传统的 LLM 评估（MMLU、HumanEval 等）
+测量的是模型的``知识''和``单步推理''能力，
+但 Agent 需要的是\textbf{多步骤的任务完成能力}——
+包括规划、工具使用、错误恢复和环境交互。
+2025--2026 年，Agent 评估基准的数量和多样性
+经历了爆发式增长。
+
+\subsection{代码 Agent 基准}
+
+\textbf{SWE-bench 家族}已在上文详细讨论。
+值得补充的是方法论演进：
+SWE-bench 的原始版本
+允许 Agent 查看 ground truth 测试用例的存在
+（虽然不是测试内容本身），
+这被批评为``暗示性的信息泄露''。
+SWE-bench Verified（2024 年底）
+通过人工验证排除了含歧义和不可解的问题。
+SWE-bench Pro（2025 年）
+进一步引入多语言覆盖和更严格的回归测试验证——
+但每次方法论改进都导致分数``回退''，
+使得跨版本的纵向比较变得困难。
+
+\textbf{Terminal-Bench 2.0}
+评估的是代码 Agent 之外的通用终端工程能力。
+其 89 个任务跨越系统管理、ML 训练、安全配置和数据工程——
+``编译一个自定义的 Linux 内核模块''、
+``配置一个 mTLS 的 Kubernetes 集群''、
+``训练一个 FastText 分类器并达到指定精度''。
+这些任务不能通过模式匹配来解决，
+需要 Agent 理解底层系统的工作原理
+并处理大量的环境特定细节。
+
+\subsection{Web Agent 基准}
+
+\textbf{WebArena}~\cite{zhou2024webarena}（2024 年发布）
+是 Web Agent 评估的奠基性工作。
+它在四个真实的 Web 应用
+（GitLab、Reddit 论坛、电商网站、CMS）
+上定义了 812 个任务，
+Agent 需要在功能完整的 Web 界面中
+通过导航、搜索、表单填写和数据操作来完成目标。
+WebArena 的设计哲学是\textbf{端到端}——
+不提供 API 捷径，
+Agent 必须像人类用户一样操作网页。
+
+\textbf{VisualWebArena}（2024 年）
+在 WebArena 的基础上增加了视觉理解需求——
+Agent 需要理解页面上的图像内容来完成任务
+（如``找到与这张图片中相同款式的外套并加入购物车''）。
+
+截至 2026 年初，
+frontier 模型在 WebArena 上的任务完成率
+从 2024 年初的 $\sim$15\% 提升到了 $\sim$45\%。
+虽然进步显著，
+但仍然意味着超过一半的 Web 任务
+Agent 无法可靠完成——
+特别是涉及多步骤导航、
+动态内容和需要推理的复杂任务。
+
+\subsection{OS-level Agent 基准}
+
+\textbf{OSWorld}~\cite{xie2024osworld}
+已在 Computer Use 章节中讨论。
+与之互补的 \textbf{WindowsArena}（2024 年底发布）
+在 Windows 环境中定义了类似的评估任务，
+覆盖了 Office 套件、文件管理和系统设置等
+Windows 特有的应用场景。
+
+\textbf{AgentBench}~\cite{liu2023agentbench}（2023 年发布，
+持续更新至 2025 年）
+是一个综合性的 Agent 评估平台，
+覆盖 Web 浏览、OS 操作、数据库查询、
+知识图谱推理和数字游戏等八个环境。
+AgentBench 的独特价值在于\textbf{跨环境的统一评估}——
+它允许在一个框架下比较
+Agent 在不同类型任务上的表现，
+揭示模型在特定能力维度上的强弱。
+
+\subsection{失败模式分类学}
+
+Agent 评估的一个重要附产品是
+对 Agent 失败模式的系统化理解。
+2025--2026 年的研究总结出了以下核心失败类别：
+
+\textbf{规划失败}——
+Agent 制定了不可行的执行计划
+（如在没有安装数据库的环境中尝试 SQL 查询），
+或者计划步骤之间存在逻辑矛盾。
+规划失败通常发生在任务的早期阶段，
+且一旦发生，后续步骤全部浪费。
+
+\textbf{观察误解}——
+Agent 对环境状态的理解出错
+（如将错误信息当作成功提示，
+或者在截图中误识别 UI 元素的位置）。
+这在 Computer Use Agent 中尤为常见。
+
+\textbf{工具使用错误}——
+Agent 选择了错误的工具或传入了错误的参数。
+即使 LLM 的 function calling 能力已经很强，
+在复杂的工具链中（多个工具的输出作为后续工具的输入），
+参数传递错误仍然是高频失败原因。
+
+\textbf{恢复失败}——
+Agent 在遇到错误后无法有效恢复。
+一个典型的模式是``错误循环''——
+Agent 检测到了错误，
+但尝试的修复方案与之前相同，
+导致无限重复同一个失败步骤。
+更好的 Agent 需要\textbf{错误多样化}——
+在第一次修复失败后尝试完全不同的策略。
+
+\textbf{过度自信}——
+Agent 在结果不正确时报告任务完成。
+这是``静默失败''的一种形式，
+也是最危险的失败模式——
+因为用户可能不会验证
+Agent 声称已完成的任务。
+
+\begin{keybox}[可靠性差距的量化]
+综合多个基准的数据，
+2026 年初 Agent 能力的全貌可以这样概括：
+代码修复（SWE-bench Verified）$\sim$80\%，
+终端工程（Terminal-Bench 2.0）$\sim$82\%，
+Web 操作（WebArena）$\sim$45\%，
+OS 操作（OSWorld）$\sim$30\%。
+这个梯度清晰地表明：
+Agent 在\textbf{结构化、可验证}的环境中
+（代码有测试、终端有输出）表现最好，
+在\textbf{非结构化、视觉驱动}的环境中
+（Web 页面、桌面 GUI）仍然挣扎。
+缩小这个差距的关键
+可能不在于更强的 LLM，
+而在于更好的\textbf{环境表示}——
+如何将非结构化的视觉信息
+转化为 LLM 更容易处理的结构化表示。
+\end{keybox}
+
+
+\section{Agent 基础设施：记忆、规划与工具生态}
+\label{sec:agent-infrastructure}
+
+Agent 系统不仅仅是``LLM + 工具调用''。
+一个生产级的 Agent 需要完整的\textbf{基础设施层}——
+记忆系统（跨会话的知识积累）、
+规划引擎（多步骤任务的分解与调度）、
+工具生态（丰富且可靠的外部能力）
+和安全沙箱（隔离与权限控制）。
+2026 年初，这些基础设施组件
+从各自独立的研究方向
+汇聚为一个日益完整的技术栈。
+
+\subsection{记忆系统：短期、长期与情景}
+
+Agent 的记忆系统可以类比人类的记忆分类
+——但工程实现方式完全不同。
+
+\textbf{短期记忆}即 LLM 的上下文窗口。
+当前 frontier 模型支持 128K--1M token 的上下文，
+足以容纳大型代码库的相当部分。
+但上下文窗口有两个根本限制：
+（1）它是``全有或全无''的——
+所有信息以相同的权重存在于注意力中，
+没有``重要/不重要''的区分；
+（2）它随会话结束而消失——
+下一次对话，Agent 从零开始。
+
+\textbf{长期记忆}解决了跨会话的知识持久化。
+当前的主要实现方式包括：
+
+\textbf{向量数据库}（Pinecone、Weaviate、Chroma）——
+将对话历史和积累的知识
+编码为向量（embedding），
+存储在高维向量空间中，
+通过语义相似度检索。
+这是 RAG（检索增强生成）的标准方案，
+但存在粒度和更新的挑战——
+如何决定``什么值得记住''？
+如何在知识更新时正确地替换而非追加？
+
+\textbf{结构化知识图谱}——
+将知识组织为实体-关系的图结构。
+对于需要精确关系推理的场景
+（如``用户 A 是项目 B 的负责人，
+项目 B 依赖于服务 C''），
+知识图谱比向量检索更可靠。
+但构建和维护高质量的知识图谱
+需要大量的工程投入。
+
+\textbf{文件系统记忆}——
+Claude Code 的 \texttt{CLAUDE.md} 文件
+代表了最朴素但惊人有效的长期记忆方案：
+将项目特定的知识、偏好和决策
+以\textbf{自然语言文本}的形式存储在项目目录中。
+Agent 在每次启动时自动读取这些文件，
+恢复项目上下文。
+这种方案的优势是\textbf{完全可解释}——
+用户可以直接阅读和编辑 Agent 的``记忆''，
+不存在向量空间中不可理解的隐式知识。
+劣势是扩展性——
+当记忆内容超过上下文窗口时，
+需要某种形式的摘要或选择性加载。
+
+\textbf{情景记忆}——
+记录 Agent 过去执行任务的经验和教训。
+``上次尝试方案 A 失败了，
+错误原因是 X，最终通过方案 B 解决''。
+情景记忆使 Agent 能够从过去的错误中学习，
+避免重复犯错。
+当前的实现通常基于结构化日志——
+Agent 的每次执行生成详细的执行轨迹，
+成功和失败的案例被标注和索引，
+在未来遇到类似任务时被检索为参考。
+
+\subsection{规划与推理循环}
+
+Agent 的规划能力——
+将复杂目标分解为可执行步骤的能力——
+是其与简单的 LLM 调用的核心区别。
+2025--2026 年，几种主要的规划范式已经成形：
+
+\textbf{ReAct}（Reasoning + Acting）~\cite{yao2023react}
+是最基础的范式——
+Agent 交替进行推理（生成文本思考过程）
+和行动（调用工具），
+每步的推理基于之前所有步骤的观察。
+ReAct 的优势是简洁——
+不需要额外的规划基础设施，
+LLM 自身承担所有规划和推理工作。
+但在长任务中，ReAct 容易``迷失方向''——
+上下文中积累的大量中间信息
+使 LLM 难以保持对原始目标的关注。
+
+\textbf{Plan-and-Execute}
+在 ReAct 的基础上引入了显式的规划阶段。
+Agent 首先生成一个\textbf{完整的执行计划}
+（如``步骤 1: 读取配置文件；步骤 2: 修改端口号；
+步骤 3: 重启服务；步骤 4: 验证端口''），
+然后逐步执行计划。
+如果某个步骤失败，
+Agent 可以重新规划而不是盲目重试。
+LangGraph 的 \texttt{PlanAndExecute} 模板
+是这种范式的标准实现。
+
+\textbf{LATS（Language Agent Tree Search）}~\cite{zhou2024lats}
+将蒙特卡洛树搜索（MCTS）引入 Agent 规划——
+在每个决策点，Agent 生成多个候选动作，
+评估每个候选的预期收益，
+选择最优路径。
+如果当前路径失败，
+Agent 可以\textbf{回溯到之前的决策点}
+并尝试其他分支——
+类似于棋类 AI 的搜索策略。
+LATS 的优势是系统性的探索，
+但计算成本是 ReAct 的数倍到数十倍。
+
+\textbf{o1/R1 风格的内部推理}
+代表了一种新的规划范式——
+规划不是通过外部的搜索或循环实现，
+而是\textbf{在模型内部的推理链中完成}。
+当 Agent 使用 extended thinking 模式时，
+模型可以在可见的思考 token 中
+生成完整的任务分析、方案比较和风险评估，
+然后再开始执行。
+这种``先想清楚再动手''的模式
+在需要深度推理的任务上效果显著，
+但对推理 token 的消耗巨大。
+
+\subsection{工具生态的演进}
+
+MCP 协议提供了工具交互的标准，
+但\textbf{工具本身的质量和覆盖范围}
+才是 Agent 能力的实际边界。
+
+2026 年初的工具生态呈现出几个趋势：
+
+\textbf{工具的专业化}。
+早期的 Agent 工具通常是通用的
+（``搜索网页''、``读取文件''），
+但越来越多的工具被设计为\textbf{领域专用}——
+``查询 BigQuery 中的用户行为数据''、
+``在 Figma 中创建一个按钮组件''、
+``在 Kubernetes 中扩缩容指定的 deployment''。
+这种专业化使 Agent 在特定领域中
+能够达到专业人类水平的操作精度。
+
+\textbf{工具的组合爆炸}。
+当 MCP 生态中的工具数量超过 10,000 时，
+Agent 面临``选择困难''——
+如何从数千个可用工具中
+快速找到当前任务需要的工具？
+MCP Registry 提供了发现机制，
+但 Agent 仍然需要具备
+\textbf{工具选择}的能力——
+理解每个工具的能力和限制，
+并在多个候选工具中做出正确选择。
+这本质上是一个\textbf{检索}问题，
+与 RAG 中的``从大量文档中找到相关段落''高度类似。
+
+\textbf{工具链的可靠性}。
+Agent 通常需要\textbf{链式调用}多个工具
+来完成一个任务——
+``从 API 获取数据 → 解析 JSON →
+筛选满足条件的记录 → 生成报告 → 发送邮件''。
+链中每个工具都有失败的可能——
+API 超时、格式不匹配、权限不足。
+如何在工具链中实现
+\textbf{优雅的错误处理和恢复}
+是 Agent 工程的核心挑战之一。
+MCP 规范的错误代码体系和重试语义
+为此提供了协议层面的基础，
+但具体的恢复策略
+仍然需要 Agent 自身的推理能力来制定。
+
+
+\section{开源的定义性胜利}
+\label{sec:open-source-victory}
+
+2025--2026 年冬春之交，
+开源模型实现了从``追赶''到``并驾齐驱''的质变。
+这不仅是技术上的追平，
+更是市场份额和经济模型的根本性重构。
+
+\subsection{性能追平的数据证据}
+
+多项基准测试显示，
+开源模型在 2026 年初已经在核心能力上
+逼近甚至超越同期闭源模型：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{数学推理}：豆包 Seed 2.0 Pro（AIME 2025 98.3\%）
+        $\geq$ GPT-5-High；
+        Step 3.5 Flash（97.3\%）$\approx$ GPT-5
+  \item \textbf{代码工程}：MiniMax M2.5（SWE-bench 80.2\%）
+        $>$ Claude Opus 4.6 Thinking（79.2\%）
+  \item \textbf{竞赛级推理}：DeepSeek V3.2-Speciale
+        在 2025 年 IMO 获金牌（35/42），
+        ICPC 第 2 名，IOI 第 10 名
+  \item \textbf{综合能力}：
+        GLM-5、Kimi K2.5、Qwen 3.5
+        在多项综合基准上与 GPT-5 / Claude 4.6 持平
+\end{itemize}
+
+\subsection{成本革命的具体数字}
+
+开源模型的性能追平伴随着
+\textbf{推理成本的数量级下降}：
+
+\begin{center}
+\begin{tabular}{lrrr}
+  \hline
+  \textbf{模型} & \textbf{输入价格} & \textbf{输出价格} & \textbf{vs GPT-5} \\
+  & \textbf{(\$/M tokens)} & \textbf{(\$/M tokens)} & \\
+  \hline
+  GPT-5 (参考) & -- & -- & 1$\times$ \\
+  MiniMax M2.5 & 极低 & 极低 & 1/10--1/20 \\
+  豆包 Seed 2.0 & -- & -- & 1/3.7--1/5.9 \\
+  Qwen 3.5 & -- & -- & $\sim$1/2.5 \\
+  Step 3.5 Flash & 极低 & 极低 & $<$1/100（推理成本） \\
+  \hline
+\end{tabular}
+\end{center}
+
+当一个 frontier 级模型的 API 调用成本
+降至 GPT-5 的 1/10 甚至 1/100 时，
+\textbf{成本不再是 AI 采纳的障碍}。
+``Intelligence too cheap to meter''——
+这句借自核能时代的预言
+在 2026 年春季正在成为现实。
+
+\subsection{开源生态的全球重构}
+
+中国开源模型的崛起重构了全球开源 AI 的格局。
+据 OpenRouter 统计，
+中国开源模型在全球开源 LLM 使用量中的占比
+从 2024 年的 \textbf{1.2\%} 飙升至 2026 年初的近 \textbf{30\%}。
+HuggingFace 上中文模型的下载和使用
+从边缘话题成为主流力量。
+
+这种重构的深层含义是：
+开源 AI 不再是美国主导的单极生态，
+而是中美两极驱动的全球生态。
+DeepSeek、Qwen、GLM 等中国模型
+与 LLaMA、Mistral 等西方模型共同构成了
+开源 AI 的核心供给。
+
+\begin{corebox}[开源的长期格局预测]
+2026 年春季的模型发布潮可能预示了
+AI 行业的长期格局：
+\textbf{基础模型开源，增值服务闭源}。
+当基础模型成为商品（人人都能使用），
+差异化竞争转向上层——
+微调服务、Agent 工具链、
+垂直行业解决方案、安全与合规——
+这些``最后一公里''的服务
+仍然可以收取溢价。
+Meta 的开源战略（商品化互补品）
+正在被整个行业验证。
+\end{corebox}
+
+\subsection{开源对 Agent 生态的特殊意义}
+
+开源模型的崛起对 Agent 生态有特殊的结构性意义——
+超越了纯粹的``成本节约''。
+
+\textbf{本地部署 + Agent = 数据主权}。
+许多企业的 Agent 场景
+涉及访问内部代码库、数据库和机密文档。
+使用闭源 API 意味着这些数据
+必须发送到外部服务器处理——
+这在金融、医疗、国防等行业
+面临严格的合规限制。
+开源模型允许\textbf{完全本地化}的 Agent 部署——
+模型在企业自己的基础设施上运行，
+数据永远不离开企业网络。
+这不仅是合规需求，
+也是许多企业采纳 Agent 技术的\textbf{先决条件}。
+
+\textbf{模型可定制性}。
+Agent 在特定领域中工作时
+（如法律文档审查、代码安全审计、金融合规检查），
+通用的 frontier 模型可能不是最优选择。
+开源模型允许企业\textbf{微调}——
+在领域特定数据上进一步训练，
+使模型更好地理解领域术语、
+遵循领域规范和满足领域特定的质量要求。
+这种可定制性是闭源 API 无法提供的。
+
+\textbf{供应链风险的缓解}。
+2025--2026 年的经验表明，
+依赖单一 LLM 供应商存在显著风险——
+API 价格变动、服务中断、模型能力回退
+（``model regression''）
+都曾导致依赖闭源 API 的 Agent 系统出现问题。
+开源模型提供了\textbf{后备方案}——
+如果主力供应商出现问题，
+开发者可以快速切换到本地部署的开源替代品。
+多家企业报告它们的 Agent 部署策略
+已经从``单一闭源 API''
+演变为``闭源 API + 开源本地后备''的混合模式。
+
+
+\section{AI 基础设施的重构}
+\label{sec:ai-infra-restructuring}
+
+Agent 大战和模型竞赛的背后，
+是 AI 基础设施层面的深刻重构。
+模型能力的民主化催生了一个新的中间层——
+推理平台、模型路由、开发者工具链——
+这些``管道工程''虽不如 frontier 模型引人注目，
+却是 AI 从实验室走向生产的关键桥梁。
+
+\subsection{推理平台的崛起}
+
+2025--2026 年，专业化的 AI 推理平台
+从创业项目成长为 AI 基础设施的核心层。
+
+\textbf{Together AI} 以``研究驱动的推理优化''为定位，
+声称相对于原生推理实现 2 倍加速和 60\% 成本降低。
+其技术栈基于 FlashAttention 等自研推理内核，
+支持 DeepSeek V3.1、Qwen 3.5-397B、Kimi K2.5、
+GLM-5、LLaMA 4 Maverick 等几乎所有 frontier 开源模型。
+Together 提供四种部署模式：
+Serverless（按 token 计费的即用 API）、
+Batch（大批量离线处理，单模型可达 300 亿 token）、
+Dedicated Model（专用硬件，面向对延迟敏感的场景）
+和 Dedicated Container（专为生成式媒体模型优化）。
+
+\textbf{Fireworks AI} 专注于推理速度，
+其 FireAttention 引擎在 speculative decoding
+和 continuous batching 上做出了工程突破。
+\textbf{Modal} 走了 serverless GPU 计算的路线——
+开发者通过 Python 装饰器即可将函数部署到 GPU 集群，
+无需管理任何基础设施。
+\textbf{Replicate} 则以``一行代码运行开源模型''
+降低了 AI 推理的入门门槛。
+
+这些平台的共同效应是将推理从``模型提供商的独占能力''
+变成了``可互换的商品化服务''——
+开发者不再被锁定在某一个模型提供商上，
+而是可以根据性能、成本和延迟需求灵活切换。
+
+推理平台的崛起催生了一个新的竞争维度：
+\textbf{推理效率优化}。
+同一个模型在不同的推理平台上
+可能有显著不同的延迟和吞吐量——
+因为每个平台都在推理引擎层面做了专有优化：
+KV cache 管理策略、
+attention kernel 的硬件适配、
+batch scheduling 算法、
+speculative decoding 的候选模型选择。
+这些``看不见的''工程优化
+累积起来可以产生 2--5 倍的性能差异。
+
+\textbf{vLLM}~\cite{kwon2023vllm}
+（UC Berkeley，2023 年开源，持续活跃迭代）
+是开源推理引擎中的事实标准。
+vLLM 的核心创新是
+\textbf{PagedAttention}——
+借鉴操作系统的虚拟内存分页机制
+来管理 KV cache，
+消除了传统推理引擎中
+KV cache 的内存碎片化问题。
+PagedAttention 使得 vLLM 在高并发场景下
+的吞吐量比 HuggingFace Transformers 高 14--24 倍。
+截至 2026 年 3 月，
+vLLM GitHub 50,000+ stars，
+几乎所有推理平台和开源部署方案
+都基于 vLLM 或受其启发。
+
+\textbf{SGLang}（Stanford/UC Berkeley，2024 年开源）
+将推理优化从引擎层面推向了\textbf{编程模型}层面。
+SGLang 允许开发者使用
+类似 Python 的高级语言编写 LLM 程序——
+包含条件分支、循环、
+多个 LLM 调用之间的数据依赖——
+然后由编译器自动优化执行计划
+（如 RadixAttention 共享前缀、
+并行生成多个分支、
+自动批处理独立的调用）。
+SGLang 对 Agent 场景特别有价值——
+Agent 的典型工作流
+（观察 → 推理 → 行动 → 观察 → ...）
+本质上是一个带循环和分支的 LLM 程序，
+SGLang 可以比通用 API 更高效地执行这种模式。
+
+\subsection{OpenRouter：模型路由与匿名评估}
+
+\textbf{OpenRouter} 在这一生态中扮演了独特的角色——
+它不运行自己的推理基础设施，
+而是作为\textbf{模型路由器}，
+将开发者的 API 请求路由到最优的推理提供商。
+据其统计，平台追踪来自\textbf{数百万用户}的真实使用数据，
+覆盖 Anthropic、Google、X.AI、DeepSeek 等主要供应商。
+
+OpenRouter 的 Rankings 页面提供了
+全球 AI 模型真实使用情况的罕见可见性：
+按周使用量、市场份额、编程语言偏好、
+上下文长度利用率、工具调用采纳率等多维度排名。
+截至 2026 年初的数据显示，
+Anthropic Claude 4 Sonnet、Google Gemini 2.5 Flash
+和 X.AI Grok 占据使用量前列——
+值得注意的是，这反映了\textbf{实际开发者偏好}
+而非营销叙事或合成基准。
+中国模型（DeepSeek、Qwen）
+在 OpenRouter 上的使用量份额持续攀升，
+与前述 OpenRouter 统计的
+全球开源 LLM 使用量从 1.2\% 到 30\% 的飙升相吻合。
+
+\subsection{开发者工具链的标准化}
+
+在应用层，\textbf{Vercel AI SDK}
+作为 AI 应用开发的事实标准框架持续演进。
+AI SDK 提供了统一的 API 抽象，
+使开发者可以在 OpenAI、Anthropic、Google、
+Mistral、Groq 等供应商之间无缝切换——
+一行代码更换底层模型，
+而无需修改应用逻辑。
+SDK 原生支持流式响应（streaming）、
+结构化输出（structured outputs）、
+工具调用（tool use）和 MCP 集成——
+将 AI 能力的集成从手工 HTTP 请求
+简化为声明式的函数调用。
+
+\textbf{可观测性工具链}也在快速成熟。
+\textbf{LangSmith}（LangChain 团队，2024 年发布）
+和 \textbf{Braintrust}（2024--2025 年）
+提供了 Agent 执行的端到端可观测性——
+每次 LLM 调用的输入/输出、
+工具调用的参数和结果、
+推理链的中间步骤——
+都被记录和可视化。
+这些工具对 Agent 开发至关重要：
+在传统软件中，
+开发者可以通过断点调试逐行检查程序行为；
+在 Agent 系统中，
+``行为''是非确定性的 LLM 推理结果，
+只能通过\textbf{事后分析}来理解为什么
+Agent 做出了特定的决策。
+OpenAI Agents SDK 的内置 Tracing
+和 Claude Code 的 JSONL 日志
+也提供了类似的能力，
+但 LangSmith 等第三方工具
+通过\textbf{跨供应商的统一视图}
+解决了``同一个应用使用多个 LLM 提供商''
+的调试难题。
+
+\textbf{评估框架}是开发者工具链的另一个关键层。
+如何判断一个 Agent 的新版本
+``比上一个版本更好''？
+传统软件的回归测试通过确定性断言
+（``输出必须等于 42''）来验证正确性。
+Agent 的输出是非确定性的——
+同一个输入可能产生不同但都``正确''的输出。
+\textbf{LLM-as-Judge}模式
+（用另一个 LLM 来评判 Agent 输出的质量）
+正在成为 Agent 评估的主流方法——
+但它引入了``评判者自身的偏差和不可靠性''的元问题。
+更可靠的方法是结合
+\textbf{自动化指标}（测试通过率、代码质量分数）
+和\textbf{人类评估}（定期的人工抽检）
+来综合判断 Agent 的能力变化。
+
+\subsection{推理成本的历史轨迹}
+
+推理成本的下降轨迹是理解 AI 行业经济学的关键数据。
+以 GPT-4 级别的推理能力为基准：
+
+\begin{center}
+\begin{tabular}{llr}
+  \hline
+  \textbf{时间} & \textbf{模型/平台} & \textbf{输出价格 (\$/M tokens)} \\
+  \hline
+  2023 年初 & GPT-4 (8K) & $\sim$60.00 \\
+  2023 年底 & GPT-4 Turbo & $\sim$30.00 \\
+  2024 年中 & GPT-4o & $\sim$15.00 \\
+  2025 年初 & Claude 3.5 Sonnet & $\sim$15.00 \\
+  2025 年中 & DeepSeek V3 API & $\sim$2.00 \\
+  2026 年初 & MiniMax M2.5 API & $<$1.00 \\
+  2026 年初 & Step 3.5 Flash & $<$0.50 \\
+  \hline
+\end{tabular}
+\end{center}
+
+三年内，frontier 级推理的单位成本
+下降了约 \textbf{两个数量级}——
+从约 60 美元/M tokens 降至不到 1 美元/M tokens。
+这个下降速度远超摩尔定律，
+主要由三个因素驱动：
+（1）MoE 架构的效率提升——
+同等质量下激活参数减少 5--10 倍；
+（2）推理引擎的工程优化——
+FlashAttention、speculative decoding、
+continuous batching、KV cache 压缩；
+（3）竞争驱动的定价战——
+特别是中国模型提供商的激进定价策略。
+
+``Intelligence too cheap to meter''
+不再是未来学的修辞——
+当一次 frontier 级推理的成本
+低于一杯咖啡的千分之一时，
+成本不再是 AI 采纳的障碍，
+\textbf{想象力和工程能力}成为唯一的瓶颈。
+
+
+\section{Agent 安全与治理的新前沿}
+\label{sec:agent-safety}
+
+Agent 的能力越强，安全挑战越严峻。
+2026 年初，Agent 安全从理论讨论
+进入了工程实践的阶段。
+
+\subsection{新型攻击面}
+
+Agent 引入了传统 LLM 不存在的攻击面：
+
+\textbf{间接提示注入}（Indirect Prompt Injection）。
+Agent 在浏览网页或读取文件时，
+可能遇到恶意构造的内容，
+这些内容被设计来改变 Agent 的行为。
+例如，一个 Markdown 文件中嵌入的
+白色文字隐藏指令（\texttt{color: white; font-size: 0}）
+可能让 Agent 将敏感文件内容
+编码为 base64 并附加到一个``无害的'' API 请求中——
+人类看不到指令，但 Agent 会执行它。
+更隐蔽的变体包括：
+Unicode 方向控制字符注入
+（利用 RTL/LTR 标记混淆 Agent 对代码的理解）、
+注释中的多语言指令
+（中文注释中嵌入英文提示以绕过语言过滤）、
+以及链式间接注入
+（在 Agent 必经的多个数据源中
+分散植入攻击片段，单独看无害，组合后触发恶意行为）。
+
+\textbf{工具滥用}。
+Agent 拥有调用外部工具的能力——
+一个被误导的 Agent 可能会
+删除文件、发送邮件、
+执行数据库操作或部署代码，
+造成真实的损害。
+MCP 的 Tool Annotations 试图缓解这一问题
+（通过标注工具的破坏性级别），
+但规范同时承认来自不可信服务器的注解
+不应被视为可靠的安全声明——
+攻击者可以伪造注解将危险工具标记为``安全''。
+
+\textbf{权限提升}。
+Agent 可能通过一系列看似合理的步骤
+逐步获取超出其设计权限的能力——
+类似于传统信息安全中的权限提升攻击。
+例如，Agent 被授权修改配置文件，
+通过修改 \texttt{.bashrc} 添加 alias
+覆盖系统命令的行为，
+间接获得了修改系统行为的能力。
+
+\textbf{记忆中毒}。
+对于具有长期记忆的 Agent，
+攻击者可能通过精心构造的交互
+在 Agent 的记忆中植入错误信息或恶意指令，
+影响未来的行为。
+Claude Code 的 \texttt{CLAUDE.md} 文件
+就是这类攻击的潜在目标——
+一个恶意 PR 可能试图在项目的 \texttt{CLAUDE.md} 中
+注入持久化的行为修改指令。
+
+\textbf{跨 Agent 攻击传播}。
+在多 Agent 系统中，
+一个被污染的 Agent 的输出
+可能被其他 Agent 信任为合法输入，
+导致攻击在 Agent 网络中级联传播——
+类似于供应链攻击在软件生态中的传播模式。
+
+\subsection{防御框架}
+
+2026 年初的 Agent 安全工程实践
+采用了\textbf{纵深防御}（defense-in-depth）策略：
+
+\textbf{权限最小化原则}。
+Agent 默认不拥有任何破坏性权限。
+Claude Code 的安全模型是这一原则的典型实现——
+其 \texttt{settings.json} 支持极其精细的权限配置。
+以生产环境中的高安全配置为例，
+可以配置 \textbf{89 条 deny 规则}
+覆盖以下高危操作类别：
+\begin{itemize}[noitemsep]
+  \item 家目录破坏性操作（\texttt{rm -rf \~{}/}、
+        \texttt{rm -r \~{}/Documents}）
+  \item 系统关键目录写入（\texttt{/etc}、\texttt{/usr}、
+        \texttt{/System}）
+  \item 凭据文件访问（\texttt{.ssh}、\texttt{.gnupg}、
+        \texttt{.env}、\texttt{credentials.json}）
+  \item Git 破坏性操作（\texttt{git push --force}、
+        \texttt{git reset --hard}、\texttt{git clean -fd}、
+        \texttt{git branch -D}）
+  \item 数据库破坏性操作（\texttt{DROP TABLE}、
+        无 WHERE 的 \texttt{DELETE FROM}）
+  \item 磁盘操作（\texttt{diskutil}、\texttt{fdisk}、
+        \texttt{mkfs}）
+  \item 配置截断（\texttt{echo > \~{}/.zshrc}）
+\end{itemize}
+另配 \textbf{38 条 ask 规则}——
+对中等风险操作（如 \texttt{npm publish}、
+\texttt{docker rm}、\texttt{kubectl delete}）
+要求用户逐次确认。
+这种``黑名单 + 确认名单''的双层防御
+在保持 Agent 灵活性的同时提供了足够的安全保障。
+
+\textbf{沙箱执行}。
+Agent 在受限的执行环境中运行。
+2026 年初，三种主要的沙箱技术各有权衡：
+
+\begin{center}
+\begin{tabular}{lllr}
+  \hline
+  \textbf{技术} & \textbf{隔离级别} & \textbf{启动时间} & \textbf{开销} \\
+  \hline
+  Docker 容器 & 进程/文件系统 & $\sim$1s & 低 \\
+  Firecracker microVM & 虚拟机 & $<$150ms & 极低 \\
+  nsjail/gVisor & 内核系统调用 & $<$50ms & 极低 \\
+  \hline
+\end{tabular}
+\end{center}
+
+Codex CLI 在 \texttt{full-auto} 模式下
+使用容器级沙箱运行 Agent，
+同时提供 \texttt{suggest}（建议操作，等待确认）
+和 \texttt{ask-always}（每步确认）两个低自主性模式。
+Claude Code 的 \texttt{/sandbox} 命令
+提供了会话级沙箱——
+Agent 在隔离环境中工作，
+文件变更仅在用户批准后同步回主文件系统。
+Firecracker（AWS 开源的 microVM 技术）
+因其亚秒级启动和极低的资源开销，
+正在成为 Agent 沙箱的优选方案——
+每个 Agent 运行在独立的 microVM 中，
+即使 Agent 被完全攻陷，
+也无法影响宿主系统或其他 Agent。
+
+\textbf{输入消毒}。
+对 Agent 接收的外部内容
+（网页、文件、API 响应）进行检测和过滤，
+识别和屏蔽潜在的提示注入攻击。
+MCP 规范明确要求
+来自不可信服务器的工具描述和注解
+\textbf{不应被视为安全声明}——
+客户端必须独立验证工具行为。
+
+\textbf{输出审计}。
+记录 Agent 的所有决策路径和工具调用，
+支持事后审查和回放。
+OpenAI Agents SDK 的内置 Tracing 功能
+和 Claude Code 的 JSONL 日志系统
+都提供了这种能力。
+
+\subsection{OWASP Agentic AI 安全框架}
+
+2025 年 2 月 17 日，OWASP 发布了
+\textbf{Agentic AI Threats and Mitigations} 指南，
+将 Agent 安全正式纳入主流信息安全框架。
+这份指南识别了 Agentic AI 系统中的核心威胁类别，
+并为每类威胁提供了具体的缓解措施。
+
+OWASP 框架的核心贡献在于
+将学术界零散的 Agent 安全研究
+整合为一个\textbf{结构化的威胁模型}——
+安全团队可以据此进行系统性的风险评估，
+而不是凭经验逐个排查漏洞。
+框架涵盖的威胁范围
+从传统的提示注入和数据泄露，
+扩展到 Agent 特有的
+工具链攻击、多 Agent 信任传播、
+自主决策失控和记忆操纵等新型威胁——
+这些威胁在传统 LLM 安全框架中没有对应的类别。
+
+MCP 被捐赠给 Linux 基金会旗下的 AAIF
+也部分出于 Agent 治理标准化的考虑——
+一个由行业共同治理的协议标准
+比任何单一公司的安全策略更有公信力。
+AAIF 的八大白金会员中
+既有模型提供商（Anthropic、Google、OpenAI）
+也有基础设施提供商（AWS、Cloudflare、Microsoft），
+这种多利益方的治理结构
+为协议层面的安全决策提供了必要的制衡机制。
+
+\subsection{Agent 安全的量化评估}
+
+Agent 安全评估正在从定性描述走向\textbf{定量基准}。
+
+\textbf{InjectAgent}（2024 年）
+是专门评估 Agent 对间接提示注入抗性的基准——
+它在 Agent 的工具输出中嵌入精心构造的攻击内容，
+测量 Agent 被误导执行恶意操作的概率。
+初步结果令人担忧：
+即使是最先进的 frontier 模型，
+在面对精心设计的注入攻击时
+也有 20--40\% 的概率被成功误导。
+
+\textbf{AgentDojo}（2024 年）
+提供了一个更全面的 Agent 安全评估框架——
+同时测量 Agent 的\textbf{功能正确性}
+（它能否完成合法任务？）
+和\textbf{安全鲁棒性}
+（它能否在存在攻击的情况下
+保持正确行为？）。
+AgentDojo 的关键发现是：
+增强安全性的措施（如更严格的输出检查）
+往往会\textbf{降低}功能性能——
+这是安全与可用性之间的经典权衡，
+在 Agent 场景中表现得尤为突出。
+
+这些基准揭示了 Agent 安全的核心困境：
+Agent 的\textbf{核心能力}（理解上下文、
+遵循指令、使用工具）
+\textbf{正是攻击者利用的能力}。
+一个不能被``说服''执行任何操作的 Agent
+也不能被用户有效地使用——
+因为二者使用的都是自然语言指令。
+从根本上解决这个困境
+可能需要在模型架构层面引入
+\textbf{指令层次}（instruction hierarchy）——
+让模型能够区分来自``系统''（可信）
+和来自``内容''（不可信）的指令，
+并始终优先遵循系统指令。
+OpenAI 在 2024 年提出的
+``instruction hierarchy'' 训练方法
+是这一方向的早期探索，
+但距离完全解决问题还有很长的路。
+
+\subsection{企业级 Agent 安全实践}
+
+在企业环境中部署 Agent
+需要满足传统信息安全框架的要求——
+这些框架是为人类用户设计的，
+Agent 作为``非人类行为者''的引入
+创造了新的合规挑战。
+
+\textbf{身份与访问管理（IAM）}。
+Agent 应该使用什么身份访问企业系统？
+它应该有自己的``服务账号''，
+还是以触发它的用户的身份行动？
+前者的问题是权限可能过大
+（服务账号通常有固定的权限集），
+后者的问题是审计追踪变得困难
+（``这个操作是用户做的还是 Agent 做的？''）。
+2026 年初的最佳实践是
+\textbf{代理身份}（delegated identity）——
+Agent 以用户的身份行动，
+但在审计日志中明确标注
+``此操作由 Agent 代表用户 X 执行''，
+并且 Agent 的有效权限
+是用户权限和 Agent 权限配置的\textbf{交集}
+（不能超越用户本身的权限）。
+
+\textbf{数据泄露防护（DLP）}。
+Agent 在执行任务时可能接触到敏感数据——
+客户信息、财务数据、商业秘密。
+如何确保这些数据不会被 Agent
+``泄露''到 LLM 提供商的日志中？
+MCP 的 Elicitation URL 模式
+（敏感信息不经过 MCP 客户端或 LLM 上下文）
+是协议层面的缓解措施。
+工程层面，企业通常部署
+\textbf{PII 检测与脱敏}管道——
+在数据送入 LLM 之前自动识别和掩码敏感字段，
+在结果返回后恢复原始值。
+但这种方法不能处理所有情况——
+特别是当敏感信息嵌入在非结构化文本中时，
+自动检测的准确率远低于 100\%。
+
+
+\section{结语：100 天改变了什么}
+
+从 2025 年 12 月到 2026 年 3 月 20 日，
+这 100 天改变了 AI 行业的几个基本假设。
+
+\textbf{Agent 不再是未来技术}。
+Claude Code 的 80,200+ GitHub stars、
+每周百万级的 Codex CLI 用户、
+SWE-bench 接近 80\% 的解决率——
+这些数字表明 Agent 已经从实验室走向了
+开发者的日常工作流。
+
+\textbf{开源不再是``次品''}。
+中国开源模型在数学推理、代码工程、
+竞赛级推理等核心能力上
+全面逼近甚至超越同期闭源模型，
+同时 API 定价低一到两个数量级。
+
+\textbf{协议标准决定生态格局}。
+MCP 从 Anthropic 的内部工具到行业标准的演变，
+证明了在 Agent 时代，
+谁定义了协议，谁就定义了生态的边界。
+
+\textbf{芯片独立不再是愿景}。
+GLM-5 在十万块昇腾 910B 上完成零 NVIDIA 训练，
+标志着中国 AI 芯片独立路线的工程可行性已被验证。
+华为昇腾生态的成熟速度超出了多数观察者的预期。
+
+\textbf{推理成本已不再是障碍}。
+三年内两个数量级的成本下降、
+MoE 架构的效率革命、
+中国供应商的激进定价——
+这些力量共同将 frontier 级推理
+推入了``商品化''区间。
+
+这 100 天只是开始。
+DeepSeek V4 预计于 2026 年 4 月发布，
+MCP Dev Summit 定于 4 月 2--3 日在纽约举行，
+NVIDIA Vera Rubin 将在年内量产——
+竞争的烈度只会继续加剧。
+
+\textbf{基础设施层的整合正在加速}。
+推理成本在三年内下降两个数量级，
+OpenRouter 等模型路由器使供应商切换成本趋近于零，
+Vercel AI SDK 等开发者工具链将 AI 集成标准化——
+这些``管道工程''的成熟
+正在将竞争焦点从``谁拥有最好的模型''
+转向``谁构建了最好的 Agent 体验''。
+
+在这场竞赛中，唯一确定的是：
+\textbf{变化的速度已经超越了大多数人的预期}。
+而在所有这些变化中，
+最深刻的也许不是任何单一的技术突破，
+而是一个新的共识的形成——
+AI 的价值不在于模型本身，
+\textbf{而在于模型与人类、工具和世界交互的方式}。
+这就是 Agent 时代的核心命题。
+
+\subsection{展望：Agent 时代的下一步}
+
+如果试图预测 2026 年下半年到 2027 年的发展方向，
+以下趋势最值得关注：
+
+\textbf{Agent-native 模型}。
+截至 2026 年 3 月，
+frontier 模型仍然主要是在``对话''数据上训练的——
+Agent 能力是通过 function calling 和 tool use
+``附加''到对话模型上的。
+下一步可能是\textbf{从预训练阶段就为 Agent 场景优化}的模型——
+在训练数据中包含大量的工具调用轨迹、
+多步骤任务执行记录和环境交互数据。
+OpenRouter 上出现的``Hunter Alpha''
+（被描述为``Agent 专用模型''）
+可能是这一方向的先兆。
+
+\textbf{持久化 Agent}。
+当前的 Agent 在任务完成后就``消失''——
+下一次需要重新创建。
+持久化 Agent 将具有\textbf{持续运行的能力}——
+它们在后台监控特定条件，
+当条件触发时自动执行预设的工作流。
+Claude Code 的 \texttt{/loop} 命令
+是这一方向的早期探索——
+定时循环执行提示或命令。
+更成熟的持久化 Agent
+将需要完善的调度系统、
+状态管理和异常处理机制。
+
+\textbf{Agent 经济学}。
+当 Agent 可以可靠地完成越来越多的工作时，
+一个新的经济模型将浮现。
+Agent 的``劳动''如何定价？
+Agent 造成的损失由谁承担？
+Agent 创造的知识产权归谁所有？
+这些问题不仅是法律问题，
+更是将决定 Agent 时代
+\textbf{价值如何分配}的根本性制度设计问题。
+
+\textbf{Agent 安全的制度化}。
+OWASP 的 Agentic AI 框架是第一步，
+但远非充分。
+随着 Agent 的权限和自主性持续扩大，
+更完善的安全标准、审计框架和合规要求将不可避免。
+EU AI Act 的 GPAI 条款
+可能在未来版本中专门增加 Agent 相关条款——
+特别是关于 Agent 自主决策的透明度
+和 Agent 造成损害的责任归属。
+
+最终，Agent 时代的愿景是
+\textbf{人类从``执行者''变为``指挥者''}——
+不再亲自编写每一行代码、
+点击每一个按钮、
+填写每一个表单，
+而是用自然语言描述目标，
+由 Agent 系统完成执行。
+这个愿景距离完全实现还很远——
+可靠性差距、安全挑战和信任建设
+都是需要数年工程积累才能克服的障碍。
+但 2025 年 12 月到 2026 年 3 月这 100 天的进展
+已经证明了一件事：
+\textbf{这个方向是正确的}。
+
+
+%% ============================================================
+%% BibTeX entries for this chapter
+%% (many are shared with other chapters and already exist in refs.bib)
+%%
+%% @misc{mcp_apps_2026,
+%%   title   = {{MCP Apps}: Interactive UI Components for Agents},
+%%   author  = {Model Context Protocol},
+%%   year    = {2026},
+%%   note    = {Released 2026-01-26},
+%% }
+%%
+%% @misc{aaif_2025,
+%%   title   = {Agentic {AI} Foundation Launches Under {Linux} Foundation},
+%%   author  = {{Linux Foundation}},
+%%   year    = {2025},
+%%   note    = {Announced 2025-12-09, founding members include AWS, Anthropic, Google, Microsoft, OpenAI},
+%% }
+%%
+%% @misc{openai_agents_sdk_2025,
+%%   title   = {{OpenAI Agents SDK}},
+%%   author  = {OpenAI},
+%%   year    = {2025},
+%%   note    = {Open-sourced 2025-03-11, production successor to Swarm},
+%% }
+%%
+%% @misc{google_adk_2025,
+%%   title   = {Agent Development Kit ({ADK})},
+%%   author  = {Google Cloud},
+%%   year    = {2025},
+%%   note    = {Open-sourced 2025-04-09, Python v1.0.0 on 2025-05-29},
+%% }
+%%
+%% @misc{codex_cli_2025,
+%%   title   = {{Codex CLI}: Terminal-Based Coding Agent},
+%%   author  = {OpenAI},
+%%   year    = {2025},
+%%   note    = {First released 2025-04-16, rewritten in Rust 2025-06, 66K GitHub stars by 2026-03},
+%% }
+%%
+%% @misc{augment_context_engine_2026,
+%%   title   = {Context Engine {MCP}: Semantic Search for Agents},
+%%   author  = {Augment Code},
+%%   year    = {2026},
+%%   note    = {Released 2026-02-06},
+%% }
+%%
+%% @misc{fastmcp_v3_2025,
+%%   title   = {{FastMCP} 3.0: Provider/Transform Architecture},
+%%   author  = {Jared Lowin},
+%%   year    = {2025},
+%%   note    = {v3.0.0 released 2025-02-18, v3.1.1 by 2026-03-14, 23.8K GitHub stars},
+%% }
+%%
+%% @misc{mcp_spec_2025_11_25,
+%%   title   = {Model Context Protocol Specification 2025-11-25},
+%%   author  = {{Model Context Protocol}},
+%%   year    = {2025},
+%%   note    = {Introduces Elicitation (form/URL modes), Authorization Framework, Tool Annotations},
+%% }
+%%
+%% @misc{a2a_protocol_2025,
+%%   title   = {Agent-to-Agent ({A2A}) Protocol},
+%%   author  = {Google},
+%%   year    = {2025},
+%%   note    = {JSON-RPC 2.0 over HTTP(S), Agent Cards, 22.7K GitHub stars by 2026-03},
+%% }
+%%
+%% @misc{goose_block_2025,
+%%   title   = {Goose: Open Source {AI} Agent by Block},
+%%   author  = {Block (formerly Square)},
+%%   year    = {2025},
+%%   note    = {AAIF founding project, v1.28.0 by 2026-03-18, 33.3K GitHub stars, Rust+TypeScript},
+%% }
+%%
+%% @misc{aider_2025,
+%%   title   = {Aider: {AI} Pair Programming in Your Terminal},
+%%   author  = {Paul Gauthier},
+%%   year    = {2025},
+%%   note    = {v0.86.0, 42.2K GitHub stars, 15B tokens/week, 88\% self-written code},
+%% }
+%%
+%% @misc{cline_2025,
+%%   title   = {Cline: Autonomous {AI} Coding Agent for {VS Code}},
+%%   author  = {Cline Bot Inc.},
+%%   year    = {2025},
+%%   note    = {59.2K GitHub stars, Apache 2.0, supports 10+ AI providers},
+%% }
+%%
+%% @misc{terminal_bench_2_2026,
+%%   title   = {Terminal-Bench 2.0: Multi-Domain Terminal Agent Benchmark},
+%%   author  = {Terminal-Bench Team},
+%%   year    = {2026},
+%%   note    = {89 tasks across SW engineering, ML, security, data science},
+%% }
+%%
+%% @article{deepseek_mhc_2025,
+%%   title   = {Manifold-Constrained Hyper-Connections for {Transformers}},
+%%   author  = {DeepSeek AI},
+%%   year    = {2025},
+%%   journal = {arXiv:2512.24880},
+%%   note    = {Sinkhorn-Knopp doubly stochastic constraint, signal amplification 3000x to 1.6x},
+%% }
+%%
+%% @article{deepseek_engram_2026,
+%%   title   = {Engram: Conditional Memory via Scalable Lookup},
+%%   author  = {DeepSeek AI},
+%%   year    = {2026},
+%%   journal = {arXiv:2601.07372},
+%%   note    = {27B Engram params, U-shaped scaling law, 75\% memory / 25\% compute optimal},
+%% }
+%%
+%% @misc{hunyuan_large_2024,
+%%   title   = {Hunyuan-Large: Open-Source {MoE} Model with 389B Parameters},
+%%   author  = {Tencent},
+%%   year    = {2024},
+%%   note    = {Open-sourced 2024-11-05, 389B total / 52B active, 256K context, GQA+CLA},
+%% }
+%%
+%% @misc{owasp_agentic_ai_2025,
+%%   title   = {Agentic {AI} Threats and Mitigations},
+%%   author  = {OWASP},
+%%   year    = {2025},
+%%   note    = {Published 2025-02-17, structured threat model for agentic AI systems},
+%% }
+%%
+%% @misc{openrouter_2026,
+%%   title   = {{OpenRouter}: Model Router and Usage Analytics},
+%%   author  = {OpenRouter},
+%%   year    = {2026},
+%%   note    = {Tracks millions of users, real-world model usage rankings},
+%% }
+%%
+%% @misc{claude_code_changelog_2026,
+%%   title   = {{Claude Code} Changelog v2.1.x},
+%%   author  = {Anthropic},
+%%   year    = {2026},
+%%   note    = {v2.1.80 by 2026-03-20, /remote-control, MCP Elicitation, 1M context, /loop},
+%% }
+%%
+%% @misc{codex_desktop_2026,
+%%   title   = {{Codex Desktop App}},
+%%   author  = {OpenAI},
+%%   year    = {2026},
+%%   note    = {macOS 2026-02-02, Windows 2026-03-04, multi-agent management interface},
+%% }
+%%
+%% --- New references for ch15 expansion ---
+%%
+%% @article{xie2024osworld,
+%%   title   = {{OSWorld}: Benchmarking Multimodal Agents for Open-Ended Tasks in Real Computer Environments},
+%%   author  = {Xie, Tianbao and Zhang, Danyang and Chen, Jixuan and others},
+%%   journal = {arXiv preprint arXiv:2404.07972},
+%%   year    = {2024},
+%% }
+%%
+%% @article{zhou2024webarena,
+%%   title   = {{WebArena}: A Realistic Web Environment for Building Autonomous Agents},
+%%   author  = {Zhou, Shuyan and Xu, Frank F and Zhu, Hao and others},
+%%   journal = {ICLR},
+%%   year    = {2024},
+%% }
+%%
+%% @article{liu2023agentbench,
+%%   title   = {{AgentBench}: Evaluating {LLMs} as Agents},
+%%   author  = {Liu, Xiao and Yu, Hao and Zhang, Hanchen and others},
+%%   journal = {ICLR},
+%%   year    = {2024},
+%% }
+%%
+%% @article{yao2023react,
+%%   title   = {{ReAct}: Synergizing Reasoning and Acting in Language Models},
+%%   author  = {Yao, Shunyu and Zhao, Jeffrey and Yu, Dian and others},
+%%   journal = {ICLR},
+%%   year    = {2023},
+%% }
+%%
+%% @article{zhou2024lats,
+%%   title   = {Language Agent Tree Search Unifies Reasoning Acting and Planning in Language Models},
+%%   author  = {Zhou, Andy and Yan, Kai and Shlapentokh-Rothman, Michal and others},
+%%   journal = {ICML},
+%%   year    = {2024},
+%% }
+%%
+%% @article{du2023debate,
+%%   title   = {Improving Factuality and Reasoning in Language Models through Multiagent Debate},
+%%   author  = {Du, Yilun and Li, Shuang and Torralba, Antonio and Tenenbaum, Joshua B and Mordatch, Igor},
+%%   journal = {arXiv preprint arXiv:2305.14325},
+%%   year    = {2023},
+%% }
+%%
+%% @article{kwon2023vllm,
+%%   title   = {Efficient Memory Management for Large Language Model Serving with {PagedAttention}},
+%%   author  = {Kwon, Woosuk and Li, Zhuohan and Zhuang, Siyuan and others},
+%%   journal = {SOSP},
+%%   year    = {2023},
+%% }
+%%
+%% @misc{swe_agent_2024,
+%%   title   = {{SWE-agent}: Agent-Computer Interfaces Enable Automated Software Engineering},
+%%   author  = {Yang, John and Jimenez, Carlos E and Wettig, Alexander and others},
+%%   year    = {2024},
+%%   journal = {NeurIPS},
+%% }
+%%
+%% @misc{openhands_2024,
+%%   title   = {{OpenHands}: An Open Platform for {AI} Software Developers as Generalist Agents},
+%%   author  = {Wang, Xingyao and Chen, Boxuan and Qian, Ziyi and others},
+%%   year    = {2024},
+%%   journal = {arXiv preprint},
+%% }
+%%
+%% @misc{crewai_2024,
+%%   title   = {{CrewAI}: Role-Based Multi-Agent Framework},
+%%   author  = {Moura, Joao},
+%%   year    = {2024},
+%%   note    = {GitHub 51K+ stars by 2026-03},
+%% }
+%%
+%% @misc{autogen_2023,
+%%   title   = {{AutoGen}: Enabling Next-Gen {LLM} Applications via Multi-Agent Conversation},
+%%   author  = {Wu, Qingyun and Bansal, Gagan and Zhang, Jieyu and others},
+%%   year    = {2023},
+%%   journal = {arXiv preprint arXiv:2308.08155},
+%% }
+%%
+%% @misc{langgraph_2024,
+%%   title   = {{LangGraph}: Building Stateful Multi-Actor Applications with {LLMs}},
+%%   author  = {LangChain Inc.},
+%%   year    = {2024},
+%%   note    = {Graph-based agent workflow framework},
+%% }
+%% ============================================================

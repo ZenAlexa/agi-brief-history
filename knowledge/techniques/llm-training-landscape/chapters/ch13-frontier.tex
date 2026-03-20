@@ -226,6 +226,47 @@ GPT-4o 和 Gemini 3（基于 Gemini 架构~\cite{anil2023gemini} 的后续版本
 同时能够被用户打断（``barge-in'' 检测），
 还需要处理环境噪声和远场拾音。
 
+\textbf{音频生成}同样在快速演进。
+从早期的 TTS（文本转语音）管线
+——先生成文本再用 Vocoder 合成语音——
+到 GPT-4o 的原生音频生成（直接从内部表示产生语音 token），
+模型生成的语音在自然度、情感表达和多语言支持上
+都有了质的飞跃。
+2025--2026 年的一个重要趋势是\textbf{语音克隆与风格迁移}——
+模型可以基于几秒钟的参考音频
+生成具有特定说话风格的语音输出，
+这在客服、有声书和个性化助手场景中有巨大价值，
+但同时引发了关于 deepfake 音频和身份冒充的严重安全担忧。
+
+\textbf{音乐生成}是音频 AI 的另一个前沿。
+\textbf{Suno}（2023 年底发布，持续迭代至 2025 年底 v4）
+和 \textbf{Udio}（2024 年发布）
+展示了 AI 可以生成包含歌词、旋律、和声和编曲的
+完整音乐作品。
+Suno v4 生成的歌曲在盲测中
+被部分听众评价为``与专业制作的音乐难以区分''——
+这对音乐产业的影响可能堪比摄影技术对绘画的冲击。
+然而，版权问题仍然是音乐生成 AI 面临的最大法律挑战——
+多家唱片公司已对 Suno 和 Udio 提起版权侵权诉讼，
+核心争议在于：
+如果 AI 在受版权保护的音乐上训练，
+它生成的作品是否构成对原作的``衍生''。
+
+\textbf{声音理解}也在快速演进，
+超越了传统的语音识别范畴。
+Google 的 Gemini 3 和 OpenAI 的 GPT-4o
+不仅能转录语音内容，
+还能识别环境声音
+（``这段录音中有鸟叫声和远处的交通噪音''）、
+分析音乐特征
+（``这首曲子是 A 小调，4/4 拍，BPM 约 120''）、
+甚至理解非语言的声音信号
+（``这个人的声音听起来焦虑''）。
+这种\textbf{通用声音理解}能力的出现
+使得音频模态不再只是``语音转文字的管道''，
+而是与视觉和文本并列的
+独立信息来源。
+
 \subsection{视频理解与世界模型}
 
 视频是多模态中计算成本最高的模态。
@@ -246,19 +287,160 @@ GPT-4o 和 Gemini 3（基于 Gemini 架构~\cite{anil2023gemini} 的后续版本
 视觉理解能力和长期记忆能力。
 
 \textbf{世界模型（World Models）}
-代表了视频理解的更深层方向。
-OpenAI 的 Sora 2（2025 年 9 月发布）
-被定位为不仅仅是视频生成器，
-而是「世界模拟器」——
-模型学习视频中的物理规律（重力、碰撞、流体动力学），
-并能够生成物理上合理的新场景。
-Sora 2 支持 1080p 视频生成，最长 1 分钟，
-并加入了同步音频生成能力。
-虽然当前的世界模型距离真正理解物理定律还有很大差距
-（生成的视频仍然会出现物理不一致性），
-但这个方向对于机器人、自动驾驶和游戏 AI 至关重要——
+代表了视频理解的更深层方向——
+不是简单地生成``看起来像视频的像素''，
+而是试图学习世界运行的底层规则。
+
+\subsubsection{Sora 系列：从视频生成到世界模拟}
+
+OpenAI 的 Sora 最初于 2024 年 2 月以技术报告形式亮相，
+核心架构是 \textbf{Diffusion Transformer（DiT）}~\cite{peebles2023dit}——
+将 Transformer 的注意力机制与扩散模型的去噪训练相结合。
+具体来说，Sora 将视频分解为时空 patch
+（每个 patch 覆盖若干帧的一个空间区域），
+通过一个视频压缩网络将原始像素压缩到低维的潜在空间，
+然后在潜在空间中使用 DiT 进行自回归或双向去噪。
+这种设计的关键优势是\textbf{分辨率和时长的灵活性}——
+因为 Transformer 天然处理可变长度的 token 序列，
+Sora 可以生成不同分辨率和宽高比的视频，
+而不需要为每种配置训练单独的模型。
+
+Sora 的训练数据包括大量的网络视频和人工标注的高质量片段。
+OpenAI 在技术报告中声称，
+Sora 展现了一些令人惊讶的``涌现''物理理解——
+物体的碰撞、反射、流体运动等现象
+在生成的视频中呈现出一定的物理合理性，
+尽管模型从未被显式地教授物理定律。
+这引发了一个深刻的争论：
+\textbf{视频生成模型是否在隐式地学习物理？}
+
+\textbf{Sora 2}（2025 年 9 月发布）
+在初代基础上做了重大升级：
+支持 1080p 视频生成（初代仅为 720p），
+最长 1 分钟的连续视频（初代约 10--20 秒），
+并加入了\textbf{同步音频生成}能力——
+模型可以为生成的视频自动配上环境音效和背景音乐。
+Sora 2 的另一个重要进步是\textbf{角色一致性}——
+在多个连续镜头中保持同一角色的外观一致，
+这是初代 Sora 的主要弱点之一。
+
+\subsubsection{世界模型的理论之争}
+
+``视频生成即世界模拟''的论点
+引发了 AI 理论界最激烈的辩论之一。
+
+\textbf{扩散模型路线}认为，
+如果视频生成模型在足够多的真实世界视频上训练，
+它将隐式地学会物理规律——
+因为生成物理上合理的视频
+\textbf{是}最有效的数据压缩策略。
+这种观点的支持者指出，
+Sora 等模型在没有任何物理引擎辅助的情况下
+就展现出了一定的物理直觉，
+这暗示着``足够大的模型 + 足够多的视频数据
+= 隐式的物理引擎''。
+
+\textbf{JEPA（Joint Embedding Predictive Architecture）路线}
+是 Yann LeCun 在 Meta FAIR 倡导的替代方案~\cite{lecun2022path}。
+LeCun 长期批评自回归和扩散模型的``像素级预测''范式，
+认为在像素空间中预测未来帧是极端低效的——
+因为未来的不确定性在像素层面是巨大的
+（一片树叶可能向左飘也可能向右飘），
+但在\textbf{语义层面}是有限的
+（树叶会落地，不会飞上天）。
+JEPA 的核心思想是在\textbf{学到的抽象表示空间}中进行预测，
+而不是在原始像素空间中。
+V-JEPA~\cite{bardes2024vjepa}（2024 年）
+展示了这种方法在视频理解任务上的潜力——
+它通过掩码预测（masking）在视频的潜在空间中学习表示，
+不需要像素级的重建损失。
+V-JEPA 2~\cite{vjepa2_2025}（2025 年）
+进一步将这一范式推向了更大的规模，
+在多个视频理解基准上取得了 SOTA。
+
+两种路线的分歧本质上是关于\textbf{世界模型应该建模什么}：
+扩散模型建模的是``世界看起来怎样''（像素分布），
+JEPA 建模的是``世界的状态是什么''（语义表示）。
+截至 2026 年初，扩散模型在视觉质量上占据压倒性优势
+（Sora、Kling、Runway 生成的视频视觉上令人惊叹），
+但 JEPA 在下游任务（如机器人规划、因果推理）
+上可能更有潜力——
+因为机器人不需要知道每个像素的颜色，
+只需要知道``桌子上有一个杯子，杯子可能会被碰倒''。
+
+\subsubsection{视频生成竞赛}
+
+Sora 引发了全球范围的视频生成竞赛。
+截至 2026 年初，主要竞争者包括：
+
+\textbf{Kling}（快手，2024 年 6 月发布，持续迭代至 2025 年底）
+是中国视频生成的旗舰。
+Kling 2.0 支持 1080p、最长 2 分钟的视频生成，
+在运动连贯性和物理合理性上与 Sora 2 不相上下，
+但在中文场景理解（文化特定的视觉内容）上更有优势。
+Kling 的核心技术包括自研的 3D VAE 视频编码器
+和基于 DiT 的时空注意力架构。
+
+\textbf{Runway Gen-3 Alpha}（2024 年 6 月发布）
+以创意工作流集成著称——
+Runway 将视频生成嵌入专业视频编辑工作流，
+支持精细的摄像机运动控制、
+风格迁移和多模态条件输入（文本 + 图像 + 草图）。
+Gen-3 Alpha Turbo 大幅降低了生成延迟，
+使得交互式创作成为可能。
+
+\textbf{Pika 2.0}（2024 年底--2025 年初）
+在消费者市场取得了成功，
+其``Scene to Video''功能
+允许用户通过一张照片生成包含人物动作的短视频，
+病毒式传播使 Pika 成为视频生成领域
+用户量增长最快的产品之一。
+
+\textbf{Google Veo 2}（2024 年 12 月发布）
+在视频生成质量评估中多次超越 Sora，
+支持 4K 分辨率和更长时长的生成。
+Veo 2 整合了 Google 在图像生成（Imagen 3）
+和视频理解（VideoMAE）方面的技术积累，
+是 Google``全栈多模态''战略的重要拼图。
+
+\textbf{字节跳动 Seaweed}（2025 年发布）
+是字节跳动在视频生成领域的布局，
+利用抖音/TikTok 的海量视频数据优势，
+在短视频生成场景（15--60 秒、竖屏、社交媒体风格）
+上形成了独特的竞争力。
+
+\subsubsection{世界模型的局限性}
+
+然而，当前的世界模型距离真正理解物理定律还有很大差距。
+具体的局限性包括：
+
+\textbf{物理不一致性}。
+生成的视频仍然频繁出现违反物理定律的场景——
+物体凭空出现或消失、
+重力方向突然改变、
+流体行为不符合流体力学、
+镜面反射与光源位置不一致。
+这些错误暴露了模型学到的是
+``统计上的视觉模式''而非``因果性的物理规律''。
+
+\textbf{长期连贯性}。
+随着生成视频时长的增加，
+角色外观、场景布局和叙事逻辑的一致性急剧下降。
+目前即使是最先进的模型
+也很难生成超过 2 分钟的物理上连贯的视频。
+
+\textbf{可控性}。
+用户很难精确控制生成内容的细节——
+``让角色走到桌子前，拿起红色杯子，转身离开''
+这样的精细指令对当前模型来说仍然是巨大挑战。
+
+尽管如此，世界模型的方向对于
+机器人、自动驾驶和游戏 AI 至关重要——
 一个能够预测物理世界演变的模型
 可以用于规划和决策。
+自动驾驶场景中，
+世界模型可以``想象''一辆前方车辆突然变道后的场景，
+帮助规划系统提前做出应对决策~\cite{hu2023gaia1}。
 
 \subsection{Omni-模型：全模态输入与输出}
 
@@ -279,6 +461,38 @@ Gemini 3 更进一步，原生支持图像和音频的生成。
 如何在预训练中平衡不同模态的数据比例，
 避免某种模态的能力被其他模态「挤压」，
 是一个活跃的研究方向。
+
+\textbf{Omni-model 的架构路线}正在经历分化。
+一种路径是\textbf{统一 tokenizer}——
+将所有模态（文本、图像、音频、视频）
+映射到同一个离散 token 空间中，
+然后用单一的 Transformer 进行自回归生成。
+这是最优雅的方案，但对 tokenizer 的设计要求极高——
+图像和音频的连续信号如何高效离散化
+而不丢失关键信息，仍然是开放问题。
+另一种路径是\textbf{模块化生成}——
+使用统一的理解模型处理输入，
+但为不同模态的输出维护独立的生成头
+（text head、image diffusion head、audio vocoder）。
+这种方案工程上更易实现，
+且允许每个生成模块独立优化，
+但增加了模型的参数量和部署复杂度。
+
+\textbf{实时交互}是 omni-model 的杀手级应用场景。
+GPT-4o 的实时语音对话
+和 Gemini 的 Project Astra 展示了
+一个能够同时看、听、说的 AI 助手的潜力——
+用户可以对着手机摄像头提问，
+AI 在理解视觉和语音输入后，
+以自然语音和屏幕标注同时回复。
+这种交互模式的延迟要求极其严苛
+（端到端延迟需低于 500 毫秒才能维持自然对话节奏），
+对推理基础设施提出了远超纯文本模型的挑战。
+Qwen3-Omni（2025 年 Q3）进一步将开源模型
+推入了 omni-modal 竞争——
+它是首个开源的 omni-modal 模型，
+支持文本、图像、音频的输入与输出，
+在实时交互延迟上与 GPT-4o 形成了直接竞争。
 
 \subsection{2026 年多模态的新突破}
 
@@ -313,6 +527,367 @@ SOTA 级多模态模型，
 其身份尚未公开确认，但其能力表现
 引发了关于多模态模型评估标准化的广泛讨论。
 
+\subsection{从``外挂视觉''到``原生多模态''：架构范式的根本转变}
+
+2025--2026 年多模态领域最深刻的技术转变，
+不是某个基准的刷新，
+而是\textbf{架构范式从``外挂''到``原生''的迁移}。
+理解这一转变，需要追溯多模态模型的三代架构演进。
+
+\textbf{第一代：转录-理解管线}（2022--2023）。
+视觉和语言是两个完全独立的系统。
+图像先由 CLIP/ViT 编码为向量，
+语音先由 Whisper 转录为文本，
+然后这些``翻译后的''信号被送入 LLM。
+这种架构的本质是\textbf{模态翻译}——
+将非文本模态翻译成文本能理解的形式。
+信息损失巨大：图像中的空间关系被压缩为一维向量，
+语音中的韵律和情感在转录过程中完全丢失。
+
+\textbf{第二代：投影融合}（2023--2024）。
+LLaVA~\cite{liu2023llava} 范式的核心创新是
+用一个可训练的投影层将视觉 token 映射到 LLM 的输入空间，
+然后与文本 token \textbf{拼接}送入同一个 Transformer。
+这比第一代进步显著——
+视觉信息以更细粒度的 token 形式被 LLM 处理，
+而不是压缩为单一向量。
+但架构上的根本限制是：
+\textbf{LLM 是在纯文本上预训练的}。
+视觉编码器在 LLM 预训练完成后才被``接入''，
+通过投影层和有限的多模态微调数据来``学会''
+如何处理视觉 token。
+这就像一个只读过书的人第一次看到图片——
+他可以描述图片中的物体，
+但缺少从出生起就积累的视觉直觉。
+
+\textbf{第三代：原生多模态}（2024--2026）。
+GPT-4o、Gemini 3（基于 Gemini 架构~\cite{anil2023gemini}）
+和 Claude 4.5 Sonnet 代表了根本性的范式转变——
+\textbf{模型从预训练的第一天起就同时处理文本、图像和音频}。
+这不是工程细节的差异，
+而是模型对世界的理解方式的根本不同。
+
+从架构角度看，原生多模态模型的关键设计选择包括：
+
+\textbf{统一的 tokenizer}。
+所有模态的输入被映射到\textbf{同一个}离散 token 空间中。
+图像通过学习的视觉 tokenizer（如 VQ-VAE 或 dVAE）
+被离散化为视觉 token，
+音频通过声学 tokenizer（如 SoundStream 或 EnCodec）
+被离散化为音频 token，
+然后这些 token 与文本 token
+在同一个 Transformer 中交织处理。
+Gemini 3 的架构~\cite{anil2023gemini}在此方向上走得最远——
+它在预训练阶段就将文本、图像、音频和视频数据
+混合在同一个训练批次中，
+使模型学到了\textbf{跨模态的深层语义关联}
+（例如，``玻璃碎裂的声音''与``碎玻璃的图像''
+在模型的内部表示空间中是近邻）。
+
+\textbf{交叉注意力 vs.\ 自注意力}。
+在处理多模态输入时，
+有两种主要的注意力设计。
+交叉注意力（cross-attention）方案
+让不同模态的 token 通过专门的交叉注意力层交互——
+文本 token 可以``查询''视觉 token 以获取视觉信息。
+Flamingo~\cite{alayrac2022flamingo} 是这种设计的代表。
+自注意力（self-attention）方案
+则将所有模态的 token 简单拼接，
+通过标准的自注意力让它们自由交互——
+GPT-4o 和 Gemini 采用了这种更简洁但计算成本更高的设计。
+自注意力方案的优势是
+\textbf{模型可以学到任意模态之间的关系}，
+不受预定义的交互模式限制。
+
+\textbf{原生多模态的训练成本}是一个关键考量。
+与纯文本预训练相比，
+多模态预训练需要数量级更多的数据
+（互联网上的文本远多于高质量的图文配对数据），
+更长的训练时间
+（视觉 token 的数量通常远大于对应的文本描述），
+以及更复杂的数据管道
+（图像/视频/音频数据需要不同的预处理和增强策略）。
+据估算，GPT-4o 的多模态预训练成本
+是纯文本 GPT-4 预训练成本的 3--5 倍。
+这也是为什么原生多模态模型
+目前仍主要由资源最充裕的少数实验室
+（OpenAI、Google、Anthropic、字节跳动）掌握。
+
+\textbf{Claude 的多模态路线}值得单独讨论。
+Anthropic 在多模态方面采取了更为审慎的策略——
+Claude 3 系列（2024 年 3 月）首次引入视觉能力，
+Claude 3.5 Sonnet 将视觉理解提升到 SOTA 水平，
+Claude 4.5 Sonnet（2025 年 2 月）
+进一步成为多项视觉基准的最佳模型。
+然而，Claude 系列至今没有引入原生图像生成能力，
+也没有引入原生音频输入/输出——
+Anthropic 选择将工程资源集中在
+\textbf{将每种已支持的模态做到极致}，
+而非追求全模态覆盖。
+这种策略在 Agent 场景中有其合理性——
+Claude Computer Use 需要的是
+对屏幕截图的极精确视觉理解，
+而不是生成图像或处理音频的能力。
+
+\begin{whybox}[原生多模态为什么重要？]
+一个在预训练阶段就同时处理视觉和语言的模型，
+与一个先学会语言再``学看图''的模型，
+差异不仅在于基准分数。
+关键差异在于\textbf{接地性}（grounding）——
+原生多模态模型将语言概念直接锚定在视觉经验上。
+当它处理``fragile''（易碎的）这个词时，
+它的内部表示不仅编码了词典定义，
+还融合了无数个玻璃碎裂、陶瓷摔碎的视觉片段。
+这种接地性使模型在理解涉及物理世界的语言描述时
+更加准确和可靠。
+人类的语言理解深度依赖于感官经验——
+一个从未见过``红色''的人很难真正理解``红色''这个词。
+原生多模态模型正在弥补这种
+纯文本模型天生缺乏的感官基础。
+\end{whybox}
+
+
+\section{AI for Science：LLM 技术向科学发现的延伸}
+\label{sec:ai-for-science}
+
+LLM 背后的核心技术——Transformer 架构、
+大规模预训练、自回归生成——
+正在被迁移到远超自然语言处理的科学领域。
+这不是简单的``用 GPT 回答科学问题''，
+而是用类似的方法论\textbf{从头训练科学领域的基础模型}，
+直接在分子结构、蛋白质序列、天气数据和材料属性上
+学习自然界的规律。
+
+\subsection{蛋白质结构预测与设计}
+
+\textbf{AlphaFold}~\cite{jumper2021alphafold} 的故事
+是 AI for Science 最具标志性的成功案例。
+2020 年，AlphaFold 2 在 CASP14 竞赛中
+以远超所有竞争对手的精度预测蛋白质三维结构，
+解决了一个困扰生物学界 50 年的难题。
+2023 年的 AlphaFold 3~\cite{abramson2024alphafold3}
+进一步将预测范围从单体蛋白质
+扩展到蛋白质-蛋白质相互作用、
+蛋白质-DNA/RNA 复合物以及蛋白质-小分子结合——
+这对药物发现至关重要，
+因为大多数药物通过与特定蛋白质结合来发挥作用。
+
+AlphaFold 3 的架构变化值得注意：
+它从 AlphaFold 2 的\textbf{迭代精化}（Evoformer + Structure Module）
+转向了\textbf{扩散模型}——
+使用扩散过程从噪声中逐步``去噪''出原子坐标。
+这与 Sora 等视频生成模型使用的扩散范式异曲同工——
+都是从随机噪声开始，
+通过学习的去噪过程逐步生成目标结构。
+这种架构迁移暗示了一个更深层的统一：
+\textbf{无论是像素、蛋白质还是分子，
+``从噪声中生成结构''都是一种普适的生成范式}。
+
+在蛋白质设计方面（``逆向''问题——给定功能，设计结构），
+\textbf{RFdiffusion}~\cite{watson2023rfdiffusion}（David Baker 实验室，2023 年）
+将扩散模型用于从头设计蛋白质骨架，
+能够生成满足特定几何约束的全新蛋白质结构。
+\textbf{ProteinMPNN}~\cite{dauparas2022proteinmpnn}
+则解决了``逆折叠''问题——
+给定一个蛋白质骨架结构，设计最优的氨基酸序列。
+这两个工具的组合使得
+从``我想要一个能结合 X 蛋白质的分子''
+到``这是具体的氨基酸序列''的全链路自动化成为可能。
+
+2024 年 10 月，David Baker 和 Demis Hassabis
+因``蛋白质结构预测和蛋白质设计''的贡献
+共同获得诺贝尔化学奖——
+这是 AI 技术首次直接促成诺贝尔奖级别的科学发现。
+
+\subsection{材料科学与分子发现}
+
+\textbf{GNoME（Graph Networks for Materials Exploration）}%
+~\cite{merchant2023gnome}（Google DeepMind，2023 年 11 月）
+使用图神经网络发现了 220 万种新的稳定晶体结构——
+相当于人类在此前 800 年的实验中发现数量的 45 倍。
+GNoME 的训练数据来自 Materials Project 等开源材料数据库，
+通过学习已知稳定材料的原子排列模式，
+预测哪些尚未被合成的材料组合可能是热力学稳定的。
+其中 381,000 种材料已经通过后续实验验证~\cite{merchant2023gnome}，
+部分材料展现出了用于下一代电池、太阳能电池
+和超导体的潜在价值。
+
+分子生成模型
+（用于药物先导化合物发现和材料设计）
+也在快速发展。
+\textbf{Uni-Mol 2}（DP Technology，2024 年）
+将 Transformer 用于 3D 分子表示学习，
+在分子属性预测和 3D 构象生成上达到了 SOTA。
+AlphaFold 3 的扩散架构启发了
+一系列新的分子生成模型——
+直接在三维空间中``生长''分子结构，
+同时满足化学键约束和药物性质要求。
+
+\subsection{天气与气候预测}
+
+天气预测是 AI for Science 的另一个突破性领域。
+传统的数值天气预报（NWP）
+通过求解大气的偏微分方程组来预测天气变化，
+需要超级计算机运行数小时。
+AI 天气模型正在以秒级推理时间
+达到甚至超越传统 NWP 的精度。
+
+\textbf{GenCast}~\cite{price2024gencast}（Google DeepMind，2024 年 12 月）
+使用扩散模型生成集合天气预报——
+不是给出一个确定的预测，
+而是生成一组可能的天气演变路径，
+自然地量化了预测的不确定性。
+GenCast 在 97.2\% 的评估指标上
+超越了顶级传统 NWP 系统 ENS
+（欧洲中期天气预报中心的集合预报系统），
+并且推理速度快约 1000 倍——
+生成 15 天的全球天气预报仅需 8 分钟
+（在单块 TPU 上），
+而 ENS 需要数小时的超级计算机运算。
+
+\textbf{Pangu-Weather}~\cite{bi2023pangu}（华为，2023 年）
+是首个在精度上全面超越传统 NWP 的 AI 天气模型，
+使用 3D Earth-Specific Transformer 架构
+直接在地球的经纬度网格上建模大气状态演变。
+后续的 \textbf{FuXi}（复旦大学）和
+\textbf{FourCastNet}（NVIDIA）
+进一步拓展了 AI 天气预测的能力边界。
+
+值得注意的是，这些 AI 天气模型使用的架构
+本质上都是 Transformer 或其变体——
+它们将大气状态表示为空间-时间 token，
+通过注意力机制学习大气动力学的模式。
+训练数据则来自 ERA5 再分析数据集
+（欧洲气象中心基于历史观测数据重建的全球大气状态数据）。
+\textbf{一个在视频上训练的 Transformer
+和一个在天气数据上训练的 Transformer，
+在架构上几乎没有区别}——
+差异在于输入的``帧''不是 RGB 像素，
+而是温度、气压、风速等物理量。
+
+\subsection{AI 辅助的药物发现}
+
+药物发现是 AI 最具商业价值的科学应用之一。
+2025 年，首批\textbf{完全由 AI 设计的药物}
+进入了临床试验阶段。
+\textbf{Insilico Medicine} 的 INS018\_055
+（治疗特发性肺纤维化的小分子药物）
+是全球首个从靶点发现到化合物设计全程由 AI 主导的
+进入二期临床试验的候选药物。
+从靶点识别到候选分子提名仅耗时 18 个月，
+传统流程通常需要 4--5 年~\cite{zhavoronkov2019deep}。
+
+AI 在药物发现中的作用不限于分子设计。
+\textbf{靶点发现}——
+通过分析基因组数据和疾病关联，
+AI 识别出传统方法难以发现的治疗靶点。
+\textbf{ADMET 预测}（吸收、分布、代谢、排泄、毒性）——
+在分子被合成之前就预测其在人体内的行为，
+大幅减少昂贵的实验筛选。
+\textbf{临床试验设计}——
+AI 优化患者招募策略和剂量方案，
+提高试验成功率。
+
+然而，AI 药物发现也面临独特的挑战：
+\textbf{数据稀缺}——
+临床数据量远小于互联网文本数据。
+整个 ChEMBL 数据库（最大的生物活性分子数据库之一）
+包含约 200 万个化合物和 2,000 万个活性数据点——
+对于 LLM 的标准来说，这是微不足道的数据量。
+相比之下，GPT-4 的预训练语料包含超过 10 万亿 token。
+这种数据规模的差异意味着
+AI 药物发现模型必须在\textbf{远少于 LLM}的数据量上
+学会化学和生物学的规律——
+这对模型的归纳偏置（inductive bias）设计
+和数据效率提出了更高的要求。
+
+\textbf{分布外泛化}——
+模型需要生成训练数据中从未出现的分子，
+而不仅仅是组合已知的模式。
+这与 LLM 的``创造性写作''在本质上不同：
+一个语法正确但语义荒谬的句子可以被读者轻松识别，
+但一个化学上合理但药理学上无效的分子
+只能通过昂贵的实验来验证。
+``在化学空间中创新''比``在语言空间中创新''
+需要更严格的约束和更可靠的评估。
+
+\textbf{端到端验证}——
+从计算预测到实验验证到临床试验的链条极长，
+反馈循环以年为单位而非以秒为单位。
+一个 AI 生成的候选分子从计算设计到完成二期临床试验
+通常需要 5--7 年。
+即使 Insilico Medicine 将发现阶段从 4--5 年压缩到 18 个月，
+后续的临床试验仍然受制于生物学的时间尺度。
+
+\textbf{Recursion Pharmaceuticals}（2025 年完成与 Exscientia 的合并）
+代表了 AI 药物发现的另一种路线——
+\textbf{实验室自动化 + AI 闭环}。
+Recursion 运营着高度自动化的生物实验室，
+每周可以生成数百万张细胞显微图像，
+这些图像被 AI 模型分析以发现药物-疾病的关联。
+这种``让 AI 设计实验，让机器人执行实验，
+让 AI 分析结果并设计下一轮实验''的闭环
+是 AI 在实验科学中最完整的应用范式。
+
+\subsection{AI for Science 的基础设施挑战}
+
+科学 AI 面临的基础设施挑战
+与 LLM 既有相似也有独特之处。
+
+\textbf{科学数据的异构性}。
+与互联网文本的相对标准化不同，
+科学数据高度异构——
+不同实验室使用不同的测量设备、
+不同的数据格式和不同的标注标准。
+将分散在全球数万个实验室的科学数据
+整合为统一的训练集，
+其工程难度堪比互联网时代之前的``搜索引擎问题''。
+
+\textbf{物理约束的编码}。
+科学模型必须遵守物理定律——
+生成的蛋白质结构必须满足化学键角约束，
+预测的天气状态必须满足质量和能量守恒。
+如何将这些``硬约束''嵌入到
+本质上是概率性的神经网络中，
+是一个活跃的研究方向。
+当前的主流方法包括：
+在损失函数中添加物理约束惩罚项、
+在生成后进行物理修正
+（post-hoc correction）、
+以及设计具有内置对称性的网络架构
+（如等变神经网络 / equivariant neural networks）。
+
+\textbf{可解释性}。
+科学家不仅需要预测结果，
+还需要\textbf{理解为什么}。
+一个能够准确预测蛋白质结构但无法解释
+``为什么这个氨基酸序列折叠成这个形状''的模型，
+对科学理解的贡献是有限的。
+这与 LLM 领域的``黑箱''问题一脉相承，
+但在科学场景中更为紧迫——
+因为科学进步的核心不是预测，而是理解。
+
+\begin{keybox}[AI for Science 的共同模式]
+回顾上述各领域，一个清晰的模式浮现：
+（1）\textbf{将科学数据 tokenize}——
+蛋白质序列用氨基酸 token 表示，
+分子用 SMILES 字符串或 3D 坐标表示，
+天气用经纬度网格上的物理量 token 表示；
+（2）\textbf{用 Transformer 学习 token 之间的关系}——
+无论是蛋白质中氨基酸的空间相互作用、
+分子中原子的化学键、
+还是大气中不同位置的气象关联；
+（3）\textbf{用生成模型（自回归或扩散）创造新结构}——
+生成新的蛋白质、分子或天气预报。
+这个``tokenize → learn → generate''的三步范式
+是 LLM 技术向科学延伸的通用框架。
+LLM 训练的核心洞察——
+``用足够的数据和计算，
+让复杂性从简单的预测目标中涌现''——
+在科学领域同样适用。
+\end{keybox}
+
+
 \section{Agent：从对话到行动}
 
 LLM 正在从「回答问题」演进为「执行任务」。
@@ -336,6 +911,19 @@ Agent 可能需要：
 阅读代码 → 理解架构 → 定位 bug →
 编写修复 → 运行测试 → 分析失败 → 修改修复 → 再次测试。
 每一步都是「观察-思考-行动」的实例。
+
+Agent 架构的另一个关键组件是\textbf{记忆系统}。
+短期记忆（对话上下文）受限于模型的上下文窗口；
+长期记忆（跨会话的知识积累）
+则需要外部存储机制——如向量数据库、
+结构化知识图谱或简单的文件系统。
+2025--2026 年的趋势是将记忆系统\textbf{层次化}：
+工作记忆（当前任务的中间结果）、
+情景记忆（过去任务的经验和教训）、
+语义记忆（领域知识和用户偏好）——
+每一层使用不同的存储和检索策略。
+这种层次化设计使 Agent 能够
+在长时间跨度内保持一致的行为和知识积累。
 
 \subsection{工具使用与标准化}
 
@@ -539,6 +1127,35 @@ benchmark 中的任务有明确的开始和结束条件，
 而真实世界的任务往往目标模糊、
 需要人类反馈、容错要求更高。
 
+\textbf{可靠性差距}（Reliability Gap）
+是 Agent 商业化的核心挑战。
+在 benchmark 上 80\% 的成功率意味着
+5 次执行中有 1 次失败——
+对于学术评估这是优秀的成绩，
+但对于生产环境这意味着
+\textbf{每 5 个自动化任务中就有 1 个需要人工干预}。
+许多企业场景要求 95\%+ 的可靠性
+才能证明自动化的经济价值——
+因为人工干预本身有成本，
+如果干预频率过高，
+自动化带来的效率提升会被干预成本抵消。
+
+应对可靠性差距的工程策略包括：
+\textbf{多轮重试}——
+Agent 在检测到失败后自动重试，
+利用 LLM 的非确定性（相同输入的不同采样路径）
+获得不同的执行策略；
+\textbf{自验证}——
+Agent 在完成任务后自行验证结果
+（如运行测试、检查输出格式），
+不满足验证条件则回退到上一个检查点；
+\textbf{人在环路的渐进式撤退}——
+Agent 从需要频繁人类确认的模式开始，
+随着信任的建立逐步减少确认频率。
+Claude Code 的权限系统
+（\texttt{allow}/\texttt{deny}/\texttt{ask} 规则）
+正是这种渐进式信任模型的工程实现。
+
 \begin{warnbox}[Agent 的经济影响]
 Agent 作为「数字劳动力」（digital workers）的概念
 正在引发关于工作未来的严肃讨论。
@@ -555,6 +1172,170 @@ Anthropic CEO Dario Amodei 在 2025 年的文章
 勾勒了 AI 增强人类而非替代人类的愿景，
 但同时承认转型期的阵痛不可避免。
 \end{warnbox}
+
+\section{具身智能：从屏幕走向物理世界}
+\label{sec:embodied-ai}
+
+LLM 技术的下一个前沿不在数字世界，而在\textbf{物理世界}。
+具身智能（Embodied AI）——
+让 AI 系统在机器人、无人机、自动驾驶等物理载体上
+感知环境、做出决策并执行动作——
+正在从学术研究走向工程落地。
+
+\subsection{大语言模型作为机器人的``大脑''}
+
+传统的机器人控制依赖于手工编写的规则和状态机——
+\texttt{if sensor\_reading > threshold then execute\_action}。
+这种方法在工厂流水线等结构化环境中有效，
+但面对开放世界的复杂性和不确定性时极其脆弱——
+一个没有被预编程应对的场景就可能导致系统完全卡死。
+
+LLM 为机器人提供了一种全新的能力：
+\textbf{将自然语言指令转化为动作序列}。
+用户说``帮我把桌上的红色杯子放到厨房水槽里''，
+LLM 可以将这条指令分解为
+一系列可执行的子任务——
+定位桌子 → 识别红色杯子 → 抓取 → 导航到厨房 →
+定位水槽 → 放置。
+这种从语言到动作的``翻译''能力
+是 LLM 在具身智能领域最直接的贡献。
+
+\textbf{RT-2（Robotic Transformer 2）}~\cite{brohan2023rt2}
+（Google DeepMind，2023 年）
+是这一思路的里程碑式工作。
+RT-2 直接在 vision-language 模型（PaLM-E）上
+微调机器人操作数据——
+模型的``输出 token''不再只是文本，
+还包括机器人关节角度和末端执行器位置的\textbf{离散化动作 token}。
+这意味着\textbf{同一个 Transformer
+既能回答``这是什么物体？''
+也能输出``将机械臂移动到 (x, y, z) 坐标''的动作指令}。
+RT-2 展现了令人惊讶的泛化能力——
+它能够执行训练数据中从未出现过的物体操作，
+因为 vision-language 模型的通用知识
+（``瓶子可以用来浇水''）
+被迁移到了机器人操作场景中。
+
+后续的 \textbf{Octo}（UC Berkeley，2024 年）
+和 \textbf{OpenVLA}（Stanford/TRI，2024 年）
+进一步推进了机器人基础模型的方向——
+它们在来自多种机器人平台、多种任务的
+大规模操作数据集上预训练，
+然后通过少量任务特定数据微调到具体的机器人和任务。
+这与 LLM 的``预训练 + 微调''范式完全一致。
+
+\subsection{人形机器人：硬件载体的突破}
+
+2025--2026 年，人形机器人从实验室走向了商业化的早期阶段。
+
+\textbf{Figure 02}（Figure AI，2025 年发布）
+是将 LLM 与人形机器人深度整合的代表作。
+Figure 02 搭载了 OpenAI 提供的视觉-语言模型，
+能够通过自然语言与人类对话，
+理解复杂的操作指令，
+并在物理世界中执行多步骤任务。
+Figure AI 在 2024 年完成了 6.75 亿美元融资
+（投资方包括 Microsoft、NVIDIA、OpenAI、Jeff Bezos），
+估值 26 亿美元——
+这表明资本市场对``LLM + 人形机器人''路线的信心。
+Figure 与 BMW 等制造商合作，
+目标是在汽车装配线等场景中部署人形机器人。
+
+\textbf{Tesla Optimus}（Tesla，2022 年原型亮相，
+2025 年进入有限试生产）
+是消费级人形机器人的最大胆尝试。
+Elon Musk 声称 Optimus 的长期目标是
+``每个人都能拥有的通用机器人助手''，
+目标售价低于 2 万美元。
+截至 2026 年初，Optimus 已在 Tesla 工厂内部
+执行简单的物料搬运和零件分拣任务，
+但距离``通用家庭助手''的愿景仍有巨大差距。
+Tesla 的独特优势在于其\textbf{自动驾驶数据管道}——
+FSD（Full Self-Driving）积累的
+数十亿英里真实世界行驶数据和训练基础设施
+可以被迁移到人形机器人的训练中。
+
+\textbf{1X Neo}（1X Technologies，2025 年发布原型）
+是挪威公司 1X Technologies 的人形机器人，
+专注于家庭和商业服务场景。
+Neo 的设计哲学与 Figure/Tesla 不同——
+它更强调\textbf{安全的人机共存}
+而非纯粹的力量和速度，
+使用柔性驱动器（compliant actuators）
+确保在意外碰撞时不会伤害人类。
+OpenAI 是 1X 的主要投资方，
+这暗示了 OpenAI 在具身智能领域的战略布局。
+
+\textbf{Unitree H1 / G1}（宇树科技，2024--2025 年）
+是中国人形机器人的代表，
+以``高性价比 + 运动能力''著称。
+Unitree H1 在公开视频中展示了
+全地形行走、跑步、跳跃甚至后空翻的能力，
+其硬件成本据称远低于西方竞品——
+这与中国在消费电子制造方面的传统优势一致。
+Unitree 的开源控制框架
+吸引了大量学术研究者使用其平台进行研究。
+
+\subsection{Sim-to-Real：模拟到现实的迁移}
+
+在物理世界中训练机器人是昂贵且缓慢的——
+每次失败都可能损坏硬件，
+数据收集速度受限于物理时间。
+\textbf{Sim-to-Real Transfer}（从模拟到现实的策略迁移）
+是解决这一问题的主要方法。
+
+\textbf{NVIDIA Isaac Sim / Isaac Lab}~\cite{makoviychuk2021isaac}
+是当前最广泛使用的机器人模拟平台。
+Isaac Sim 基于 NVIDIA Omniverse 构建，
+提供了光线追踪级别的视觉真实性
+和 PhysX 引擎驱动的物理模拟。
+关键的训练范式是 \textbf{Domain Randomization}——
+在模拟中随机化物体的颜色、纹理、大小、
+光照条件和物理参数
+（摩擦系数、重力、传感器噪声），
+迫使策略网络学习对这些变化\textbf{鲁棒}的行为，
+从而在迁移到真实世界时不会因``看起来不一样''而失效。
+
+Isaac Gym（Isaac Lab 的前身）
+在强化学习训练中实现了惊人的并行性——
+在单块 GPU 上同时运行数千个模拟环境，
+一天内完成相当于数年真实世界经验的训练。
+这种\textbf{计算换时间}的策略
+与 LLM 训练中的 ``scaling through compute'' 思路一致。
+
+Sim-to-Real 的核心挑战是 \textbf{Reality Gap}——
+模拟环境与真实世界之间不可避免的差异。
+无论模拟器多么精细，
+它都无法完全捕捉真实世界的所有物理细节——
+接触力学、柔性材料变形、
+液体交互、传感器噪声的真实分布。
+当前的缓解策略包括：
+更精确的物理引擎、
+更大范围的 Domain Randomization、
+以及``Sim-to-Real-to-Sim''循环
+（在真实世界收集少量数据来校准模拟器参数）。
+
+\begin{corebox}[具身智能的``GPT 时刻''还有多远？]
+具身智能领域正在寻找自己的``GPT 时刻''——
+一个像 ChatGPT 一样彻底改变公众认知的突破。
+目前的人形机器人仍然在以下方面存在根本限制：
+（1）\textbf{灵巧操作}——
+精细的手部操作（如折叠衣物、系鞋带）
+远比行走和搬运困难；
+（2）\textbf{长时间自主性}——
+电池续航和计算资源限制了
+机器人的持续工作时间；
+（3）\textbf{安全性}——
+在人类身边工作的机器人
+必须在所有可能的故障模式下保证安全。
+乐观的估计是 2027--2028 年
+人形机器人将在特定场景（如仓库物流、制造业）
+实现规模化商业部署。
+但``通用家庭机器人''——能够在任意家庭环境中
+执行任意日常任务——
+可能仍需 10 年以上的技术积累。
+\end{corebox}
+
 
 \section{硬件路线图：算力的下一个台阶}
 \label{sec:hardware-roadmap}
@@ -1078,6 +1859,206 @@ AI 监管正在形成一个全球「三极格局」：
 一旦被用于违规目的，责任归属变得模糊。
 \end{warnbox}
 
+\section{AI 与社会：机遇、冲击与应对}
+\label{sec:ai-and-society}
+
+LLM 能力的快速提升不仅是技术事件，
+更是深刻的社会事件。
+2025--2026 年，AI 对就业、教育、创意产业
+和社会结构的影响从理论预测变成了可观察的现实。
+
+\subsection{就业市场的结构性变化}
+
+\textbf{Goldman Sachs 的估计}（2023 年 3 月发布的报告，
+2025 年更新）预测 AI 可能影响全球约 3 亿个全职工作岗位，
+其中约 25\% 的工作任务可以被当前的生成式 AI 完成。
+但``影响''不等于``替代''——
+报告的核心观点是大多数职业将经历\textbf{任务重组}
+（task restructuring）而非完全消失：
+一些任务被自动化，
+释放出来的时间被用于 AI 无法胜任的高价值活动。
+
+到 2026 年初，实际数据开始验证和修正这些预测：
+
+\textbf{软件工程}是受影响最直接的行业。
+多项调查显示，使用 AI 编程工具的开发者
+报告生产力提升 30--55\%（GitHub 的内部研究为 55\%，
+Google 的内部研究为 30\%）。
+然而，``生产力提升''并未导致大规模裁员——
+相反，软件工程师的需求在 2025 年保持稳定甚至增长，
+因为 AI 辅助使得更多项目变得经济可行，
+\textbf{扩大了软件开发的总市场规模}。
+但入门级编程岗位的需求确实出现了下降——
+AI 正在承担越来越多的初级编码工作，
+使得企业对低经验开发者的需求减少。
+
+\textbf{内容创作}经历了最痛苦的调整。
+翻译行业在 2024--2025 年遭受了严重冲击——
+多家大型翻译公司报告业务量下降 30--50\%，
+特别是标准化的技术文档翻译几乎完全被 AI 取代。
+但高端翻译（文学翻译、法律文件、外交文本）
+因需要深层文化理解和责任承担而保持需求。
+类似的模式在插画、平面设计、广告文案等领域重现——
+标准化的、模板驱动的工作被 AI 快速侵蚀，
+但需要独创性和品牌理解的高端工作
+反而因为 AI 降低了入门门槛而面临更多竞争。
+
+\textbf{知识工作}（法律、咨询、金融分析）的变化更为微妙。
+法律领域的文档审查和合同分析
+已经被 AI 显著加速（报告效率提升 3--5 倍），
+但律师岗位的总数并未明显减少——
+因为加速的文档处理释放出的时间
+被重新分配到更高价值的策略咨询和客户关系管理上。
+McKinsey 的 2025 年报告估计，
+法律和咨询行业将经历约 15\% 的任务自动化，
+但仅导致约 5\% 的岗位净减少。
+
+\subsection{``暂停''辩论与安全组织}
+
+2023 年 3 月，Future of Life Institute 发布
+\textbf{``暂停巨型 AI 实验''} 公开信，
+征集到超过 30,000 个签名
+（包括 Elon Musk、Steve Wozniak、
+Yoshua Bengio 等知名人士），
+呼吁所有 AI 实验室暂停训练
+比 GPT-4 更强大的 AI 系统至少 6 个月。
+
+这封信引发了 AI 安全辩论的空前激烈化。
+支持者认为，AI 能力的发展速度
+已经超越了人类对其风险的理解速度，
+暂停是负责任的预防措施。
+反对者——包括 Yann LeCun 和多数开源社区——
+认为暂停在实践中不可执行
+（无法验证各国和企业是否遵守），
+且可能将技术领先地位拱手让给不遵守暂停的竞争对手。
+
+事实上，暂停从未发生。
+但这场辩论催化了多个重要的安全组织和倡议：
+
+\textbf{Anthropic} 自称为``AI safety company''，
+其 Responsible Scaling Policy（RSP）
+定义了一系列能力阈值（ASL-1 到 ASL-4），
+当模型能力达到特定阈值时
+触发相应的安全评估和部署限制。
+ASL-3（``能够显著辅助大规模攻击的能力''）
+是当前最紧迫的关注点，
+Claude 4 系列的安全评估正是基于 ASL-3 标准进行的。
+
+\textbf{OpenAI} 成立了安全顾问委员会（Safety Advisory Committee），
+发布了 Preparedness Framework，
+定义了模型在网络安全、CBRN（化学、生物、放射、核）、
+说服操纵和模型自主性四个维度上的风险等级。
+然而，2024 年 Ilya Sutskever 和 Jan Leike
+从 OpenAI 的 Superalignment 团队离职
+引发了外界对 OpenAI 安全承诺的质疑——
+批评者认为 OpenAI 在追求能力提升和安全保障之间
+存在结构性的利益冲突。
+
+\textbf{AI Safety Institute}（英国，2023 年成立；
+美国，2024 年成立）
+是政府层面的安全研究机构，
+负责对 frontier 模型进行独立的安全评估。
+英国 AISI 已经与 OpenAI、Anthropic、Google 和 Meta
+签署了模型发布前的安全测试协议。
+
+\subsection{教育系统的重构}
+
+AI 对教育系统的冲击是多维度的。
+学生使用 ChatGPT 写作业已经从``作弊丑闻''
+演变为``教育系统需要应对的新现实''。
+2025 年，多数主要大学已经从``禁止使用''
+转向``教学生如何负责任地使用 AI 工具''的策略。
+
+更深层的影响在于\textbf{教育目标的重新定义}。
+当 AI 可以生成流利的论文、解答数学题、编写代码时，
+``掌握知识''和``执行标准化操作''的价值下降了。
+取而代之的是\textbf{批判性思维}
+（判断 AI 输出的正确性和适当性）、
+\textbf{提问能力}
+（知道问什么比知道答案更重要）
+和\textbf{跨学科整合}
+（AI 擅长单一领域的深入分析，
+但将不同领域的知识创造性地连接仍然是人类的优势）。
+
+\begin{warnbox}[AI 与社会的``不对称冲击'']
+AI 对社会的冲击是高度不对称的。
+\textbf{技能溢价加剧}——
+能够有效利用 AI 工具的知识工作者
+看到了生产力和收入的显著提升，
+而无法适应的工作者面临技能贬值。
+\textbf{地理不对称}——
+AI 产业高度集中在美国、中国和少数欧洲国家，
+发展中国家面临被进一步边缘化的风险。
+\textbf{代际不对称}——
+年轻一代更快地适应 AI 工具，
+但也更可能面临入门级岗位被自动化的困境。
+应对这种不对称冲击需要的不仅是技术进步，
+更是教育改革、社会安全网重构
+和国际技术合作框架的建立。
+Anthropic CEO Dario Amodei 在
+``Machines of Loving Grace''（2025 年）中
+勾勒了 AI 增强人类而非替代人类的愿景——
+但实现这一愿景需要有意识的制度设计，
+而非仅靠市场的自发调节。
+\end{warnbox}
+
+%% --- TikZ: Frontier Capability Radar Chart ---
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=1.0, every node/.style={font=\small}]
+
+% Draw concentric octagons for levels 1-4
+\foreach \level in {1,...,4} {
+  \draw[figLightGray, thick]
+    (90:{\level*0.8}) -- (45:{\level*0.8}) -- (0:{\level*0.8})
+    -- (-45:{\level*0.8}) -- (-90:{\level*0.8}) -- (-135:{\level*0.8})
+    -- (-180:{\level*0.8}) -- (-225:{\level*0.8}) -- cycle;
+}
+
+% Draw 8 axes
+\foreach \ang in {90,45,0,-45,-90,-135,-180,-225} {
+  \draw[figGray, thin] (0,0) -- (\ang:3.2);
+}
+
+% Axis labels
+\node[font=\footnotesize\bfseries, figGray, above]       at (90:3.7)   {推理};
+\node[font=\footnotesize\bfseries, figGray, above right]  at (45:3.7)   {多模态};
+\node[font=\footnotesize\bfseries, figGray, right]        at (0:3.7)    {Agent};
+\node[font=\footnotesize\bfseries, figGray, below right]  at (-45:3.7)  {代码};
+\node[font=\footnotesize\bfseries, figGray, below]        at (-90:3.7)  {科学};
+\node[font=\footnotesize\bfseries, figGray, below left]   at (-135:3.7) {具身AI};
+\node[font=\footnotesize\bfseries, figGray, left]         at (-180:3.7) {端侧};
+\node[font=\footnotesize\bfseries, figGray, above left]   at (-225:3.7) {长上下文};
+
+% Level labels on first axis
+\foreach \level/\lab in {1/初级, 2/中级, 3/高级, 4/顶级} {
+  \node[font=\tiny, figGray, anchor=south east] at (90:{\level*0.8}) {\lab};
+}
+
+% 2024 capability profile (inner polygon)
+\draw[figBlue!60, thick, fill=figBlue!10, fill opacity=0.5]
+  (90:{2*0.8}) -- (45:{1.5*0.8}) -- (0:{1*0.8})
+  -- (-45:{2.5*0.8}) -- (-90:{1*0.8}) -- (-135:{0.5*0.8})
+  -- (-180:{1.5*0.8}) -- (-225:{2*0.8}) -- cycle;
+
+% 2026 capability profile (outer polygon)
+\draw[figRed!80, thick, fill=figRed!10, fill opacity=0.4]
+  (90:{3.8*0.8}) -- (45:{3.5*0.8}) -- (0:{3.2*0.8})
+  -- (-45:{3.8*0.8}) -- (-90:{2.5*0.8}) -- (-135:{1.5*0.8})
+  -- (-180:{2.8*0.8}) -- (-225:{3.5*0.8}) -- cycle;
+
+% Legend
+\node[figBlue, font=\small\bfseries] at (-3.2, -3.8) {$\bullet$ 2024 年};
+\node[font=\small\bfseries, figRed]  at (-0.8, -3.8) {$\bullet$ 2026 年};
+
+\end{tikzpicture}
+\caption{Frontier 模型能力雷达图：2024 年 vs.\ 2026 年。
+推理、多模态、代码能力在两年内经历了从``中级''到``顶级''的飞跃，
+而具身 AI 和 AI for Science 仍处于早期发展阶段。}
+\label{fig:frontier-radar}
+\end{figure}
+
+
 \section{开合之争：开源 vs.\ 闭源的哲学与实践}
 
 2025--2026 年，开源与闭源模型之间的「开合之争」
@@ -1149,10 +2130,35 @@ LLaMA 4 Maverick 在综合能力上逼近 GPT-4o。
 \textbf{开放训练代码}（公开权重和训练代码，不公开数据）→
 \textbf{完全开源}（数据 + 代码 + 权重全部公开）。
 
-目前只有极少数模型（如 OLMo by AI2、SmolLM2 by HuggingFace）
+目前只有极少数模型（如 OLMo by AI2、SmolLM2 by HuggingFace~\cite{allal2025smollm2}）
 处于「完全开源」的端点。
 DeepSeek-V3/R1 虽然使用 MIT 许可证，
 但其训练数据和完整的训练基础设施并未公开。
+
+这种区分不仅是语义学上的挑剔——
+它有\textbf{实际的技术后果}。
+仅有权重的``开源''模型
+可以被微调和部署，但无法被\textbf{复现}——
+如果不知道训练数据和训练流程的细节，
+其他团队无法验证报告的性能数字，
+也无法理解模型的弱点和偏见来源。
+这在安全评估中尤其重要：
+如果训练数据中包含有毒内容，
+仅通过黑盒测试很难全面发现所有问题。
+
+\textbf{OSI（Open Source Initiative）}在 2024 年发布了
+\textbf{Open Source AI Definition}（OSAID 1.0），
+明确定义了``开源 AI''的四项要求：
+（1）使用模型进行任何目的，无需请求许可；
+（2）研究模型的工作方式并检查其组件；
+（3）修改模型以适应任何目的；
+（4）分享模型供他人使用。
+根据这一定义，
+大多数``开放权重''模型因缺少训练数据和完整代码
+而\textbf{不符合}``开源 AI''的标准——
+它们更准确地应该被称为``available-weight models''。
+这一定义的发布在社区中引发了激烈辩论，
+但它至少为这场讨论提供了一个更精确的参照框架。
 
 \subsection{Meta 的开源战略}
 
@@ -1218,6 +2224,122 @@ Qwen 的 API 比同级别闭源模型便宜 60\%。
 这句借自核能时代的预言正在成为现实——
 对于大多数应用场景，LLM 调用的成本
 已经不再是阻碍采用的因素。
+
+\section{Scaling 的尽头与新方向}
+\label{sec:scaling-new-directions}
+
+``Scaling Laws''（缩放定律）~\cite{kaplan2020scaling,hoffmann2022chinchilla}
+一直是 LLM 进步的核心驱动力——
+更多的数据、更大的模型、更多的计算，
+几乎确定性地带来更好的性能。
+但 2025--2026 年的多个信号表明，
+\textbf{传统的 pre-training scaling 可能正在接近瓶颈}，
+新的 scaling 方向正在涌现。
+
+\subsection{预训练 Scaling 的放缓信号}
+
+\textbf{数据墙}是最直接的瓶颈。
+人类历史上积累的高质量文本数据
+——科学论文、书籍、高质量网页、代码仓库——
+是有限的。据 Epoch AI 的估计~\cite{villalobos2024position}，
+互联网上的高质量英文文本总量约为 4--5 万亿 token。
+考虑到中文和其他语言的数据，
+总量可能达到 10--15 万亿 token。
+而 GPT-5 和 Gemini 3 的训练数据量已经接近这个上限。
+
+应对数据墙的策略包括：
+\textbf{合成数据}——用大模型生成训练小模型或自身下一版本的数据
+（但存在``模型坍缩''风险——
+模型在自身生成的数据上训练可能导致分布退化~\cite{shumailov2024curse}）；
+\textbf{数据混合优化}——
+同样的数据，不同的混合比例和课程顺序
+可以带来显著不同的训练效果
+（DeepSeek 在这方面有深入的工程积累）；
+\textbf{多模态数据}——
+图像、视频和音频数据的总量远超纯文本数据，
+这也是原生多模态成为主流的驱动力之一。
+
+\textbf{算力-性能边际递减}。
+Scaling Laws 预测 loss 随计算量
+以\textbf{幂律}（power law）形式下降——
+$L \propto C^{-\alpha}$，
+其中 $\alpha \approx 0.05$（Chinchilla 估计~\cite{hoffmann2022chinchilla}）。
+这意味着将 loss 降低 10\%
+需要将计算量增加约 $10^{1/\alpha} \approx$ 一个数量级。
+当训练成本已经达到数十亿美元时，
+下一个 10\% 的改善需要数百亿美元的投入——
+经济上的可持续性成为核心约束。
+
+\subsection{新的 Scaling 维度}
+
+面对预训练 scaling 的瓶颈，
+AI 领域正在探索\textbf{多维度的 scaling 策略}：
+
+\textbf{推理时 Scaling（Test-time Compute Scaling）}。
+这是 2025--2026 年最重要的新 scaling 维度——
+不增大模型，而是在推理时投入更多计算。
+o1/o3 系列和 DeepSeek-R1 证明了
+模型可以通过更长的推理链、
+更多的候选方案探索和自我验证
+在固定参数下显著提升输出质量。
+o4-mini 的成功尤其说明了这一点——
+一个中等规模的模型通过充分的推理时计算
+可以匹配甚至超越更大的直接生成模型。
+
+\textbf{架构效率 Scaling}。
+MoE 架构代表了另一种 scaling 哲学——
+不是让所有参数都参与每次推理，
+而是通过路由机制只激活一小部分参数。
+DeepSeek-V3 的 671B 总参数 / 37B 活跃参数
+意味着仅约 5.5\% 的参数被激活。
+Step 3.5 Flash 将这一比例推向了极致的 5.6\%。
+这等效于\textbf{在固定的推理成本下
+扩大了模型可以``查阅''的知识库}。
+
+\textbf{记忆 Scaling}。
+DeepSeek 的 Engram 论文提出了第三种维度——
+不增加计算参数，而是扩展模型的\textbf{记忆容量}。
+Engram 的 U 型缩放定律表明，
+在固定总参数预算下，
+将 75\% 的参数分配给记忆（$O(1)$ 查找）、
+仅 25\% 分配给计算（$O(n^2)$ 注意力）
+可以达到最优性能。
+如果这一发现在更大规模上得到验证，
+它可能从根本上改变模型架构的设计哲学——
+从``更多的注意力层''转向``更大的知识存储 + 精简的推理引擎''。
+
+\textbf{工具 Scaling}。
+Agent 范式提供了又一种 scaling 方式——
+不增大模型本身的能力，
+而是\textbf{扩展模型可以调用的工具}。
+一个能够使用计算器的 3B 模型
+在数学运算上可以超越一个 70B 的纯文本模型。
+MCP 生态系统的爆发式增长
+使得``工具 scaling''从理论变成了实践——
+截至 2026 年 3 月，超过 10,000 个公共 MCP 服务器
+为 Agent 提供了从数据库查询到 API 调用
+到文件操作的广泛能力。
+
+\begin{whybox}[Scaling 的终极问题]
+一个深层的哲学问题是：
+\textbf{预测下一个 token 的目标函数本身是否有上限？}
+Scaling Laws 告诉我们，
+在给定目标函数下，
+性能随计算量的增加而持续改善。
+但下一个 token 预测的最优解
+是训练数据分布的精确拟合——
+一旦模型完美地学会了预测
+人类文本中的下一个 token，
+它的性能就达到了由训练数据质量决定的天花板。
+超越这个天花板需要的不是更多的计算，
+而是\textbf{更好的数据}或\textbf{更好的目标函数}。
+DeepSeek 的 GRPO 和 Engram
+可以被视为在目标函数维度上的探索——
+前者让模型学会``如何思考''，
+后者让模型学会``如何记忆''——
+这些能力不是纯粹的下一个 token 预测能诱导出来的。
+\end{whybox}
+
 
 \section{总结与展望}
 
@@ -1292,18 +2414,69 @@ LLM 技术的发展速度令人目眩。
 体现在架构设计、训练策略和工程实现中——
 决定了我们能以多高的效率到达那个上限。
 
+\subsection{未解之谜}
+
+在这些令人瞩目的进步之中，
+几个\textbf{根本性的开放问题}仍然悬而未决：
+
+\textbf{理解 vs.\ 模拟}。
+LLM 是否真正``理解''语言和世界，
+还是仅仅是极其精密的统计模式匹配器？
+这个问题不仅是哲学思辨——
+它有实际的工程后果。
+如果 LLM 的能力来自真正的理解，
+那么它的泛化能力应该是可靠的；
+如果来自统计匹配，
+那么在训练分布之外的场景中，
+它的行为将不可预测。
+2025--2026 年的证据是混合的：
+一方面，推理模型在从未见过的数学竞赛题上
+展现了令人惊讶的泛化能力；
+另一方面，这些模型在简单但不寻常的问题上
+仍然会犯令人困惑的错误。
+
+\textbf{对齐的稳固性}。
+当前的对齐方法（RLHF、DPO、Constitutional AI）
+在多大程度上是``脆弱的表面修饰''
+而非``根深蒂固的价值内化''？
+如果对齐可以通过巧妙的 jailbreak 提示绕过，
+那么它的安全价值就大打折扣。
+更深层的问题是：
+当模型的能力持续增长，
+对齐技术能否保持同步的进步？
+Anthropic 的 Responsible Scaling Policy
+试图通过能力阈值和安全评估来管理这一风险，
+但这依赖于我们能够\textbf{准确评估}模型的危险能力——
+而评估能力本身可能落后于模型能力的增长。
+
+\textbf{涌现能力的可预测性}。
+LLM 的一些能力（如数学推理、代码生成）
+似乎在模型规模跨越某个阈值后``突然''出现~\cite{wei2022emergent}——
+这种``涌现''现象既激动人心又令人不安。
+如果我们无法预测下一代模型将涌现出什么能力，
+那么我们也无法预测它将带来什么风险。
+近期的研究（Schaeffer et al., 2024）
+对涌现的``突然性''提出了质疑——
+认为许多``涌现''可能是度量选择的假象
+而非模型能力的真实跃迁——
+但这一辩论远未定论。
+
+\subsection{从技术到文明}
+
 这是一个激动人心的时代。
 从 Shannon 的信息论到 DeepSeek 的 GRPO，
 从 Transformer 的注意力机制到 MoE 的稀疏激活，
 从十万块国产芯片上训练出的零 NVIDIA 模型
 到 MCP 协议将 Agent 生态推向``HTTP 时刻''——
-每一步都是人类对「什么是智能」这个根本问题的持续探索。
+每一步都是人类对``什么是智能''这个根本问题的持续探索。
 
 2026 年的竞争强度前所未有：
 六家中国头部实验室三周内密集发布旗舰模型，
 开源与闭源的边界日益模糊，
 国产芯片的独立路线从愿景变为现实，
 Agent 从``能用''走向``好用''。
+AI for Science 正在重塑药物发现和材料科学，
+具身智能正在将 AI 从屏幕推向物理世界。
 在这场竞赛中，技术进步的速度
 已经超越了大多数从业者的预期。
 
@@ -1313,7 +2486,7 @@ Agent 从``能用''走向``好用''。
 \textbf{用最简单的目标函数（预测下一个词），
 配合足够的数据和计算规模，
 让复杂性从简单性中涌现。}
-这种「少即是多」的哲学贯穿了整个技术栈——
+这种``少即是多''的哲学贯穿了整个技术栈——
 从 Transformer 的简洁架构到 GRPO 的简单奖励信号，
 从 BPE 的朴素合并规则到量化的直观截断思路。
 最优雅的工程往往不是最复杂的，而是最简洁的。
@@ -1324,25 +2497,40 @@ LLM 的训练是一个环环相扣的流水线：
 \textbf{架构}决定了模型能表达什么（第二、六、七章），
 \textbf{训练方法}决定了模型能学多好（第五章），
 \textbf{后训练}决定了模型能为人类服务多好（第八章），
-\textbf{推理优化}决定了模型能多快多便宜地服务（第九章）。
+\textbf{推理优化}决定了模型能多快多便宜地服务（第九章），
+\textbf{推理时计算}决定了模型能``想''多深（第十章）。
 
 每一个环节都蕴含着深刻的思想：
 下一个词预测背后是压缩即理解的信息论洞察，
 注意力机制背后是让模型自主决定信息流动的设计哲学，
 MoE 背后是参数效率与计算效率的解耦思想，
 GRPO 背后是让模型通过探索自我发现推理策略的强化学习理念，
-量化背后是信息论中「够用的精度」的朴素真理。
+量化背后是信息论中``够用的精度''的朴素真理，
+Engram 背后是``记忆与计算应该分离''的认知科学洞察。
+
+更宏观地看，2025--2026 年的 LLM 进步
+揭示了一个关于\textbf{智能本质}的深刻线索：
+智能可能不是一种单一的能力，
+而是多种正交维度的组合——
+知识存储、逻辑推理、感官感知、
+行动规划、社会交互。
+LLM 首先在知识存储和语言生成上实现了突破，
+然后逐步向推理（o1/R1）、
+感知（GPT-4o/Gemini 3 多模态）、
+行动（Agent/MCP）和社会交互
+（multi-agent 系统）扩展。
+这种扩展路径与认知科学对人类智能的理解
+有着耐人寻味的呼应。
 
 对于想进入这个领域的读者，
 本文的附录提供了完整的训练流水线速查。
 对于已经在这个领域工作的实践者，
-希望本文的「为什么」视角能帮助你更深入地理解
+希望本文的``为什么''视角能帮助你更深入地理解
 你每天使用的工具和方法背后的思想。
 
 
 %% ============================================================
-\appendix
-
+%% NOTE: \appendix command moved to main .tex file (before ch14-appendix)
 %% ============================================================
 %% BibTeX entries referenced in this chapter
 %% (to be added to the main .bib file)
@@ -1475,4 +2663,176 @@ GRPO 背后是让模型通过探索自我发现推理策略的强化学习理念
 %%   author  = {Anthropic},
 %%   year    = {2026},
 %%   note    = {Released 2026-02-24},
+%% }
+%%
+%% --- New references for ch13 expansion ---
+%%
+%% @article{peebles2023dit,
+%%   title   = {Scalable Diffusion Models with Transformers},
+%%   author  = {Peebles, William and Xie, Saining},
+%%   journal = {arXiv preprint arXiv:2212.09748},
+%%   year    = {2023},
+%% }
+%%
+%% @article{lecun2022path,
+%%   title   = {A Path Towards Autonomous Machine Intelligence},
+%%   author  = {LeCun, Yann},
+%%   journal = {OpenReview preprint},
+%%   year    = {2022},
+%% }
+%%
+%% @article{bardes2024vjepa,
+%%   title   = {{V-JEPA}: Revisiting Feature Prediction for Learning Visual Representations from Video},
+%%   author  = {Bardes, Adrien and Garrido, Quentin and Ponce, Jean and others},
+%%   journal = {arXiv preprint arXiv:2404.12451},
+%%   year    = {2024},
+%% }
+%%
+%% @article{vjepa2_2025,
+%%   title   = {{V-JEPA 2}: Self-Supervised Video Models Enable Understanding, Prediction, and Planning},
+%%   author  = {Meta FAIR},
+%%   journal = {arXiv preprint},
+%%   year    = {2025},
+%% }
+%%
+%% @article{hu2023gaia1,
+%%   title   = {{GAIA-1}: A Generative World Model for Autonomous Driving},
+%%   author  = {Hu, Anthony and others},
+%%   journal = {arXiv preprint arXiv:2309.17080},
+%%   year    = {2023},
+%% }
+%%
+%% @article{jumper2021alphafold,
+%%   title   = {Highly accurate protein structure prediction with {AlphaFold}},
+%%   author  = {Jumper, John and Evans, Richard and Pritzel, Alexander and others},
+%%   journal = {Nature},
+%%   volume  = {596},
+%%   pages   = {583--589},
+%%   year    = {2021},
+%% }
+%%
+%% @article{abramson2024alphafold3,
+%%   title   = {Accurate structure prediction of biomolecular interactions with {AlphaFold 3}},
+%%   author  = {Abramson, Josh and Adler, Jonas and Dunger, Jack and others},
+%%   journal = {Nature},
+%%   volume  = {630},
+%%   pages   = {493--500},
+%%   year    = {2024},
+%% }
+%%
+%% @article{watson2023rfdiffusion,
+%%   title   = {De novo design of protein structure and function with {RFdiffusion}},
+%%   author  = {Watson, Joseph L and Juergens, David and Bennett, Nathaniel R and others},
+%%   journal = {Nature},
+%%   volume  = {620},
+%%   pages   = {1089--1100},
+%%   year    = {2023},
+%% }
+%%
+%% @article{dauparas2022proteinmpnn,
+%%   title   = {Robust deep learning-based protein sequence design using {ProteinMPNN}},
+%%   author  = {Dauparas, Justas and Anishchenko, Ivan and Bennett, Nathaniel and others},
+%%   journal = {Science},
+%%   volume  = {378},
+%%   pages   = {49--56},
+%%   year    = {2022},
+%% }
+%%
+%% @article{merchant2023gnome,
+%%   title   = {Scaling deep learning for materials discovery},
+%%   author  = {Merchant, Amil and Batzner, Simon and Schoenholz, Samuel S and others},
+%%   journal = {Nature},
+%%   volume  = {624},
+%%   pages   = {80--85},
+%%   year    = {2023},
+%% }
+%%
+%% @article{price2024gencast,
+%%   title   = {GenCast: Diffusion-based ensemble forecasting for medium-range weather},
+%%   author  = {Price, Ilan and others},
+%%   journal = {Nature},
+%%   year    = {2024},
+%% }
+%%
+%% @article{bi2023pangu,
+%%   title   = {Accurate medium-range global weather forecasting with 3D neural networks},
+%%   author  = {Bi, Kaifeng and Xie, Lingxi and Zhang, Hengheng and others},
+%%   journal = {Nature},
+%%   volume  = {619},
+%%   pages   = {533--538},
+%%   year    = {2023},
+%% }
+%%
+%% @article{zhavoronkov2019deep,
+%%   title   = {Deep learning enables rapid identification of potent {DDR1} kinase inhibitors},
+%%   author  = {Zhavoronkov, Alex and Ivanenkov, Yan A and Aliper, Alex and others},
+%%   journal = {Nature Biotechnology},
+%%   volume  = {37},
+%%   pages   = {1038--1040},
+%%   year    = {2019},
+%% }
+%%
+%% @article{brohan2023rt2,
+%%   title   = {{RT-2}: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control},
+%%   author  = {Brohan, Anthony and Brown, Noah and Carbajal, Justice and others},
+%%   journal = {arXiv preprint arXiv:2307.15818},
+%%   year    = {2023},
+%% }
+%%
+%% @article{makoviychuk2021isaac,
+%%   title   = {{Isaac Gym}: High Performance {GPU}-Based Physics Simulation for Robot Learning},
+%%   author  = {Makoviychuk, Viktor and Wawrzyniak, Lukasz and Guo, Yunrong and others},
+%%   journal = {NeurIPS Datasets and Benchmarks},
+%%   year    = {2021},
+%% }
+%%
+%% @article{kaplan2020scaling,
+%%   title   = {Scaling Laws for Neural Language Models},
+%%   author  = {Kaplan, Jared and McCandlish, Sam and Henighan, Tom and others},
+%%   journal = {arXiv preprint arXiv:2001.08361},
+%%   year    = {2020},
+%% }
+%%
+%% @article{hoffmann2022chinchilla,
+%%   title   = {Training Compute-Optimal Large Language Models},
+%%   author  = {Hoffmann, Jordan and Borgeaud, Sebastian and Mensch, Arthur and others},
+%%   journal = {NeurIPS},
+%%   year    = {2022},
+%% }
+%%
+%% @article{villalobos2024position,
+%%   title   = {Position: Will We Run Out of Data? Limits of {LLM} Scaling Based on Human-Generated Data},
+%%   author  = {Villalobos, Pablo and Ho, Anson and Jermyn, Jaime and Lam, Lennart and Weiss, Eric},
+%%   journal = {ICML},
+%%   year    = {2024},
+%% }
+%%
+%% @article{shumailov2024curse,
+%%   title   = {{AI} models collapse when trained on recursively generated data},
+%%   author  = {Shumailov, Ilia and Shumaylov, Zakhar and Zhao, Yiren and others},
+%%   journal = {Nature},
+%%   volume  = {631},
+%%   pages   = {755--759},
+%%   year    = {2024},
+%% }
+%%
+%% @article{wei2022emergent,
+%%   title   = {Emergent Abilities of Large Language Models},
+%%   author  = {Wei, Jason and Tay, Yi and Bommasani, Rishi and others},
+%%   journal = {Transactions on Machine Learning Research},
+%%   year    = {2022},
+%% }
+%%
+%% @article{liu2023llava,
+%%   title   = {Visual Instruction Tuning},
+%%   author  = {Liu, Haotian and Li, Chunyuan and Wu, Qingyang and Lee, Yong Jae},
+%%   journal = {NeurIPS},
+%%   year    = {2023},
+%% }
+%%
+%% @article{alayrac2022flamingo,
+%%   title   = {Flamingo: a Visual Language Model for Few-Shot Learning},
+%%   author  = {Alayrac, Jean-Baptiste and Donahue, Jeff and Luc, Pauline and others},
+%%   journal = {NeurIPS},
+%%   year    = {2022},
 %% }

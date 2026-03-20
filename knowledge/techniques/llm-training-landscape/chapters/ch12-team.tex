@@ -292,151 +292,825 @@ warmup 8000 步，batch size 从 4M tokens 逐步增加到 16M tokens。
 写论文的人和写训练代码的人往往是同一批人。
 但不同组织在规模、文化和战略上有显著差异。
 
-\subsection{主要玩家深度解析}
+\subsection{西方主要实验室深度解析}
 \label{sec:org-labs}
+
+\subsubsection{OpenAI：从非营利理想到商业巨擘}
 
 \textbf{OpenAI}（2026 年初已超过 7,000 人）
 经历了 AI 领域最戏剧化的组织演变。
-从 2015 年的非营利研究实验室，到 2019 年的 ``capped profit'' 混合结构，
-再到 2025 年底正式转型为营利性公司——
-每一步都伴随着巨大的争议。
-微软累计投资超过 130 亿美元，
-而 2025 年 OpenAI 在日本软银领投下完成了 400 亿美元的融资，
-估值达到 3,000 亿美元。
-组织上，OpenAI 在 2025--2026 年经历了显著的人才流动：
-联合创始人 Ilya Sutskever 离开创立了 Safe Superintelligence Inc.（SSI），
-多位安全团队核心成员出走。
-CEO Sam Altman 将 2025 年 8 月任命前 Instagram 负责人
-Fidji Simo 为 COO 并在 2026 年 2 月升任 CEO（应用）,
-自己则转为专注 AGI 研究和战略。
-OpenAI 的组织高度垂直整合——
-从基础研究（GPT 系列、o 系列推理模型）到消费产品（ChatGPT，月活超 4 亿）、
+
+\textbf{创立与理想主义时期（2015--2019）}。
+2015 年 12 月，Sam Altman、Elon Musk、Greg Brockman 等人
+以非营利组织的形式创立了 OpenAI，
+承诺 10 亿美元的资助，
+使命是「确保 AGI 惠及全人类」。
+早期的 OpenAI 是一个纯粹的研究实验室，
+发表了 GPT-1、GPT-2 等开创性论文，
+但很快发现非营利模式无法支撑
+训练 frontier 模型所需的天文数字般的计算投资。
+Elon Musk 于 2018 年离开董事会
+（后来他声称是因为对 OpenAI 商业化方向的不满），
+这标志着理想主义时期的结束。
+
+\textbf{商业化转型（2019--2023）}。
+2019 年，OpenAI 创造了一种独特的
+\textbf{capped-profit}（利润上限）结构——
+投资者的回报被限制在 100 倍以内，
+超出部分归属于非营利母体。
+微软随即投入了 10 亿美元，
+此后累计投资超过 130 亿美元。
+GPT-3（2020 年）、ChatGPT（2022 年 11 月）
+和 GPT-4（2023 年 3 月）的连续成功
+使 OpenAI 从一个研究实验室
+转变为全球最瞩目的 AI 公司。
+
+\textbf{2023 年 11 月董事会危机}是 OpenAI 历史的转折点。
+董事会突然解雇了 CEO Sam Altman，
+原因至今没有完全公开——
+但外界普遍认为与安全研究团队和商业化团队之间的
+根本性路线分歧有关。
+随后 95\% 以上的员工威胁集体辞职，
+微软介入施压，Altman 在 5 天内复职。
+这场危机的深层意义在于：
+它暴露了 AI 实验室在
+\textbf{安全使命}与\textbf{商业压力}之间的根本张力——
+一个问题至今未得到解决，
+只是暂时被增长的惯性所掩盖。
+
+\textbf{Sam Altman 的领导风格}以
+\textbf{极端的技术乐观主义}和
+\textbf{超级推销员式的市场沟通}著称。
+他在公开演讲中不断提高对 AGI 时间线的预期
+（从「数十年」缩短到「可能几年内」），
+同时积极推动 OpenAI 向全面商业化转型。
+2025 年，OpenAI 在日本软银领投下
+完成了 400 亿美元的融资，估值达到 3,000 亿美元。
+Altman 于 2025 年 8 月任命前 Instagram 负责人
+Fidji Simo 为 COO，并在 2026 年 2 月升任 CEO（应用），
+自己则转为专注 AGI 研究和战略——
+这一架构被解读为 Altman 对「研究突破」
+比「商业运营」更感兴趣的信号。
+
+\textbf{组织结构}高度垂直整合：
+\textbf{Foundation Model 团队}（预训练与 scaling）、
+\textbf{Post-Training 团队}（RLHF、推理训练）、
+\textbf{Safety Systems 团队}（红队与对齐）、
+\textbf{Applied AI/ChatGPT 团队}（产品工程）、
+\textbf{Deep Research 团队}（长链推理与信息综合）。
+从基础研究（GPT 系列、o 系列推理模型）
+到消费产品（ChatGPT，月活超 4 亿）、
 到企业 API、到硬件（自研芯片计划与 Broadcom 合作），
 全部在一个屋檐下。
-内部团队结构包括：
-\textbf{Foundation Model} 团队（预训练与 scaling）、
-\textbf{Post-Training} 团队（RLHF、推理训练）、
-\textbf{Safety Systems} 团队（红队与对齐）、
-\textbf{Applied AI/ChatGPT} 团队（产品工程）、
-以及新成立的 \textbf{Deep Research} 团队（长链推理与信息综合）。
+
+\textbf{人才流动}是 2025--2026 年 OpenAI 面临的显著挑战。
+联合创始人 Ilya Sutskever 离开创立了
+Safe Superintelligence Inc.（SSI），
+多位安全团队核心成员出走，
+一些人前往 Anthropic，另一些创立了新公司。
+这种人才流失是否会影响 OpenAI 的长期竞争力，
+取决于其继续吸引顶尖人才的能力——
+而 3,000 亿美元的估值和 AGI 叙事
+目前仍然是强大的人才磁铁。
+
+\subsubsection{Anthropic：安全优先的 AI 实验室}
 
 \textbf{Anthropic}（2025 年约 1,500 人，2026 年持续快速增长）
-由前 OpenAI 研究副总裁 Dario Amodei 和他的姐姐 Daniela Amodei 于 2021 年创立，
-核心使命是 AI 安全研究。
-Anthropic 的技术路线以 Constitutional AI~\cite{bai2022constitutional} 为基石——
-用 AI 自身而非纯人工来完成对齐工作。
-在 Claude 模型系列中，Anthropic 展现了独特的产品策略：
-2025 年推出了 Claude 3.7 Sonnet（首个混合推理模型，
-同时支持快速回答和 extended thinking 深度推理），
-2026 年初发布了 Claude Opus 4 和 Claude Sonnet 4（代号 Kryptonite 和 Borealis），
+由前 OpenAI 研究副总裁 Dario Amodei (达里奥·阿莫德)
+和他的姐姐 Daniela Amodei (达妮埃拉·阿莫德)
+于 2021 年创立。
+
+\textbf{创始 DNA 与安全使命}。
+Dario Amodei 在 OpenAI 期间领导了 GPT-3 的训练，
+是 scaling laws 的早期倡导者。
+他离开 OpenAI 的原因是
+对 OpenAI 在安全研究上的投入不足感到失望——
+他认为随着模型能力的快速提升，
+安全研究必须走在能力研究的\textbf{前面}而非后面。
+Daniela Amodei 则负责 Anthropic 的商业和组织建设，
+她的管理哲学是
+「建立一个在追求安全的同时也能商业可持续的组织」——
+安全不应该是一种慈善，而应该是一种竞争优势。
+
+\textbf{Constitutional AI 作为核心哲学}~\cite{bai2022constitutional}。
+与 OpenAI 依赖大量人类标注不同，
+Anthropic 的对齐方法论以 Constitutional AI 为基石——
+用一组明确的原则（「宪法」）
+指导 AI 自身完成对齐训练。
+这种方法的优势是\textbf{可扩展性}
+（不需要线性增长的人类标注量）
+和\textbf{一致性}
+（原则是明确的，不受个别标注员偏好的影响）。
+但它也依赖于一个哲学假设：
+我们能够将「好的行为」编码为
+一组有限的、可操作的原则。
+这一假设在面对现实世界的道德复杂性时
+是否成立，仍然是开放问题。
+
+\textbf{Responsible Scaling Policy（RSP）}
+是 Anthropic 独创的安全治理框架。
+RSP 定义了一系列 \textbf{AI Safety Levels}（ASL），
+类似于生物安全等级（BSL）：
+ASL-1（无显著风险）到 ASL-4（潜在灾难性风险）。
+模型在发布前必须通过对应级别的安全评估，
+如果评估发现模型达到了更高的风险级别，
+则必须实施更严格的安全措施
+（如更强的访问控制、更多的红队测试）
+才能继续部署。
+RSP 的意义在于
+它将安全承诺从模糊的「我们重视安全」
+转化为\textbf{可验证的、有约束力的流程}。
+
+\textbf{Claude 模型系列}的演进反映了 Anthropic 的技术路线：
+2025 年推出了 Claude 3.7 Sonnet
+（首个混合推理模型，同时支持快速回答和 extended thinking），
+2026 年初发布了 Claude Opus 4 和 Claude Sonnet 4
+（代号 Kryptonite 和 Borealis），
 在编程和推理任务上取得了领先地位。
-组织特点是安全团队在决策中有异常大的话语权——
-新能力的部署需要通过 Responsible Scaling Policy（RSP）评估，
-模型在发布前需要通过一系列 AI Safety Levels（ASL）评估。
-Anthropic 在 2025 年完成了 Google、Salesforce 和
-Amazon 领投的多轮融资，估值超过 600 亿美元。
-值得注意的产品创新包括：
+产品创新包括：
 Claude Code（CLI 级别的自主编程 Agent）、
 Computer Use（通过截图和键鼠操作桌面应用）、
 以及 Model Context Protocol（MCP，Agent 工具交互的开放标准）。
 
+Anthropic 在 2025 年完成了
+Google、Salesforce 和 Amazon 领投的多轮融资，
+估值超过 600 亿美元。
+
+\subsubsection{Google DeepMind：规模与整合的挑战}
+
 \textbf{Google DeepMind}（数千人，是规模最大的 AI 研究组织）
 2023 年由 Google Brain 和 DeepMind 合并而成，
-由 Demis Hassabis 领导。
-拥有最多的计算资源（数十万块 TPU 组成的超级集群）
-和最大的研究团队，
-但组织规模也带来了协调成本。
-Gemini 系列是其旗舰产品：
+由 Demis Hassabis (德米斯·哈萨比斯) 领导。
+
+\textbf{合并的动力与阵痛}。
+Google Brain（2011 年成立，由 Jeff Dean 领导）
+和 DeepMind（2014 年被 Google 收购，Hassabis 领导）
+长期以来作为两个独立实体运营，
+存在大量的重复研究和内部竞争。
+两个团队各自发展了不同的技术栈
+（Brain 使用 TensorFlow/JAX，DeepMind 使用自研框架），
+不同的研究文化
+（Brain 更偏工程，DeepMind 更偏理论），
+甚至不同的发表策略。
+2023 年的合并旨在消除这种内耗，
+但整合过程并不平滑——
+多位高级研究员在合并期间离职，
+包括一些 Transformer 论文的原始作者。
+
+\textbf{Ilya Sutskever 的离开}虽然发生在 OpenAI，
+但其影响波及整个行业——
+他的离开（以及 SSI 的创立）
+激发了一波关于「安全 vs.\ 能力」路线辩论的浪潮，
+也影响了 Google DeepMind 内部关于
+安全研究资源分配的讨论。
+
+\textbf{Gemini 系列}是 Google DeepMind 的旗舰产品。
 Gemini 2.0 Flash（2024 年底）引入了原生工具使用和代码执行，
-Gemini 2.5 Pro（2025 年初）成为首个在 LMSYS Chatbot Arena 登顶的 Google 模型，
+Gemini 2.5 Pro（2025 年初）成为首个
+在 LMSYS Chatbot Arena 登顶的 Google 模型，
 而 Gemini 3（预计 2026 年中发布）
 将进一步推进原生多模态和长上下文能力。
-Google DeepMind 的独特优势是
+
+Google DeepMind 的\textbf{独特优势}是
 \textbf{端到端的基础设施控制}——
-从芯片设计（TPU）到网络架构到训练框架（JAX/Flax）
+从芯片设计（TPU v5、v6）到网络架构到训练框架（JAX/Flax）
 到云服务（Google Cloud）再到消费产品
 （Gemini App、Google Search 的 AI Overviews），
 全栈自研。
-但合并后的组织需要持续在「学术自由」（DeepMind 的传统）
-和「产品交付」（Google 的商业需求）之间寻找平衡。
+这种垂直整合理论上提供了最大的优化空间，
+但也带来了「大公司病」的风险——
+决策链条长、产品发布慢、
 多个产品团队（Gemini App、Workspace AI、Cloud AI）
-有时会出现内部竞争。
+有时会出现内部竞争和资源争夺。
 
-\textbf{Meta FAIR 及 GenAI 团队}（合计 1,000+ 人）
+\subsubsection{Meta FAIR：开源作为竞争策略}
+
+\textbf{Meta FAIR 及 GenAI 团队}（合计 1,000+ 人）。
 Mark Zuckerberg 做出了 AI 行业最大胆的战略选择：
 将 LLaMA~\cite{touvron2023llama,dubey2024llama3} 系列开源。
-这不是慈善——开源是一种竞争策略：
+
+\textbf{开源的战略逻辑}不是慈善，而是一种精心计算的竞争策略。
 当你的模型成为行业标准，围绕它的生态系统（工具、微调模型、应用）
 就成为你的护城河。Meta 不靠卖 API 赚钱，
-而是通过 AI 能力提升其广告和社交产品的收入。
-LLaMA 4 系列（2025 年 4 月发布，包括 Scout 109B/17B-active
-和 Maverick 400B/17B-active）采用了 MoE 架构，
-是 Meta 开源的首个 MoE 模型。
-组织上，Meta AI 分为两个核心部门：
-FAIR（Fundamental AI Research，基础研究）
-和 GenAI（生成式 AI 产品工程）。
-Yann LeCun 仍担任 Chief AI Scientist，
+而是通过 AI 能力提升其广告和社交产品的收入——
+如果 LLaMA 成为大多数企业的 AI 基础设施，
+Meta 就间接控制了 AI 应用层的技术标准。
+2024 年 Zuckerberg 发表的公开信
+明确阐述了这一逻辑：
+「开源 AI 对 Meta 有利，因为它推动了生态系统的增长，
+而生态系统的增长有利于我们的产品。」
+
+\textbf{LLaMA 4 系列}（2025 年 4 月发布，
+包括 Scout 109B/17B-active 和 Maverick 400B/17B-active）
+采用了 MoE 架构，是 Meta 开源的首个 MoE 模型。
+Yann LeCun (杨立昆) 仍担任 Chief AI Scientist，
 负责 FAIR 的长期研究方向。
+LeCun 长期以来对自回归语言模型持批评态度，
+倡导一种基于\textbf{世界模型}（world model）
+和\textbf{联合嵌入预测架构}（JEPA）的替代路线——
+他认为当前的 LLM 只是「鹦鹉学舌」，
+缺乏真正的理解和规划能力。
+这种内部的思想张力
+（LeCun 的长期愿景 vs.\ GenAI 团队的产品压力）
+是 Meta AI 组织动力学的一个有趣特征。
+
+\textbf{Research SuperCluster}（RSC）
+是 Meta 的 AI 训练基础设施——
+截至 2026 年初拥有超过 60 万块 GPU，
+是全球最大的 AI 训练集群之一。
+Meta 在 2025 年宣布计划在 2026 年将
+GPU 总量扩展至 130 万块，
+资本支出预算高达 600--650 亿美元。
+这种规模的投资使得 Meta 在算力上
+与 Google 和微软处于同一量级。
+
+\subsubsection{xAI：Elon Musk 的 AI 野心}
+
+\textbf{xAI}（2023 年 7 月创立）
+由 Elon Musk 在离开 OpenAI 董事会后创立，
+创始成员包括来自 DeepMind、Google Brain
+和多伦多大学的研究者。
+
+\textbf{Musk 的创立动机}是多层面的。
+表面上，他声称是为了对抗 OpenAI 和 Google 的
+「AI 安全不足」和「过度政治正确」；
+深层上，AI 能力对 Musk 的商业帝国
+（Tesla 自动驾驶、SpaceX 任务规划、X/Twitter 内容推荐）
+具有战略意义。
+xAI 从一开始就定位为
+一个同时服务研究和产品的组织。
+
+\textbf{Memphis 超级集群}是 xAI 的硬件基础。
+2024 年，xAI 在田纳西州 Memphis 建设了
+由 \textbf{100,000 块 H100 GPU} 组成的超级集群——
+建设速度创下了记录（从动工到投入使用仅约 19 天的内部装配）。
+这个集群的规模使 xAI 在算力上
+直接与 OpenAI 和 Google 竞争。
+2025 年底，Musk 宣布计划将其扩展至
+\textbf{200,000 块 GPU}，
+进一步巩固 xAI 的算力优势。
+
+\textbf{Grok 系列}是 xAI 的模型产品线。
+Grok 1（2023 年底）作为 X 平台的内置 AI 助手发布，
+Grok 2（2024 年）在多个基准上达到 GPT-4 水平，
+Grok 3（2025 年初）引入了推理能力。
+Grok 的独特卖点是与 X（前 Twitter）的实时数据集成——
+模型可以访问最新的推文和新闻，
+提供其他模型无法获取的实时信息。
+但这也带来了独特的安全挑战——
+实时数据中可能包含大量错误信息和有害内容。
+
+\subsubsection{Mistral AI：欧洲的 AI 旗帜}
+
+\textbf{Mistral AI}（约 600--700 人，2025 年）
+是欧洲最重要的 AI 公司，
+由 Arthur Mensch（前 Google DeepMind）、
+Guillaume Lample（前 Meta）和
+Timoth\'{e}e Lacroix（前 Meta）于 2023 年创立。
+
+Mistral 的创立故事本身就是一个产业叙事：
+三位创始人都来自全球最顶尖的 AI 实验室，
+但选择回到巴黎创业——
+部分原因是欧洲提供了不同于硅谷的
+监管环境和人才池，
+部分原因是他们相信
+\textbf{效率优先}的路线
+可以在不追求最大规模的情况下
+产出高质量的模型。
+
+\textbf{Mixtral}~\cite{jiang2024mixtral} 是 Mistral 的标志性成果——
+一个在 2024 年初发布的 MoE 模型，
+证明了一个精干的团队可以在 MoE 架构上
+做出与 GPT-3.5 级别竞争的工作。
+随后的 Mistral Large 2 和 Pixtral（多模态）
+进一步巩固了 Mistral 的技术地位。
+
+Mistral 在欧洲市场的\textbf{独特竞争优势}是
+\textbf{EU AI Act 合规}。
+作为欧洲公司，Mistral 天然更理解
+也更容易满足欧洲的 AI 监管要求——
+这对需要合规部署的欧洲企业客户
+是一个重要的差异化卖点。
+Mistral 为这些客户提供了
+私有部署方案和定制微调服务，
+在企业 AI 市场建立了稳固的根据地。
+
+但 Mistral 也面临挑战：
+作为一家从研究导向转向商业化的公司，
+它在 2025 年从 50--80 人快速扩张到 600--700 人，
+这种增长速度对组织文化和执行效率都是考验。
+在算力和资金上，Mistral 与美国和中国的顶级玩家
+仍有一到两个数量级的差距——
+这迫使它必须在效率上做到极致
+才能保持竞争力。
+
+\subsection{中国 AI 实验室生态}
+\label{sec:chinese-labs}
+
+中国的 AI 实验室在 2024--2026 年经历了
+从「追赶者」到「并行创新者」的关键转变。
+DeepSeek-R1 的成功标志着
+中国团队在某些维度上
+已经能够与美国顶尖实验室正面竞争。
+但中国 AI 生态的复杂性远超单一机构的成就——
+它是一个由数十个互相竞争、各具特色的实验室
+组成的\textbf{多极格局}。
+
+%% --- TikZ: Global AI Lab Competitive Landscape ---
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  region/.style={rectangle, rounded corners=6pt, draw=#1, fill=#1!8,
+    minimum width=65mm, minimum height=12mm, inner sep=8pt},
+  lab/.style={rectangle, rounded corners=3pt, draw=#1!80, fill=#1!15,
+    text width=28mm, minimum height=9mm, align=center, font=\scriptsize,
+    inner sep=4pt},
+  labsmall/.style={rectangle, rounded corners=2pt, draw=figGray!50, fill=figLightGray,
+    text width=22mm, minimum height=7mm, align=center, font=\tiny,
+    inner sep=3pt},
+  arrow/.style={-stealth, thick, figGray!60},
+]
+
+% US region
+\node[region=figBlue] (us) at (0, 0) {\textbf{美国}};
+\node[lab=figBlue] (oai) at (-3.2, -1.5) {OpenAI\\7,000+人};
+\node[lab=figBlue] (ant) at (-1.0, -1.5) {Anthropic\\1,500+人};
+\node[lab=figBlue] (gdm) at (1.2, -1.5) {Google\\DeepMind};
+\node[lab=figBlue] (meta) at (3.4, -1.5) {Meta FAIR\\1,000+人};
+\node[labsmall] (xai) at (-2.1, -3.0) {xAI\\100K H100};
+\node[labsmall] (ai2) at (0.1, -3.0) {AI2\\OLMo};
+\node[labsmall] (coh) at (2.3, -3.0) {Cohere\\企业级};
+
+% China region
+\node[region=figRed] (cn) at (0, -5.0) {\textbf{中国}};
+\node[lab=figRed] (ds) at (-3.8, -6.5) {DeepSeek\\150--200人};
+\node[lab=figRed] (ms) at (-1.5, -6.5) {月之暗面\\Kimi};
+\node[lab=figRed] (zp) at (0.8, -6.5) {智谱AI\\ChatGLM};
+\node[lab=figRed] (bd) at (3.1, -6.5) {字节豆包\\Seed};
+\node[labsmall] (ow) at (-3.0, -8.0) {01.AI\\Yi 系列};
+\node[labsmall] (sf) at (-0.8, -8.0) {阶跃星辰\\视频生成};
+\node[labsmall] (mm) at (1.4, -8.0) {MiniMax\\消费产品};
+\node[labsmall] (qw) at (3.6, -8.0) {Qwen\\开源};
+
+% EU region
+\node[region=figGreen, minimum width=30mm] (eu) at (6.5, -3.0) {\textbf{欧洲}};
+\node[lab=figGreen] (mis) at (6.5, -4.5) {Mistral\\600--700人};
+
+% Connecting lines
+\draw[arrow] (us.south) -- (oai.north);
+\draw[arrow] (us.south) -- (ant.north);
+\draw[arrow] (us.south) -- (gdm.north);
+\draw[arrow] (us.south) -- (meta.north);
+\draw[arrow] (cn.south) -- (ds.north);
+\draw[arrow] (cn.south) -- (ms.north);
+\draw[arrow] (cn.south) -- (zp.north);
+\draw[arrow] (cn.south) -- (bd.north);
+\draw[arrow] (eu.south) -- (mis.north);
+
+\end{tikzpicture}
+\caption{全球 AI 实验室竞争格局（2026 年初）。
+美国仍在规模和资金上占据优势，
+中国在效率创新和开源贡献上形成了独特的竞争力，
+欧洲以 Mistral 为代表建立了第三极。}
+\label{fig:ai-lab-landscape}
+\end{figure}
+
+\subsubsection{DeepSeek：量化基金的 AGI 野心}
 
 \textbf{DeepSeek}（约 150--200 名核心研究员和工程师）
-背靠量化对冲基金幻方量化（High-Flyer Capital），
-DeepSeek 是「小团队大影响」的典范。
-他们用不到 Meta FAIR 十分之一的人员，
-在 DeepSeek-V3~\cite{deepseekv3} 和 R1~\cite{deepseekr1}
-上达到了 GPT-4 级别的性能。
-关键因素：极致的工程效率（MLA、DeepEP 等创新）、
+背靠量化对冲基金\textbf{幻方量化}（High-Flyer Capital Management），
+是「小团队大影响」的典范。
+
+\textbf{幻方量化的 DNA}深刻塑造了 DeepSeek 的组织文化。
+幻方量化是中国最成功的量化对冲基金之一，
+管理资产规模曾超过 600 亿人民币。
+量化基金的核心竞争力是
+用极少的人、极高的效率、极精密的系统
+在金融市场中寻找微小的套利机会。
+这种文化——对效率的极致追求、
+对系统工程的高度重视、
+对冗余人员的零容忍——
+被完整地移植到了 DeepSeek 的 AI 研究中。
+
+\textbf{梁文锋 (Liang Wenfeng)}
+是幻方量化和 DeepSeek 的创始人。
+他是浙江大学电子信息工程本科毕业，
+之后进入量化交易行业。
+与大多数 AI 实验室的创始人不同
+（通常来自学术界顶尖 AI 实验室），
+梁文锋的背景是\textbf{工程和金融}。
+这种背景赋予了他两个独特优势：
+第一，\textbf{系统工程思维}——
+量化交易系统对延迟、吞吐量和可靠性的要求
+与 AI 训练系统高度相似，
+幻方积累的分布式系统经验
+直接加速了 DeepSeek 的基础设施建设；
+第二，\textbf{资金独立性}——
+幻方的自有资金使 DeepSeek 不需要依赖外部风投，
+因此不受短期商业化压力的驱动，
+可以专注于长期技术突破。
+
+\textbf{为什么一家量化基金要建 AGI？}
+梁文锋在接受采访时给出的回答是：
+「我们在量化交易中使用了大量的机器学习技术，
+逐渐意识到通用智能才是最终的工具。
+如果你能造出足够聪明的 AI，
+量化交易只是它能做的无数件事之一。」
+这个回答透露了一种\textbf{第一性原理}的思维方式——
+不是为了解决具体问题而做 AI，
+而是因为相信 AGI 是最终的杠杆。
+
+\textbf{DeepSeek 的技术轨迹}异常陡峭：
+\begin{itemize}[noitemsep]
+  \item \textbf{DeepSeek-V2}（2024 年 5 月）：
+        引入 MLA（Multi-head Latent Attention）架构，
+        将 KV cache 压缩了 10 倍以上。
+  \item \textbf{DeepSeek-V3}~\cite{deepseekv3}（2024 年 12 月）：
+        671B 参数 MoE 模型，
+        训练成本仅 \$5.5M（GPU 租赁），
+        达到 GPT-4 级别性能。
+  \item \textbf{DeepSeek-R1}~\cite{deepseekr1}（2025 年 1 月）：
+        通过纯 RL 训练实现推理能力涌现，
+        被称为「中国的 Sputnik 时刻」。
+        2025 年 9 月登上 \textit{Nature} 封面。
+  \item \textbf{V4 开发中}（2026 年）：
+        据报道聚焦于原生多模态、
+        LTM（Long-Term Memory）突破、
+        以及国产芯片（华为 Ascend）适配优化。
+\end{itemize}
+
+DeepSeek 用不到 Meta FAIR 十分之一的人员，
+达到了 GPT-4 级别的性能。
+关键因素包括：
+极致的工程效率（MLA、DeepEP 等创新）、
 扁平的组织结构（减少管理层级，加速决策）、
 以及量化基金背景带来的对效率的极度重视。
-DeepSeek 的团队结构高度集成——
+团队结构高度集成——
 没有独立的「数据团队」「Infra 团队」「研究团队」的明确边界，
 研究员同时负责算法设计和底层系统优化。
-创始人梁文锋（Wenfeng Liang）的管理风格
-强调技术深度和第一性原理思考，
-团队成员大多来自顶尖高校和量化行业。
-2025 年 1 月 DeepSeek-R1 的发布
-（被称为 ``China's Sputnik moment''）
-引发了全球对中国 AI 能力的重新评估。
 
-\textbf{Mistral}（约 600--700 人，2025 年）
-欧洲最重要的 AI 公司，创始团队来自 Google DeepMind 和 Meta。
-Mixtral~\cite{jiang2024mixtral} 证明了
-一个精干的团队可以在 MoE 架构上做出出色的工作。
-Mistral 的策略是专注于效率——
-不追求最大的模型，而是在给定规模下做到最好。
-2025 年，Mistral 推出了 Mistral Large 2 和 Pixtral（多模态），
-同时为欧洲企业提供了符合 EU AI Act 合规要求的定制部署方案，
-这成为其在欧洲市场的重要竞争优势。
+\subsubsection{月之暗面 (Moonshot AI)：长上下文的先行者}
 
-\textbf{其他值得关注的组织}：
-\textbf{xAI}（Elon Musk 创立，2024 年部署了超过 10 万块 H100 组成的
-``Colossus'' 集群，推出了 Grok 3 系列模型）；
-\textbf{阿里巴巴通义}（Qwen 系列，特别是 Qwen 3
-在开源多语言模型中表现突出~\cite{qwen2025qwen3}）；
-\textbf{AI2}（Allen Institute for AI，OLMo 系列是
-真正意义上的完全开源模型——数据、代码、权重全部公开）；
-\textbf{Cohere}（专注企业市场，Command R+ 系列针对 RAG 和企业搜索优化）。
+\textbf{月之暗面}由\textbf{杨植麟 (Yang Zhilin)} 于 2023 年创立。
+杨植麟本科就读于清华大学，
+博士在 CMU（师从 Ruslan Salakhutdinov 和 William Cohen），
+之后在 Google Brain 和 Meta AI 工作。
+他最广为人知的学术贡献是
+\textbf{Transformer-XL}~\cite{dai2019transformerxl}
+和 \textbf{XLNet}~\cite{yang2019xlnet}——
+两篇在长序列建模领域具有开创性的论文。
 
-\begin{keybox}[「小团队，大影响」的启示]
-DeepSeek（150--200 名研究员）的成功揭示了一个重要规律：
-在 LLM 开发中，
-\textbf{团队的工程文化和技术深度
-比纯粹的人员规模更重要}。
-小团队的优势包括：
-（1）更快的决策速度——没有多层审批，
-实验想法从提出到验证可以在数天内完成；
-（2）更强的 ownership——每个人负责更大的模块，
-减少了沟通开销和责任模糊；
-（3）更高的人才密度——小团队可以只招最优秀的人，
-大团队不可避免地需要大量普通工程师做基础工作。
-Mistral 在 2023 年创立初期也以 50--80 人的精干团队
-产出了 Mixtral 等有影响力的模型，
-印证了同样的规律。
-但随着商业化需求增长，Mistral 已扩展至 600--700 人（2025 年），
-说明规模化终究是从研究到产品的必经之路。
-一个有趣的对比：OpenAI 的 7,000+ 人产出了 GPT-4o/o3，
-DeepSeek 的 200 人产出了 V3/R1——
-在核心模型质量上，两者差距远小于团队规模的差距。
+这种学术背景直接影响了月之暗面的技术路线：
+从一开始，\textbf{Kimi} 就以
+\textbf{超长上下文}能力作为核心差异点。
+2024 年初，Kimi 率先支持 200K token 上下文，
+远超同期竞品（大多为 32K--128K），
+引发了中国 AI 市场的「上下文长度竞赛」。
+
+Kimi 的产品策略是
+\textbf{技术差异化 + 知识工作者定位}。
+与豆包、文心一言等面向大众市场的产品不同，
+Kimi 定位于专业用户——
+学者需要阅读和理解长篇论文、
+律师需要分析复杂合同、
+开发者需要理解大型代码库。
+这种定位使得 Kimi 在
+一个有消费意愿的细分市场中建立了品牌认知，
+虽然总用户量不如字节或百度的产品，
+但用户黏性和付费率更高。
+
+2025 年底，月之暗面推出了 \textbf{Kimi K2.5}，
+支持 Agent 能力，
+在 AIME 2025 上达到 96.1\%——
+证明长上下文优势可以扩展到推理能力。
+
+\subsubsection{智谱AI (Zhipu AI)：学术到产业的桥梁}
+
+\textbf{智谱AI}由清华大学教授\textbf{唐杰 (Tang Jie)} 联合创立，
+是中国学术界与 AI 产业之间
+最成功的技术转化案例之一。
+
+唐杰是清华大学计算机系教授，
+在学术图谱（AMiner）和图神经网络领域有深厚积累。
+智谱AI 与清华大学知识工程实验室（KEG）深度绑定，
+这种学术根基赋予了它两个独特优势：
+第一，\textbf{人才供给}——
+清华 CS 每年的毕业生成为智谱的人才蓄水池；
+第二，\textbf{技术传统}——
+GLM（General Language Model）架构
+是在清华内部发展起来的，
+与 GPT 的纯因果语言模型不同，
+GLM 使用了\textbf{自编码 + 自回归}的混合训练目标，
+在某些理解任务上具有理论优势。
+
+\textbf{ChatGLM 系列}的演进：
+ChatGLM-1（2023 年初，中国最早的开源对话模型之一），
+ChatGLM-2、ChatGLM-3（持续迭代），
+GLM-4（2024 年），
+GLM-4.7（2026 年初，融合多模态和长上下文）。
+GLM 系列的一个特点是
+\textbf{持续坚持 GLM 架构}而非切换到纯 GPT 架构——
+这在技术上是一种冒险
+（因为 GPT 架构有更成熟的训练生态），
+但也形成了技术差异化。
+
+智谱AI 在 2025 年获得了超过 40 亿人民币的融资，
+投后估值超过 300 亿人民币，
+是中国估值最高的 AI 创业公司之一。
+
+\subsubsection{零一万物 (01.AI)：Kai-Fu Lee 的「大而快」战略}
+
+\textbf{零一万物}由\textbf{李开复 (Kai-Fu Lee)} 于 2023 年创立。
+李开复是 AI 领域最知名的华人面孔之一——
+曾任 Google 中国区总裁，
+后创办创新工场专注 AI 投资，
+著有《AI 超级大国》等畅销书。
+
+\textbf{Yi 系列}是零一万物的模型产品线。
+Yi-1（2023 年底）是中国最早的开源基座模型之一，
+Yi-1.5（2024 年）引入了 MoE 架构，
+Yi-Lightning（2024 年底）定位为高速推理模型。
+零一万物采用了\textbf{开放权重}策略——
+模型权重开源，但训练数据和训练代码不公开。
+
+李开复的战略理念是
+「\textbf{追赶最前沿的模型}不如\textbf{做最适合中国市场的应用}」——
+他很早就意识到，
+在基座模型层面与 OpenAI 和 Google 正面竞争
+可能不是最优策略，
+而是应该在应用层找到差异化定位。
+这种务实的思维使得零一万物
+在商业化方面比一些纯研究导向的实验室更快——
+但也使它在技术影响力上
+不如 DeepSeek 或月之暗面那样引人注目。
+
+2025 年下半年，零一万物经历了战略调整——
+从「做中国最好的 base model」
+转向「做中国最好的 AI 应用平台」，
+模型层投入相对减少，应用层投入加大。
+
+\subsubsection{阶跃星辰 (StepFun)：从语言到视频}
+
+\textbf{阶跃星辰}由\textbf{姜大昕 (Jiang Daxin)} 创立。
+姜大昕曾任微软亚洲研究院（MSRA）副院长，
+在自然语言处理和信息检索领域有数十年经验。
+他从 MSRA 离职创业时带走了一批核心研究人员，
+构成了阶跃星辰的技术骨干。
+
+阶跃星辰的独特之处在于
+它是中国 AI 创业公司中
+\textbf{最早大规模投入视频生成}的之一。
+Step 系列模型从语言模型起步
+（Step-1V、Step-2，追赶 frontier 水平），
+但 2025 年开始将重心转向\textbf{视频生成和理解}——
+Step Video 在视频质量和一致性上
+达到了与 Sora 和 Kling 竞争的水平。
+
+\textbf{Step 3.5 Flash}（2026 年初）
+在 AIME 2025 上达到 97.3\%，
+展示了阶跃星辰在推理能力上的快速追赶。
+但公司的长期赌注是
+\textbf{多模态}——特别是视频——
+将成为下一代 AI 应用的核心交互方式。
+
+\subsubsection{MiniMax：消费产品的先驱}
+
+\textbf{MiniMax} 由\textbf{闫俊杰 (Yan Junjie)} 创立。
+闫俊杰曾是商汤科技（SenseTime）的技术副总裁，
+在计算机视觉和多模态领域有深厚积累。
+
+MiniMax 的策略与大多数中国 AI 实验室截然不同：
+它从一开始就\textbf{以消费产品为导向}，
+而非以基座模型为导向。
+其旗舰产品包括：
+\textbf{Talkie}（海外版 AI 社交/角色扮演 App，
+在美国市场获得了数百万下载量）
+和 \textbf{海螺AI/Hailuo}（视频生成产品）。
+
+MiniMax 的逻辑是：
+基座模型之间的差距在快速缩小，
+长期来看，模型层可能商品化——
+真正的壁垒在于\textbf{产品体验和用户关系}。
+Talkie 的成功部分验证了这一假设：
+它使用的并非最强的基座模型，
+但通过出色的产品设计
+（角色一致性、情感交互、社区运营）
+建立了用户黏性。
+
+\subsubsection{字节跳动豆包 (ByteDance Doubao)：分发为王}
+
+\textbf{字节跳动}凭借 TikTok/抖音的全球分发能力，
+在 AI 产品层拥有独特的结构性优势。
+
+\textbf{豆包}是字节跳动的 AI 助手产品，
+得益于抖音生态的流量灌注，
+其用户增长速度远超独立 AI 创业公司。
+但豆包的技术核心——\textbf{Seed 团队}——
+在基座模型层面一直保持着相对低调的姿态。
+
+2026 年初，Seed 团队通过积极的人才吸纳
+构建多模态 AI 的全面能力。
+特别值得注意的是：
+2026 年 3 月，\textbf{Qwen 大模型后训练负责人郁博文}
+从阿里巴巴离职加入 Seed 团队，
+负责视觉模型和多模态交互方向的后训练工作。
+Seed 团队的 \textbf{Doubao Seed 2.0 Pro}
+在 AIME 2025 上达到 98.3\%——
+这是中国团队在数学推理基准上的最高分，
+证明了字节在基座模型层面的实力
+远超外界的普遍认知。
+
+字节跳动的核心优势不在于
+单一模型的基准分数最高，
+而在于\textbf{从模型到用户的通路最短}——
+一个新模型可以在数天内
+通过抖音、今日头条、飞书等产品
+触达数亿用户。
+这种分发能力使得字节在
+「模型 $\to$ 产品 $\to$ 用户反馈 $\to$ 模型改进」
+的飞轮上具有结构性优势。
+
+\subsubsection{阿里巴巴 Qwen：开源多语言的领军者}
+
+\textbf{阿里巴巴通义}团队开发的 \textbf{Qwen 系列}~\cite{qwen2025qwen3}
+是中国开源模型中国际影响力最大的系列之一。
+
+Qwen 的核心优势是\textbf{多语言能力}——
+特别是在中文和英文之间的平衡。
+多数模型要么以英文为主（如 LLaMA），
+要么以中文为主（如早期的 ChatGLM）。
+Qwen 通过精心设计的
+多语言训练数据配比和分词器优化，
+在中英双语上同时达到了 frontier 水平。
+Qwen3（2025 年）采用 Apache 2.0 许可证，
+进一步降低了商用门槛。
+\textbf{Qwen3-Omni}（2025 年底）
+是中国首个原生多模态大模型之一，
+支持文本、图像、语音的统一理解和生成。
+
+但 Qwen 团队在 2026 年面临的挑战同样严峻。
+核心人才的流失（后训练负责人郁博文等离职）、
+阿里巴巴内部从研究向产品的战略转移、
+以及来自 DeepSeek 和字节的激烈竞争，
+都在考验这支团队的凝聚力和执行力。
+阿里云的 Token Hub 战略
+（将 Qwen 模型的推理能力商品化，
+以极低价格提供 API 服务）
+可能削弱了基础研究投入的激励——
+当你的商业模式是「卖 token」而非「做最好的模型」时，
+研究团队的使命感会面临微妙的挑战。
+
+\subsubsection{中国 AI 生态的结构性特征}
+
+观察中国 AI 实验室的整体格局，
+有几个结构性特征值得注意：
+
+\textbf{资金来源的多样性}。
+与美国 AI 创业公司主要依赖 VC 融资不同，
+中国 AI 实验室的资金来源更加多元：
+DeepSeek 背靠量化基金的自有资金，
+智谱AI 有清华大学的资源支持，
+月之暗面获得了红杉中国等顶级 VC 的投资，
+而字节和阿里的 AI 投入来自各自的核心业务利润。
+这种多元性意味着中国 AI 的发展
+不会因为单一资金来源的枯竭而受阻。
+
+\textbf{「内卷」式竞争的利弊}。
+中国 AI 市场的竞争烈度远超美国——
+十几家主要实验室在同一个赛道上
+争夺相似的人才、数据和算力资源。
+这种竞争推动了快速进步
+（中国模型从落后 GPT-4 两年
+到与之平齐只用了约 18 个月），
+但也带来了资源浪费
+（大量重复的训练实验、
+价格战导致的利润率压缩）。
+一些行业观察者认为，
+到 2027 年可能会出现
+显著的\textbf{整合}——
+资金不足的二三线实验室
+将被收购或关闭，
+最终形成 3--5 个主要玩家的格局。
+
+\textbf{应用创新的差异化路径}。
+与美国更注重基础模型能力不同，
+中国 AI 生态的一个显著特点是
+\textbf{应用层的快速创新}。
+从 AI 社交（Talkie/星野）
+到 AI 教育（Kimi 的论文阅读）
+到 AI 短视频（豆包+抖音）
+到 AI 电商（通义千问+淘宝），
+中国团队在将 AI 嵌入消费场景方面
+展现了令人瞩目的速度和创造力。
+这种「应用驱动」的创新模式
+与美国「模型驱动」的创新模式
+形成了有趣的互补——
+双方正在不同的维度上推进 AI 的边界。
+
+\begin{keybox}[「小团队，大影响」vs.「大平台，快分发」]
+中国 AI 生态中最有趣的对比是
+DeepSeek 式的\textbf{精英小团队模式}
+与字节跳动式的\textbf{大平台分发模式}。
+
+DeepSeek（150--200 人）的优势在于：
+极高的人才密度、极快的决策速度、
+极低的管理开销、
+以及不受商业化压力驱动的研究自由度。
+它用不到 Meta FAIR 十分之一的人员
+产出了 V3/R1。
+
+字节跳动 Seed 团队的优势在于：
+海量的用户数据飞轮、
+全球级的产品分发能力、
+近乎无限的计算预算、
+以及吸引顶尖人才的薪资竞争力。
+
+两种模式各有所长——
+DeepSeek 更适合\textbf{技术突破}，
+字节更适合\textbf{规模化落地}。
+但长期来看，两者可能会收敛：
+DeepSeek 在 V4 之后也需要面对产品化问题，
+字节也在持续提升基础研究的深度。
 \end{keybox}
+
+\section{Jensen Huang 的「五层」愿景}
+\label{sec:jensen-five-layers}
+
+NVIDIA CEO 黄仁勋 (Jensen Huang) 在多次公开演讲中
+提出了 AI 产业的\textbf{五层架构}愿景，
+这一框架成为理解 NVIDIA 战略布局的关键透镜。
+
+\textbf{第一层：芯片与系统（Chips \& Systems）}。
+NVIDIA 的根基——
+从 GPU 芯片（H100/H200/B200/B300）
+到完整的 AI 系统（DGX、HGX）、
+到网络互联（NVLink、NVSwitch、Quantum InfiniBand）。
+黄仁勋反复强调的一个观点是：
+AI 计算不是「把 GPU 插到服务器上」这么简单——
+芯片、内存、网络必须作为一个\textbf{系统}来设计和优化。
+DGX SuperPOD 就是这种系统思维的产物：
+它不是 GPU 的简单堆叠，
+而是一个经过端到端优化的 AI 工厂。
+截至 2026 年初，B200 的 FP8 算力是 H100 的 2.5 倍，
+而 GB300 NVL72（72 块 GPU 的液冷系统）
+则代表了 NVIDIA 在系统级集成上的最新能力。
+
+\textbf{第二层：CUDA 与软件平台}。
+CUDA 生态是 NVIDIA 最深厚的护城河——
+超过 500 万开发者使用 CUDA，
+几乎所有 AI 框架（PyTorch、TensorFlow、JAX）
+都深度依赖 CUDA 内核。
+这种软件锁定效应意味着
+即使竞争对手的硬件在某些指标上追上 NVIDIA，
+开发者的迁移成本仍然是巨大的障碍。
+cuDNN、TensorRT、NCCL 等库
+构成了一个完整的加速计算软件栈，
+其成熟度远超任何竞品。
+
+\textbf{第三层：AI 基础设施服务}。
+DGX Cloud 和与云服务商的合作
+使 NVIDIA 从芯片供应商扩展为基础设施服务商。
+黄仁勋的愿景是：
+NVIDIA 不仅卖 GPU，
+还帮助客户运营「AI 工厂」——
+提供从硬件到软件到优化服务的全套方案。
+
+\textbf{第四层：AI Foundation Models}。
+NVIDIA 通过 NeMo 框架、
+NIM（NVIDIA Inference Microservices）
+和 NVIDIA AI Enterprise 软件平台，
+参与到模型训练和部署的全流程中。
+这一层的战略意图是：
+确保无论谁的模型最终胜出，
+训练和部署都离不开 NVIDIA 的软件栈。
+
+\textbf{第五层：行业应用}。
+从自动驾驶（DRIVE）到医疗（Clara）
+到机器人（Isaac）到数字孪生（Omniverse），
+NVIDIA 正在向垂直行业渗透。
+黄仁勋认为 AI 的最终价值
+不在于模型本身，
+而在于\textbf{改变每一个行业的生产流程}——
+NVIDIA 希望在这个价值链的每一层都分一杯羹。
+
+\begin{whybox}[NVIDIA 为什么（至今）无可替代？]
+截至 2026 年，尽管有多个竞争者
+（Google TPU、AMD MI300X、
+Intel Gaudi 3、Broadcom 定制芯片、华为 Ascend），
+NVIDIA 仍然占据 AI 训练市场 80\%+ 的份额。
+原因不仅是硬件性能的领先
+（B200 在多数基准上确实最快），
+更重要的是\textbf{软件生态的锁定效应}：
+CUDA 的开发者数量、
+已有代码库的兼容性需求、
+以及 NCCL 在分布式训练中的成熟度，
+共同构成了一个极难打破的护城河。
+竞争对手的策略因此分化为两条路线：
+\textbf{兼容路线}（AMD 的 ROCm 试图兼容 CUDA 代码）
+和\textbf{差异化路线}（Google TPU + JAX 建立独立生态）。
+到目前为止，两条路线都只取得了有限的进展。
+\end{whybox}
 
 \section{训练成本的演变：2024--2026}
 \label{sec:training-cost}
@@ -589,6 +1263,340 @@ Deloitte 的研究表明，大规模持续使用场景下
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\section{AI 人才市场}
+\label{sec:talent-market}
+
+AI 人才市场在 2024--2026 年经历了
+前所未有的结构性变化——
+薪资水平飙升、地理集中度加剧、
+人才争夺日趋白热化。
+
+\subsection{薪资与竞争}
+
+2026 年的 AI 人才薪资已经达到了
+让其他科技行业侧目的水平：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{顶尖研究员}（发表过有影响力论文的高级研究者）：
+        总薪酬（含股权）\$1M--5M/年。
+        少数明星研究者（如从 OpenAI/Google 出走创业的）
+        获得的 founding package 可达 \$10M+。
+  \item \textbf{高级训练工程师}
+        （有 frontier 模型训练经验的资深工程师）：
+        总薪酬 \$500K--1.5M/年。
+        这一薪资水平使得 AI 训练工程师成为
+        硅谷薪酬最高的工程职位之一，
+        超过了大多数 VP/Director 级别的管理岗位。
+  \item \textbf{中级 ML 工程师}
+        （3--5 年经验，能独立完成模型微调和部署）：
+        总薪酬 \$250K--500K/年。
+  \item \textbf{应届博士}（来自顶尖 AI 实验室的博士毕业生）：
+        起薪 \$200K--350K/年。
+        在竞争最激烈的时候
+        （如 2024--2025 年 OpenAI、Anthropic、Google DeepMind 争夺应届生），
+        签约奖金（signing bonus）可达 \$100K--300K。
+\end{itemize}
+
+在中国，顶尖 AI 人才的薪资同样在快速上升，
+虽然绝对数字低于硅谷：
+\begin{itemize}[noitemsep]
+  \item 顶尖研究员（如 DeepSeek、月之暗面的核心成员）：
+        年薪 200--500 万人民币，外加股权期权。
+  \item 高级工程师：年薪 100--250 万人民币。
+  \item 应届博士（清华、北大 AI 方向）：
+        起薪 60--120 万人民币。
+\end{itemize}
+
+\subsection{地理集中与人才流动}
+
+全球 AI 人才呈现高度的\textbf{地理集中}：
+
+\textbf{旧金山湾区}仍然是全球 AI 人才密度最高的地区。
+OpenAI、Anthropic、Meta FAIR、
+Google DeepMind 的主要团队都位于此。
+一个流传的说法是
+「全球 AI 研究 top 100 的人，有 60 个住在旧金山」——
+虽然数字不精确，但方向是对的。
+这种集中产生了强烈的\textbf{聚集效应}
+（agglomeration effect）：
+人才之间的非正式交流
+（咖啡馆对话、AI 沙龙、跳槽后的知识扩散）
+创造了一个在其他地方难以复制的创新生态。
+
+\textbf{北京}是中国 AI 人才的核心聚集地。
+清华大学、北京大学、中科院
+提供了持续的高质量人才供给。
+DeepSeek、月之暗面、智谱AI、零一万物
+均总部位于北京。
+杭州（阿里巴巴）、深圳（腾讯、华为）
+和上海（商汤、MiniMax）
+是其他重要的 AI 人才中心。
+
+\textbf{伦敦}是欧洲 AI 的枢纽
+（DeepMind 总部、Mistral 的部分团队），
+但其人才规模和薪资水平
+与旧金山和北京相比仍有显著差距。
+
+\textbf{Brain drain}（人才外流）模式值得关注：
+\begin{itemize}[noitemsep]
+  \item \textbf{学术界 → 产业界}：
+        几乎是单向流动。
+        产业界的薪资优势（3--10 倍于学术薪资）
+        使得越来越多的顶尖教授离开大学
+        或转为兼职，加入 AI 公司。
+        这对学术 AI 研究的长期质量
+        构成了结构性威胁。
+  \item \textbf{中国 → 美国}（以及反向流动）：
+        过去十年，大量中国 AI 博士
+        留在美国的顶尖实验室工作。
+        但 2024--2025 年出现了
+        一波\textbf{回流潮}——
+        DeepSeek、月之暗面等公司的崛起
+        和有竞争力的薪资
+        吸引了部分海外华人研究者回国。
+        同时，美国的签证限制和地缘政治紧张
+        也在推动部分中国背景的研究者
+        寻找替代选择。
+  \item \textbf{大公司 → 创业公司}：
+        从 Google、Meta 等大公司
+        流向 AI 创业公司的人才浪潮
+        在 2024--2025 年达到高峰。
+        Mistral、Sakana AI、SSI 等公司
+        的创始团队几乎全部来自大型 AI 实验室。
+\end{itemize}
+
+\section{算力治理与地缘政治}
+\label{sec:compute-governance}
+
+AI 算力已经成为21世纪最重要的战略资源之一。
+围绕 GPU 的出口管制、芯片供应链和算力基础设施的博弈，
+正在深刻影响全球 AI 竞争的格局。
+
+\subsection{美国对华出口管制的演进}
+
+美国对中国的 AI 芯片出口管制
+经历了三个逐步收紧的阶段：
+
+\textbf{第一轮：2022 年 10 月}。
+商务部工业与安全局（BIS）首次对
+高性能 AI 芯片实施出口管制，
+禁止向中国出口超过
+\textbf{A100 级别}的芯片
+（具体阈值基于算力和互联带宽）。
+NVIDIA 随后推出了 A800 和 H800——
+降规版（de-rated）芯片，
+在管制阈值以下但仍然具有强大的训练能力。
+DeepSeek-V3 就是在 H800 上训练的。
+
+\textbf{第二轮：2023 年 10 月}。
+管制范围扩大，
+阈值进一步收紧至\textbf{H800 级别}也被禁止，
+并将管制扩展到第三国转口贸易。
+NVIDIA 再次推出降规版——\textbf{H20}，
+这是一块几乎被「阉割」到只剩推理能力的芯片
+（训练性能大幅下降，但推理吞吐量仍然可观）。
+
+\textbf{第三轮：2025 年 1 月}。
+拜登政府在卸任前发布了最全面的出口管制规则，
+不仅针对芯片本身，还扩展到
+\textbf{AI 模型权重}和\textbf{云服务}——
+禁止将超过一定算力规模的 AI 训练服务
+通过云端提供给中国用户。
+这轮管制还引入了
+\textbf{国家分级许可制度}（tiered licensing）——
+将世界各国分为三个层级，
+对盟友国家（日本、韩国等）保持开放，
+对中国等国家严格限制。
+
+\subsection{NVIDIA H20 的处境与替代方案}
+
+\textbf{H20} 成为管制下的一个独特产品。
+它的存在本身就是管制政策的产物——
+NVIDIA 为了保住中国市场的收入
+而专门设计的合规芯片。
+
+H20 的关键参数：
+\begin{itemize}[noitemsep]
+  \item FP8 算力约为 H100 的 $\sim$30\%。
+  \item HBM3 内存 96GB
+        （与 H100 SXM 的 80GB 相比反而更大——
+        这是因为 H20 的核心计算能力被削弱后，
+        NVIDIA 在内存上做了补偿，
+        以保持推理场景的竞争力）。
+  \item 内存带宽 4TB/s（与 H100 的 3.35TB/s 相比更高）。
+  \item NVLink 带宽被大幅削减。
+\end{itemize}
+
+H20 的定位是\textbf{推理芯片}而非训练芯片。
+对于大规模预训练，H20 的效率远低于 H100——
+训练同等模型需要约 3--5 倍的 H20 芯片。
+但对于推理部署（特别是长上下文场景，
+内存容量和带宽是瓶颈），
+H20 仍然是中国市场上性能最强的合法选择之一。
+
+\subsection{华为 Ascend 910C：国产替代的进展}
+
+\textbf{华为 Ascend 910C}是中国最先进的
+国产 AI 训练芯片。
+
+关于 910C 的公开信息有限
+（华为对芯片规格的披露非常谨慎），
+但行业分析指出：
+\begin{itemize}[noitemsep]
+  \item FP16 算力约为 H100 的 60--70\%。
+  \item 软件生态（CANN、MindSpore）
+        与 NVIDIA 的 CUDA 生态相比仍有显著差距。
+        但 2025--2026 年，
+        华为大幅增加了对 PyTorch 兼容层的投入，
+        降低了迁移成本。
+  \item 互联带宽和网络拓扑
+        （华为自研的 HCCS 互联）
+        是与 NVIDIA 差距最大的领域——
+        大规模分布式训练的效率
+        受互联带宽的制约尤为严重。
+\end{itemize}
+
+DeepSeek 据报道已经在 V4 的开发中
+进行华为 Ascend 的适配优化——
+这不仅是技术选择，也是地缘政治现实下的必要准备。
+如果未来连 H20 级别的芯片也被禁止出口，
+中国 AI 实验室将不得不完全依赖国产替代方案。
+
+\subsection{管制对中国 AI 的实际影响}
+
+出口管制的影响是\textbf{双刃剑}。
+
+\textbf{直接的负面影响}：
+中国实验室无法获得最新的 NVIDIA GPU，
+在原始算力上与美国实验室的差距在扩大。
+一个 H100 集群能做到的事情，
+用 H800 可能需要 1.5 倍的芯片，
+用 H20 可能需要 3--5 倍，
+用 Ascend 910C 可能需要 2--3 倍并承受更多的工程摩擦。
+这种「算力税」在绝对规模竞争中是真实的劣势。
+
+\textbf{意外的正面影响}——\textbf{约束驱动的创新}：
+正是因为算力受限，
+中国团队被迫在算法和工程效率上做到极致。
+DeepSeek 的 MLA 架构将 KV cache 压缩了 10 倍以上，
+DualPipe 和 DeepEP 优化了通信效率，
+\$5.5M 的训练成本证明了
+「用更少的资源做更多的事」不仅可能，
+而且可以产生范式级的创新。
+这种效率创新的外溢效应
+甚至影响了美国实验室的研究方向——
+DeepSeek-R1 发布后，
+多个美国团队开始研究如何复现其低成本训练方法。
+
+\textbf{芯片走私与灰色市场}也是不可忽视的现实。
+媒体报道和政府调查表明，
+尽管有出口管制，
+仍有大量高端 NVIDIA 芯片
+通过第三国转口进入中国~\cite{harithas2024chipsmuggling}。
+BIS 在 2025 年加强了对东南亚
+（特别是新加坡、马来西亚）
+转口贸易的审查，
+但完全阻止芯片流通在实践中极为困难。
+
+\begin{warnbox}[出口管制的长期博弈]
+出口管制的根本悖论在于：
+短期内它限制了中国的 AI 能力，
+但长期来看它可能\textbf{加速}中国的
+芯片自主可控进程。
+如果没有管制，中国实验室会继续依赖 NVIDIA——
+因为 CUDA 生态的锁定效应极其强大。
+管制强制打破了这种依赖，
+为华为等国产芯片创造了
+一个原本不可能的市场窗口。
+2025--2026 年的证据表明，
+中国正在快速缩小国产芯片的差距——
+不是因为突然的技术突破，
+而是因为管制创造了
+「不用不行」的需求驱动力。
+\end{warnbox}
+
+\subsection{全球算力竞赛的量级}
+
+将不同玩家的算力规模放在一起比较，
+有助于理解竞争格局的全貌：
+
+\begin{table}[H]
+\centering\small
+\caption{主要 AI 组织的 GPU 集群规模估算（2026 年初）}
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+\textbf{组织} & \textbf{GPU 规模（估算）} & \textbf{备注} \\
+\midrule
+Meta & $\sim$600K+ H100 等效 & 2026 年目标 1.3M GPU \\
+Google & $\sim$500K+ TPU v5 等效 & 自研 TPU，不完全可比 \\
+Microsoft/OpenAI & $\sim$300K+ H100 & Azure AI 集群 \\
+xAI & $\sim$200K H100 & Memphis 超级集群 \\
+Amazon & $\sim$150K+ 混合 & Trainium2 + H100 \\
+DeepSeek & $\sim$10K--20K H800 & 受出口管制限制 \\
+Anthropic & 公开信息有限 & 通过 AWS/GCP 租用 \\
+Mistral & 数千块 GPU & 主要租用云端 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+这张表揭示了一个关键事实：
+在原始算力上，中国实验室与美国顶尖玩家
+存在\textbf{一到两个数量级}的差距。
+Meta 的 130 万 GPU 目标
+是 DeepSeek 整个集群的 \textbf{60--100 倍}。
+这种差距使得 DeepSeek 以 \$5.5M 训练出 V3
+变得更加令人印象深刻——
+它不得不在算法和工程效率上
+做到远超竞争对手的极致水平
+来弥补硬件的绝对劣势。
+
+但算力不是一切。
+历史上多次证明，
+\textbf{算法创新可以抵消算力劣势}——
+Transformer 本身就是一个例子
+（它比 RNN 更高效地利用了并行计算资源）。
+MoE 架构、MLA 注意力、
+更好的数据配比和训练策略，
+都在事实上放大了每单位算力的价值。
+2025--2026 年的竞争格局表明，
+\textbf{算力 $\times$ 效率 = 有效能力}——
+两个因素同等重要。
+
+\subsection{能源与环境挑战}
+
+大规模 AI 训练的能源消耗
+正在成为一个不可忽视的政策和商业问题。
+
+一个 10,000 GPU 的 H100 集群
+在满载运行时的功耗约为 \textbf{7--10 MW}——
+相当于一个小型城镇的用电量。
+加上冷却系统（传统风冷集群的 PUE 约 1.3--1.5，
+液冷集群可降至 1.05--1.1），
+一个大规模训练中心的年度电力成本
+可达 \textbf{\$10M--30M}。
+
+2025--2026 年，电力供应已经成为
+AI 数据中心选址的\textbf{首要约束}。
+北弗吉尼亚（全球最大的数据中心聚集地）
+已经出现电网容量不足的问题，
+新的 AI 数据中心不得不等待 2--3 年
+才能获得足够的电力接入。
+这催生了新的选址模式——
+一些公司开始在
+水电资源丰富的地区（如冰岛、挪威、加拿大魁北克）
+或核电站附近建设数据中心，
+以获得廉价且低碳的电力供应。
+
+\textbf{液冷技术}的普及是对抗能耗增长的关键杠杆。
+NVIDIA GB200 NVL72 系统已经\textbf{要求}液冷——
+传统风冷无法满足其散热需求。
+这标志着 AI 基础设施
+从「服务器机房」向「工业冷却系统」的范式转变。
+液冷不仅降低了 PUE（从 1.3+ 降至 1.1 以下），
+还允许更高密度的 GPU 部署
+（每个机架的 GPU 数量从 8 块增加到 72 块），
+从而降低了数据中心的总体建设成本。
 
 \section{开源训练框架生态}
 
@@ -813,6 +1821,54 @@ Chatbot Arena 的排名被认为是
 最能反映真实用户偏好的评估方法——
 比任何单一 benchmark 都更可信。
 
+LMArena 从 UC Berkeley 的学术项目
+发展为独立运营的评估平台公司，
+2025 年底获得超过 1 亿美元融资——
+这本身就说明了
+评估作为 AI 基础设施的战略价值。
+在一个「模型即商品」的时代，
+\textbf{评估的可信度就是权力}——
+谁定义了「好」的标准，
+谁就在很大程度上影响了
+市场的竞争规则和资源的分配方向。
+
+\subsection{开源许可证的战略考量}
+
+开源 LLM 的许可证选择
+反映了各组织截然不同的战略意图：
+
+\textbf{MIT / Apache 2.0}
+（DeepSeek-V3/R1、Qwen 3）：
+最宽松的许可证，允许任何使用
+包括商业用途，几乎没有限制。
+这种选择的战略意图是
+\textbf{最大化生态系统采纳率}——
+让尽可能多的人使用你的模型，
+建立技术标准和社区影响力。
+
+\textbf{Llama License}
+（Meta LLaMA 系列）：
+非标准的定制许可证，
+允许大多数商业使用
+但对月活超过 7 亿的产品施加限制。
+这个阈值精确地瞄准了
+Meta 的直接竞争对手
+（Google、Amazon、ByteDance），
+同时对其他所有人保持开放。
+这是一种\textbf{精算式的开源}——
+看似慷慨，实则精心设计了
+排除条款来保护竞争优势。
+
+\textbf{完全开源}
+（AI2 OLMo、HuggingFace SmolLM）：
+不仅开放权重，还公开训练数据、
+训练代码和所有实验细节。
+这种做法的价值不在于模型性能的领先，
+而在于\textbf{科学可复现性}——
+使得独立研究者可以完全复现训练过程，
+验证声明的结果，
+并在此基础上进行有意义的改进。
+
 \section{从论文到产品：被低估的工程挑战}
 
 在学术界和媒体报道中，
@@ -851,6 +1907,35 @@ learning rate、每块 GPU 的计算时间）；
 以及最重要的——\textbf{可重现性}，
 或者更准确地说，对不可重现性的接受和管理。
 
+\textbf{故障隔离}（fault isolation）是大规模调试的核心方法论。
+当 loss spike 出现时，
+工程师需要快速缩小问题范围：
+首先检查是否是\textbf{硬件故障}——
+通过比较每块 GPU 的 gradient norm 分布
+可以识别产生异常梯度的节点
+（正常节点的 gradient norm 应当高度一致）；
+其次排查\textbf{数据问题}——
+回溯 spike 发生时正在处理的数据 shard，
+检查是否包含异常样本（极长文本、编码错误、
+重复数据导致的梯度方向偏移）；
+最后考虑\textbf{数值稳定性}——
+混合精度训练中的 FP16 溢出、
+allreduce 操作中的精度损失等。
+2025--2026 年的实践经验表明，
+约 60\% 的训练中断源自硬件故障，
+30\% 来自数据问题，
+仅 10\% 是算法或超参数配置错误。
+
+\textbf{分布式 profiling 工具}的成熟度
+直接决定了调试的效率。
+PyTorch 的内置 profiler、
+NVIDIA Nsight Systems 和 Ray 的分布式追踪
+可以精确定位通信瓶颈和计算/通信的重叠效率。
+但在 4096+ GPU 规模下，
+即使是 profiling 数据本身的收集和分析
+也是一个不小的工程挑战——
+单次 profiling 可能产生数 TB 的追踪数据。
+
 \subsection{数据管道的效率}
 
 2048 块 GPU 的训练每秒消耗数百万 token，
@@ -859,13 +1944,38 @@ learning rate、每块 GPU 的计算时间）；
 多级缓存（SSD → CPU 内存 → GPU 内存）
 和异步预取（在 GPU 计算时提前准备下一批数据）。
 
-\subsection{评估的自动化}
+数据管道的设计远比表面看起来复杂。
+\textbf{预处理阶段}需要对原始数据（通常是 PB 级的网页爬取数据）
+进行去重、质量过滤、个人信息脱敏和 tokenization。
+这些步骤本身就需要数千 CPU 核心并行运行数天，
+且必须保证确定性——
+因为训练的可重现性要求相同的数据、以相同的顺序、
+产生完全相同的 token 序列。
+Meta 在 2025 年底公开的 Data PreProcessing Service（DPP）
+展示了 exabyte 级训练集群的数据管道架构：
+通过流式 tokenization 和分级缓存
+消除了数据加载的 GPU 空闲等待（data stall）。
 
-每次 checkpoint 需要在数十个基准测试上评估，
-每个测试可能需要数百到数千次推理调用。
-这本身就需要大量 GPU 资源。
-高效的评估管道（如 lm-evaluation-harness）
-和评估集群的合理调度至关重要。
+\textbf{数据混合的动态调度}是另一个关键工程挑战。
+frontier 模型的训练数据通常由多个来源混合而成——
+网页文本、书籍、代码、数学、对话等，
+每个来源的采样权重不同。
+更先进的做法是在训练过程中\textbf{动态调整}这些权重：
+根据持续评估的能力曲线反馈，
+自动增加表现不足的能力维度对应的数据权重。
+这要求数据管道支持在线的权重变更而无需中断训练——
+一个看似简单但工程上极具挑战性的需求，
+因为它涉及分布式系统中数千个数据加载 worker 的同步协调。
+
+\textbf{存储层的选择}直接影响训练吞吐量和成本。
+PCIe Gen5 NVMe SSD（2025 年起成为训练集群标配，
+单盘顺序读取超过 14 GB/s）使得本地缓存成为可行方案，
+而高性能并行文件系统（如 WEKA、Lustre、GPFS）
+则解决了跨节点的数据共享问题。
+WEKApod 方案已实现 8 个存储节点为 768 块 H100 GPU
+提供 720 GB/s 的持续读取带宽——
+这种吞吐量足以确保即使在最大规模的训练中，
+数据管道也不会成为瓶颈。
 
 \subsection{人的因素}
 
@@ -877,10 +1987,91 @@ learning rate、每块 GPU 的计算时间）；
 凌晨 3 点收到 loss spike 的告警是常态。
 燃尽（burnout）是 LLM 训练团队面临的真实挑战。
 
+2026 年初，OpenAI 一位资深工程师公开辞职时
+坦言「持续的 on-call 压力和对训练失败的焦虑
+严重影响了他的心理健康」——
+这一事件引发了 AI 行业对工程师福祉的广泛讨论。
+一项 2026 年的调查显示，
+约 70\% 的 SRE（Site Reliability Engineer）
+报告了严重的 alert fatigue（告警疲劳），
+而 AI 训练团队的 on-call 强度远超传统 SRE——
+因为一次训练中断的经济损失
+可能相当于普通生产事故的数百倍。
+
+\textbf{组织层面的缓解措施}正在逐步建立。
+成熟的训练团队采用\textbf{轮班制 on-call}
+（至少 3--4 人的轮值队列，确保每人每月不超过一周 primary on-call），
+并投资于\textbf{自动化恢复系统}——
+能够自动检测故障、回退 checkpoint、隔离问题节点的系统
+可以将需要人工介入的事件减少 80\% 以上。
+DeepSeek 的「zero irrecoverable loss spikes」
+不仅是技术成就，也是对团队心理压力的巨大缓解。
+一些领先的团队还引入了\textbf{心理健康支持}——
+包括训练项目结束后的强制休假期、
+匿名压力报告机制、以及专业心理咨询资源。
+这些举措反映了一个日益清晰的认知：
+在 frontier AI 训练中，
+\textbf{团队的可持续性与模型的可持续性同样重要}。
+
 这些工程挑战解释了为什么
 只有少数组织能够成功训练 frontier LLM——
 即使算法和数据都是公开的，
 将它们在大规模上可靠地运行仍然是一项极其困难的工程任务。
+更关键的是，支撑这些工程系统的\textbf{人}——
+他们的经验、判断力和心理韧性——
+才是真正不可复制的稀缺资源。
+
+\subsection{模型发布的安全流程}
+
+将训练好的模型推向用户
+需要经过一套严格的\textbf{安全发布流程}——
+这个流程在 2025--2026 年逐步标准化。
+
+\textbf{分阶段发布}（Staged Release）是主流实践：
+\begin{enumerate}[noitemsep]
+  \item \textbf{内部测试}（Alpha）：
+        仅限内部员工使用。
+        重点测试功能完整性和基本安全性。
+        通常持续 2--4 周。
+  \item \textbf{有限预览}（Beta）：
+        邀请外部的信任合作伙伴和安全研究者使用。
+        红队在此阶段进行深入的安全评估。
+        收集早期用户反馈。持续 2--6 周。
+  \item \textbf{公开预览}（Preview/Early Access）：
+        向更广泛的用户开放，
+        但保留撤回或修改的权利。
+        密切监控使用模式和安全事件。
+  \item \textbf{正式发布}（General Availability）：
+        向所有用户开放。
+        附带完整的系统卡（System Card）——
+        详细记录模型的能力、限制、
+        已知安全风险和推荐使用方式。
+\end{enumerate}
+
+\textbf{系统卡}（System Card / Model Card）
+已成为负责任发布的标准组成部分。
+一份好的系统卡应包含：
+模型的训练数据概况（来源、规模、时间范围）、
+在主要基准上的表现、
+已知的安全风险（如偏见、幻觉、越狱脆弱性）、
+不推荐的使用场景
+（如医疗诊断、法律建议等高风险场景）、
+以及安全评估的结果摘要。
+GPT-4、Claude 3 和 Gemini 的系统卡
+都遵循了这一框架，
+虽然各家在信息披露的完整度上有差异。
+
+\textbf{开源模型的安全责任}是一个更复杂的问题。
+当 DeepSeek 或 Meta 将模型权重完全公开时，
+他们无法控制下游用户如何使用这些权重——
+包括移除安全防护（un-aligning）、
+微调用于有害用途等。
+这种「一旦发布就失去控制」的特性
+使得开源模型的安全发布
+需要更多地依赖\textbf{事前评估}
+（发布前确认模型不具备关键的危险能力）
+而非\textbf{事后控制}
+（通过 API 限制和使用政策约束用户行为）。
 
 \section{2025--2026 年的人才与格局变迁}
 
@@ -960,23 +2151,276 @@ V4 需要在技术上超越已经高度内卷的竞争对手，
 建立全新的技术文化，
 在政治资本耗尽之前拿出让人信服的成果。
 
+但竞争格局远不止这两个焦点人物。
+\textbf{阿里巴巴 Qwen 团队}在 2026 年初经历了一次痛苦的人才流失。
+2026 年 3 月，Qwen 大模型后训练负责人\textbf{郁博文}
+离职加入字节跳动 Seed 团队，
+负责视觉模型和多模态交互方向的后训练工作。
+在此之前，通义实验室大模型技术负责人林俊旸也已离职。
+这些核心人才的流失并非孤立事件——
+阿里巴巴在 2025 年底进行了大规模组织重构，
+将 AI 资源向「Alibaba Token Hub」和
+企业级 AI 平台「悟空」集中，
+而这种战略重心的转移导致了基础研究团队的不稳定。
+尽管如此，Qwen3 系列（包括原生多模态的 Qwen3-Omni）
+仍然是中国开源模型中最具竞争力的选手之一。
+
+\textbf{字节跳动 Seed 团队}正在通过积极的人才吸纳
+构建多模态 AI 的全面能力。
+从 Qwen 团队挖来的后训练专家、
+从海外回流的研究人员、
+以及内部从豆包产品线积累的实战经验，
+使 Seed 团队在 2026 年成为中国 AI 人才密度最高的团队之一。
+行业分析指出，顶尖人才的选择
+越来越取决于两个因素：
+\textbf{技术愿景的一致性}
+和\textbf{算力资源的可获得性}——
+而字节跳动在这两方面都具有强大的吸引力。
+
+\textbf{国际维度}使竞争格局更加复杂。
+在美国，OpenAI、Anthropic、Google DeepMind 和 Meta
+继续在 frontier 模型上保持领先地位，
+但中国团队通过效率创新
+（如 DeepSeek 的低成本训练范式）
+和开源策略不断缩小差距。
+出口管制限制了中国团队获取最新 NVIDIA GPU 的能力，
+但也倒逼了国产芯片生态的加速发展
+和训练效率的极致优化——
+这种「约束驱动的创新」
+正在产生意料之外的技术溢出效应。
+欧洲则以 Mistral AI 为代表，
+试图在美中两极之间建立第三条路径，
+但在算力和人才规模上仍面临显著差距。
+
 两种模式——
 小团队极致效率 vs.\ 巨头组织重构——
 谁能在 2026 年下半年率先交出答卷，
 将深刻影响中国乃至全球 AI 产业的走向。
+但更深层的趋势是，
+竞争正在从\textbf{模型能力}转向\textbf{生态构建}——
+谁能将模型嵌入最多的应用场景、
+建立最强的数据飞轮、
+吸引最多的开发者和用户，
+谁就能在下一阶段的竞争中占据优势。
+纯粹的基准分数竞赛正在让位于
+更复杂的系统性竞争。
 
 \subsection{全球 AI 产品生态的演变}
 
-在模型层之外，AI 产品层的竞争同样激烈。
+在模型层之外，AI 产品层的竞争同样激烈，
+2025--2026 年的产品生态经历了深刻的重构。
 
-\textbf{Cognition AI} 在 2025 年底收购了 Windsurf IDE，
-将 Devin 的自主编程能力与 IDE 的交互体验融合，
-试图定义「AI 原生开发环境」的新形态。
-这一收购代表了 Agent 领域的一个重要趋势：
-从纯自主模式向人机协作模式的收敛——
-最有效的 AI 编程工具可能既不是纯自主 Agent（Devin），
-也不是纯辅助工具（Copilot），
-而是两者的有机结合。
+\textbf{AI 编程工具的并购整合}。
+\textbf{Cognition AI} 在 2025 年 7 月收购了 Windsurf，
+时间恰在 Google 以 24 亿美元
+反向收购 Windsurf CEO Varun Mohan 和核心团队之后。
+这一连串事件揭示了 AI 编程工具市场的整合逻辑：
+自主 Agent（Devin）需要 IDE 的交互体验，
+IDE 需要 Agent 的自主执行能力，
+两者的融合是不可避免的。
+Cognition 在 2025 年 9 月完成 4 亿美元融资，
+估值达到 102 亿美元——
+一个成立仅两年的 Agent 公司
+获得了与成熟 SaaS 企业可比的估值，
+体现了资本市场对 Agent 赛道的极端看好。
+
+\textbf{GitHub Copilot} 从代码补全工具
+进化为完整的 Agent 平台。
+2025 年 4 月 Agent mode 面向所有 VS Code 用户推出，
+2026 年 1 月引入 Plan mode（Shift+Tab 切换），
+2 月新增模型选择器（每个任务选择最适合的模型），
+3 月在 JetBrains IDE 中全面 GA。
+Copilot 的独特优势是与 GitHub 生态的深度集成——
+Agent 可以直接创建 PR、触发 Actions 工作流、
+管理 issue——将代码编写和项目管理统一在一个界面中。
+
+\textbf{Cursor} 以 AI-first IDE 的定位
+在开发者中获得了狂热追随。
+其 Agent Mode 可以自主分析代码库、
+进行多文件编辑、运行终端命令，
+2026 年 3 月引入的 Subagents 功能
+允许多个专业化 Agent 在主 Agent 控制下并行运行。
+Cursor 的商业模式（订阅制 IDE + API 调用费用）
+正在挑战传统 IDE 的免费+插件模式。
+
+\textbf{AI 搜索产品的崛起}。
+\textbf{Perplexity} 以 AI 原生搜索引擎的定位
+在 2025--2026 年获得了快速增长。
+OpenAI 的 SearchGPT 和 Google 的 AI Overviews
+代表了传统搜索巨头的 AI 化转型。
+这三条路线的竞争
+可能从根本上改变信息检索的范式——
+从``十个蓝色链接''到``一个结构化答案''。
+
+\textbf{中国 AI 产品生态}。
+豆包（字节跳动）、Kimi（月之暗面）、DeepSeek Chat、
+通义千问（阿里巴巴）在中国市场形成了激烈竞争。
+DeepSeek APP 的月活用户已突破 1 亿，
+Kimi 以超长上下文和 Agent 能力
+在专业用户群中建立了差异化优势。
+中国 AI 产品市场的特点是
+\textbf{价格战驱动的快速渗透}——
+几乎所有产品都提供免费或极低价的基础服务，
+通过使用量和企业服务变现。
+
+\textbf{AI 基础设施公司}。
+Together AI、Fireworks AI、Modal、Replicate 等
+AI 基础设施公司在 2025--2026 年快速增长。
+它们提供从模型部署到推理优化的全栈服务，
+填补了``拥有开源模型权重''
+和``能以生产级可靠性服务用户''之间的鸿沟。
+OpenRouter 作为 LLM 路由器，
+在多模型比价和流量分发中扮演了关键角色——
+其统计数据已成为行业分析的重要参考。
+
+\textbf{从``模型为王''到``应用为王''的转变}。
+2024 年，AI 产品的核心竞争力是接入最好的模型；
+2026 年，当多个 frontier 模型
+以接近零的成本可用时，
+竞争力转向了上层——
+\textbf{工作流设计}（如何将 AI 能力嵌入用户的工作流程）、
+\textbf{数据飞轮}（如何利用用户交互数据改进体验）、
+\textbf{领域知识}（如何针对特定行业定制解决方案）。
+这个转变正在重新定义 AI 公司的护城河——
+模型能力不再是壁垒，
+用户体验和领域深度才是。
+
+\section{组织文化与管理哲学}
+\label{sec:org-culture}
+
+观察不同 AI 实验室的成功模式，
+\textbf{组织文化}的差异
+对技术产出的影响
+可能不亚于算力和人才的差异。
+
+\subsection{「研究优先」vs.「产品优先」}
+
+AI 实验室的核心文化选择
+往往决定了它们的发展轨迹：
+
+\textbf{研究优先}的组织
+（如早期的 OpenAI、DeepMind、DeepSeek）
+以发表突破性论文和推进科学边界为首要目标。
+这种文化吸引了最优秀的研究者
+（他们追求学术声誉和技术挑战），
+但可能导致产品化缓慢——
+因为「让论文更优雅」和「让用户更满意」
+有时是矛盾的目标。
+DeepMind 在被 Google 收购后
+经历了从纯研究到产品交付的痛苦转型，
+多年间发表了大量顶会论文
+但在消费产品上的影响力远不如 OpenAI。
+
+\textbf{产品优先}的组织
+（如字节跳动 Seed、腾讯混元、AWS）
+以用户价值和商业指标为首要目标。
+这种文化擅长快速迭代和规模化交付，
+但可能在基础研究上缺乏深度——
+当你的 OKR 是用户增长而非论文发表时，
+投入六个月研究一个可能失败的新架构
+在激励机制上是不合理的。
+
+\textbf{最成功的组织}往往是
+两种文化的\textbf{精心混合}。
+Anthropic 在安全研究（学术导向）
+和 Claude 产品（市场导向）之间
+建立了一种共生关系——
+安全研究的突破成为产品差异化的核心卖点，
+产品收入反哺安全研究的持续投入。
+OpenAI 从 2023 年开始在内部
+明确区分了 Research 和 Applied 两个轨道，
+允许研究者不受产品时间线的约束，
+同时确保 Applied 团队有足够的资源
+将研究成果快速产品化。
+
+\subsection{决策速度与组织层级}
+
+在快速变化的 AI 领域，
+\textbf{决策速度}是一种关键的组织能力。
+
+DeepSeek 的成功部分归因于其\textbf{极度扁平}的组织结构。
+据报道，梁文锋直接参与到技术细节层面——
+他不仅是管理者，也是研究的积极参与者
+（以共同作者身份出现在多篇论文中）。
+这种「技术创始人深度参与」的模式
+使得从实验发现到决策执行的路径极短，
+但也高度依赖于创始人的个人带宽——
+随着 DeepSeek 的规模和影响力增长，
+这种模式的可扩展性将面临考验。
+
+相比之下，Google DeepMind 的决策链条更长：
+研究者的实验发现需要经过组长、
+部门负责人、副总裁层层审批，
+最终才能影响产品决策。
+这种流程在避免错误决策方面更有保障，
+但也可能导致「机会窗口已关闭
+但审批还在进行中」的情况。
+
+\textbf{War room 模式}
+是大型训练项目中常见的临时组织形式——
+在关键的训练期间（通常持续数周到数月），
+将所有相关团队（研究、Infra、数据、评估）
+集中在同一物理空间或永久在线的通信频道中，
+取消日常的层级汇报结构，
+实行扁平化的即时协作。
+LLaMA 3 和 DeepSeek-V3 的训练
+都采用了这种模式——
+它在短期内极大地提升了决策速度和执行效率，
+但代价是参与者的高强度工作压力。
+
+\subsection{知识管理与技术传承}
+
+训练 frontier 模型的知识
+很大程度上是\textbf{默会知识}（tacit knowledge）——
+它存在于工程师的直觉和经验中，
+难以完整地写入文档。
+
+「当 loss 在第 30,000 步出现微小的波动时，
+应该调整学习率还是检查数据？」
+「当 gradient norm 比预期高 5\% 时，
+是否预示着未来的训练不稳定？」
+这些判断无法通过阅读论文获得，
+只能通过\textbf{亲身参与}多次大规模训练来积累。
+这就是为什么有 frontier 训练经验的工程师
+如此稀缺和昂贵——
+全球可能只有数百人
+拥有完整的、端到端的 100B+ 模型训练经验。
+
+\textbf{知识传承}的挑战在于：
+当一个关键工程师离职时，
+他带走的不仅是技能，
+还有大量无法文档化的\textbf{上下文知识}——
+「为什么我们用这个学习率而不是那个？」
+「上次出现类似的 loss spike 时我们做了什么？」
+成熟的团队通过以下方式缓解这一风险：
+\textbf{详尽的训练日志}
+（记录每次训练的所有决策及其原因）、
+\textbf{pair training}
+（每次训练至少两人全程参与，互为备份）、
+\textbf{内部技术分享}
+（定期的 post-mortem 和经验交流会议）。
+但即便如此，
+关键人员的流失仍然是
+AI 实验室面临的最大组织风险之一。
+
+\begin{corebox}[训练 Frontier LLM 的组织要素总结]
+成功训练一个 frontier LLM 需要以下要素的\textbf{同时满足}：
+\begin{enumerate}[noitemsep]
+  \item \textbf{算力}：数千到数万块顶级 GPU，稳定运行数月。
+  \item \textbf{数据}：PB 级的高质量多样化训练数据。
+  \item \textbf{人才}：数十到数百名具备
+        frontier 训练经验的研究员和工程师。
+  \item \textbf{资金}：数千万到数亿美元的持续投入。
+  \item \textbf{文化}：研究深度与工程效率的平衡，
+        快速决策与质量保障的平衡。
+  \item \textbf{时间}：至少 6--12 个月的持续迭代。
+\end{enumerate}
+能够同时满足所有这些条件的组织，
+在全球范围内不超过 20 个。
+这就是为什么 frontier AI 训练
+本质上是一项\textbf{组织竞争}，
+而非纯粹的技术竞争。
+\end{corebox}
 
 
 %% ============================================================

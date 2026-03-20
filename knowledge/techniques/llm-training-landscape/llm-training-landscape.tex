@@ -9,6 +9,17 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{calc,decorations.markings,positioning,fit,backgrounds,arrows.meta,shapes.geometric}
+% === Global scientific figure palette ===
+% Inspired by Nature/Science/Springer Lecture Notes
+\definecolor{figBlue}{HTML}{2166AC}
+\definecolor{figRed}{HTML}{B2182B}
+\definecolor{figGreen}{HTML}{1B7837}
+\definecolor{figOrange}{HTML}{E66101}
+\definecolor{figGray}{HTML}{636363}
+\definecolor{figLightGray}{HTML}{F0F0F0}
+\usepackage{fontawesome5}  % \faGithub, \faEnvelope, etc.
 
 % ============================================================
 % Book-style formatting: compact layout + footnote citations
@@ -106,7 +117,164 @@
 \addbibresource{refs.bib}
 \emergencystretch=2em
 
+% ============================================================
+% Springer svmono–aligned book numbering
+% ============================================================
+% Restore chapter-prefixed counters (override NeurIPS global numbering)
+\counterwithin{section}{chapter}
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+\counterwithin{equation}{chapter}
+
+% Springer monograph standard: number down to subsection (3 levels),
+% subsubsection is unnumbered bold run-in heading.
+\setcounter{secnumdepth}{2}
+
+% Subsubsection: unnumbered, bold, run-in (Springer svmono style)
+\titleformat{\subsubsection}[runin]
+  {\normalsize\bfseries}{}{0pt}{#1.}
+\titlespacing{\subsubsection}{0pt}
+  {1.5ex plus 0.5ex minus 0.2ex}{0.8em}
+
 \begin{document}
+
+% ============================================================
+% Cover page — Springer Nature typography, LNAI-inspired layout
+% ============================================================
+% Springer Nature Design System fonts (eds.springernature.com):
+%   Headings / UI:  Merriweather Sans  (open-source, in TexLive)
+%   Long text:      Merriweather       (serif, open-source)
+%   Fallback chain: Helvetica Neue → Palatino
+% ============================================================
+\thispagestyle{empty}
+\newfontfamily\coversans{MerriweatherSans-Regular.otf}[
+  Path = /usr/local/texlive/2025/texmf-dist/fonts/opentype/sorkin/merriweather/,
+  BoldFont = MerriweatherSans-Bold.otf,
+  ItalicFont = MerriweatherSans-Italic.otf,
+  BoldItalicFont = MerriweatherSans-BoldItalic.otf,
+]
+\newfontfamily\coverserif{Merriweather-Regular.otf}[
+  Path = /usr/local/texlive/2025/texmf-dist/fonts/opentype/sorkin/merriweather/,
+  BoldFont = Merriweather-Bold.otf,
+  ItalicFont = Merriweather-Italic.otf,
+  BoldItalicFont = Merriweather-BoldItalic.otf,
+]
+\definecolor{coverBg}{HTML}{FAFAFA}      % warm off-white (Springer cover stock)
+\definecolor{coverBand}{HTML}{003B5C}    % Springer LNAI deep teal-navy
+\definecolor{coverTitle}{HTML}{1A1A1A}   % near-black for title
+\definecolor{coverAccent}{HTML}{D4A843}  % Springer gold/amber accent
+\definecolor{coverSub}{HTML}{5A5A5A}     % dark grey for secondary text
+\definecolor{coverNode}{HTML}{6B8FA3}    % muted teal for network motif
+\begin{tikzpicture}[remember picture, overlay]
+  % === Off-white background ===
+  \fill[coverBg] (current page.south west) rectangle (current page.north east);
+
+  % === Left band — Springer LNAI-style colored panel (58mm) ===
+  \fill[coverBand]
+    (current page.south west) rectangle
+    ([xshift=58mm]current page.north west);
+
+  % === Geometric network motif inside left band ===
+  \begin{scope}[shift={(current page.south west)}, xshift=29mm, yshift=90mm,
+                every node/.style={circle, fill=coverNode!70, minimum size=3pt,
+                                   inner sep=0pt}]
+    \node (a1) at (0, 0) {};
+    \node (a2) at (1.0, 1.6) {};
+    \node (a3) at (-0.7, 2.8) {};
+    \node (a4) at (1.3, 4.0) {};
+    \node (a5) at (-0.2, 5.2) {};
+    \node (a6) at (0.9, 6.5) {};
+    \node (a7) at (-0.9, 7.4) {};
+    \node (a8) at (0.4, 8.8) {};
+    \node (a9) at (-0.5, 1.2) {};
+    \node (a10) at (0.6, 3.4) {};
+    \node (a11) at (-0.1, 6.2) {};
+    \node (a12) at (1.1, 8.0) {};
+    \node (a13) at (-0.8, 4.6) {};
+    \node (a14) at (0.2, 10.0) {};
+    \foreach \a/\b in {a1/a2, a1/a9, a2/a3, a2/a10, a3/a4, a3/a13,
+                        a4/a6, a5/a6, a5/a11, a5/a13, a6/a7, a6/a8,
+                        a7/a8, a9/a3, a10/a5, a11/a7, a8/a12, a12/a14,
+                        a14/a8, a6/a12}
+      \draw[white!18, line width=0.3pt] (\a) -- (\b);
+    % Highlighted path (data → intelligence flow)
+    \foreach \a/\b in {a1/a2, a2/a10, a10/a5, a5/a6, a6/a8, a8/a14}
+      \draw[coverAccent!60, line width=0.7pt] (\a) -- (\b);
+    % Key nodes in gold
+    \foreach \n in {a1, a5, a8, a14}
+      \node[fill=coverAccent!80, minimum size=4.5pt] at (\n) {};
+  \end{scope}
+
+  % === Top-left: series label (white on band, Springer style) ===
+  \node[anchor=north west, white!80,
+        font=\fontsize{7.5}{9}\coversans\selectfont,
+        text width=48mm, align=left]
+    at ([xshift=5mm, yshift=-12mm]current page.north west)
+    {LLM Observatory\\[1pt]Technical Reference};
+
+  % === Top rule (gold, spans from band to right edge) ===
+  \fill[coverAccent]
+    ([xshift=58mm, yshift=-28mm]current page.north west)
+    rectangle
+    ([xshift=-20mm, yshift=-29.5mm]current page.north east);
+
+  % === Main title (large, bold, dominant) ===
+  \node[anchor=north west, coverTitle,
+        font=\fontsize{30}{37}\coversans\bfseries\selectfont,
+        text width=9cm]
+    at ([xshift=68mm, yshift=-44mm]current page.north west)
+    {The Complete\\Journey of\\LLM Training};
+
+  % === Subtitle (bold serif, Springer LNAI teal) ===
+  \node[anchor=north west, coverBand,
+        font=\fontsize{14}{18}\coverserif\bfseries\itshape\selectfont]
+    at ([xshift=68mm, yshift=-100mm]current page.north west)
+    {From Data to Intelligence};
+
+  % === Gold rule ===
+  \draw[coverAccent, line width=1.2pt]
+    ([xshift=68mm, yshift=-112mm]current page.north west) --
+    ([xshift=120mm, yshift=-112mm]current page.north west);
+
+  % === Keywords (bold, punchy — not a paragraph) ===
+  \node[anchor=north west, coverSub,
+        font=\fontsize{9}{14}\coversans\bfseries\selectfont,
+        text width=9cm]
+    at ([xshift=68mm, yshift=-122mm]current page.north west)
+    {Transformer\enspace\textperiodcentered\enspace
+     Data Engineering\enspace\textperiodcentered\enspace
+     Pretraining\enspace\textperiodcentered\enspace
+     MoE\\[3pt]
+     Post-Training\enspace\textperiodcentered\enspace
+     Inference\enspace\textperiodcentered\enspace
+     Test-Time Scaling\\[3pt]
+     Evaluation\enspace\textperiodcentered\enspace
+     Agent\enspace\textperiodcentered\enspace
+     2026 Frontier};
+
+  % === Bottom: author block ===
+  \fill[coverAccent]
+    ([xshift=58mm, yshift=62mm]current page.south west)
+    rectangle
+    ([xshift=-20mm, yshift=60.5mm]current page.south east);
+
+  \node[anchor=west, coverTitle,
+        font=\fontsize{13}{16}\coversans\bfseries\selectfont]
+    at ([xshift=68mm, yshift=46mm]current page.south west)
+    {Ziming Wang};
+
+  \node[anchor=west, coverSub,
+        font=\fontsize{8.5}{11.5}\coverserif\selectfont]
+    at ([xshift=68mm, yshift=35mm]current page.south west)
+    {The Hong Kong University of Science and Technology};
+
+  \node[anchor=west, coverSub!70,
+        font=\fontsize{8}{11}\coversans\selectfont]
+    at ([xshift=68mm, yshift=24mm]current page.south west)
+    {Draft v0.0.41\quad\textperiodcentered\quad March 2026\quad\textperiodcentered\quad
+     \href{https://github.com/ZenAlexa}{\color{coverSub!70}{\faGithub}~ZenAlexa}};
+\end{tikzpicture}
+\clearpage
 
 \frontmatter
 \tableofcontents
@@ -126,6 +294,9 @@
 \input{chapters/ch11-evaluation}
 \input{chapters/ch12-team}
 \input{chapters/ch13-frontier}
+\input{chapters/ch15-agent-wars}
+
+\appendix
 \input{chapters/ch14-appendix}
 
 \printbibliography[heading=bibintoc,title=References]

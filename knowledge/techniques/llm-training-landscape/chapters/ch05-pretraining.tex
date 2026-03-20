@@ -172,12 +172,28 @@ Google 的 PaLM~\cite{chowdhery2022palm} 和 U-PaLM 都支持这种模式。
 
 这种设计试图兼得两者的优势：
 前缀的双向理解 + 生成的自回归能力。
+实现上，Prefix LM 使用一个修改过的注意力掩码——
+前缀区域内的 token 使用全连接掩码（每个 token 可以看到所有其他 token），
+而生成区域的 token 使用标准的因果掩码（只看前文）。
+这与标准因果模型的唯一区别
+在于注意力掩码矩阵的左上角块
+从下三角变成了全 1 矩阵。
+T5 和 UL2 也探索了类似的混合目标。
+
 但在实践中，纯因果模型（decoder-only）的简洁性和 Scaling 效果
 使它成为了事实标准——
 额外的复杂性带来的收益不足以改变整个行业的选择。
+前缀长度的选择增加了一个额外的超参数，
+不同任务的最优前缀比例不同，
+这使得统一的预训练变得复杂。
+更关键的是，Raffel 等人（2020）在 T5 的大规模消融实验中
+发现前缀 LM 的 scaling 行为不如纯因果 LM 稳定——
+在小规模下前缀 LM 有优势，
+但随着模型规模的增大，优势逐渐消失。
+这一发现加速了行业向纯 decoder-only 架构的收敛。
 
 \section{Scaling Laws：计算的经济学}
-\label{sec:scaling-laws}
+\label{sec:pretrain-scaling-laws}
 
 \subsection{Kaplan Scaling Laws（2020）}
 
@@ -560,6 +576,100 @@ PyTorch 的 FSDP（Fully Sharded Data Parallel）
 这样每块 GPU 在任何时刻只持有一层的完整参数
 加上 $1/N$ 的总模型状态，实现了极致的内存效率。
 
+\subsubsection{FSDP vs DeepSpeed ZeRO：工程层面的差异}
+
+虽然 FSDP 和 ZeRO-3 在\textbf{数学原理}上等价，
+但工程实现上有重要差异，
+直接影响实际训练的效率和易用性：
+
+\begin{center}
+\small
+\begin{tabular}{p{3cm}p{5.5cm}p{5.5cm}}
+\hline
+\textbf{维度} & \textbf{PyTorch FSDP} & \textbf{DeepSpeed ZeRO-3} \\
+\hline
+\textbf{参数分片粒度} &
+  默认按``扁平化参数组''（FlatParameter）分片——
+  将多个参数拼接成一个一维张量后均匀切分。
+  FSDP2 改用逐参数分片，保留原始张量形状。 &
+  按优化器组分片。
+  支持更细粒度的分片策略控制。 \\
+\textbf{通信 API} &
+  基于 PyTorch DTensor 和 \texttt{c10d} 原生集合通信。
+  与 PyTorch 生态（如 torch.compile）深度集成。 &
+  自有通信后端。
+  支持 NCCL 和自定义传输。
+  与 PyTorch 核心耦合较松，
+  但灵活性更高。 \\
+\textbf{混合精度} &
+  通过 PyTorch AMP 原生支持。
+  FSDP 的 \texttt{MixedPrecision} 策略
+  可以独立控制参数、梯度和通信的精度。 &
+  通过 ZeRO++ 支持量化通信
+  （INT8 通信 + FP16 计算），
+  在跨节点通信中节省约 50\% 带宽。 \\
+\textbf{检查点} &
+  FSDP2 支持 DTensor 格式的检查点，
+  可以跨不同并行配置加载
+  （例如，4 GPU 保存的检查点可以在 8 GPU 上加载）。 &
+  需要使用 DeepSpeed 的专有检查点格式。
+  \texttt{universal\_checkpoint} 工具
+  支持格式转换，但增加了工程复杂度。 \\
+\textbf{与 TP/PP 组合} &
+  需要与 Megatron-LM 或
+  其他 TP/PP 框架手动集成。
+  Megatron-FSDP（2025）简化了这一过程。 &
+  DeepSpeed 3D 原生支持
+  DP + TP + PP 的组合。
+  但 TP 实现的优化程度不如 Megatron-LM。 \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{FSDP2}（PyTorch 2.4+）解决了 FSDP 初代版本的
+多个工程痛点。
+最关键的改进是\textbf{逐参数分片}——
+不再将参数扁平化为一维张量，
+而是保留每个参数的原始形状和元信息。
+这对\textbf{矩阵感知优化器}（如 Muon、Shampoo）至关重要，
+因为这些优化器需要知道参数的二维矩阵结构
+来执行正交化或 Kronecker 积运算——
+如果参数被扁平化为一维向量，这些信息就丢失了。
+veScale-FSDP 更进一步，
+为非标准优化器和块级量化提供了``结构感知分片''——
+这是 Kimi K2 等使用 Muon 优化器的模型
+能够在分布式环境中高效训练的关键。
+
+\textbf{ZeRO++ }（DeepSpeed，2023）
+在 ZeRO-3 基础上增加了三项优化：
+(1) \textbf{量化权重通信}——
+All-Gather 时使用 INT8 而非 BF16 传输参数，
+节省 50\% 的通信带宽，
+到达后解量化回 BF16；
+(2) \textbf{分层分区}——
+在节点内保留额外的参数副本，
+减少跨节点通信的频率；
+(3) \textbf{量化梯度通信}——
+Reduce-Scatter 使用 INT4/INT8 梯度。
+这三项优化组合后，
+在跨节点带宽受限的环境中
+（如 DeepSeek 使用的 H800 集群，
+跨节点带宽远低于无限制 H100 集群），
+ZeRO++ 可以将端到端训练速度提升 \textbf{2.2$\times$}。
+
+\textbf{选择建议（2026 年）}：
+对于从零开始的新项目，
+FSDP2 + Megatron-FSDP 是推荐方案——
+它与 PyTorch 生态的集成最紧密，
+检查点管理最灵活，
+且对新优化器（Muon）的支持最好。
+对于需要在带宽受限环境下运行的项目
+（特别是使用受出口管制限制的 GPU 时），
+DeepSpeed ZeRO++ 的量化通信优势不可替代。
+对于 MoE 架构，
+DeepSpeed 的专家并行支持更成熟，
+但 Megatron Core MoE 正在迅速追赶。
+
 \subsection{张量并行（Tensor Parallelism）}
 
 将单个矩阵运算拆分到多块 GPU 上。
@@ -588,11 +698,68 @@ Megatron-LM 的巧妙之处在于
 这样两层之间不需要额外通信，
 只在最终输出时做一次 All-Reduce。
 
+让我们通过一个具体例子来理解这种切分策略。
+考虑一个 FFN 层：$Y = \mathrm{GeLU}(XW_1) W_2$，
+其中 $X \in \mathbb{R}^{B \times d}$，
+$W_1 \in \mathbb{R}^{d \times 4d}$，
+$W_2 \in \mathbb{R}^{4d \times d}$。
+使用 TP=4（4 块 GPU）：
+
+\textbf{第一个线性层（列并行）}：
+$W_1$ 沿列切分为 $[W_1^{(1)}, W_1^{(2)}, W_1^{(3)}, W_1^{(4)}]$，
+每块 $W_1^{(i)} \in \mathbb{R}^{d \times d}$。
+GPU $i$ 计算 $Y_i = \mathrm{GeLU}(X W_1^{(i)})$。
+关键点：GeLU 是逐元素操作，
+可以在分片后独立应用，\textbf{不需要通信}。
+这是列并行的核心优势——
+如果激活函数是 ``通道内'' 操作
+（只依赖单个通道的值），
+列切分后就可以独立计算。
+
+\textbf{第二个线性层（行并行）}：
+$W_2$ 沿行切分为 $[W_2^{(1)}; W_2^{(2)}; W_2^{(3)}; W_2^{(4)}]^\top$，
+每块 $W_2^{(i)} \in \mathbb{R}^{d \times d}$。
+GPU $i$ 计算部分结果 $Z_i = Y_i W_2^{(i)}$。
+最终结果需要\textbf{求和}：$Z = \sum_i Z_i$。
+这个求和通过 All-Reduce 完成——
+这是整个 FFN 层中\textbf{唯一一次通信}。
+
+因此，一个完整的 FFN 层在 TP=4 下
+只需要\textbf{2 次 All-Reduce}
+（前向和反向各 1 次），
+而非朴素实现中的 4 次。
+这种``列-行交替''的切分策略
+是 Megatron-LM 效率的核心所在。
+
 \textbf{Attention 头的切分}也是张量并行的一部分。
 Multi-Head Attention 天然地将头分配到不同 GPU：
 如果有 32 个头、4 块 GPU，
 每块 GPU 处理 8 个头的 $Q$、$K$、$V$ 投影和 Attention 计算，
 最终通过 All-Reduce 合并输出。
+GQA（Grouped-Query Attention）对 TP 友好度更高——
+因为 KV 头的数量较少（如 8 个），
+可以在 TP 组内共享而不增加通信。
+
+\textbf{序列并行}（Sequence Parallelism，SP）
+是张量并行的一个重要补充。
+在 TP 切分的层中，
+LayerNorm 和 Dropout 等\textbf{逐元素操作}
+不受 TP 的影响——
+它们在每块 GPU 上独立处理完整的隐状态。
+但这意味着每块 GPU 上这些操作的\textbf{激活值}
+是完整的（未分片的），
+在长序列场景下占据大量显存。
+
+序列并行将这些``非 TP 操作''的激活值
+沿\textbf{序列维度}分片到 TP 组的各 GPU 上。
+具体实现是：在 TP 层的 All-Reduce 之前，
+先做一次 Reduce-Scatter（结果被分片到各 GPU），
+每块 GPU 只对自己负责的序列片段
+执行 LayerNorm 和 Dropout；
+在进入下一个 TP 层时，
+通过 All-Gather 恢复完整的序列。
+这使得 LayerNorm 和 Dropout 的激活值
+也被分片了，显存节省约 $1/\mathrm{TP}$。
 
 张量并行要求 GPU 之间有极高带宽的通信
 （每次前向和反向传播都需要同步），
@@ -601,6 +768,21 @@ Multi-Head Attention 天然地将头分配到不同 GPU：
 节点内 NVLink（H100 提供 900\,GB/s 双向带宽）。
 这就是为什么张量并行的度数通常等于
 单节点内的 GPU 数量（DGX H100 为 8）。
+
+\textbf{TP 的通信开销}可以精确计算。
+对于一个 Transformer 层，
+TP 引入的通信量为每个 TP 层 2 次 All-Reduce，
+每次 All-Reduce 传输 $2 \times B \times S \times d$ 字节
+（$B$ = batch size, $S$ = 序列长度, $d$ = 隐藏维度，因子 2 来自 Ring AllReduce）。
+一个典型的 70B 模型（$d = 8192$, $S = 4096$）
+在 TP=8 下，每步每层的 TP 通信量约为
+$4 \times B \times 4096 \times 8192 \times 2$ bytes (BF16)
+$= B \times 268$\,MB。
+在 NVLink 900\,GB/s 的带宽下，
+这需要约 $B \times 0.3$\,ms——
+对于 $B = 1$ 这几乎可以忽略，
+但当 $B$ 较大或序列更长时，
+TP 通信会成为\textbf{非平凡的瓶颈}。
 
 \subsection{流水线并行（Pipeline Parallelism）}
 
@@ -695,6 +877,94 @@ Ulysses 对 Grouped-Query Attention（GQA）友好，
 
 \subsection{多维并行组合}
 \label{sec:5d-parallelism}
+
+\cref{fig:3d-parallelism} 展示了经典的 3D 并行
+（DP $\times$ TP $\times$ PP）如何将训练工作
+分配到一个 GPU 的三维网格上。
+理解这个图是理解大规模训练工程的关键——
+每一维对应一种并行策略，
+每一维对通信带宽和延迟有不同的要求。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  x={(0.9cm, 0cm)},
+  y={(0.45cm, 0.35cm)},
+  z={(0cm, 0.9cm)},
+  every node/.style={font=\small},
+  gpu/.style={
+    rectangle, minimum width=8mm, minimum height=8mm,
+    inner sep=1pt, draw=#1, fill=#1!15, line width=0.7pt,
+    font=\tiny
+  },
+]
+% Draw the 4x4x2 grid: DP=4 (x), PP=4 (y), TP=2 (z)
+
+% TP dimension (z): 2 layers
+% PP dimension (y): 4 stages
+% DP dimension (x): 4 replicas
+
+% Bottom layer (TP rank 0)
+\foreach \dp in {0,...,3} {
+  \foreach \pp in {0,...,3} {
+    \node[gpu=figBlue] (b-\dp-\pp) at (\dp*1.8, \pp*1.5, 0)
+      {\dp,\pp,0};
+  }
+}
+
+% Top layer (TP rank 1)
+\foreach \dp in {0,...,3} {
+  \foreach \pp in {0,...,3} {
+    \node[gpu=figRed] (t-\dp-\pp) at (\dp*1.8, \pp*1.5, 1.5)
+      {\dp,\pp,1};
+  }
+}
+
+% TP connections (vertical, within node)
+\foreach \dp in {0,...,3} {
+  \foreach \pp in {0,...,3} {
+    \draw[figGreen, thick, densely dashed]
+      (b-\dp-\pp.north) -- (t-\dp-\pp.south);
+  }
+}
+
+% PP connections (depth, across stages)
+\foreach \dp in {0,...,3} {
+  \foreach \pp in {0,...,2} {
+    \pgfmathtruncatemacro{\ppnext}{\pp+1}
+    \draw[figOrange, thick, ->]
+      (b-\dp-\pp.north east) -- (b-\dp-\ppnext.south west);
+  }
+}
+
+% Axis labels
+\draw[thick, ->] (-0.5, -0.5, 0) -- (7.5, -0.5, 0)
+  node[midway, below, font=\small] {DP (数据并行) $\times 4$};
+\draw[thick, ->] (-0.5, -0.5, 0) -- (-0.5, 5.5, 0)
+  node[midway, left, font=\small, rotate=35] {PP (流水线并行) $\times 4$};
+\draw[thick, ->] (-0.5, -0.5, 0) -- (-0.5, -0.5, 2.2)
+  node[midway, left, font=\small] {TP $\times 2$};
+
+% Communication annotations
+\node[font=\scriptsize, figGreen, align=center] at (8.5, 2, 1.0)
+  {TP: NVLink\\(900 GB/s)};
+\node[font=\scriptsize, figOrange, align=center] at (8.5, 2, -0.3)
+  {PP: IB/NVLink\\(100--900 GB/s)};
+\node[font=\scriptsize, figBlue, align=center] at (3.5, -1.5, 0)
+  {DP: AllReduce\\(IB, 100 GB/s)};
+
+\end{tikzpicture}
+\caption{
+  3D 并行示意图：$\mathrm{DP} \times \mathrm{PP} \times \mathrm{TP} = 4 \times 4 \times 2 = 32$ 块 GPU。
+  每个小方块代表一块 GPU，坐标 $(d, p, t)$ 表示
+  其在数据并行、流水线并行和张量并行中的位置。
+  \textcolor{figGreen}{绿色虚线}：TP 通信（NVLink，最高带宽）。
+  \textcolor{figOrange}{橙色箭头}：PP 通信（激活值和梯度在流水线阶段间传递）。
+  DP 通信（AllReduce）发生在沿 $x$ 轴的同位置 GPU 之间。
+  通信带宽需求从高到低：TP $>$ PP $>$ DP。
+}
+\label{fig:3d-parallelism}
+\end{figure}
 
 实际训练中，这些并行策略是组合使用的。
 DeepSeek-V3 的训练使用了\textbf{多维并行}：
@@ -829,7 +1099,7 @@ veScale-FSDP 通过结构感知的分片策略保留了参数的原始形状，
 使得 Muon 等矩阵级优化器可以与 FSDP 无缝集成——
 这对于 Kimi K2、Gemini 等使用 Muon 优化器的前沿模型尤为重要。
 
-\textbf{NVIDIA Megatron Core MoE}（arXiv:2603.07685，2026 年 3 月）% NEW REF: megatron_core_moe_2026
+\textbf{NVIDIA Megatron Core MoE}（arXiv:2603.07685，2026 年 3 月）% NEW REF: yan2026megatronmoe
 专门针对 MoE 架构的训练提出了\textbf{全栈协同设计}方案。
 MoE 训练中内存、通信和计算三者之间存在强耦合约束——
 增大专家数量会增加内存和通信开销，
@@ -886,19 +1156,108 @@ NVIDIA Blackwell 架构（B200/GB200）在 2025 年下半年
 压缩到\textbf{约 10 分钟}——
 相比 Hopper 架构实现了每 GPU $2.2\times$--$2.6\times$ 的加速。
 
-Blackwell 的关键训练加速来自：
+Blackwell 的关键训练加速来自多个维度的\textbf{协同提升}——
+不是单一突破，而是``全面翻倍''：
+
 \begin{enumerate}[noitemsep]
   \item \textbf{FP4 硬件原生支持}：
         B200 的第五代 Tensor Core
         原生支持 FP4（NVFP4 格式）矩阵乘法，
         理论 FLOPS 是 FP8 的 $2\times$（9\,PFLOPS FP4 vs 4.5\,PFLOPS FP8）。
+        这使得训练中\textbf{计算密集}的操作
+        （矩阵乘法占训练总计算的 90\%+）
+        可以获得接近 $2\times$ 的加速。
   \item \textbf{NVLink 5.0}：
         双向带宽从 H100 的 900\,GB/s 提升到 1800\,GB/s，
         直接缓解了张量并行的通信瓶颈。
+        更重要的是 NVL72 的全互联——
+        72 块 GPU 共享显存，
+        使得 TP 度数可以远超 8。
   \item \textbf{HBM3e 升级}：
         192\,GB 显存 + 8\,TB/s 带宽，
         使得更大的 batch size 和更长的序列成为可能。
+        显存带宽的 $2.4\times$ 提升
+        对推理（decode 阶段内存带宽受限）
+        的影响甚至大于对训练。
+  \item \textbf{Transformer Engine 2.0}：
+        Blackwell 的 Transformer Engine
+        增加了对 FP4 量化的自动管理，
+        包括逐层的精度选择
+        （某些对精度敏感的层使用 FP8，
+        不敏感的层使用 FP4）
+        和动态缩放因子的硬件加速。
+  \item \textbf{第二代 Confidential Computing}：
+        B200 增加了硬件级别的可信执行环境（TEE），
+        允许在\textbf{加密的显存}中训练模型——
+        训练数据和模型参数对云服务商不可见。
+        这对于需要在第三方云上训练
+        但训练数据高度敏感的场景
+        （如医疗、金融）具有重要意义。
 \end{enumerate}
+
+\subsubsection{Blackwell 的功耗和散热挑战}
+
+Blackwell 的性能提升伴随着\textbf{功耗的显著增加}。
+单块 B200 的 TDP（热设计功耗）为 \textbf{1000W}——
+远超 H100 的 700W。
+一个 GB200 NVL72 机架的总功耗约为 \textbf{120\,kW}——
+这在传统数据中心中是\textbf{不可接受的}。
+作为参考，传统的企业服务器机架功耗通常为 5--15\,kW，
+H100 DGX 机架约为 10.2\,kW。
+Blackwell 的功耗密度是传统服务器的 \textbf{10 倍以上}。
+
+这使得\textbf{液冷}（liquid cooling）
+从``可选的效率优化''变成了\textbf{必需的基础设施}。
+GB200 NVL72 使用\textbf{直接液冷}（Direct-to-Chip Liquid Cooling，D2C）——
+冷却液直接流过 GPU 芯片表面的铜板，
+而非通过空气间接散热。
+D2C 的散热效率是空气冷却的 $3\times$--$5\times$，
+且允许更高的功率密度。
+但 D2C 需要全新的数据中心设计——
+管道、泵组、热交换器、冗余系统——
+改造现有数据中心的成本约为
+\textbf{每机架 20--40 万美元}。
+
+对于 LLM 训练的经济学而言，
+功耗和散热成本不再是可以忽略的``运维细节''——
+它们正在成为\textbf{训练总成本}的重要组成部分。
+一个 10,000 块 B200 的训练集群，
+仅电费一项（按 \$0.08/kWh 计算）
+一年就需要约 \textbf{7000 万美元}——
+这还不包括散热和设施成本。
+这推动了整个行业对\textbf{能效}（performance per watt）
+的关注——
+不仅要追求绝对的训练速度，
+还要优化每瓦特的训练产出。
+
+\subsubsection{DGX vs HGX：两种交付形态}
+
+NVIDIA 的 GPU 训练系统有两种主要交付形态，
+理解它们的区别有助于理解训练集群的构建：
+
+\textbf{DGX}（如 DGX H100/B200）是 NVIDIA 的\textbf{完整系统}——
+包含 GPU、CPU、内存、存储、NVLink、网卡和软件栈，
+开箱即用。DGX 的优势是快速部署和统一的技术支持，
+但灵活性有限（无法自定义硬件配置）且价格较高
+（DGX H100 售价约 \$300K）。
+
+\textbf{HGX}（如 HGX H100/B200）是 NVIDIA 的\textbf{GPU 基板}——
+只包含 GPU 和 NVLink/NVSwitch，
+需要系统集成商（如 Dell、HPE、Supermicro）
+将其安装到自己设计的服务器中。
+HGX 的优势是灵活性（可以选择不同的 CPU、内存、网卡组合）
+和更低的价格（HGX H100 约 \$200K，节省约 \$100K/台）。
+大多数大规模训练集群使用 HGX 而非 DGX——
+因为在数千台机器的规模下，
+每台节省 \$100K 意味着数亿美元的总成本差异。
+
+Meta、Google、Microsoft 和 xAI 的超大规模集群
+都使用了基于 HGX 的自定义设计。
+Meta 的 Grand Teton（用于 LLaMA 3 训练）
+基于 HGX H100 构建了自有的 Open Rack 设计，
+并开源了服务器的硬件规格——
+这是 Open Compute Project (OCP) 的一部分，
+目标是通过开放硬件设计来降低 AI 基础设施的成本。
 
 \section{混合精度训练}
 
@@ -1237,7 +1596,96 @@ WSD 的优势在于 stable phase 中学习率恒定，
 更易于在不同长度的训练中复用超参数；
 而且可以在 stable phase 的任意时刻保存检查点，
 之后从该检查点开始 decay 阶段——
-这为「继续训练」（continual pretraining）提供了极大的灵活性。
+这为``继续训练''（continual pretraining）提供了极大的灵活性。
+
+\subsubsection{学习率调度的定量对比}
+
+三种主要的学习率调度策略在实践中的差异
+值得做一个定量的比较：
+
+\textbf{余弦退火}（Cosine Annealing）：
+\begin{equation}
+  \eta(t) = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})
+  \left(1 + \cos\left(\frac{\pi \cdot t}{T}\right)\right)
+\end{equation}
+其中 $\eta_{\max}$ 是峰值学习率，$\eta_{\min}$ 通常取 $\eta_{\max}/10$，
+$T$ 是总训练步数。
+余弦退火的特点是学习率\textbf{平滑递减}——
+训练中期的学习率下降最快，
+而训练初期和末期变化较慢。
+GPT-3、LLaMA 1/2/3 均使用余弦退火。
+
+\textbf{WSD}（Warmup--Stable--Decay）：
+\begin{equation}
+  \eta(t) = \begin{cases}
+    \frac{t}{T_w} \cdot \eta_{\max} & t < T_w \\
+    \eta_{\max} & T_w \leq t < T_s \\
+    \eta_{\max} \cdot \left(\frac{T - t}{T - T_s}\right) & t \geq T_s
+  \end{cases}
+\end{equation}
+其中 $T_w$ 是 warmup 结束步数，
+$T_s$ 是 stable phase 结束步数。
+WSD 的核心优势是\textbf{灵活性}——
+stable phase 的长度可以在训练中\textbf{动态决定}。
+如果在 stable phase 的第 50\% 发现模型已经足够好，
+可以立即开始 decay 阶段；
+如果还需要更多训练，可以延长 stable phase。
+这种灵活性在预算不确定的场景下非常有价值。
+DeepSeek-V3 和 MiniMax-01 等模型采用了 WSD。
+
+\textbf{逆平方根}（Inverse Square Root）：
+\begin{equation}
+  \eta(t) = \eta_{\max} \cdot \min\left(1, \frac{T_w}{t}\right) \cdot \frac{1}{\sqrt{t / T_w}}
+\end{equation}
+这是 Transformer 原论文（Vaswani et al., 2017）使用的调度。
+学习率在 warmup 后按 $1/\sqrt{t}$ 缓慢衰减。
+这种调度在现代 LLM 训练中已很少使用——
+余弦退火和 WSD 在几乎所有比较中都优于逆平方根。
+
+在 MiniCPM 的系统性比较中（面壁智能，2024），
+WSD 和余弦退火在\textbf{相同总训练步数}下
+达到的最终损失几乎相同（差异 $<$0.5\%）。
+但 WSD 的优势体现在\textbf{任意步数的中间检查点质量}上：
+由于 stable phase 使用恒定学习率，
+任何时刻保存的检查点都处于``完全训练''状态
+（没有因为余弦曲线中较高的学习率而``过热''）。
+这使得 WSD 特别适合需要\textbf{频繁发布中间版本}的场景。
+
+\subsubsection{Warmup 的细节}
+
+Warmup 看起来简单——``从 0 线性增加到峰值''——
+但其细节对训练稳定性有显著影响。
+
+\textbf{Warmup 步数}的选择：
+LLaMA 3 使用了 2000 步的 warmup，
+GPT-3 使用了 375 步，
+DeepSeek-V3 使用了 2000 步。
+一般规则是：\textbf{模型越大，warmup 越长}——
+更大的模型在随机初始化状态下
+参数更``不稳定''，需要更多步来``稳住''。
+一个经验公式是 warmup 步数 $\approx 0.1\% \sim 0.5\%$ 的总训练步数，
+且不少于 200 步。
+
+\textbf{Warmup 的起始学习率}：
+多数实现将起始学习率设为 0，
+但 PaLM 使用了 $\eta_{\max}/100$ 作为起始值。
+后者可以避免在 warmup 的最初几步
+因学习率过低而``浪费''训练计算。
+实验表明两者对最终模型质量的影响可以忽略——
+但 warmup 从 0 开始更稳定。
+
+\textbf{Batch size warmup}：
+与学习率 warmup 类似，
+某些训练还使用 \textbf{batch size 逐步增大}的策略。
+训练初期使用较小的 batch size
+（如目标 batch size 的 1/4），
+逐步增大到目标值。
+小 batch size 在训练初期提供更多的\textbf{梯度噪声}，
+有助于模型``探索''参数空间，
+找到更好的初始化区域。
+GPT-3 从 32K token/batch 线性增大到 3.2M token/batch，
+增长了 100 倍。
+LLaMA 3 也使用了类似的 batch size warmup。
 
 \textbf{交叉熵损失}中的 \texttt{tokens[:, :-1]} 和
 \texttt{tokens[:, 1:]} 体现了因果语言模型的核心：
@@ -1456,6 +1904,29 @@ Aynetdinov \& Akbik~(2025)% NEW REF: aynetdinov2025mtp = Pre-Training Curriculum
 多 token 预测的信号噪声比太低，
 反而可能干扰主模型的学习。
 
+具体而言，Aynetdinov \& Akbik 测试了三种引入策略：
+(1) 从第一步就启用 MTP（``全程''模式）；
+(2) 在训练进行到 20\% 时启用 MTP（``延迟''模式）；
+(3) 逐步增加 MTP 的损失权重
+$\lambda_k$，从 0 线性增加到目标值（``渐变''模式）。
+在 1.4B 参数模型、100B token 的实验中，
+``延迟''模式在下游任务上
+比``全程''模式提升了约 1.2\%，
+``渐变''模式则提升了约 0.8\%。
+有趣的是，在 7B 参数模型上，
+三种模式的差异大幅缩小到 0.2\% 以内——
+这暗示更大的模型对 MTP 引入时机的敏感性更低，
+可能是因为大模型在训练早期就能产出
+更准确的预测，使得 MTP 信号更早地变得有用。
+
+这一发现对工程实践的启示是：
+对于资源有限的小模型训练，
+MTP 的引入时机值得仔细调优；
+而对于大规模 frontier 模型，
+直接从训练开始就启用 MTP
+（如 DeepSeek-V3 的做法）是一个安全的默认选择，
+无需为引入时机额外花费超参数搜索的预算。
+
 \section{训练稳定性}
 
 训练一个数十亿参数的模型数周到数月，
@@ -1506,6 +1977,87 @@ Flash Attention~\cite{dao2022flashattention} 通过在线 softmax
         对关键操作（归一化、softmax）始终使用 FP32。
 \end{enumerate}
 
+\subsubsection{Loss Spike 的定量特征}
+
+理解 loss spike 的\textbf{定量特征}
+有助于建立有效的自动检测和响应机制。
+基于 PaLM、OPT-175B 和 LLaMA 3 等公开训练日志的分析，
+loss spike 可以被分为三个严重级别：
+
+\textbf{轻微 spike}（$\Delta L < 0.5$，相对于滑动平均）：
+通常由少量异常数据引起，
+模型在 50--200 步内自行恢复，
+\textbf{不需要人工干预}。
+这类 spike 在大规模训练中每天可能发生 1--3 次——
+它们是随机梯度下降在高维空间中
+``偶尔走到陡峭区域''的正常现象。
+梯度裁剪（$\tau = 1.0$）通常足以控制其影响。
+
+\textbf{中度 spike}（$0.5 \leq \Delta L < 2.0$）：
+模型在 200--1000 步后\textbf{可能}恢复，
+但恢复后的训练轨迹可能偏离最优路径。
+建议在检测到中度 spike 后，
+临时将学习率降低 5$\times$ 持续 500 步，
+然后线性恢复到正常值。
+PaLM 的训练中约 60\% 的中度 spike
+通过这种``临时降温''策略成功恢复。
+
+\textbf{严重 spike}（$\Delta L \geq 2.0$ 或检测到 NaN）：
+模型几乎无法自行恢复，
+必须\textbf{回滚到最近的正常检查点}并跳过当前数据。
+严重 spike 通常伴随着梯度范数暴增
+（超过正常值的 100$\times$ 以上）
+和特定层（通常是 Attention 的 QK 乘积或
+FFN 的第二个线性层）的参数异常。
+回滚后，建议检查并移除引发 spike 的数据 batch——
+PaLM 团队发现，\textbf{同一个有问题的 batch
+在不同训练阶段都会引发 spike}，
+说明问题的根源在数据而非训练动态。
+
+\subsubsection{自动化的训练监控}
+
+2025 年的大规模训练已经不再依赖人工盯守——
+\textbf{自动化监控和响应系统}成为标配。
+一个典型的监控系统追踪以下指标：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{训练损失}：实时损失值及其 100 步滑动平均。
+        如果瞬时损失超过滑动平均的 $1.5\times$，触发轻微警报；
+        超过 $3\times$，触发严重警报并自动暂停训练。
+  \item \textbf{梯度范数}：全局梯度 L2 范数。
+        正常训练中梯度范数应在 0.1--10 的范围内
+        （取决于模型规模和学习率）。
+        范数超过 100 通常预示 spike 即将发生。
+  \item \textbf{参数范数}：各层参数的 L2 范数。
+        如果某层参数范数突然增大 $2\times$ 以上，
+        说明该层的参数被``推到''了异常区域。
+  \item \textbf{激活值统计}：
+        各层输出的最大值、均值和标准差。
+        Attention 层的 $QK^\top$ 最大值
+        是\textbf{最敏感的先行指标}——
+        它通常在 loss spike 发生前 10--50 步就开始异常上升。
+  \item \textbf{学习率和 batch size}：
+        确保调度器按计划工作，
+        没有因为软件 bug 导致学习率异常。
+  \item \textbf{GPU 利用率和温度}：
+        硬件异常（如 GPU 过热降频、
+        NVLink 故障导致通信速度下降）
+        也会间接影响训练稳定性。
+\end{itemize}
+
+\textbf{W\&B}（Weights \& Biases）和 \textbf{MLflow}
+是最常用的训练监控平台。
+LLaMA 3 的训练使用了自定义的监控仪表板，
+实时显示上述所有指标，
+并在异常时自动向值班工程师发送告警。
+DeepSeek 则开发了自有的训练监控系统，
+集成了\textbf{自动回滚}功能——
+检测到严重异常时自动加载最近的正常检查点
+并跳过有问题的数据区段重新开始，
+\textbf{无需人工干预}。
+这使得 DeepSeek-V3 的 14.8T token 训练
+实现了``零人工回滚''的记录。
+
 \subsection{梯度裁剪}
 
 常用的稳定性措施包括：
@@ -1522,6 +2074,108 @@ Flash Attention~\cite{dao2022flashattention} 通过在线 softmax
 但如果梯度「太大」，步长会被缩放回安全范围。
 全局范数裁剪（而非逐参数裁剪）的优势在于
 保持了不同参数梯度之间的相对比例关系。
+
+\subsection{Z-Loss：稳定 Softmax 的辅助损失}
+
+\textbf{z-loss} 是 PaLM~\cite{chowdhery2022palm} 引入的
+一种辅助正则化损失，
+专门用于\textbf{稳定 softmax 的输出层}。
+
+问题的根源是：在训练过程中，
+模型输出层（最后一个线性层）的 logit 值
+可能变得非常大（$|z| > 100$）。
+当 softmax 的输入过大时，
+其梯度会变得极小（梯度消失），
+同时数值精度急剧下降
+（大 logit 的 softmax 输出接近 1.0 或 0.0，
+梯度中的 $p(1-p)$ 项趋近于 0）。
+这会导致输出层的参数``卡住''——
+它们几乎收不到有效的梯度更新。
+
+z-loss 通过在损失函数中添加一个
+\textbf{惩罚 logit 绝对值}的正则项来解决这个问题：
+\begin{equation}
+  \mathcal{L}_{\text{z-loss}} = \alpha \cdot \log^2\!\left(
+    \sum_{i=1}^{V} \exp(z_i)
+  \right)
+  \label{eq:z-loss}
+\end{equation}
+其中 $z_i$ 是 softmax 之前的 logit，
+$V$ 是词表大小，$\alpha$ 是一个很小的系数
+（PaLM 使用 $\alpha = 10^{-4}$）。
+
+这个损失项的效果是：
+如果 logit 的量级过大（$\sum \exp(z_i)$ 很大），
+惩罚会增大，梯度会把 logit 压回到合理范围。
+由于 $\alpha$ 很小，z-loss 对主训练目标的干扰可以忽略，
+但对训练稳定性的改善是\textbf{显著的}——
+PaLM 报告称，添加 z-loss 后
+loss spike 的频率降低了约 40\%。
+
+z-loss 现在已经成为大规模预训练的\textbf{标准配置}。
+DeepSeek-V3、Qwen3 和 LLaMA 4 都使用了 z-loss
+或类似的 logit 正则化技巧。
+一个有趣的变体是\textbf{pre-softmax layer norm}——
+在 softmax 之前对 logit 做 LayerNorm，
+直接将 logit 的量级归一化到 $O(1)$。
+这种方法的效果与 z-loss 类似，
+但实现更简洁（不需要额外的损失项），
+正在被越来越多的团队采用。
+
+\subsection{梯度爆炸与梯度消失}
+
+\textbf{梯度爆炸}和\textbf{梯度消失}
+是深度神经网络训练的经典挑战。
+在动辄 80--126 层的 LLM 中，
+这些问题尤为严峻。
+
+\textbf{梯度爆炸}的机制：
+反向传播中，梯度在层与层之间\textbf{乘法传递}。
+如果每层的 Jacobian 矩阵的最大奇异值 $\sigma_{\max} > 1$，
+梯度经过 $L$ 层后会被放大 $\sigma_{\max}^L$ 倍。
+对于 $L = 100$，即使 $\sigma_{\max} = 1.05$，
+梯度也会被放大 $1.05^{100} \approx 132$ 倍——
+足以导致梯度范数爆炸。
+在实践中，梯度爆炸通常伴随着 NaN 值的出现，
+这会立即终止训练。
+
+\textbf{梯度消失}的机制类似但相反：
+如果 $\sigma_{\max} < 1$，梯度经过多层后
+被指数级压缩，使得浅层几乎收不到梯度信号。
+这在 ReLU 等不饱和激活函数中有所缓解，
+但在 LLM 中仍然存在——
+特别是在训练初期，当 Attention 权重几乎均匀分布时，
+残差连接（residual connection）是防止梯度消失的关键。
+
+现代 LLM 通过以下\textbf{架构和训练技巧}
+控制梯度的传播：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Pre-Norm 架构}：
+        将 LayerNorm 放在子层之前（而非之后），
+        使得残差路径上的梯度可以\textbf{直接传播}，
+        不受归一化层的衰减。
+        几乎所有现代 LLM（LLaMA、DeepSeek、Qwen）
+        都使用 Pre-Norm。
+  \item \textbf{残差连接}：
+        $\mathbf{x}_{l+1} = \mathbf{x}_l + f_l(\mathbf{x}_l)$
+        确保了梯度有一条``直通''路径，
+        不需要经过非线性变换。
+        这是深度 Transformer 能够训练的根本原因。
+  \item \textbf{梯度裁剪}（详见上文）：
+        直接限制梯度范数的上界。
+  \item \textbf{参数初始化}：
+        GPT-2 引入的``残差缩放''初始化——
+        将残差层的输出乘以 $1/\sqrt{2L}$
+        （$L$ 是层数），
+        确保随着层数增加，
+        残差贡献不会无限累积。
+        DeepSeek-V3 和 LLaMA 3 都使用了类似的初始化策略。
+  \item \textbf{QK-norm}（2025 年趋势）：
+        对 Attention 的 $Q$ 和 $K$ 向量做归一化，
+        防止 $QK^\top$ 的值过大导致梯度异常。
+        Kimi K2 的 MuonClip 就包含了 QK-clip 机制。
+\end{enumerate}
 
 \subsection{权重衰减与 AdamW}
 
@@ -1570,6 +2224,141 @@ Google 的解决方案是：
 这得益于他们精心设计的训练基础设施
 （FP8 细粒度量化、无辅助损失的负载均衡、
 DualPipe 调度等）以及严格的数据质量控制。
+
+\section{训练数据调度策略}
+\label{sec:data-scheduling}
+
+预训练不是简单地将全部数据打乱后
+一遍一遍地喂给模型——
+\textbf{数据出现的顺序和频率}
+对最终模型质量有显著影响。
+数据调度（data scheduling）是训练循环中
+一个经常被低估但影响深远的设计维度。
+
+\subsection{数据退火（Data Annealing）}
+
+\textbf{数据退火}是指在训练后期
+提高高质量数据的比例——
+与学习率退火（降低学习率）同步进行。
+这已经成为 2025--2026 年 frontier 模型训练的\textbf{标准实践}。
+
+数据退火的直觉来自人类学习的类比：
+想象一个学生准备考试——
+前几周广泛阅读各种材料（建立基础知识），
+最后几天则集中复习重点内容（强化核心能力）。
+LLM 训练的退火策略遵循同样的逻辑。
+
+具体实施中，退火阶段的配置需要精心设计：
+
+\textbf{退火的时机}：太早开始退火（训练的前 50\%）
+会导致模型在高质量数据上过拟合，
+因为此时模型的基础能力尚不足以
+充分``消化''高质量数据的信息；
+太晚开始（最后 2--3\%）
+则留给退火的训练预算不足，
+效果不显著。
+实践中的最优窗口是\textbf{训练的最后 5--10\%}。
+LLaMA 3 使用了最后 8\%（约 1.2T token），
+DeepSeek-V3 在技术报告中提到了
+类似比例的退火阶段。
+
+\textbf{退火数据的组成}：
+不同类型的高质量数据在退火中的价值不同。
+根据 LLaMA 3 和 Qwen3 的消融实验，
+退火阶段最有价值的数据类型依次是：
+(1) 高质量数学推理数据
+（包括详细解题过程的 GSM8K、MATH 变体）；
+(2) 代码教程和文档
+（如精选的 GitHub README 和技术博客）；
+(3) 高质量的百科全书和教科书内容。
+有趣的是，\textbf{对话数据}在退火中的价值相对较低——
+因为对话能力主要在后训练的 SFT 阶段培养，
+预训练退火对其影响不大。
+
+\subsection{重要数据的重放}
+
+\textbf{数据重放}（data replay）
+是另一种在训练过程中
+对重要数据给予额外关注的策略。
+
+基本思想是：在训练过程中，
+对某些特别重要的数据
+进行\textbf{多于一次}的训练。
+与简单的 multi-epoch 训练不同，
+重放策略是\textbf{有选择性的}——
+只对特定类型的高价值数据进行重放，
+而不是对所有数据均匀重复。
+
+哪些数据值得重放？
+一般原则是：\textbf{数据质量越高、在总训练数据中占比越低，
+越值得重放}。
+具体来说：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{高质量数学证明}：
+        这类数据在总训练数据中占比通常 $<$5\%，
+        但对数学推理能力贡献很大。
+        重放 2--3 次的效果显著优于不重放。
+  \item \textbf{精选代码文档}：
+        如 Python 标准库文档、
+        popular library 的 README 和教程。
+        这些数据数量有限但质量极高，
+        重放可以强化模型对 API 和编程模式的记忆。
+  \item \textbf{高质量百科内容}：
+        Wikipedia 的特色条目（Featured Articles）
+        约占 Wikipedia 总条目数的 0.1\%，
+        但在信息密度和写作质量上远超普通条目。
+        对这部分数据进行重放
+        可以提升模型的\textbf{事实准确性}。
+\end{itemize}
+
+\textbf{重放的时机}同样重要。
+Muennighoff 等人（2023）的研究表明，
+在训练\textbf{后期}重放高质量数据
+比在训练初期重放效果更好——
+因为后期的模型已经建立了足够的基础能力，
+能够从高质量数据中提取更多信息。
+这与退火策略的逻辑一致，
+实际上可以将数据重放视为退火的一种特殊形式。
+
+\subsection{课程学习在预训练中的应用}
+
+虽然课程学习（从易到难的训练顺序）
+的理论吸引力很强，
+但在\textbf{大规模预训练}中的实证结果
+目前仍然是\textbf{混合的}——
+不像在 SFT 阶段那样一致地有效。
+
+2024--2025 年的多项实验揭示了一个有趣的规律：
+\textbf{课程学习在小模型上有效，在大模型上效果递减}。
+具体来说：
+\begin{itemize}[noitemsep]
+  \item 在 $\leq$1B 参数的模型上，
+        从简单数据到复杂数据的课程
+        可以带来 3--5\% 的训练效率提升
+        （达到相同性能所需的步数减少 3--5\%）。
+  \item 在 7B--13B 参数的模型上，
+        效果缩小到 1--2\%。
+  \item 在 70B+ 参数的模型上，
+        与随机顺序的差异在统计误差范围内。
+\end{itemize}
+
+一种解释是：大模型的参数空间足够大，
+即使训练数据的顺序是随机的，
+模型也有足够的容量来``自适应''地
+先学习简单模式、后学习复杂模式。
+小模型则因容量有限，
+更依赖于外部调度来引导学习顺序。
+
+因此，2026 年的实践共识是：
+对于 frontier 级的大规模预训练，
+\textbf{数据退火}（最后阶段提高质量）是值得的，
+但\textbf{全程课程学习}（整个训练过程中
+按难度排序）的工程成本收益比不高。
+退火只需要在最后阶段改变采样权重，
+实现简单；而课程学习需要预先为每条数据
+分配``难度分数''，并设计复杂的调度策略，
+工程投入远大于退火但收益相近。
 
 \section{硬件基础设施}
 
@@ -1650,14 +2439,151 @@ RoCE（RDMA over Converged Ethernet）是以太网上的 RDMA 方案，
 成本更低但性能和稳定性略逊于 IB。
 
 \textbf{网络拓扑设计}直接影响训练效率。
-传统的 \textbf{Fat-Tree} 拓扑保证了任意两个节点间
+理解不同拓扑的权衡是集群设计的核心能力。
+
+\textbf{Fat-Tree}（Clos 网络）拓扑保证了任意两个节点间
 等带宽的通信路径，但成本极高
 （需要大量高端交换机）。
+一个 1024 节点（8192 GPU）的 Fat-Tree 集群
+需要约 320 台 64 端口的 InfiniBand 交换机，
+仅交换机成本就超过 1 亿美元。
+Fat-Tree 的优势是\textbf{通信模式无关}——
+无论训练框架使用何种并行策略，
+任意 GPU 之间都有全速通信路径。
+但这种``奢侈''在实践中很少被充分利用——
+因为大多数训练通信发生在\textbf{固定的 GPU 组}内
+（同一 TP 组、同一 PP 阶段或同一 DP 组），
+而非随机的 GPU 对之间。
+
 \textbf{Rail-Optimized} 拓扑是一种更经济的替代方案：
 每个节点的第 $i$ 块 GPU 连接到同一个 rail 交换机，
 同一 rail 上的 GPU 之间通信最快。
-这种拓扑与张量并行（节点内，NVLink）+
+具体来说，在 DGX H100 集群中：
+节点 1 的 GPU 0、节点 2 的 GPU 0、...、节点 $N$ 的 GPU 0
+都连接到同一个 Rail 0 交换机。
+这种拓扑的成本约为 Fat-Tree 的 \textbf{40--60\%}，
+因为只需要 8 个 rail 交换机（对应 DGX 中的 8 块 GPU）
+而非完整的 Leaf-Spine 层次。
+
+Rail-Optimized 拓扑与张量并行（节点内，NVLink）+
 数据并行（同 rail 跨节点，IB）的组合特别契合。
+但它对\textbf{流水线并行和专家并行}不友好——
+这两种并行策略的通信模式
+不一定沿着 rail 方向进行。
+这也是为什么 Meta 在训练 LLaMA 3-405B 时
+选择了改良的 Fat-Tree 拓扑而非 Rail-Optimized——
+因为他们使用了 4D 并行（TP + CP + PP + DP），
+通信模式更加复杂。
+
+\textbf{Dragonfly} 拓扑是 2025 年开始在超大集群中
+出现的新选择。
+它将节点组织为多个``组''（group），
+组内使用全互联，组间使用稀疏连接。
+Dragonfly 的带宽介于 Fat-Tree 和 Rail-Optimized 之间，
+但其\textbf{延迟}特性更优——
+对于延迟敏感的流水线并行通信，
+Dragonfly 的组内全互联可以提供比 Fat-Tree 更低的跳数。
+据报道，xAI 的 Colossus 集群
+（555K GPU）使用了 Dragonfly 变体拓扑。
+
+\subsubsection{NVLink 的演进}
+
+NVLink 是 NVIDIA 的专有高速互联协议，
+其演进直接影响了分布式训练的可能性边界：
+
+\begin{center}
+\small
+\begin{tabular}{lcrl}
+\hline
+\textbf{版本} & \textbf{GPU} & \textbf{双向带宽} & \textbf{互联规模} \\
+\hline
+NVLink 1.0 & P100 & 160\,GB/s & 2 GPU 对等 \\
+NVLink 2.0 & V100 & 300\,GB/s & 8 GPU (DGX-1) \\
+NVLink 3.0 & A100 & 600\,GB/s & 8 GPU (DGX A100) \\
+NVLink 4.0 & H100 & 900\,GB/s & 8 GPU (DGX H100) \\
+NVLink 5.0 & B200 & 1800\,GB/s & 72 GPU (NVL72) \\
+\hline
+\end{tabular}
+\end{center}
+
+从 NVLink 4.0 到 5.0 的飞跃值得特别关注：
+带宽翻倍（900 $\to$ 1800\,GB/s），
+但更重要的是互联规模从 8 GPU 扩展到 \textbf{72 GPU}。
+这意味着张量并行（TP）的度数
+可以从 8（DGX H100 的限制）
+扩展到 72——
+理论上可以在不使用流水线并行的情况下
+训练参数量达数万亿的模型。
+虽然实际中 TP=72 的效率会很低
+（通信占比过高），
+但 TP=16 或 TP=36 的配置
+比 TP=8 + PP 的组合更高效——
+因为避免了流水线气泡。
+
+\textbf{NVSwitch} 是 NVLink 的``交换机''。
+NVSwitch 3.0（H100）在一个 DGX 系统内
+实现了 8 块 GPU 的\textbf{全互联}——
+任意两块 GPU 之间都有 900\,GB/s 的直连带宽，
+不存在带宽瓶颈。
+NVSwitch 4.0（B200）将全互联扩展到 72 块 GPU，
+这是 NVL72 系统``统一显存池''概念的硬件基础。
+
+\subsubsection{InfiniBand vs RoCE}
+
+在\textbf{节点间通信}领域，
+InfiniBand 和 RoCE 是两大竞争方案：
+
+\textbf{InfiniBand}（Mellanox/NVIDIA）
+是高性能计算的传统标准：
+\begin{itemize}[noitemsep]
+  \item NDR（2022）：400\,Gb/s（50\,GB/s）
+  \item XDR（2024）：800\,Gb/s（100\,GB/s）
+  \item GDR（计划 2026）：1600\,Gb/s（200\,GB/s）
+\end{itemize}
+InfiniBand 的核心优势是\textbf{低延迟}（$\sim$1\,$\mu$s）
+和\textbf{硬件级别的拥塞控制}——
+即使在大量并发通信流的情况下，
+延迟仍然可预测且稳定。
+NVIDIA 通过收购 Mellanox（2020 年）
+将 InfiniBand 纳入了自己的产品线，
+进一步巩固了``GPU + 互联''的垂直整合。
+
+\textbf{RoCE}（RDMA over Converged Ethernet）
+是基于以太网的 RDMA 方案：
+\begin{itemize}[noitemsep]
+  \item RoCEv2 运行在标准的 25/100/200/400\,GbE 以太网上。
+  \item 成本约为 InfiniBand 的 \textbf{50--70\%}
+        （利用现有的以太网基础设施）。
+  \item 但在\textbf{拥塞场景}下延迟不如 InfiniBand 稳定——
+        以太网的 PFC（Priority Flow Control）机制
+        在大规模集群中可能引发``暂停帧风暴''，
+        导致全网性能退化。
+\end{itemize}
+
+DeepSeek 使用 RoCE 而非 InfiniBand——
+这部分是因为美国出口管制
+限制了 InfiniBand 交换机的供应。
+但 DeepSeek 通过精心的\textbf{软件优化}
+（特别是 DeepEP 的通信-计算重叠和
+DualPipe 的细粒度调度）
+在 RoCE 网络上实现了
+接近 InfiniBand 的\textbf{有效带宽利用率}。
+这再次证明了：
+在硬件受限时，
+软件工程可以弥补很大一部分差距。
+
+2026 年的趋势是\textbf{Ultra Ethernet}——
+一个由 AMD、Broadcom、Cisco、Meta 等公司
+推动的新一代以太网标准，
+专门为 AI 训练优化。
+Ultra Ethernet 在标准以太网的基础上
+增加了\textbf{有序可靠传输}和
+\textbf{硬件级多路径}支持，
+目标是在保持以太网成本优势的同时
+达到 InfiniBand 的性能水平。
+如果 Ultra Ethernet 成功，
+它可能在 2027--2028 年
+打破 NVIDIA/InfiniBand 在集群互联领域的主导地位。
 
 \subsection{集群设计与成本}
 
@@ -1678,6 +2604,68 @@ FP8 训练（减少内存和计算需求）以及高效的工程实现。
 它证明了：在 LLM 训练中，
 \textbf{聪明的工程设计可以弥补（甚至超越）硬件优势}。
 
+\textbf{训练成本的详细分解}有助于理解
+``每美元训练质量''的来源。
+以 LLaMA 3-405B 的训练为例，
+成本可以分解为以下几个部分：
+
+\begin{center}
+\small
+\begin{tabular}{lrl}
+\hline
+\textbf{成本项} & \textbf{估算金额} & \textbf{占比} \\
+\hline
+GPU 计算（16384 H100 $\times$ 54 天） & $\sim$\$50M & 50\% \\
+电力（$\sim$10\,MW $\times$ 54 天） & $\sim$\$9M & 9\% \\
+人力（团队 $\sim$50 人 $\times$ 6 个月） & $\sim$\$15M & 15\% \\
+数据处理（CPU 计算 + 存储） & $\sim$\$5M & 5\% \\
+集群维护（冷却、网络、运维） & $\sim$\$8M & 8\% \\
+后训练（RLHF + SFT + 评估） & $\sim$\$8M & 8\% \\
+其他（软件许可、cloud 备份等） & $\sim$\$5M & 5\% \\
+\hline
+\textbf{总计} & $\sim$\textbf{\$100M} & 100\% \\
+\hline
+\end{tabular}
+\end{center}
+
+（上述数字为基于公开信息和行业估计的近似值。）
+
+几个值得注意的点：
+(1) GPU 计算成本虽然是最大项，
+但``只有'' 50\%——其余 50\% 是
+电力、人力、基础设施等``非 GPU'' 成本。
+这意味着仅仅优化 GPU 利用率（提高 MFU）
+最多只能影响总成本的一半。
+(2) \textbf{人力成本}占 15\% 并不低——
+大模型训练需要高度专业化的团队
+（分布式系统工程师、GPU 编程专家、
+数据科学家、MLOps 工程师等），
+这些人才的薪资远高于行业平均水平。
+(3) 电力成本虽然``仅'' 9\%，
+但在能源价格较高的地区（如欧洲）
+可能翻倍到 15--20\%。
+这也是为什么 xAI 将 Colossus 集群
+建在电力成本较低的 Memphis——
+仅电费一项就可能节省数千万美元。
+
+\textbf{DeepSeek-V3 的成本奇迹}需要特别分析。
+560 万美元的训练成本
+是基于 2048 块 H800 $\times$ 2 个月计算的，
+但这\textbf{不包括}：
+数据处理、前期实验和消融研究
+（DeepSeek 的数据处理流水线和架构探索
+可能已经花费了数倍于训练本身的计算）、
+人力成本（DeepSeek 的工程团队
+以其精英水平闻名）、
+以及后训练（RLHF、SFT）的成本。
+如果将所有成本都计入，
+DeepSeek-V3 的``全周期成本''
+可能在 2000--3000 万美元——
+仍远低于 LLaMA 3-405B 的 1 亿美元，
+但差距从 ``20 倍'' 缩小到 ``3--5 倍''。
+这个更现实的比较仍然令人印象深刻，
+但也提醒我们不要被单一成本数字所误导。
+
 \textbf{云端 vs 自建}的经济学也值得考量。
 按云端 H100 的典型租价 $\sim$$\$$2--3/GPU·hour 计算，
 16384 块 GPU 训练 54 天的成本约为
@@ -1689,6 +2677,129 @@ $16384 \times 54 \times 24 \times \$2.5 \approx \$53$M。
 这就是为什么 Meta、Google、DeepSeek 等
 频繁训练模型的机构都选择自建——
 而初创公司或偶尔训练的团队更倾向于云端租用。
+
+\subsection{弹性训练与检查点管理}
+
+在数千块 GPU 上运行数周到数月，
+\textbf{硬件故障是必然事件而非偶然事故}。
+弹性训练和检查点管理是保证训练成功完成的关键基础设施。
+
+\subsubsection{故障率的现实}
+
+硬件故障的频率超出大多数人的直觉。
+LLaMA 3~\cite{dubey2024llama3} 的技术报告披露了
+在 16384 块 H100 上 54 天训练期间的故障统计：
+\begin{itemize}[noitemsep]
+  \item 总计 419 次自动检测到的故障
+        （平均每天 $\sim$8 次）。
+  \item 其中 148 次需要人工干预（约 35\%），
+        其余自动恢复。
+  \item 主要故障类型包括：
+        GPU 硬件错误（78 次）、
+        网络连接中断（58 次）、
+        存储系统异常（42 次）、
+        软件/驱动崩溃（35 次）、
+        电源/散热问题（12 次）。
+  \item 训练的\textbf{有效利用率}
+        （实际训练时间 / 总墙钟时间）约为 90\%——
+        剩余 10\% 被故障恢复、检查点保存和维护占据。
+\end{itemize}
+
+这些数字意味着：
+在 10\% 的时间里，
+集群的部分或全部 GPU 没有在做有用的训练工作。
+对于价值数千万美元的训练，
+10\% 的时间浪费意味着数百万美元的损失。
+因此，最大化\textbf{有效利用率}
+是大规模训练工程中的核心 KPI。
+
+\subsubsection{检查点策略}
+
+检查点（checkpoint）是训练恢复的基础——
+它保存了模型参数、优化器状态和数据加载器的位置，
+使得训练可以从中断点继续。
+
+\textbf{检查点大小}随模型规模急剧增长。
+对于一个 70B 参数的模型：
+\begin{itemize}[noitemsep]
+  \item 模型参数（BF16）：$70 \times 10^9 \times 2 = 140$\,GB
+  \item 优化器状态（FP32，AdamW）：
+        $70 \times 10^9 \times 12 = 840$\,GB
+  \item 总检查点大小：约 \textbf{980\,GB}
+\end{itemize}
+
+将近 1\,TB 的数据写入存储系统
+需要的时间取决于存储带宽——
+使用 Lustre 并行文件系统（聚合带宽 $\sim$100\,GB/s）
+约需 10 秒，
+但如果使用 NFS 或普通 SSD（$\sim$1\,GB/s），
+则需要约 16 分钟。
+这就是为什么大规模训练集群
+\textbf{必须}配备高性能并行存储系统。
+
+\textbf{异步检查点}（asynchronous checkpointing）
+是减少检查点开销的关键技术：
+训练不暂停，而是在后台将模型状态
+异步复制到存储系统。
+具体实现是：在检查点步骤，
+先将模型状态复制到 CPU 内存（速度极快，$<$1 秒），
+然后继续训练；
+CPU 后台线程将数据从 CPU 内存
+异步写入持久化存储。
+这使得检查点操作对训练速度的影响
+从``分钟级暂停''降低到``亚秒级中断''。
+PyTorch 的 \texttt{torch.distributed.checkpoint}
+和 NVIDIA 的 DCP（Distributed CheckPoint）
+都支持异步检查点。
+
+\textbf{检查点频率}的选择是一个权衡：
+更频繁的检查点意味着更少的``回滚距离''
+（故障后最多丢失的训练步数），
+但也意味着更高的 I/O 开销。
+典型的策略是每 \textbf{500--1000 步}保存一次，
+同时保留最近 3--5 个检查点
+（旧的自动删除以节省存储空间）。
+对于 LLaMA 3 的训练（每步约 2.5 秒），
+1000 步约为 40 分钟——
+这意味着故障后最多丢失 40 分钟的训练进度。
+
+\subsubsection{弹性训练框架}
+
+\textbf{弹性训练}（elastic training）
+允许训练在部分节点故障后\textbf{自动恢复}，
+而不需要人工干预。
+核心能力包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{故障检测}：自动检测 GPU 故障、
+        网络中断和软件崩溃。
+  \item \textbf{节点隔离}：将故障节点从训练中移除，
+        重新分配其工作负载给其他节点。
+  \item \textbf{自动回滚}：加载最近的正常检查点，
+        跳过有问题的数据段，恢复训练。
+  \item \textbf{热替换}：在不停止训练的情况下
+        将备用节点加入集群，替换故障节点。
+\end{itemize}
+
+PyTorch Elastic（\texttt{torchrun}）
+是最广泛使用的弹性训练框架。
+它支持节点的动态加入和退出，
+通过 \texttt{c10d.Store} 维护分布式状态一致性。
+但 \texttt{torchrun} 的弹性能力相对基础——
+它主要处理``启动时''的节点发现，
+而非``运行时''的故障恢复。
+
+2025 年出现了更成熟的弹性训练方案。
+\textbf{Oasis}（字节跳动）和
+\textbf{Bamboo}（UC Berkeley）
+提供了运行时故障恢复能力——
+检测到 GPU 故障后，
+在 $<$30 秒内完成节点替换和训练恢复，
+而非传统方案中 5--10 分钟的手动重启。
+对于 16K GPU 的集群
+（每天平均 8 次故障），
+这种快速恢复每天可以节省
+$8 \times 5 = 40$ 分钟的空闲时间——
+相当于训练有效利用率提升约 3\%。
 
 \subsection{GPU 利用率：最重要的效率指标}
 
@@ -1776,6 +2887,35 @@ GLM-5 的历史意义在于：
 昇腾的后续路线图包括 950PR $\to$ 950DT $\to$ 960 $\to$ 970，
 持续缩小与 NVIDIA 旗舰的性能差距。
 
+昇腾 910C 与 NVIDIA H100 的性能差距
+需要从多个维度来理解，而不是仅看 TFLOPS 数字。
+在\textbf{矩阵运算}方面，910C 的 Da Vinci 3.0 Core
+通过 Cube Unit 实现 FP16 矩阵乘法，
+其峰值算力与 H100 的 Tensor Core 差距约 20\%。
+但在\textbf{显存带宽}上差距更大——
+HBM2e 的 1800\,GB/s 与 H100 HBM3 的 3350\,GB/s
+相差约 46\%，这在推理的 decode 阶段
+（受内存带宽限制）尤为显著。
+HCCS 互联在节点内 8 块芯片间提供约 392\,GB/s 的聚合带宽——
+虽然足以支持基本的张量并行，
+但与 NVLink 4.0 的 900\,GB/s 双向带宽仍有明显差距，
+限制了节点内张量并行的效率。
+
+\textbf{软件生态}是昇腾相对于 NVIDIA 的最大短板。
+CUDA 经过 17 年的发展（2007 年至今），
+积累了庞大的开发者社区、成熟的调试工具
+（如 Nsight、cuda-gdb）和深度优化的算子库
+（cuBLAS、cuDNN、NCCL、Transformer Engine）。
+CANN 生态虽然在近两年加速成长——
+MindSpore 框架和 PyTorch 的 Ascend 后端已可用——
+但在算子覆盖率（特别是非标准操作）、
+性能调优工具和社区支持上
+仍需 2--3 年才能达到 CUDA 的成熟度。
+这正是 GLM-5 训练成功的意义所在：
+它证明了昇腾生态在\textbf{特定架构}（Transformer）
+和\textbf{特定框架}（MindSpore）的组合下，
+已经足以支撑前沿模型的全流程训练。
+
 \subsection{DeepSeek 的昇腾适配}
 
 DeepSeek 已原生支持昇腾平台，
@@ -1784,9 +2924,61 @@ DeepSeek 已原生支持昇腾平台，
 在推理场景下，昇腾上的性能约为 H100 的 60\%，
 通过手写 CANN 算子可进一步优化。
 
+\textbf{CUDA 到 CANN 的技术迁移}远比``一行代码''听起来复杂。
+CANN（Compute Architecture for Neural Networks）是华为的
+AI 计算框架，对应 NVIDIA 的 CUDA 生态。
+在底层算子层面，CUDA 的 cuBLAS/cuDNN 算子
+需要被替换为 CANN 的 AscendCL 算子——
+大部分标准操作（GEMM、卷积、归一化）已有成熟映射，
+但 DeepSeek 架构中的若干定制化操作
+（如 Multi-Latent Attention 的低秩投影、
+MoE 的 All-to-All 通信优化 DeepEP、
+以及 FP8 细粒度量化的 $128 \times 128$ 分块策略）
+在 CANN 上缺乏直接对应的实现，
+需要通过 TBE（Tensor Boost Engine）
+或 Ascend C 语言手写高性能算子。
+这些算子的性能调优往往需要数周到数月的工程投入。
+
+\textbf{训练 vs 推理的性能差距}是迁移中最显著的挑战之一。
+推理场景下，昇腾 910B/910C 可以达到 H100 约 60--70\% 的性能，
+这个差距主要来自显存带宽
+（HBM2e 1800\,GB/s vs H100 HBM3 3350\,GB/s）
+和软件栈的优化成熟度。
+但在\textbf{训练}场景下，差距可能更大（40--55\%），
+原因是训练对\textbf{跨节点通信}的要求远高于推理——
+HCCS 互联的带宽和延迟特性
+与 NVLink + InfiniBand 的组合仍有明显差距，
+特别是在需要高频 All-Reduce（数据并行）
+和 All-to-All（专家并行）操作的 MoE 训练中。
+此外，训练中的混合精度策略（FP8 训练）
+在昇腾上的支持尚不如 H100 成熟——
+NVIDIA 的 Transformer Engine 在 FP8 量化、
+动态缩放因子管理和 Tensor Core 调度上
+有着数年的领先优势。
+
+\textbf{其他芯片生态}也在积极追赶。
+AMD 的 MI300X（192\,GB HBM3，
+1307 TFLOPS BF16）
+通过 ROCm 生态与 PyTorch 的原生集成，
+已经被若干实验室用于 LLM 训练——
+其显存容量甚至超过 H100，
+在需要超大 batch size 或超长序列的场景下有独特优势。
+Intel 的 Gaudi 3 芯片
+虽然在性能上不及 NVIDIA 旗舰，
+但通过与 DeepSpeed 和 Hugging Face 的深度集成，
+在成本效率上具有竞争力。
+在中国，除华为昇腾外，
+燧原 SG2050、百度昆仑 R300、壁仞 BR100 等芯片
+也在各自的生态中探索大模型训练支持——
+但它们的软件生态成熟度与昇腾相比仍有代差。
+
 据报道，DeepSeek 在 V4 的开发过程中
 优先向国产芯片厂商提供预发布版本进行适配测试——
 这一举动的战略意义不言而喻。
+它意味着 DeepSeek 的模型架构设计
+正在从``CUDA 优先''转向``硬件无关''的方向发展，
+为中国 AI 生态摆脱对单一硬件供应商的依赖
+奠定了关键的软件基础。
 
 \subsection{长周期训练的稳定性挑战}
 
@@ -1802,6 +2994,196 @@ DeepSeek 研究员金宇晨指出：
 都可能在数周的连续训练中放大为难以追溯的训练异常。
 GLM-5 在 100,000 块 910B 上的成功训练
 正是攻克这一难题的里程碑式成就。
+
+\section{Jensen Huang 的 AI ``五层蛋糕''}
+\label{sec:five-layers}
+
+2024--2026 年，NVIDIA CEO 黄仁勋在多次公开演讲中
+阐述了他对 AI 计算基础设施的\textbf{五层架构}愿景。
+这个框架不仅是 NVIDIA 的商业战略，
+更是理解当前 AI 训练工业化格局的有力透镜。
+让我们逐层剖析，并评估 2026 年各层的现状。
+
+\subsection{第一层：硅层（Silicon Layer）}
+
+最底层是\textbf{芯片}本身——
+GPU 架构的设计与制造。
+
+NVIDIA 在这一层建立了近乎垄断的地位。
+从 Volta（V100，2017）到 Ampere（A100，2020）
+到 Hopper（H100，2022）到 Blackwell（B200，2024），
+每一代架构都为 LLM 训练带来了质的飞跃。
+关键的架构创新包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Tensor Core 的演进}：
+        V100 首次引入 Tensor Core（FP16 矩阵乘法加速）；
+        A100 增加了 TF32 和 BF16 支持；
+        H100 增加了 FP8 支持和 Transformer Engine；
+        B200 增加了 FP4 支持。
+        每一代 Tensor Core 的
+        理论 TFLOPS 约提升 2--3$\times$。
+  \item \textbf{HBM（高带宽内存）的升级}：
+        从 HBM2（V100）到 HBM2e（A100）
+        到 HBM3（H100）到 HBM3e（H200/B200），
+        带宽从 900\,GB/s 增长到 8\,TB/s。
+        对于 LLM 训练中内存带宽受限的操作
+        （如大 batch 的注意力计算），
+        HBM 带宽的提升直接转化为训练速度的提升。
+  \item \textbf{互联技术}：
+        NVLink 从 1.0（300\,GB/s）进化到 5.0（1800\,GB/s），
+        NVSwitch 从节点内 8 GPU 互联
+        扩展到 GB200 NVL72 的 72 GPU 全互联。
+        这使得单个``超级 GPU''
+        （72 块 B200 通过 NVLink 5.0 连接）
+        拥有 13.8\,TB 的共享显存——
+        足以在\textbf{不使用任何模型并行}的情况下
+        放下大多数 LLM。
+\end{itemize}
+
+\textbf{CUDA 护城河}是 NVIDIA 在这一层最深的壁垒。
+CUDA 生态经过 17 年的积累（2007 至今），
+包含数千个优化的算子库（cuBLAS、cuDNN、NCCL、
+cuSPARSE、Thrust 等），
+数百万开发者的知识积累，
+以及几乎所有 AI 框架（PyTorch、TensorFlow、JAX）
+的原生支持。
+即使竞争对手在\textbf{硬件}上追平了 NVIDIA，
+在\textbf{软件生态}上仍可能落后 3--5 年。
+这也是为什么 AMD MI300X 虽然在某些硬件指标上
+超越了 H100（如 192\,GB 显存 vs 80\,GB），
+但在实际训练中的采用率仍远低于 H100。
+
+\textbf{定制 ASIC}是这一层的另一个重要趋势。
+Google TPU（从 v1 到 v6e）是最成功的定制 AI 芯片，
+Gemini 系列模型全部在 TPU 上训练。
+TPU 的核心优势是\textbf{芯片间互联}——
+TPU v5 pod 可以将 8960 块芯片
+通过高速 ICI（Inter-Chip Interconnect）
+连接为一个逻辑设备，
+聚合带宽远超同规模的 GPU 集群。
+AWS Trainium（从 Trainium1 到 Trainium3）
+则瞄准了\textbf{成本效率}——
+提供低于 H100 约 40\% 的每 TFLOP 成本，
+通过 Neuron SDK 与 PyTorch 集成。
+华为昇腾 910C 是中国在这一层的主要代表
+（详见 \cref{sec:domestic-training}）。
+
+\subsection{第二层：系统层（Systems Layer）}
+
+第二层是将芯片组装为\textbf{训练系统}——
+包括 DGX/HGX 服务器、SuperPOD 集群、
+网络互联和存储系统。
+
+\textbf{DGX H100} 是 NVIDIA 的旗舰 AI 服务器：
+8 块 H100 GPU + 2 块 Intel Xeon CPU +
+2\,TB DDR5 内存 + 8 块 ConnectX-7 400\,Gb/s NIC，
+通过 NVSwitch 实现 8 GPU 全互联。
+\textbf{DGX SuperPOD} 将多台 DGX 通过
+InfiniBand 组成大规模集群。
+一个 SuperPOD 通常包含 32 台 DGX（256 块 H100），
+通过 Leaf-Spine 拓扑实现全双工通信。
+
+\textbf{GB200 NVL72} 代表了系统设计的范式转变——
+从``多个独立服务器通过网络连接''
+转变为``单个巨型计算节点''。
+72 块 B200 GPU 通过 NVLink 5.0 全互联（不经过 InfiniBand），
+共享 13.8\,TB 显存，
+形成了一个\textbf{统一的计算和内存池}。
+对软件而言，这 72 块 GPU
+可以被视为一块拥有 13.8\,TB 显存的``超级 GPU''——
+极大地简化了分布式训练的编程模型。
+但 NVL72 的\textbf{功耗}（约 120\,kW per rack）
+和\textbf{散热}需求
+对数据中心的基础设施提出了严峻挑战——
+传统的空气冷却已经不够，
+液冷（直接液冷或浸没式冷却）成为标配。
+
+\subsection{第三层：基础模型层（Foundation Model Layer）}
+
+第三层是\textbf{模型训练基础设施}——
+将硬件系统转化为训练好的 AI 模型的``工厂''。
+
+黄仁勋在多次演讲中将 AI 训练比喻为
+``token 的工厂''（token factory）——
+输入是数据，输出是``数字智能''。
+这个比喻的核心洞察是：
+\textbf{AI 模型的训练过程正在工业化}，
+如同汽车制造从手工作坊到流水线工厂的转变。
+
+在这一层，关键的技术包括：
+分布式训练框架（Megatron-LM、DeepSpeed、FSDP——
+本章的主要内容），
+训练流程管理（检查点、弹性训练、日志监控），
+以及数据处理流水线（\cref{ch:data} 的内容）。
+这一层的核心指标是\textbf{每美元的训练质量}——
+即在固定的硬件预算下，
+能够训练出多好的模型。
+DeepSeek-V3 用 560 万美元（2048 块 H800）
+训练出了与 LLaMA 3-405B（1 亿美元，16384 块 H100）
+竞争的模型——
+这 \textbf{20 倍}的效率差距
+主要来自第三层（MoE 架构、FP8 训练、
+DualPipe 调度等）的创新，而非硬件优势。
+
+\subsection{第四层：平台层（Platform Layer）}
+
+第四层是将训练好的模型部署为\textbf{可用的服务}——
+包括推理优化、模型部署和 API 服务。
+
+NVIDIA 的\textbf{NIM}（NVIDIA Inference Microservices）
+提供了预优化的模型推理容器，
+支持 TensorRT-LLM 的推理加速
+（包括 KV cache 管理、连续批处理、
+推测解码、FP8/INT4 量化等）。
+\textbf{Triton Inference Server}
+则是模型服务的标准基础设施，
+支持多模型部署、动态批处理和负载均衡。
+
+这一层的竞争在 2025--2026 年急剧加热——
+vLLM（UC Berkeley 开源）以其 PagedAttention 技术
+在社区中获得了广泛采用，
+SGLang 则通过 RadixAttention 提供了更高效的推理调度。
+开源推理引擎的快速发展
+正在削弱 NVIDIA 在这一层的\textbf{平台锁定}——
+用户不再必须使用 NIM/TensorRT 就能获得高效推理。
+
+\subsection{第五层：应用层（Application Layer）}
+
+最顶层是 AI 的\textbf{行业应用}——
+将模型能力转化为业务价值。
+
+黄仁勋的愿景是：每个行业都需要自己的``AI 工厂''——
+金融、医疗、制造、交通等行业
+都将建立专属的 AI 训练和推理基础设施，
+使用行业特定的数据训练行业特定的模型。
+这是 NVIDIA 的\textbf{最终商业目标}——
+不仅卖 GPU，而是成为每个行业
+AI 基础设施的``操作系统''。
+
+\textbf{2026 年各层的成熟度评估}：
+\begin{center}
+\small
+\begin{tabular}{lll}
+\hline
+\textbf{层级} & \textbf{NVIDIA 地位} & \textbf{竞争态势} \\
+\hline
+硅层 & 垄断性领先 & TPU/Trainium/昇腾追赶中 \\
+系统层 & 强领先 & 云厂商自建系统 \\
+基础模型层 & 工具提供者 & 开源框架主导 \\
+平台层 & 强但被侵蚀 & vLLM/SGLang 等开源替代 \\
+应用层 & 生态构建中 & 行业 know-how 决定 \\
+\hline
+\end{tabular}
+\end{center}
+
+这个五层框架揭示了一个重要趋势：
+\textbf{NVIDIA 的护城河从底层向上层递减}。
+在硅层和系统层，NVIDIA 的领先地位在短期内几乎不可撼动；
+但在平台层和应用层，开源社区和行业参与者
+正在构建不依赖 NVIDIA 生态的替代方案。
+这也解释了 NVIDIA 为何积极推进 NIM 等平台产品——
+它需要在上层建立新的``粘性''来维持整个生态的价值。
 
 \begin{keybox}[国产算力的战略意义]
 美国半导体出口管制的有效性正在被侵蚀。
@@ -1844,4 +3226,4 @@ GLM-5 在 100,000 块 910B 上的成功训练
 % NEW REF: aynetdinov2025mtp = Pre-Training Curriculum for Multi-Token Prediction in Language Models, Aynetdinov & Akbik, ACL 2025
 % NEW REF: glm5_2026 = GLM-5 Technical Report, Zhipu AI, 2026
 % NEW REF: glmimage_2026 = GLM-Image: First SOTA Multimodal Model on Domestic Chips, Zhipu AI, 2026
-% NEW REF: megatron_core_moe_2026 = NVIDIA Megatron Core MoE: Full-Stack System Co-Design for MoE Training, NVIDIA, arXiv:2603.07685, 2026
+% NEW REF: yan2026megatronmoe = NVIDIA Megatron Core MoE: Full-Stack System Co-Design for MoE Training, NVIDIA, arXiv:2603.07685, 2026
