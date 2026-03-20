@@ -2022,9 +2022,9 @@ Anthropic CEO Dario Amodei 在
     -- (-45:{\frac*\R})  -- (-90:{\frac*\R})  -- (-135:{\frac*\R})
     -- (180:{\frac*\R})  -- (135:{\frac*\R})  -- cycle;
 }
-% Percentage labels along 90-degree axis
+% Percentage labels along 90-degree axis (left of axis to avoid overlap with labels)
 \foreach \frac/\pct in {0.25/25, 0.50/50, 0.75/75, 1.0/100} {
-  \node[font=\tiny, figGray!60, anchor=south west] at (90:{\frac*\R}) {\pct\%};
+  \node[font=\tiny, figGray!60, anchor=south east] at ([xshift=-1pt]90:{\frac*\R}) {\pct\%};
 }
 
 % --- Radial axes ---
@@ -2032,12 +2032,12 @@ Anthropic CEO Dario Amodei 在
   \draw[figGray!30, line width=0.3pt] (0,0) -- (\ang:\R);
 }
 
-% --- 2024 polygon (behind, dashed, gray) ---
-\fill[figGray!8, fill opacity=0.6]
+% --- 2024 polygon (behind, dashed, gray — darker for visibility) ---
+\fill[figGray!18, fill opacity=0.7]
   (90:{0.50*\R}) -- (45:{0.38*\R}) -- (0:{0.25*\R})
   -- (-45:{0.63*\R}) -- (-90:{0.25*\R}) -- (-135:{0.13*\R})
   -- (180:{0.38*\R}) -- (135:{0.50*\R}) -- cycle;
-\draw[figGray!60, line width=0.6pt, dashed]
+\draw[figGray!80, line width=0.7pt, dashed]
   (90:{0.50*\R}) -- (45:{0.38*\R}) -- (0:{0.25*\R})
   -- (-45:{0.63*\R}) -- (-90:{0.25*\R}) -- (-135:{0.13*\R})
   -- (180:{0.38*\R}) -- (135:{0.50*\R}) -- cycle;

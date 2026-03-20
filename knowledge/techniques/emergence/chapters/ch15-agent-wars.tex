@@ -1668,102 +1668,69 @@ Claude Code 的权限系统（allow/deny 规则）
 \begin{tikzpicture}[
   >={Stealth[length=2.5pt,width=2.5pt]},
   every node/.style={font=\small},
+  layer/.style={
+    rectangle, rounded corners=4pt,
+    minimum width=110mm, minimum height=16mm,
+    line width=0.7pt, inner sep=5pt,
+  },
 ]
 
 % --- Helper dimensions ---
-\def\LW{108mm}   % layer width
-\def\LH{14mm}    % layer height
-\def\GAP{2.0mm}  % gap between layers
+\def\GAP{3.5mm}  % gap between layers
 
-% --- Layer style (graduated fills: darker at bottom, lighter at top) ---
-% Layer 5 (bottom): Memory - darkest
-\node[
-  rectangle, rounded corners=4pt,
-  draw=figGray!40, fill=figGray!10,
-  minimum width=\LW, minimum height=\LH,
-  line width=0.6pt, inner sep=4pt,
-] (L5) at (0, 0) {};
-\node[font=\small\bfseries, figGray, anchor=west] at ([xshift=4mm]L5.west)
+% Layer 5 (bottom): Memory
+\node[layer, draw=figGray!50, fill=figGray!12] (L5) at (0, 0) {};
+\node[font=\small\bfseries, figGray, anchor=west] at ([xshift=5mm]L5.west)
   {记忆层};
-\node[font=\scriptsize, figGray!70, anchor=east] at ([xshift=-4mm]L5.east)
+\node[font=\scriptsize, figGray!80, anchor=east] at ([xshift=-5mm]L5.east)
   {上下文窗口 · 向量 DB · 执行轨迹};
 
 % Layer 4: Tools
-\node[
-  rectangle, rounded corners=4pt,
-  draw=figGreen!40, fill=figGreen!8,
-  minimum width=\LW, minimum height=\LH,
-  line width=0.6pt, inner sep=4pt,
-  above=\GAP of L5,
-] (L4) {};
-\node[font=\small\bfseries, figGreen!80, anchor=west] at ([xshift=4mm]L4.west)
+\node[layer, draw=figGreen!50, fill=figGreen!10, above=\GAP of L5] (L4) {};
+\node[font=\small\bfseries, figGreen!85, anchor=west] at ([xshift=5mm]L4.west)
   {工具层};
-\node[font=\scriptsize, figGreen!60, anchor=east] at ([xshift=-4mm]L4.east)
+\node[font=\scriptsize, figGreen!70, anchor=east] at ([xshift=-5mm]L4.east)
   {\textbf{MCP} · Function Calling · Code Exec};
 
 % Layer 3: Reasoning
-\node[
-  rectangle, rounded corners=4pt,
-  draw=figRed!40, fill=figRed!8,
-  minimum width=\LW, minimum height=\LH,
-  line width=0.6pt, inner sep=4pt,
-  above=\GAP of L4,
-] (L3) {};
-\node[font=\small\bfseries, figRed!80, anchor=west] at ([xshift=4mm]L3.west)
+\node[layer, draw=figRed!50, fill=figRed!10, above=\GAP of L4] (L3) {};
+\node[font=\small\bfseries, figRed!85, anchor=west] at ([xshift=5mm]L3.west)
   {推理层};
-\node[font=\scriptsize, figRed!60, anchor=east] at ([xshift=-4mm]L3.east)
+\node[font=\scriptsize, figRed!70, anchor=east] at ([xshift=-5mm]L3.east)
   {LLM · \textbf{Extended Thinking} · ReAct};
 
 % Layer 2: Orchestration
-\node[
-  rectangle, rounded corners=4pt,
-  draw=figOrange!40, fill=figOrange!8,
-  minimum width=\LW, minimum height=\LH,
-  line width=0.6pt, inner sep=4pt,
-  above=\GAP of L3,
-] (L2) {};
-\node[font=\small\bfseries, figOrange!80, anchor=west] at ([xshift=4mm]L2.west)
+\node[layer, draw=figOrange!50, fill=figOrange!10, above=\GAP of L3] (L2) {};
+\node[font=\small\bfseries, figOrange!85, anchor=west] at ([xshift=5mm]L2.west)
   {编排层};
-\node[font=\scriptsize, figOrange!60, anchor=east] at ([xshift=-4mm]L2.east)
+\node[font=\scriptsize, figOrange!70, anchor=east] at ([xshift=-5mm]L2.east)
   {\textbf{Agent SDK} · Handoffs · 任务分解};
 
-% Layer 1 (top): Human Interface - lightest
-\node[
-  rectangle, rounded corners=4pt,
-  draw=figBlue!40, fill=figBlue!8,
-  minimum width=\LW, minimum height=\LH,
-  line width=0.6pt, inner sep=4pt,
-  above=\GAP of L2,
-] (L1) {};
-\node[font=\small\bfseries, figBlue!80, anchor=west] at ([xshift=4mm]L1.west)
+% Layer 1 (top): Human Interface
+\node[layer, draw=figBlue!50, fill=figBlue!10, above=\GAP of L2] (L1) {};
+\node[font=\small\bfseries, figBlue!85, anchor=west] at ([xshift=5mm]L1.west)
   {人类交互层};
-\node[font=\scriptsize, figBlue!60, anchor=east] at ([xshift=-4mm]L1.east)
+\node[font=\scriptsize, figBlue!70, anchor=east] at ([xshift=-5mm]L1.east)
   {自然语言 · 审批确认 · 反馈};
 
-% --- Inter-layer arrows (downward flow) ---
+% --- Inter-layer arrows (downward flow, more visible) ---
 \foreach \upper/\lower in {L1/L2, L2/L3, L3/L4, L4/L5} {
-  \draw[->, line width=0.5pt, figGray!50]
+  \draw[->, line width=0.7pt, figGray!60]
     (\upper.south) -- (\lower.north);
 }
 
-% --- Bidirectional feedback arrow on the right ---
-\coordinate (fbTop) at ([xshift=2mm]L1.east);
-\coordinate (fbBot) at ([xshift=2mm]L5.east);
-\draw[<->, line width=0.5pt, figBlue!40, dashed]
-  ([xshift=6mm]fbBot) -- ([xshift=6mm]fbTop);
-\path (fbBot) -- (fbTop) coordinate[midway] (fbMid);
-\node[font=\tiny, figBlue!50, rotate=90, anchor=south]
-  at ([xshift=8mm]fbMid) {反馈循环};
-
-% --- Side gradient labels ---
-\path (L5.south west) -- (L1.north west) coordinate[midway] (midL);
-\path (L5.south east) -- (L1.north east) coordinate[midway] (midR);
+% --- Bidirectional feedback arrow on the right (clean) ---
+\draw[<->, line width=0.6pt, figGray!45, dashed]
+  ([xshift=8mm]L5.east) -- ([xshift=8mm]L1.east);
+\path ([xshift=8mm]L5.east) -- ([xshift=8mm]L1.east) coordinate[midway] (fbMid);
 \node[font=\tiny, figGray!60, rotate=90, anchor=south]
-  at ([xshift=-6mm]midL)
+  at ([xshift=2mm]fbMid) {反馈循环};
+
+% --- Side gradient label (left only, clean) ---
+\path (L5.south west) -- (L1.north west) coordinate[midway] (midL);
+\node[font=\tiny, figGray!70, rotate=90, anchor=south]
+  at ([xshift=-7mm]midL)
   {自主性递增 $\longrightarrow$};
-\node[font=\tiny, figGray!60, rotate=-90, anchor=south]
-  at ([xshift=12mm]midR)
-  {$\longleftarrow$ 控制性递增};
 
 \end{tikzpicture}
 \caption{Agent 系统的五层架构。

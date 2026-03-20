@@ -351,61 +351,50 @@ Gemini 3.1 Pro、Qwen 3.5。
 \node[cat=figGreen]  (safe)   at (2.8, -1.6)  {安全};
 \node[cat=figBlue]   (agent)  at (5.6, -1.6)  {Agent};
 
-% Connections root -> categories
-\foreach \cat in {know, reason, code, safe, agent} {
-  \draw[conn] (root.south) -- (\cat.north);
-}
-
 % --- Leaf benchmarks as pills ---
 % Knowledge (saturated - figRed)
 \node[pill=figRed] (mmlu)    at (-6.4, -3.0) {MMLU};
 \node[pill=figRed] (mmlup)   at (-6.4, -3.7) {MMLU-Pro};
 \node[pill=figRed] (arc)     at (-4.8, -3.0) {ARC};
 \node[pill=figRed] (gpqa)    at (-4.8, -3.7) {GPQA};
-\draw[conn] (know.south) -- (mmlu.north);
-\draw[conn] (know.south) -- (mmlup.north);
-\draw[conn] (know.south) -- (arc.north);
-\draw[conn] (know.south) -- (gpqa.north);
 
 % Reasoning (near-saturated - figOrange)
 \node[pill=figOrange] (gsm)   at (-3.6, -3.0) {GSM8K};
 \node[pill=figOrange] (math)  at (-3.6, -3.7) {MATH};
 \node[pill=figOrange] (aime)  at (-2.0, -3.0) {AIME};
 \node[pill=figOrange] (fmath) at (-2.0, -3.7) {FrontierMath};
-\draw[conn] (reason.south) -- (gsm.north);
-\draw[conn] (reason.south) -- (math.north);
-\draw[conn] (reason.south) -- (aime.north);
-\draw[conn] (reason.south) -- (fmath.north);
 
 % Code (discriminative - figGreen)
 \node[pill=figGreen] (heval) at (-0.8, -3.0) {HumanEval};
 \node[pill=figGreen] (mbpp)  at (-0.8, -3.7) {MBPP};
 \node[pill=figGreen] (swe)   at (0.8, -3.0)  {SWE-bench};
 \node[pill=figGreen] (lcb)   at (0.8, -3.7)  {LiveCodeBench};
-\draw[conn] (code.south) -- (heval.north);
-\draw[conn] (code.south) -- (mbpp.north);
-\draw[conn] (code.south) -- (swe.north);
-\draw[conn] (code.south) -- (lcb.north);
 
 % Safety (evolving - figGreen)
 \node[pill=figGreen] (tqa)  at (2.0, -3.0) {TruthfulQA};
 \node[pill=figGreen] (bbq)  at (2.0, -3.7) {BBQ};
 \node[pill=figGreen] (harm) at (3.6, -3.0) {HarmBench};
 \node[pill=figGreen] (advb) at (3.6, -3.7) {AdvBench};
-\draw[conn] (safe.south) -- (tqa.north);
-\draw[conn] (safe.south) -- (bbq.north);
-\draw[conn] (safe.south) -- (harm.north);
-\draw[conn] (safe.south) -- (advb.north);
 
 % Agent (emerging - figBlue)
 \node[pill=figBlue] (weba) at (4.8, -3.0) {WebArena};
 \node[pill=figBlue] (osw)  at (4.8, -3.7) {OSWorld};
 \node[pill=figBlue] (bfcl) at (6.4, -3.0) {BFCL};
 \node[pill=figBlue] (tbch) at (6.4, -3.7) {ToolBench};
-\draw[conn] (agent.south) -- (weba.north);
-\draw[conn] (agent.south) -- (osw.north);
-\draw[conn] (agent.south) -- (bfcl.north);
-\draw[conn] (agent.south) -- (tbch.north);
+
+% --- All connection lines on background layer (behind nodes) ---
+\begin{scope}[on background layer]
+  % Root -> categories
+  \foreach \cat in {know, reason, code, safe, agent} {
+    \draw[conn] (root.south) -- (\cat.north);
+  }
+  % Categories -> pills
+  \foreach \p in {mmlu, mmlup, arc, gpqa} { \draw[conn] (know.south) -- (\p.north); }
+  \foreach \p in {gsm, math, aime, fmath} { \draw[conn] (reason.south) -- (\p.north); }
+  \foreach \p in {heval, mbpp, swe, lcb} { \draw[conn] (code.south) -- (\p.north); }
+  \foreach \p in {tqa, bbq, harm, advb} { \draw[conn] (safe.south) -- (\p.north); }
+  \foreach \p in {weba, osw, bfcl, tbch} { \draw[conn] (agent.south) -- (\p.north); }
+\end{scope}
 
 % --- Saturation status labels (white fill to avoid overlap with connection lines) ---
 \node[font=\tiny, figRed, anchor=north, fill=white, inner sep=1pt, rounded corners=0.5pt]

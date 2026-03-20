@@ -220,7 +220,7 @@ Snell et al.\ 的一个惊人发现是\textbf{计算等价性}：
 ]
 % Axes
 \draw[->, thick] (0, 0) -- (10.5, 0) node[right] {推理计算量 ($\times$ 基线)};
-\draw[->, thick] (0, 0) -- (0, 6.5) node[above] {准确率 (\%)};
+\draw[->, thick] (0, 0) -- (0, 7.2) node[above] {准确率 (\%)};
 
 % Axis labels (log2 scale: 2 units per doubling)
 \foreach \x/\lab in {0/1, 2/2, 4/4, 6/8, 8/16, 10/32} {
@@ -246,9 +246,9 @@ Snell et al.\ 的一个惊人发现是\textbf{计算等价性}：
 \node[figRed, right] at (10.1, 2.8) {极难题};
 
 % Annotation: sweet spot (4x--16x range)
-\draw[dashed, figGray] (4, 0) -- (4, 6);
-\draw[dashed, figGray] (8, 0) -- (8, 6);
-\node[figGray, font=\footnotesize, align=center] at (6, 6.2)
+\draw[dashed, figGray] (4, 0) -- (4, 6.3);
+\draw[dashed, figGray] (8, 0) -- (8, 6.3);
+\node[figGray, font=\footnotesize, align=center, fill=white, inner sep=2pt] at (6, 6.8)
   {“甜蜜区间”：\\中等题获益最大};
 
 % Annotation: diminishing returns

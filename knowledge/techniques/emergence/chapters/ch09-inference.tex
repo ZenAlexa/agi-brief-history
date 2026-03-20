@@ -899,44 +899,77 @@ PagedAttention 相比连续 KV cache 的注意力计算开销
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}[
-  block/.style={draw, minimum width=12mm, minimum height=8mm, font=\small},
-  physblock/.style={block, fill=figLightGray},
-  reqA/.style={block, fill=figBlue!20},
-  reqB/.style={block, fill=figRed!20},
-  shared/.style={block, fill=figGreen!20},
-  label/.style={font=\small\bfseries},
-  >=Latex
+  >=Stealth,
+  block/.style={draw, rounded corners=1.5pt, minimum width=14mm,
+    minimum height=10mm, font=\small, align=center, line width=0.6pt},
+  reqA/.style={block, fill=figBlue!12, draw=figBlue!40},
+  reqB/.style={block, fill=figRed!12, draw=figRed!40},
+  shared/.style={block, fill=figGreen!12, draw=figGreen!40},
+  free/.style={block, fill=white, draw=figGray!30, text=figGray!50},
+  ptentry/.style={block, minimum width=13mm, minimum height=8mm, font=\scriptsize},
+  lab/.style={font=\small\bfseries},
+  arr/.style={-{Stealth[length=2pt,width=2pt]}, line width=0.5pt},
 ]
-% Physical memory blocks
-\node[label] at (-1.5, 3.2) {GPU 显存（物理页）};
-\foreach \i/\c in {0/shared, 1/reqA, 2/reqB, 3/shared, 4/reqA, 5/reqB, 6/physblock, 7/physblock} {
-  \node[\c] (p\i) at ({mod(\i,4)*1.5}, {3 - floor(\i/4)*1.2}) {P\i};
-}
 
-% Page table for Request A
-\node[label, text=figBlue] at (-1.5, 0.2) {请求 A 页表};
-\node[reqA] (a0) at (0, 0.2) {→P0};
-\node[reqA] (a1) at (1.5, 0.2) {→P3};
-\node[reqA] (a2) at (3.0, 0.2) {→P1};
-\node[reqA] (a3) at (4.5, 0.2) {→P4};
+% === Physical memory header ===
+\node[lab, anchor=south west] at (-0.5, 4.8) {GPU 显存（物理页）};
 
-% Page table for Request B
-\node[label, text=figRed] at (-1.5, -0.8) {请求 B 页表};
-\node[reqB] (b0) at (0, -0.8) {→P0};
-\node[reqB] (b1) at (1.5, -0.8) {→P3};
-\node[reqB] (b2) at (3.0, -0.8) {→P2};
-\node[reqB] (b3) at (4.5, -0.8) {→P5};
+% === Physical memory: Row 1 (P0--P3) ===
+\node[shared] (p0) at (0, 3.8) {P0};
+\node[reqA]   (p1) at (1.8, 3.8) {P1};
+\node[reqB]   (p2) at (3.6, 3.8) {P2};
+\node[shared] (p3) at (5.4, 3.8) {P3};
 
-% COW annotation
-\draw[->, thick, figGreen] (a0.north) to[out=90,in=-90] (p0.south);
-\draw[->, thick, figGreen] (b0.north) to[out=90,in=-90] (p0.south);
-\node[font=\footnotesize, text=figGreen, align=center] at (6.2, 0.2)
-  {共享前缀\\(Copy-on-Write)};
+% === Physical memory: Row 2 (P4--P7) ===
+\node[reqA]   (p4) at (0, 2.5) {P4};
+\node[reqB]   (p5) at (1.8, 2.5) {P5};
+\node[free]   (p6) at (3.6, 2.5) {P6};
+\node[free]   (p7) at (5.4, 2.5) {P7};
 
-% Free blocks annotation (offset to avoid overlap with P7)
-\node[font=\footnotesize, text=figGray] at (6.0, 2.4) {空闲};
-\draw[->, thin, figGray] (5.8, 2.2) -- (p6.north east);
-\draw[->, thin, figGray] (5.8, 2.2) -- (p7.north east);
+% === Free label ===
+\node[font=\scriptsize, text=figGray!70] at (7.0, 2.5) {空闲};
+\draw[->, thin, figGray!50] (6.5, 2.5) -- (p7.east);
+
+% === Separator ===
+\draw[figGray!20, line width=0.4pt] (-1.0, 1.8) -- (7.5, 1.8);
+
+% === Page table: Request A ===
+\node[lab, text=figBlue, anchor=east] at (-0.5, 1.0) {请求 A};
+\node[ptentry, reqA] (a0) at (0.5, 1.0) {→P0};
+\node[ptentry, reqA] (a1) at (2.0, 1.0) {→P3};
+\node[ptentry, reqA] (a2) at (3.5, 1.0) {→P1};
+\node[ptentry, reqA] (a3) at (5.0, 1.0) {→P4};
+
+% === Page table: Request B ===
+\node[lab, text=figRed, anchor=east] at (-0.5, -0.1) {请求 B};
+\node[ptentry, reqB] (b0) at (0.5, -0.1) {→P0};
+\node[ptentry, reqB] (b1) at (2.0, -0.1) {→P3};
+\node[ptentry, reqB] (b2) at (3.5, -0.1) {→P2};
+\node[ptentry, reqB] (b3) at (5.0, -0.1) {→P5};
+
+% === Shared prefix highlight (background) ===
+\begin{scope}[on background layer]
+  \fill[figGreen!5, rounded corners=2pt]
+    ([xshift=-3mm, yshift=3mm]a0.north west) rectangle
+    ([xshift=3mm, yshift=-3mm]a1.south east);
+  \fill[figGreen!5, rounded corners=2pt]
+    ([xshift=-3mm, yshift=3mm]b0.north west) rectangle
+    ([xshift=3mm, yshift=-3mm]b1.south east);
+\end{scope}
+
+% === Arrows: shared entries -> shared physical pages ===
+\draw[arr, figGreen!70] (a0.north) -- ++(0, 0.35) -| (p0.south);
+\draw[arr, figGreen!70] (a1.north) -- ++(0, 0.35) -| (p3.south);
+\draw[arr, figGreen!70] (b0.north) -- ++(0, 0.2) -| ([xshift=2mm]p0.south);
+\draw[arr, figGreen!70] (b1.north) -- ++(0, 0.2) -| ([xshift=2mm]p3.south);
+
+% === COW annotation ===
+\node[font=\scriptsize, text=figGreen!80!black, align=center,
+      fill=white, inner sep=2pt, rounded corners=1pt]
+  at (7.0, 1.0) {共享前缀\\{\tiny (Copy-on-Write)}};
+\draw[figGreen!40, line width=0.4pt, dashed]
+  (6.2, 1.0) -- ([xshift=3mm]a1.east);
+
 \end{tikzpicture}
 \caption{PagedAttention 的虚拟内存布局示意。
 请求 A 和请求 B 共享前缀对应的物理页 P0 和 P3（COW），
