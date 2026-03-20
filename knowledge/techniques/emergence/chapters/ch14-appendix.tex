@@ -73,7 +73,7 @@ Parquet 格式用于存储（列式压缩，高效随机访问）。
         学习率、batch size、warmup steps 等，
         利用 Scaling Laws 推算到目标规模。
   \item \textbf{训练启动}：
-        分阶段训练——
+        分阶段训练：
         先用较短的上下文长度（如 4K）训练主体，
         后期扩展到长上下文（如 128K）。
   \item \textbf{持续监控}：
@@ -196,7 +196,7 @@ DPO/GRPO & Epochs & 1 epoch（过拟合风险高） \\
 上检查是否有能力退化（regression）。
 过度的后训练（特别是安全对齐）可能导致模型变得
 过度保守（over-refusal），
-在基础能力上反而变差——
+在基础能力上反而变差，
 这被称为 alignment tax。
 
 \section{阶段四：部署与推理优化（持续）}
@@ -263,9 +263,11 @@ Prefix caching（对于有共同 system prompt 的请求，
 
 \begin{table}[H]
 \centering\small
+\renewcommand{\arraystretch}{1.3}
 \caption{LLM 训练核心术语速查}
-\begin{tabularx}{\linewidth}{l X}
+\begin{tabularx}{\linewidth}{l >{\raggedright\arraybackslash}X}
 \toprule
+\rowcolor{figLightGray}
 \textbf{术语} & \textbf{定义} \\
 \midrule
 Attention &
@@ -333,28 +335,28 @@ ZeRO &
 以下是每个 LLM 从业者都应该阅读的核心文献：
 
 \begin{enumerate}[noitemsep]
-  \item \textbf{Attention Is All You Need}~\cite{vaswani2017attention}——
+  \item \textbf{Attention Is All You Need}~\cite{vaswani2017attention}，
         Transformer 架构的原始论文，
         奠定了整个现代 LLM 的基础。
-  \item \textbf{Scaling Laws for Neural Language Models}~\cite{kaplan2020scaling}——
+  \item \textbf{Scaling Laws for Neural Language Models}~\cite{kaplan2020scaling}，
         发现了模型性能与资源之间的幂律关系，
         改变了整个领域的资源分配策略。
-  \item \textbf{Training Compute-Optimal Large Language Models}~\cite{hoffmann2022chinchilla}——
+  \item \textbf{Training Compute-Optimal Large Language Models}~\cite{hoffmann2022chinchilla}，
         Chinchilla 论文，纠正了 Kaplan 的结论，
         表明数据量应与模型大小同步扩展。
   \item \textbf{LLaMA: Open and Efficient Foundation Language Models}~\cite{touvron2023llama}——
         证明了开源模型可以达到闭源水平，
         引爆了开源 LLM 生态。
-  \item \textbf{DeepSeek-V3 Technical Report}~\cite{deepseekv3}——
+  \item \textbf{DeepSeek-V3 Technical Report}~\cite{deepseekv3}，
         工程智慧的集大成之作，
         展示了如何用有限资源训练 frontier model。
   \item \textbf{DeepSeek-R1}~\cite{deepseekr1}——
         通过 RL 激发推理能力的典范，
         GRPO 的成功改变了后训练的方法论。
-  \item \textbf{FlashAttention}~\cite{dao2022flashattention}——
+  \item \textbf{FlashAttention}~\cite{dao2022flashattention}，
         IO-aware 的注意力计算，
         将算法优化与硬件特性深度结合。
-  \item \textbf{Direct Preference Optimization (DPO)}~\cite{rafailov2023dpo}——
+  \item \textbf{Direct Preference Optimization (DPO)}~\cite{rafailov2023dpo}，
         优雅地简化了 RLHF 流程，
         证明了简单方法可以替代复杂系统。
   \item \textbf{LoRA}~\cite{hu2021lora}——
