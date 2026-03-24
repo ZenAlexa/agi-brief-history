@@ -548,7 +548,7 @@ A2A 是“Agent-Agent”层（水平协作）。
 \begin{table}[H]
 \centering\small
 \renewcommand{\arraystretch}{1.3}
-\caption{三大 Agent SDK 架构对比（2026 年 3 月）}
+\caption{三大 Agent SDK 架构对比（2026 年 3 月）}\label{tab:agent-sdk-comparison}
 \begin{tabularx}{\linewidth}{l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
 \toprule
 \rowcolor{figLightGray}
@@ -1672,42 +1672,45 @@ Claude Code 的权限系统（allow/deny 规则）
     rectangle, rounded corners=4pt,
     minimum width=110mm, minimum height=16mm,
     line width=0.7pt, inner sep=5pt,
+    draw=#1!50, fill=#1!12,
   },
+  layer/.default=figGray,
+  arr/.style={->, >={Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt, figGray!60},
 ]
 
 % --- Helper dimensions ---
 \def\GAP{3.5mm}  % gap between layers
 
 % Layer 5 (bottom): Memory
-\node[layer, draw=figGray!50, fill=figGray!12] (L5) at (0, 0) {};
+\node[layer=figGray] (L5) at (0, 0) {};
 \node[font=\small\bfseries, figGray, anchor=west] at ([xshift=5mm]L5.west)
   {记忆层};
 \node[font=\scriptsize, figGray!80, anchor=east] at ([xshift=-5mm]L5.east)
   {上下文窗口 · 向量 DB · 执行轨迹};
 
 % Layer 4: Tools
-\node[layer, draw=figGreen!50, fill=figGreen!10, above=\GAP of L5] (L4) {};
+\node[layer=figGreen, above=\GAP of L5] (L4) {};
 \node[font=\small\bfseries, figGreen!85, anchor=west] at ([xshift=5mm]L4.west)
   {工具层};
 \node[font=\scriptsize, figGreen!70, anchor=east] at ([xshift=-5mm]L4.east)
   {\textbf{MCP} · Function Calling · Code Exec};
 
 % Layer 3: Reasoning
-\node[layer, draw=figRed!50, fill=figRed!10, above=\GAP of L4] (L3) {};
+\node[layer=figRed, above=\GAP of L4] (L3) {};
 \node[font=\small\bfseries, figRed!85, anchor=west] at ([xshift=5mm]L3.west)
   {推理层};
 \node[font=\scriptsize, figRed!70, anchor=east] at ([xshift=-5mm]L3.east)
   {LLM · \textbf{Extended Thinking} · ReAct};
 
 % Layer 2: Orchestration
-\node[layer, draw=figOrange!50, fill=figOrange!10, above=\GAP of L3] (L2) {};
+\node[layer=figOrange, above=\GAP of L3] (L2) {};
 \node[font=\small\bfseries, figOrange!85, anchor=west] at ([xshift=5mm]L2.west)
   {编排层};
 \node[font=\scriptsize, figOrange!70, anchor=east] at ([xshift=-5mm]L2.east)
   {\textbf{Agent SDK} · Handoffs · 任务分解};
 
 % Layer 1 (top): Human Interface
-\node[layer, draw=figBlue!50, fill=figBlue!10, above=\GAP of L2] (L1) {};
+\node[layer=figBlue, above=\GAP of L2] (L1) {};
 \node[font=\small\bfseries, figBlue!85, anchor=west] at ([xshift=5mm]L1.west)
   {人类交互层};
 \node[font=\scriptsize, figBlue!70, anchor=east] at ([xshift=-5mm]L1.east)
@@ -1715,8 +1718,7 @@ Claude Code 的权限系统（allow/deny 规则）
 
 % --- Inter-layer arrows (downward flow, more visible) ---
 \foreach \upper/\lower in {L1/L2, L2/L3, L3/L4, L4/L5} {
-  \draw[->, line width=0.7pt, figGray!60]
-    (\upper.south) -- (\lower.north);
+  \draw[arr] (\upper.south) -- (\lower.north);
 }
 
 % --- Bidirectional feedback arrow on the right (clean) ---

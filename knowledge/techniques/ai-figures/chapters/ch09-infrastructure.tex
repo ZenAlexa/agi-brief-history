@@ -1,0 +1,1666 @@
+% ch09-infrastructure.tex — Chapter 9: Chip & Infrastructure Titans
+% Book: AI Figures — Who's Who in the Age of AI
+% Series: LLM Observatory
+
+\chapter{The Arms Dealers: Chip and Infrastructure Titans}
+\label{ch:infrastructure}
+
+2024 年 6 月，NVIDIA 市值突破 3 万亿美元，一度超越微软和苹果，
+成为全球最有价值的上市公司。这一刻的意义远超一个数字——
+它宣告了一个新时代的到来：
+\textbf{算力成为 AI 时代最稀缺、最关键的战略资源}，
+而掌握算力供给的人，成为这场革命中最具权力的角色。
+
+如果说前几章介绍的研究者和创业者是 AI 时代的``将军''，
+那么本章的主角们就是``军火商''——
+他们设计芯片、建造数据中心、铺设网络、
+提供云服务，构建了整个 AI 革命赖以运转的物理基础设施。
+没有他们，再天才的算法也不过是纸上的数学公式。
+
+这一章的人物谱系横跨四个层次：
+\textbf{芯片设计}（NVIDIA、AMD、Intel、TSMC 和一众创业公司）、
+\textbf{云基础设施}（微软 Azure、AWS、Google Cloud、Oracle）、
+\textbf{新型算力云}（CoreWeave、Lambda Labs、Together AI 等）、
+以及\textbf{网络与数据中心}（Broadcom、Arista Networks）。
+他们的故事交织在一起，共同绘制了一幅算力竞赛的全景图。
+
+\begin{corebox}[AI 基础设施：一场万亿美元的军备竞赛]
+截至 2026 年 3 月，AI 基础设施领域的关键数据：
+\begin{itemize}[noitemsep]
+  \item \textbf{NVIDIA} 数据中心 GPU 营收预计突破 \$1500 亿/年，
+        Jensen Huang 宣称至 2027 年订单总额达 \$1 万亿
+  \item \textbf{TSMC} 2025 年净利润创纪录达 \$320 亿，
+        AI 芯片相关产能占收入比例持续攀升
+  \item \textbf{微软}累计投资 OpenAI 超过 \$130 亿，
+        Azure AI 云收入同比增长超过 60\%
+  \item \textbf{Amazon} 向 Anthropic 投资 \$80 亿，
+        Project Rainier 部署近 50 万颗 Trainium2 芯片
+  \item \textbf{Broadcom} AI 芯片营收 2026 Q1 达 \$84 亿，
+        同比增长 106\%，CEO Hock Tan 预计 2027 年 AI 芯片收入超 \$1000 亿
+  \item \textbf{CoreWeave} 2025 年 IPO，营收 \$51.3 亿，
+        积压订单 \$668 亿
+\end{itemize}
+\end{corebox}
+
+% ================================================================
+\section{NVIDIA：AI 时代最重要的公司}
+\label{sec:nvidia}
+% ================================================================
+
+要理解 AI 革命的底层逻辑，有一个不可回避的事实：
+\textbf{全球超过 90\% 的 AI 训练和推理任务运行在 NVIDIA 的 GPU 上}。
+从 OpenAI 的 GPT-4o 到 Google 的 Gemini，
+从 Meta 的 Llama 到 Anthropic 的 Claude，
+几乎每一个改变世界的 AI 模型背后，
+都站着那个穿皮夹克的男人和他创造的计算帝国。
+
+% ----------------------------------------------------------------
+\subsection{Jensen Huang —— 皮夹克 CEO 与万亿帝国}
+\label{subsec:jensen-huang}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Jensen Huang（黄仁勋）]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1963 年 2 月 17 日，台湾台南 \\
+\textbf{教育} & 俄勒冈州立大学 (BS, EE)；斯坦福大学 (MS, EE, 1992) \\
+\textbf{职业} & AMD 工程师 $\to$ LSI Logic 芯片设计师 $\to$
+                NVIDIA 联合创始人、总裁兼 CEO (1993--至今) \\
+\textbf{成就} & 发明 GPU (1999)、推动 CUDA 生态、
+                引领 NVIDIA 成为全球市值最高公司 \\
+\textbf{净资产} & \$1641 亿 (Forbes, 2026 年 1 月)，全球第 7 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+Jensen Huang（黄仁勋）的人生轨迹如同一部充满不可能转折的史诗。
+1963 年出生于台湾台南，父亲是化学工程师。
+9 岁时因家庭原因被送往美国，
+父母本意是让他和哥哥到华盛顿的亲戚家接受更好的教育，
+但由于沟通失误，兄弟俩被送进了肯塔基州 Oneida 的一所乡村寄宿学校——
+\textbf{Oneida Baptist Institute}，
+一所位于阿巴拉契亚山区的教会学校。
+那里的室友们身上带着刀，课外活动是打扫厕所和干农活。
+作为学校里为数不多的亚裔孩子，Huang 兄弟俩经历了文化冲击和孤独，
+但也学会了在任何环境中生存的能力。
+这段经历锻造了 Huang 日后标志性的韧性。
+他后来回忆道：``那是我人生中最好的经历之一——
+它教会我适应任何环境。''
+
+\begin{corebox}[从乒乓球少年到 Denny's 打工仔：Jensen Huang 的美国早年]
+在 Oneida Baptist Institute 期间，Huang 展现了运动天赋——
+他成为了一名出色的乒乓球选手，
+曾排名全美青少年组第三名（另一个版本是``前十名''）。
+家人团聚后搬到俄勒冈州，他进入俄勒冈州立大学（Oregon State University）
+学习电气工程。在大学期间，
+他在一家 \textbf{Denny's 餐厅}打工做服务员和清洁工——
+``每天最重要的任务是把桌子擦干净。
+这份工作教会了我：没有任何任务小到不值得做好。''
+也正是在俄勒冈州立大学，
+Huang 遇到了他未来的妻子 \textbf{Lori Mills}——
+两人于 1984 年结婚，至今已超过 40 年。
+他后来将自己的成功归功于大学时期的早婚：
+``Lori 是我的第一个也是唯一的女朋友。
+我没有浪费时间约会，而是把所有精力都放在了学习和工作上。''
+\end{corebox}
+
+从俄勒冈州立大学获得电气工程学士后，
+Huang 的第一份工作是在 AMD 担任微处理器设计工程师，
+在那里他学到了芯片设计的核心技艺。
+随后他转入 LSI Logic 从事图形芯片设计，
+并在斯坦福大学完成了电气工程硕士学位（1992 年）。
+从斯坦福毕业时，Huang 年仅 29 岁，
+但已经积累了近十年的芯片行业经验。
+
+\begin{whybox}[为什么 NVIDIA 诞生在 Denny's 餐厅？]
+1993 年，Jensen Huang 与两位 Sun Microsystems 工程师——
+Chris Malachowsky 和 Curtis Priem——
+在加州 San Jose 的一家 Denny's 餐厅里创立了 NVIDIA。
+三人的核心判断是：随着计算机图形从专业工作站向消费者市场下沉，
+需要一种全新的处理器架构来加速 3D 图形渲染。
+Denny's 的选择并非浪漫——它只是距离三人住所最近的、
+营业到深夜、且提供免费续杯咖啡的地方。
+但这个选择后来成为硅谷创业文化的标志性故事之一。
+\end{whybox}
+
+NVIDIA 的早期并不顺利。第一款产品 NV1（1995 年）
+采用了非主流的四边形渲染技术，与微软 Direct3D 的三角形标准不兼容，
+几乎让公司倒闭。Huang 做出了一个痛苦但正确的决定：
+\textbf{承认错误，放弃 NV1 架构，全面转向三角形渲染}。
+这次``认知急转弯''拯救了 NVIDIA，
+也奠定了 Huang 的管理哲学——``intellectual honesty''（知性诚实），
+即永远直面残酷现实，绝不自欺欺人。
+
+1999 年，NVIDIA 推出 GeForce 256，
+首次将其命名为``Graphics Processing Unit''——GPU。
+这个命名行为本身就是一种品类创造的天才之举：
+在此之前，市场上有数十家做图形加速卡的公司，
+但没有人拥有``GPU''这个品类。
+从此，GPU 不再只是显卡上的一颗芯片，
+而是一个与 CPU 平行的全新计算品类。
+
+真正改变一切的转折发生在 2006--2007 年：
+Ian Buck 团队在 Huang 的支持下推出了 CUDA。
+CUDA 让 GPU 不仅能画图，还能做通用并行计算——
+但在头五年里，几乎没人在意这件事。
+直到 2012 年的 AlexNet 时刻：
+Alex Krizhevsky 使用两块 NVIDIA GTX 580 GPU 训练的卷积神经网络
+在 ImageNet 竞赛中以碾压性优势夺冠，
+深度学习从学术边缘一跃成为主流。
+而 GPU + CUDA 是使这一切成为可能的唯一硬件平台。
+
+从那以后，Huang 做出了公司历史上最大的战略赌注：
+\textbf{全面转向 AI 和数据中心计算}。
+他将游戏 GPU 的利润全部投入到数据中心产品线、
+CUDA 软件生态和 AI 研究合作中。
+这个赌注的回报是指数级的：
+NVIDIA 数据中心营收从 2019 年的 \$30 亿飙升到 2025 年的超过 \$1150 亿。
+
+2026 年 3 月 GTC 大会上，
+Huang 以他标志性的皮夹克和激情四射的演讲风格登台，
+宣布了 Vera Rubin 平台（集成 HBM4 的下一代 GPU 架构）、
+与 Groq 合作的 LPX 推理系统，
+以及他的最新预测：
+\textbf{至 2027 年，Blackwell 和 Vera Rubin 系统的订单总额将达到 1 万亿美元}。
+
+\begin{corebox}[Jensen Huang 的管理哲学：三条核心原则]
+\begin{enumerate}[noitemsep]
+  \item \textbf{Intellectual honesty}（知性诚实）：
+        残酷面对现实，承认错误比坚持错误更有价值。
+        NV1 的失败教会了 NVIDIA 永远准备``杀死自己的产品''。
+  \item \textbf{Light speed}（光速执行）：
+        公司文化强调极致的执行速度，Huang 以每天发送数百封邮件、
+        直接跳过层级与工程师沟通著称。NVIDIA 的组织结构极为扁平——
+        超过 32,000 名员工，但 Huang 仍然只有约 60 个直接汇报人。
+  \item \textbf{Mission-driven}（使命驱动）：
+        ``我们的使命是解决普通计算机无法解决的问题''——
+        这一使命从图形渲染延伸到 AI、科学计算和机器人，
+        但核心逻辑从未改变：\textbf{加速计算}。
+\end{enumerate}
+\end{corebox}
+
+\begin{whybox}[``AI 的 CEO''：Jensen Huang 如何成为一个文化符号？]
+在 AI 时代，Jensen Huang 已经超越了``CEO''的角色，
+成为一个\textbf{文化符号}。
+他标志性的黑色皮夹克（leather jacket）——
+据说他拥有``同一款式的无数件''——已经成为技术领导力的视觉代名词。
+每年的 GTC（GPU Technology Conference）大会上，
+他长达 2--3 小时的独角戏式 Keynote 演讲
+被业界称为``AI 界的摇滚演唱会''：
+没有 PPT 替他讲话，没有联合演讲者分担压力，
+只有他一个人在台上用极具感染力的方式讲述 NVIDIA 的愿景。
+
+他的个人财富轨迹同样是一部 AI 时代的缩影：
+2019 年，Huang 的净资产约为 \$30 亿；
+到 2024 年 NVIDIA 市值突破 3 万亿美元时，
+他的身价飙升至超过 \$1000 亿，
+使他成为全球最富有的``工程师出身的 CEO''之一。
+2026 年 1 月，Forbes 估计其净资产为 \$1641 亿，全球排名第 7。
+然而，与许多科技富豪不同，
+Huang 从未创立任何副业、投资基金或个人品牌——
+他的唯一身份始终是 NVIDIA 的 CEO，一干就是 32 年。
+这种专注本身就是他最有力的品牌声明。
+
+Denny's 餐厅——NVIDIA 的诞生地——后来也成为了一个文化符号。
+2025 年，Denny's 推出了以 NVIDIA 命名的限时早餐套餐
+``NVIDIA Breakfast Bytes''，
+而 Huang 本人亲自为菜单录制了推荐语：
+``Denny's 永远是我的特别之处。
+这份早餐在我值夜班时给了我力量，
+最终也启发了 NVIDIA 在 Denny's 餐位上的诞生。''
+\end{whybox}
+
+一个常被忽略的细节：Jensen Huang 与 AMD CEO Lisa Su 是远房亲戚
+（两人的母亲是堂/表姐妹关系）。
+两位台湾出生、美国成长的工程师，
+分别执掌 AI 芯片市场的第一名和第二名公司，
+这在全球商业史上几乎找不到先例。
+
+% ----------------------------------------------------------------
+\subsection{Bill Dally —— NVIDIA 的科学大脑}
+\label{subsec:bill-dally}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Bill Dally]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1960 年 8 月 17 日 \\
+\textbf{教育} & Virginia Tech (BS)；斯坦福大学 (MS)；
+                Caltech (PhD, 计算机科学) \\
+\textbf{职业} & Bell Labs $\to$ MIT 教授 (1986--1997) $\to$
+                斯坦福大学计算机系主任 (1997--2009) $\to$
+                NVIDIA 首席科学家兼研究 SVP (2009--至今) \\
+\textbf{荣誉} & ACM Fellow, IEEE Fellow, Seymour Cray Award (2004),
+                Eckert--Mauchly Award (2010),
+                Queen Elizabeth Prize for Engineering (2025),
+                Benjamin Franklin Medal (2025) \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+如果说 Jensen Huang 是 NVIDIA 的战略灵魂，
+那么 Bill Dally 就是 NVIDIA 的科学大脑。
+作为并行计算和网络架构领域的顶级学者，
+Dally 在加入 NVIDIA 之前已经在 MIT 和斯坦福建立了不可动摇的学术声望。
+
+在 MIT 期间（1986--1997），
+Dally 和他的团队构建了 J-Machine 和 M-Machine——
+两个实验性并行计算系统，开创性地探索了机制与编程模型的分离、
+超低开销的同步和通信机制。
+这些工作为今天大规模 GPU 集群中的通信拓扑和路由技术奠定了理论基础。
+
+1997 年转入斯坦福后，Dally 担任了计算机系主任长达 12 年，
+期间他的团队开发的系统架构、网络架构、信号传输和同步技术
+已经被应用到几乎所有大型并行计算系统中。
+
+2009 年，Dally 做出了一个令学术界震惊的决定：
+离开斯坦福终身教授的职位，加入 NVIDIA 担任首席科学家。
+他的理由很直接：
+``在学术界，你可以影响少数研究生和论文读者；
+在 NVIDIA，你可以影响全世界每一个使用 GPU 的人。''
+自此，Dally 领导 NVIDIA 的研究团队在以下领域取得了突破：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{深度学习硬件优化}：
+        推动了混合精度训练（FP16/BF16）、稀疏性加速、
+        和 Tensor Core 的设计理念
+  \item \textbf{互联技术}：NVLink 和 NVSwitch 的底层架构设计，
+        使得多 GPU 系统的通信带宽达到 TB/s 级别
+  \item \textbf{编译器与运行时}：
+        指导 CUDA 编译器和运行时环境的持续演进，
+        保持 NVIDIA 在软件生态上的领先优势
+\end{itemize}
+
+2025 年，Dally 同时获得了 Queen Elizabeth Prize for Engineering
+和 Benjamin Franklin Medal——两项工程界最高荣誉，
+表彰他在并行计算和 GPU 计算领域的开创性贡献。
+
+% ----------------------------------------------------------------
+\subsection{Ian Buck —— CUDA 之父}
+\label{subsec:ian-buck}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Ian Buck]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{教育} & Princeton (BSE, 计算机科学, 1999, Summa Cum Laude)；
+                斯坦福大学 (PhD, 计算机科学)，导师 Pat Hanrahan \\
+\textbf{职业} & 斯坦福 BrookGPU 项目负责人 $\to$
+                NVIDIA (2004--至今)：CUDA 创建者 $\to$
+                VP \& GM, Accelerated Computing \\
+\textbf{成就} & 创建 CUDA 并行计算平台，
+                领导 NVIDIA 数据中心业务 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+在 AI 硬件的发展史上，有一个常被低估但至关重要的转折点：
+\textbf{GPU 从专用图形处理器变成通用并行计算平台}。
+而这个转折的关键推手就是 Ian Buck。
+
+在斯坦福攻读博士期间（导师是图灵奖得主 Pat Hanrahan），
+Buck 开发了 BrookGPU——一种类 C 语言的流计算编程环境，
+让程序员可以用高级语言在 GPU 上进行通用计算。
+Brook 是 GPU Computing 概念的学术起源，
+也是 CUDA 的直接前身。
+
+2004 年博士毕业后，Buck 加入 NVIDIA，
+并在 Huang 的支持下开始构建 CUDA
+（Compute Unified Device Architecture）。
+CUDA 于 2006--2007 年正式发布，
+提供了一套完整的编程模型、编译器、驱动和库，
+让任何具有 C/C++ 经验的开发者
+都能利用 GPU 的数千个并行核心进行计算。
+
+\begin{whybox}[为什么 CUDA 的``护城河''如此之深？]
+CUDA 的竞争优势不在于任何单一技术特性，
+而在于它创造了一个\textbf{自我强化的生态飞轮}：
+\begin{enumerate}[noitemsep]
+  \item 开发者用 CUDA 写代码 $\to$ 更多应用依赖 GPU
+  \item 更多应用 $\to$ GPU 销量增长 $\to$ NVIDIA 收入增加
+  \item 更多收入 $\to$ 更多研发投入到 CUDA 工具链
+  \item 更好的工具 $\to$ 吸引更多开发者
+\end{enumerate}
+经过 18 年的积累，CUDA 生态已拥有超过 500 万开发者、
+数百个优化库（cuDNN、NCCL、TensorRT 等）、
+以及与 PyTorch、TensorFlow 等主流框架的深度集成。
+任何竞争对手要复制这一生态，需要的不是更好的硬件，
+而是\textbf{时间}——而时间恰恰是他们最缺的资源。
+\end{whybox}
+
+Buck 从 CUDA 的创建者一路晋升为 NVIDIA Accelerated Computing
+业务部门的副总裁兼总经理，
+领导着公司年营收超过千亿美元的数据中心业务。
+他曾在美国国会就 AI 作证，
+也曾向白宫提供 AI 政策建议——
+从一个写编译器的研究生到影响国家 AI 战略的高管，
+Buck 的职业轨迹完美诠释了``技术即权力''。
+
+% ----------------------------------------------------------------
+\subsection{Bryan Catanzaro —— 说服 Jensen Huang 押注 AI 的人}
+\label{subsec:catanzaro}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Bryan Catanzaro]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 约 1982 年 \\
+\textbf{教育} & UC Berkeley (PhD, 电气工程与计算机科学) \\
+\textbf{职业} & Intel 实习 $\to$ Tabula 研究 $\to$
+                百度硅谷 AI 实验室高级研究员 $\to$
+                NVIDIA VP, Applied Deep Learning Research (2015--至今) \\
+\textbf{成就} & 推动 NVIDIA 全面拥抱深度学习，
+                领导 NVIDIA 自研 AI 模型团队（NeMo、Nemotron 系列） \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+如果说 Ian Buck 给了 NVIDIA 武器（CUDA），
+那么 Bryan Catanzaro 给了 NVIDIA 方向。
+
+Fast Company 在 2023 年的一篇深度报道中揭示了一个鲜为人知的故事：
+Catanzaro 在 NVIDIA 工作多年间一直试图说服同事们关注深度学习，
+但在公司内部几乎无人在意这个``看起来像炼金术''的领域。
+直到 2013 年，Jensen Huang 终于开始认真倾听 Catanzaro 的观点。
+Catanzaro 向 Huang 解释了为什么深度学习将彻底改变计算的未来，
+而 NVIDIA 的 GPU 恰好是运行这些算法的最佳平台。
+
+这次内部``传教''的成功改变了 NVIDIA 的命运。
+Huang 迅速调整公司战略，将深度学习从一个边缘研究项目
+提升为公司核心方向之一。
+
+在加入 NVIDIA 之前，Catanzaro 曾在百度硅谷 AI 实验室
+与 Andrew Ng 共事，专注于语音识别研究。
+这段经历让他深刻理解了工业级 AI 系统对硬件的需求，
+也为他后来在 NVIDIA 领导应用深度学习研究奠定了基础。
+
+作为 VP of Applied Deep Learning Research，
+Catanzaro 的团队负责将最前沿的深度学习技术转化为 NVIDIA 的产品创新，
+包括：图形渲染中的 AI（DLSS）、
+文本和音频的生成式 AI、
+以及 NVIDIA 自研的大语言模型系列（NeMo、Nemotron）。
+值得注意的是，NVIDIA 研究团队的约 50\% 资源投入在开源模型和数据集上，
+这使得 NVIDIA 不仅是一家硬件公司，
+更是 AI 开源生态的重要贡献者。
+
+% ================================================================
+\section{芯片挑战者：打破 NVIDIA 垄断的人们}
+\label{sec:chip-challengers}
+% ================================================================
+
+尽管 NVIDIA 的统治看似不可动摇，
+但 AI 计算市场的三个结构性裂缝
+正在为挑战者创造生存空间：
+训练与推理的架构需求分化、
+成本压力倒逼替代方案、
+以及供应链风险催生多元化需求。
+以下按组织分别介绍这些勇敢的挑战者们。
+
+% ----------------------------------------------------------------
+\subsection{Lisa Su —— 从废墟中重建 AMD 的女性 CEO}
+\label{subsec:lisa-su}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Lisa Su（苏姿丰）]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1969 年 11 月 7 日，台湾台南 \\
+\textbf{教育} & MIT (BS 1990, MS 1991, PhD 1994, 电气工程) \\
+\textbf{职业} & TI 工程师 $\to$ IBM 半导体研发副总裁 $\to$
+                Freescale CTO $\to$ AMD (2012 加入，2014 年起任 CEO) \\
+\textbf{成就} & 领导 AMD 史诗级逆袭，推出 Zen 架构、EPYC 服务器处理器、
+                Instinct AI 加速器；TIME 2024 年度最佳 CEO \\
+\textbf{净资产} & 约 \$11 亿 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+Lisa Su 的故事是商业史上最伟大的逆袭叙事之一。
+2014 年 10 月她出任 AMD CEO 时，
+公司背负 \$22 亿债务，股价跌至 \$2 以下，
+市场已基本判定 AMD 是一家``行将就木的芯片公司''。
+
+Su 出生于台湾台南——与 Jensen Huang 同一座城市，
+且两人有远亲关系（母亲辈为堂/表亲）。
+幼年随家人移民美国后，她在纽约布朗克斯长大。
+从小她就对``东西是怎么运作的''着迷——
+她回忆自己小时候会拆解遥控汽车和计算器，
+试图理解里面的电路板。
+她的父亲是一位前数学家（后转入商界），
+母亲是一位会计师，两人都极度重视教育。
+
+\begin{corebox}[MIT 的``速通''：四年三个学位]
+Su 的学术生涯令人瞠目。
+她 1986 年进入 MIT 攻读电气工程，
+到 1990 年获得学士学位时年仅 20 岁。
+但她没有停下——继续在 MIT 攻读硕士（1991）和博士（1994），
+师从著名半导体物理学家 \textbf{Dimitri Antoniadis}。
+她的博士研究方向是\textbf{绝缘体上硅（SOI）半导体制造技术}——
+一种通过在硅晶圆上加入绝缘层来提升晶体管性能的工艺。
+这项技术后来被 IBM 和 AMD 广泛采用。
+值得注意的是，Su 在 MIT 期间就选择了半导体``制造''而非``设计''方向——
+这一选择使她日后能从\textbf{制造工艺}的角度理解芯片公司的根本竞争力，
+这在以``设计''为主的芯片 CEO 群体中是罕见的优势。
+\end{corebox}
+
+博士毕业后，Su 在 \textbf{Texas Instruments} 短暂工作，
+然后加入 \textbf{IBM}，一待就是 13 年（1994--2007）。
+在 IBM，她从工程师一路升至半导体研发中心副总裁，
+主导了 SOI 技术的产业化应用，
+并参与了 IBM 与索尼、东芝合作开发 PlayStation 3 \textbf{Cell} 处理器的项目。
+2007 年，她跳槽到 \textbf{Freescale Semiconductor}（后被 NXP 收购）担任 CTO，
+负责公司的整体技术路线图。
+在 Freescale 的五年间，她积累了``从研发到产品''的全链条管理经验，
+这为她日后在 AMD 的角色做了完美的准备。
+
+\begin{whybox}[Lisa Su 的 AMD 拯救方案]
+Su 的逆袭战略可以浓缩为四个关键决策：
+\begin{enumerate}[noitemsep]
+  \item \textbf{押注 Zen 架构}：聘请传奇架构师 Jim Keller 设计全新
+        微架构，彻底告别失败的 Bulldozer 路线
+  \item \textbf{拥抱 chiplet}：率先采用小芯片（chiplet）设计，
+        用多颗小 die 拼接替代单颗大 die，
+        大幅降低制造成本和良率风险
+  \item \textbf{全频谱产品线}：同时攻打消费者 PC（Ryzen）、
+        服务器（EPYC）和 GPU（Radeon/Instinct）三个战场
+  \item \textbf{收购 Xilinx}：2022 年以 \$350 亿收购 Xilinx，
+        获得 FPGA 和自适应计算能力
+\end{enumerate}
+结果：AMD 股价从 2014 年的 \$2 涨至 2024 年峰值约 \$210，
+涨幅超过 100 倍，是标普 500 过去十年表现最佳的股票之一。
+\end{whybox}
+
+在 AI 加速器方面，Su 的策略是``跟随但差异化''。
+AMD 的 Instinct MI300X（2024 年推出）搭载 192\,GB HBM3 显存，
+在大模型推理的内存容量方面一度领先 NVIDIA H100。
+Microsoft、Meta 和 OpenAI 等重量级客户开始在部分工作负载中部署 MI300X。
+2025 年中，AMD 推出 MI350 系列，号称推理性能较前代提升 35 倍，
+搭配 288\,GB HBM3E 内存，获得了 Microsoft、Meta 和 OpenAI 的部署承诺。
+AMD 2025 Q3 营收达 \$87 亿，AI 数据中心业务成为增长引擎。
+
+2024 年，Lisa Su 获得了 TIME 年度最佳 CEO 和
+Chief Executive 杂志年度最佳 CEO 双重殊荣。
+2025 年 12 月，MIT 宣布邀请她作为 2026 年毕业典礼演讲嘉宾——
+一个母校对自己最杰出校友的最高致敬。
+
+% ----------------------------------------------------------------
+\subsection{Morris Chang —— 缔造台积电的半导体教父}
+\label{subsec:morris-chang}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Morris Chang（张忠谋）]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1931 年 7 月 10 日，中国宁波 \\
+\textbf{教育} & 哈佛大学 (转学) $\to$ MIT (BS \& MS, 机械工程) $\to$
+                斯坦福大学 (PhD, 电气工程, 1964) \\
+\textbf{职业} & Sylvania $\to$ TI (1958--1983, 升至集团副总裁) $\to$
+                General Instrument 总裁 $\to$ 台湾工研院院长 $\to$
+                TSMC 创始人兼 CEO (1987--2005)，董事长 (至 2018 年退休) \\
+\textbf{净资产} & 约 \$70 亿 (2026 年 1 月) \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+如果只能用一个人来解释为什么全球 AI 的物理基础集中在一座
+不到 3.6 万平方公里的岛屿上，那就是 Morris Chang。
+他 1987 年创立的台积电（TSMC）发明了一种全新的商业模式——
+\textbf{专业代工}（pure-play foundry）：
+自己不设计芯片，只为客户代工制造。
+这个看似简单的模式创新彻底重构了全球半导体产业链。
+
+Chang 的人生跨越了 20 世纪几乎所有重大历史节点——
+从中国的战乱到美国的冷战，从半导体的黎明到 AI 时代的芯片霸权。
+1931 年出生于中国宁波的一个富裕家庭，
+父亲是宁波当地的金融界人士。
+在日军侵华和国共内战的动荡中，
+Chang 的童年在六个城市间辗转：
+宁波、南京、广州、重庆、上海，最终到达香港。
+他后来回忆：``在我十八岁之前，我经历了一场战争和内战，
+搬了六次家，换了很多所学校。''
+这种动荡的童年塑造了他日后冷静而坚韧的性格。
+
+\begin{corebox}[从哈佛到 MIT 到斯坦福：一个跨越三所名校的求学之路]
+1949 年，18 岁的 Chang 来到美国，进入 \textbf{哈佛大学}。
+他最初学习的是文科——``我叔叔说银行家都学文科''——
+但一年后转学到 \textbf{MIT}，
+因为他意识到自己更适合工程学。
+在 MIT，他获得了机械工程的学士（1952）和硕士（1953）学位。
+然而，他两次报考 MIT 博士项目均\textbf{未被录取}——
+这段``失败经历''后来被他反复提及：
+``那是我人生中第一次遭遇真正的挫折。
+它教会了我谦逊。''
+他随后进入了 Sylvania Electric Products 工作，
+1958 年跳槽到 \textbf{Texas Instruments}（TI）。
+直到在 TI 工作多年后，他才在公司资助下前往
+\textbf{斯坦福大学}完成了电气工程博士学位（1964）——
+此时他已经 33 岁。
+\end{corebox}
+
+在 TI 工作 25 年间（1958--1983），
+Chang 从一名普通工程师升至集团副总裁，
+管辖 TI 全球半导体业务。
+他的核心贡献是首创了\textbf{激进定价策略}——
+利用``经验曲线理论''（experience curve theory），
+\textbf{在产品初期就以低价销售，
+牺牲早期利润换取市场份额和制造经验的积累，
+从而在长期实现更低成本和更高利润}。
+这一策略后来被无数科技公司效仿——
+从 Amazon 的``先亏损后盈利''到 Tesla 的电动车定价，
+都能看到 Chang 定价哲学的影子。
+离开 TI 后，他短暂担任 General Instrument 的总裁兼 COO（1984），
+但很快就被台湾政府的邀请吸引。
+
+1985 年，已过知天命之年的 Chang 返回台湾，
+出任工研院（ITRI）院长。
+在台湾政府的支持下，他于 1987 年创立了 TSMC——
+那一年他 \textbf{55 岁}，
+一个大多数人考虑退休的年龄。
+全球半导体行业没有人相信``只做代工，不做自有品牌芯片''
+能成为一门好生意。
+Intel 的 Andy Grove 被问及对 TSMC 模式的看法时，
+据说回答是：``这行不通。''
+
+\begin{corebox}[TSMC 模式为何改变了世界]
+在 TSMC 之前，芯片公司必须同时做设计和制造
+（IDM, Integrated Device Manufacturer 模式）。
+这意味着巨额的建厂资本支出，只有 Intel、TI 等巨头能负担。
+TSMC 的代工模式催生了一个全新的产业生态：
+\begin{itemize}[noitemsep]
+  \item \textbf{Fabless 公司}（如 NVIDIA、AMD、Qualcomm、Apple）
+        可以专注于设计，无需投资数百亿美元建厂
+  \item \textbf{设计门槛降低}$\to$ 更多创业公司涌入
+        $\to$ 芯片设计创新加速
+  \item TSMC 集中全球最先进的制造能力
+        $\to$ 制程推进速度远超任何单个 IDM
+  \item 如今 TSMC 生产了全球约 90\% 的最先进芯片（7nm 以下），
+        包括 NVIDIA 的每一颗 AI GPU
+\end{itemize}
+Morris Chang 不是最伟大的芯片\textit{设计者}，
+但他是最伟大的半导体\textit{商业模式创新者}。
+\end{corebox}
+
+Chang 于 2018 年正式退休，享年 87 岁。
+台湾总统蔡英文在 2018 年授予他景星勋章，
+2024 年再授中山勋章——表彰他对台湾科技发展的卓越贡献。
+但退休并不意味着影响力的消退。
+
+\begin{whybox}[Morris Chang 与中美芯片战争]
+在中美科技博弈的大背景下，
+Chang 和 TSMC 被推到了地缘政治的最前线。
+TSMC 生产了全球约 90\% 的最先进芯片（7nm 以下），
+包括 NVIDIA 的每一颗 AI GPU、Apple 的每一颗手机芯片，
+以及美国国防系统依赖的关键半导体——
+这意味着台湾一座工厂的停产就可能瘫痪全球 AI 产业。
+这种集中度被称为``硅盾''（Silicon Shield）：
+台湾在芯片制造上的不可替代性成为其最有效的地缘战略资产。
+
+Chang 本人对这一局势有着清醒的认识。
+2023 年，他在一场公开演讲中坦言：
+``自由贸易被全球化的死亡所取代。
+全球化已经几乎死了，自由贸易也几乎死了。''
+在美国的压力下，TSMC 于 2024 年启动了亚利桑那州工厂的建设，
+计划投资超过 \$400 亿。
+但 Chang 多次公开表示，在美国制造芯片的成本
+比在台湾高 50\% 以上——
+``不是不能做，而是效率会大打折扣。''
+他将台湾芯片制造的优势归结为三点：
+充足的工程人才供给、极低的员工流动率、
+以及产业集群的地理集中效应。
+\end{whybox}
+
+TSMC 的地缘战略意义使其成为``世界上最重要的公司之一''——
+也使台湾成为全球技术地缘政治的核心焦点。
+
+% ----------------------------------------------------------------
+\subsection{C.C. Wei 与 Mark Liu —— TSMC 的继承者们}
+\label{subsec:tsmc-successors}
+% ----------------------------------------------------------------
+
+Morris Chang 退休后，TSMC 的接力棒传到了两位关键人物手中。
+
+\textbf{C.C. Wei（魏哲家）}，1953 年出生于台湾南投，
+Yale 大学电气工程博士，1998 年加入 TSMC，
+从基层工程师一路升至 2018 年接任 CEO，2024 年兼任董事长。
+Wei 的领导风格与 Chang 的战略远见不同——
+他是一位\textbf{执行型领导者}，
+擅长在极端技术复杂度下保持量产纪律。
+在他任内，TSMC 成功量产了 5nm、3nm 工艺，
+并在亚利桑那州启动了美国本土晶圆厂建设。
+2025 年 Q2，TSMC 净利润同比增长 61\% 至创纪录的约 \$320 亿（年化），
+证明了即使在地缘政治风暴中，技术领先仍是最好的护城河。
+2025 年，Wei 与前董事长 Mark Liu 共同获得了
+美国半导体行业协会（SIA）的 Robert N. Noyce Award——
+业界最高荣誉。TIME 将 Wei 列入 2025 年 AI 百大影响力人物。
+
+\textbf{Mark Liu（刘德音）}，2018--2024 年任 TSMC 董事长，
+与 Wei 形成了``双首长制''的管理架构。
+Liu 在地缘政治外交方面扮演了关键角色——
+他是推动 TSMC 在美国建厂的主要决策者之一，
+也是与各国政府协商芯片出口管制政策的首席谈判者。
+2024 年退休后，Liu 的外交遗产仍在延续：
+TSMC 亚利桑那厂已于 2025 年开始试产，
+成为美国本土制造最先进芯片的第一步。
+
+% ----------------------------------------------------------------
+\subsection{Pat Gelsinger 与 Lip-Bu Tan —— Intel 的陨落与重启}
+\label{subsec:intel}
+% ----------------------------------------------------------------
+
+Intel 的故事是一个关于``曾经的霸主如何错失时代''的警示录。
+
+\textbf{Pat Gelsinger} 在 2021 年 2 月回归 Intel 担任 CEO 时，
+带着一份雄心勃勃的计划：
+IDM 2.0 战略——同时做先进芯片设计、自有制造和对外代工。
+他承诺投资超过 \$1000 亿在俄亥俄和德国建设超级晶圆厂，
+收购了以色列 AI 芯片公司 Habana Labs（\$20 亿），
+推出了 Gaudi 系列 AI 加速器试图挑战 NVIDIA。
+
+但现实残酷无情。到 2024 年 Q3，Intel 报出了
+公司历史上最惨烈的单季亏损——\$166 亿。
+股价较 Gelsinger 上任时暴跌超过 60\%，
+市值从超过 \$2000 亿缩水至不到 \$900 亿。
+Gaudi 芯片未能获得大规模商业化部署，
+制造工艺进度持续落后于 TSMC。
+2024 年 12 月 1 日，董事会向 Gelsinger 发出最后通牒：辞职或被解雇。
+他选择了以``退休''的形式离开。
+
+\begin{warnbox}[Intel 错失 AI 的四个关键失误]
+\begin{enumerate}[noitemsep]
+  \item \textbf{太晚拥抱 GPU 计算}：
+        当 NVIDIA 在 2006 年推出 CUDA 时，
+        Intel 仍然相信 CPU 能处理一切
+  \item \textbf{收购整合失败}：
+        收购 Habana Labs（\$20 亿）和 Nervana Systems
+        后均未能形成有竞争力的产品线
+  \item \textbf{制造工艺掉队}：
+        10nm 延迟多年，被 TSMC 的 7nm/5nm/3nm 远远甩开
+  \item \textbf{战线太长}：
+        IDM 2.0 试图同时打三场战争
+        （设计 + 制造 + 代工），资源严重分散
+\end{enumerate}
+\end{warnbox}
+
+2025 年 3 月，\textbf{Lip-Bu Tan}（陈立武）接任 Intel CEO，
+带来了与 Gelsinger 截然不同的风格。
+Tan 是一位传奇风险投资人和半导体行业老将——
+他是 Cadence Design Systems 的前 CEO（2009--2021），
+也是 Walden International 的创始人。
+作为 Intel 董事会前成员，他深知公司问题的根源。
+
+Tan 的策略被业界称为``brutal reset''（残酷重启）：
+大幅裁员优化组织效率，
+可能放弃 18A 工艺直接跳至 14A 制程以争取苹果和 NVIDIA 等大客户，
+同时收缩战线聚焦 Intel Foundry 代工业务和 AI 芯片生产。
+截至 2026 年 3 月，Intel 的命运仍悬而未决——
+但有一件事是确定的：
+\textbf{曾经定义``硅谷''这个名字的公司，
+正在进行其 56 年历史上最深刻的转型}。
+
+% ----------------------------------------------------------------
+\subsection{Jim Keller —— 传奇芯片架构师的开源野心}
+\label{subsec:jim-keller}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Jim Keller]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 约 1958/59 年，美国新泽西 \\
+\textbf{教育} & Penn State University \\
+\textbf{职业} & DEC Alpha $\to$ AMD K7/K8 首席架构师 $\to$
+                SiByte $\to$ PA Semi $\to$
+                Apple A4/A5 处理器 $\to$
+                AMD Zen 架构 (2012--2015) $\to$
+                Tesla FSD 芯片 $\to$
+                Intel (2018--2020) $\to$
+                Tenstorrent CTO (2021)、CEO (2023--至今) \\
+\textbf{成就} & x86-64 指令集共同作者、HyperTransport 共同作者、
+                AMD Zen 架构、Apple A4/A5、Tesla FSD HW3.0 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+如果半导体行业有一位``游侠''，那就是 Jim Keller。
+AMD 前 CTO Fred Weber 曾给他一个著名的绰号：
+\textbf{``芯片界的 Forrest Gump''}——
+不是说他天真，而是说他总是``恰好''出现在历史转折点上。
+他的简历读起来更像是一部芯片设计的编年史——
+每到一家公司，都留下一个改变行业的架构，然后飘然离去。
+
+\begin{corebox}[Jim Keller 的成长：六个孩子中的老二]
+Keller 出生于新泽西，是六个孩子中的老二。
+父亲在 GE Aerospace 担任机械工程师，专门设计卫星。
+由于父亲工作调动，一家人辗转于印第安纳、马萨诸塞和宾夕法尼亚，
+最终定居在费城近郊的 Valley Forge——
+距离 GE Aerospace 的办公室只有三分钟车程。
+母亲是大学毕业班的第一名（valedictorian），
+受过教师训练，但选择了在家抚养六个孩子。
+Keller 后来回忆：在这样一个工程师家庭长大，
+``对机器是如何工作的''的好奇心是天然的。
+1980 年，他从 \textbf{Penn State University}
+获得电气工程学士学位后，直接投入了芯片设计行业。
+\end{corebox}
+
+Keller 的职业生涯始于 1982 年加入 \textbf{DEC}（Digital Equipment Corporation），
+在那里他参与了 \textbf{VAX 8800} 小型机的设计，
+然后深度参与了传奇性的 \textbf{Alpha} 处理器家族——
+包括 Alpha 21164 和 Alpha 21264。
+Alpha 21264 在 1996 年以 500 MHz 主频和 1 GHz 片上缓存
+创下了当时的世界纪录，被认为是有史以来最优雅的处理器设计之一。
+这段在 DEC 长达 16 年的经历奠定了 Keller 作为
+``从微架构到系统级全栈理解''的芯片设计师的基础。
+
+在 AMD 的第一段任期（1998--2000），Keller 作为首席架构师设计了 K8，
+这是第一款原生 64 位 x86 处理器（Athlon 64），
+他同时也是 \textbf{x86-64 指令集}和
+\textbf{HyperTransport} 互联协议的共同作者——
+前者至今仍是全球几乎所有 PC 和服务器的基础指令集。
+离开 AMD 后，他先是加入了 \textbf{SiByte}
+（一家设计基于 MIPS 架构的网络处理器的初创公司，
+后被 Broadcom 以 \$20 亿收购），
+然后转入 \textbf{P.A. Semi}——一家设计低功耗 PowerPC 处理器的公司。
+
+当 Apple 在 2008 年收购 P.A. Semi 时，
+Keller 随之成为 Apple 的芯片设计副总裁。
+在 Apple（2008--2012），他主导设计了 \textbf{A4 和 A5 处理器}——
+分别驱动初代 iPad 和 iPhone 4S 的芯片。
+这段经历尤为关键：A4 是 Apple 第一款完全自研的处理器，
+它开启了 Apple 从 ARM 授权到自主架构的转型之路，
+最终催生了今天统治 Mac 和 iPhone 的 M 系列和 A 系列芯片。
+
+2012 年回归 AMD 后，Keller 被赋予了一个``不可能的任务''：
+为即将破产的 AMD 设计一款全新的微架构。
+他领导设计了 \textbf{Zen 微架构}——
+正是这个架构在 Lisa Su 的商业化推动下挽救了 AMD
+（参见 \ref{subsec:lisa-su} 节 Lisa Su 的叙述）。
+然而，按照他的惯例，Keller 在 Zen 设计完成后就离开了（2015），
+``把执行留给别人''。
+
+在 \textbf{Tesla}（2016--2018），他设计了 \textbf{FSD HW3.0} 自动驾驶芯片，
+该芯片将 Tesla 的自动驾驶推理性能提升了约 21 倍，
+至今仍在数百万辆 Tesla 汽车上运行。
+之后他短暂加入 \textbf{Intel}（2018--2020）担任 SVP，
+试图帮助 Intel 追赶在制程工艺上的落后，
+但在两年后因``个人原因''离开——
+业界普遍推测是因为 Intel 的官僚体系限制了他的发挥空间。
+
+2021 年，Keller 加入多伦多创业公司 Tenstorrent 担任 CTO，
+2023 年升任 CEO。在 Tenstorrent，他的野心是：
+\textbf{用 RISC-V 开源指令集打破 CUDA 的垄断}。
+Tenstorrent 的芯片采用 RISC-V 通用核心 + Tensix AI 加速核心的双模架构，
+整个软件栈基于开源标准——
+Keller 明确地将这比喻为``AI 计算领域的 Linux 革命''。
+
+2025 年底，Tenstorrent 完成了 \$6.93 亿 Series D 融资，估值达 \$20 亿。
+2026 年 3 月，公司发布了 TT-QuietBox 2（Blackhole 芯片），
+号称是全球首款基于 RISC-V 的液冷 AI 工作站，
+能在桌面端运行 1200 亿参数模型，起价 \$9,999。
+Keller 的赌注很清晰：
+\textbf{AI 芯片的终局不是谁的硬件更快，而是谁的生态更开放}。
+
+% ----------------------------------------------------------------
+\subsection{Andrew Feldman —— 用整片晶圆做一颗芯片}
+\label{subsec:feldman}
+% ----------------------------------------------------------------
+
+Andrew Feldman 在 2015 年创立 Cerebras 时提出了一个大胆到近乎荒谬的想法：
+\textbf{为什么要把晶圆切成几百颗小芯片？直接用整片晶圆做计算。}
+Cerebras 的 Wafer-Scale Engine（WSE）
+占据整片 300mm 晶圆，面积达 46,225\,mm$^2$——
+是 NVIDIA B200 的 50 倍以上。
+第三代 WSE-3 采用 TSMC 5nm 工艺，
+集成 4 万亿晶体管、90 万个 AI 核心、44\,GB 片上 SRAM。
+
+Feldman 之前是一位连续创业者——
+他曾创立并出售了多家企业软件公司，
+但 Cerebras 是他最具技术野心的项目。
+公司的联合创始人兼首席架构师 Gary Lauterbach
+（前 Sun Microsystems 和 AMD 芯片设计专家）
+负责解决晶圆级芯片面临的数十个工程难题：
+跨 reticle 边界布线、良率管理、功耗分配、散热等。
+
+2024 年底，Cerebras 递交了 IPO 申请，
+但因中东客户 Group 42 的地缘政治审查而搁置。
+2026 年 2 月，公司完成 \$10 亿 Series H 融资，
+估值达 \$231 亿。
+公司随后聘请 Morgan Stanley 牵头，
+\textbf{目标 2026 年 4 月重启 IPO，计划融资 \$20 亿}。
+
+% ----------------------------------------------------------------
+\subsection{Jonathan Ross —— 从 Google TPU 到 NVIDIA 旗下}
+\label{subsec:jonathan-ross}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Jonathan Ross]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{教育} & NYU Courant Institute（数学与计算机科学，
+                本科阶段即修读博士生课程） \\
+\textbf{职业} & Google TPU 发明者（20\% 项目起步）$\to$
+                Google X Rapid Eval Team $\to$
+                Groq 创始人兼 CEO (2016--2025) $\to$
+                NVIDIA 首席软件架构师 (2025.12--至今) \\
+\textbf{成就} & 发明 Google TPU 核心架构、创建 Groq LPU、
+                以 \$200 亿被 NVIDIA 收购 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+Jonathan Ross 的故事颠覆了``技术天才必须有名校博士学位''的刻板印象——
+他高中辍学，但凭借自学成为 Google 最具影响力的硬件工程师之一。
+
+在 NYU Courant Institute 学习期间，
+Ross 就展现了异于常人的技术天赋：
+他是第一个以本科生身份修完博士生限定课程的计算机科学学生。
+在 Google，他作为一个``20\% 项目''
+设计并实现了 TPU（Tensor Processing Unit）的核心架构——
+这个项目后来成为 Google AI 基础设施的支柱，
+驱动了超过一半的 Google 计算基础设施。
+
+2016 年，Ross 离开 Google 创立 Groq，
+带着一个清晰的技术判断：
+\textbf{GPU 的调度不确定性是实时推理的天敌}。
+Groq 的 Language Processing Unit（LPU）采用
+时序确定性数据流架构：
+每条指令在编译时就确定了执行时间，
+运行时不存在缓存未命中或调度冲突。
+结果是惊人的推理速度：
+在 Llama 2 70B 上实现超过 500 tok/s 的单用户吞吐，
+延迟抖动几乎为零。
+``Groq fast'' 一度成为 AI 社区的流行语。
+
+2025 年 12 月，NVIDIA 以 \$200 亿收购了 Groq——
+这是 NVIDIA 历史上最大的一笔交易。
+在 GTC 2026 上，Jensen Huang 解释了战略逻辑：
+LPU 不是取代 GPU，而是\textbf{补全} GPU——
+GPU 处理训练和 prefill，LPU 负责 decode 推理。
+Ross 现在以 NVIDIA 首席软件架构师的身份，
+继续推动 LPU 技术与 NVIDIA GPU 的协同整合。
+
+% ----------------------------------------------------------------
+\subsection{更多芯片创业者}
+\label{subsec:more-chip-founders}
+% ----------------------------------------------------------------
+
+\subsubsection{Rodrigo Liang、Kunle Olukotun 与 Chris R\'{e} —— SambaNova}
+
+SambaNova 是学术创业在 AI 芯片领域的典型代表。
+三位联合创始人背景各异但高度互补：
+
+\textbf{Kunle Olukotun}，1963 年出生于英国的尼日利亚裔美国人，
+斯坦福大学教授，被誉为``多核处理器之父''——
+他是最早提出将多个处理器核心集成到单颗芯片上的学者之一。
+\textbf{Chris R\'{e}}，斯坦福大学教授，
+数据基础设施领域先驱，MacArthur ``天才奖''获得者，
+在数据管理和机器学习的交叉领域享有盛誉
+（他同时也是 Together AI 和 Snorkel AI 的联合创始人）。
+\textbf{Rodrigo Liang}，曾在 Oracle、Sun Microsystems
+和 Afara Websystems 工作多年的硬件工程和商业化专家，担任 CEO。
+
+SambaNova 的 Reconfigurable Dataflow Unit（RDU）
+采用编译器驱动的空间架构，
+在编译阶段将模型计算图直接映射到硬件数据流管线上。
+2026 年 2 月，公司发布 SN50 推理芯片，号称在 agentic AI 场景下
+比 NVIDIA B200 快 5 倍、能效高 8 倍。
+同期完成 \$3.5 亿 Series E 融资。
+但估值从 2021 年巅峰的 \$51 亿回落至约 \$21 亿——
+\textbf{缩水超过 58\%}——
+揭示了 AI 芯片创业在 NVIDIA 主导格局下的残酷现实。
+
+\subsubsection{Sid Sheth —— d-Matrix 的存内计算革命}
+
+Sid Sheth（Siddhartha Sheth）是印度裔连续创业者，
+曾在 Intel、NetLogic Microsystems（后被 Broadcom 收购）
+和 Inphi Corporation 担任高级管理职位，
+在 Inphi 期间将网络业务从零孵化为 \$10 亿级业务。
+2019 年，他与 Sudeep Bhoja（CTO）
+共同创立 d-Matrix，瞄准 AI 推理的核心瓶颈——
+\textbf{内存墙}。
+
+d-Matrix 的数字存内计算（DIMC）技术
+将计算逻辑直接嵌入 SRAM 阵列，
+让数据``就地''完成矩阵乘法。
+2024 年底完成 \$2.75 亿 Series C，估值 \$20 亿。
+2025--2026 年间，公司进一步推出 3D DRAM 堆叠方案，
+与 Alchip 合作开发全球首个 3D DRAM 存内计算芯片。
+
+\subsubsection{Nigel Toon 与 Simon Knowles —— Graphcore 的起落}
+
+Graphcore 的故事是 AI 芯片创业残酷性的另一个注脚。
+\textbf{Nigel Toon}（CEO）和 \textbf{Simon Knowles}（CTO）
+2016 年在英国 Bristol 创立 Graphcore，
+开发了 Intelligence Processing Unit（IPU）——
+一种专为机器学习设计的大规模并行处理器。
+公司累计融资超过 \$7 亿，估值一度达 \$28 亿，
+被视为欧洲最有前途的深科技创业公司之一。
+
+但 Graphcore 始终未能找到大规模商业化路径：
+2022 年营收仅 \$270 万，净亏损 \$2.05 亿。
+2024 年 7 月，SoftBank 以未披露价格收购了 Graphcore，
+将其纳入孙正义的 AI 帝国蓝图。
+2025 年 8 月，联合创始人 Simon Knowles 离开了公司。
+从估值 \$28 亿的独角兽到被收购——
+Graphcore 证明了在 AI 芯片市场，
+\textbf{技术创新是必要条件，但远非充分条件}。
+
+\subsubsection{Gavin Uberti 与 Chris Zhu —— Etched 的极端赌注}
+
+2022 年，三位哈佛辍学生——Gavin Uberti、Chris Zhu 和 Robert Wachen——
+创立了 Etched，做出了 AI 芯片领域最极端的技术赌注：
+\textbf{只为 Transformer 架构设计的专用 ASIC}。
+Etched 的 Sohu 芯片采用 TSMC 4nm 工艺，
+将注意力机制、线性投影、softmax 和层归一化
+\textbf{全部硬编码进硅片}——
+无法运行 CNN、LSTM 或任何非 Transformer 架构。
+
+CEO Uberti 毫不掩饰这一赌注的激进性：
+``如果 Transformer 消失了，我们公司就死了。
+但如果 Transformer 留下来，我们会成为有史以来最大的公司。''
+2026 年 2 月，Etched 完成 \$5 亿 Series B，估值超过 \$50 亿——
+但截至 2026 年 3 月，
+芯片仍未出货给客户，且无独立基准测试验证。
+
+% ================================================================
+\section{云基础设施：新的造王者}
+\label{sec:cloud-infra}
+% ================================================================
+
+如果说芯片公司提供了 AI 的``弹药''，
+那么云基础设施公司就是``后勤补给线''——
+它们决定了这些算力如何被分配、谁能获取、以什么价格获取。
+在 AI 时代，控制云基础设施的巨头们
+正在通过投资、合作和技术锁定重塑整个 AI 产业格局。
+
+% ----------------------------------------------------------------
+\subsection{Satya Nadella —— 押注 OpenAI 改变微软命运}
+\label{subsec:nadella}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Satya Nadella]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1967 年 8 月 19 日，印度海得拉巴 \\
+\textbf{教育} & Mangalore University (BS, EE)；
+                UW-Milwaukee (MS, CS)；芝加哥大学 Booth (MBA) \\
+\textbf{职业} & Sun Microsystems 实习 $\to$ 微软 (1992 加入) $\to$
+                Cloud \& Enterprise SVP $\to$
+                CEO (2014--至今)，兼任 Chairman (2021--至今) \\
+\textbf{成就} & 推动微软向云转型，市值从 \$3000 亿增至超 \$3 万亿；
+                主导 OpenAI 合作，打造 Azure AI 生态 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+在 AI 时代的叙事中，Satya Nadella 扮演了一个独特的角色：
+他不是研究者，不是芯片设计师，也不是模型开发者——
+他是\textbf{赌注下注人}。
+2019 年，当 OpenAI 还是一家烧钱的非营利研究实验室时，
+Nadella 决定向其投资 \$10 亿。
+这个决策在当时看起来是一场豪赌——
+Sam Altman 的 AGI 梦想在硅谷被很多人视为不切实际。
+
+但 Nadella 看到了一个更大的图景：
+如果通用人工智能真的到来，
+\textbf{提供基础设施的人将拥有最大的杠杆}。
+微软不需要自己做最好的模型——
+它只需要确保最好的模型运行在 Azure 上。
+
+这一赌注的回报超出了所有人的预期：
+累计投资超过 \$130 亿后，微软获得了 OpenAI 49\% 的利润权、
+Azure 与 OpenAI 的独家云合作关系、
+以及将 GPT 模型整合进 Office 365、Bing、GitHub Copilot 等
+全线产品的权利。
+Azure AI 云收入同比增长超过 60\%，
+成为微软增长最快的业务板块。
+
+Nadella 的文化转型同样值得记录：
+接任 CEO 时，微软是一家以内部政治和官僚主义闻名的公司；
+在他的领导下，微软转变为一个``成长心态''（growth mindset）驱动的组织，
+愿意与竞争对手合作（如投资 OpenAI、拥抱 Linux）而不是封闭对抗。
+这种文化变革是微软能够把握 AI 机遇的深层原因。
+
+% ----------------------------------------------------------------
+\subsection{Andy Jassy —— AWS 的创建者与 AI 时代的守擂者}
+\label{subsec:jassy}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Andy Jassy]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1968 年 1 月 13 日，美国纽约 \\
+\textbf{教育} & 哈佛大学 (BA)；哈佛商学院 (MBA, 1997) \\
+\textbf{职业} & Amazon (1997 加入，公司仅 256 人) $\to$
+                AWS 创始人兼 CEO (2003--2021) $\to$
+                Amazon 总裁兼 CEO (2021--至今) \\
+\textbf{成就} & 从零创建 AWS 并发展为 \$1000 亿级业务，
+                领导 Amazon 向 AI 全面转型 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+Andy Jassy 是云计算时代的缔造者之一。
+1997 年加入 Amazon 时，公司只有 256 名员工。
+2003 年，他在 Bezos 的支持下启动了一个争议性极大的项目：
+\textbf{将 Amazon 的基础设施能力作为服务向外部开发者开放}。
+这就是 AWS 的起源，也是整个云计算产业的起点。
+
+AWS 从一个争议性的内部项目发展为 Amazon 的利润引擎——
+贡献约 60\% 的集团利润。
+Jassy 在 2021 年接替 Bezos 成为 Amazon CEO 时，
+面临的最大挑战是：
+\textbf{在 AI 时代，AWS 能否保持云计算领域的领导地位？}
+
+他的策略是多管齐下：
+向 Anthropic 投资 \$80 亿（获得云合作关系），
+推出自研 AI 芯片 Trainium 和 Inferentia 系列，
+建设 Project Rainier——
+一个在印第安纳州部署近 50 万颗 Trainium2 芯片的超级集群，
+专门用于训练 Anthropic 的 Claude 模型。
+2025 年 12 月，AWS 在 re:Invent 大会上发布了 Trainium3——
+基于 TSMC 3nm 工艺的自研 AI 芯片，
+性能较 Trainium2 提升 4.4 倍。
+Jassy 更预测 AWS 营收未来可能达到 \$6000 亿年化规模。
+
+\begin{whybox}[为什么云巨头纷纷自研 AI 芯片？]
+Google（TPU）、Amazon（Trainium）、Microsoft（Maia）——
+三大云巨头都在投入数十亿美元开发自研 AI 芯片。原因有三：
+\begin{enumerate}[noitemsep]
+  \item \textbf{成本控制}：NVIDIA GPU 价格高昂且供不应求，
+        自研芯片可以从根本上降低算力成本
+  \item \textbf{供应链安全}：减少对单一供应商的依赖，
+        避免在 GPU 分配竞争中受制于人
+  \item \textbf{架构优化}：自研芯片可以针对特定工作负载
+        （如 Transformer 推理）进行深度优化，
+        而不需要通用 GPU 的所有功能
+\end{enumerate}
+但挑战同样显著：CUDA 生态的迁移成本极高，
+自研芯片的软件工具链成熟度远不及 NVIDIA。
+这也是为什么即使自研了 TPU 和 Trainium，
+Google 和 Amazon 仍然是 NVIDIA GPU 的最大买家。
+\end{whybox}
+
+% ----------------------------------------------------------------
+\subsection{Thomas Kurian —— Google Cloud 的安静建筑师}
+\label{subsec:kurian}
+% ----------------------------------------------------------------
+
+Thomas Kurian 是 AI 云战争中最容易被低估的人物之一。
+出生于印度 Kerala 的 Kurian 在 Oracle 工作了 22 年，
+官至产品开发总裁，是 Larry Ellison 的核心副手之一。
+2018 年离开 Oracle 后，他接任 Google Cloud CEO——
+一个在 AWS 和 Azure 面前长期处于第三名的业务。
+
+Kurian 带来了 Oracle 式的企业销售纪律，
+但他的真正优势在于：
+\textbf{Google Cloud 坐拥全球最先进的自研 AI 芯片——TPU}。
+Google 的 TPU 项目始于 2013 年
+（由 Jonathan Ross 作为 20\% 项目启动，参见 \ref{subsec:jonathan-ross} 节），
+经过七代迭代，最新的 Ironwood (TPU v7p) 在 9,216 芯片的 superpod 中
+可以提供 42.5 exaflops 的 FP8 算力。
+Anthropic 已承诺部署超过一百万颗 TPU 芯片来训练未来的 Claude 模型。
+
+在 Kurian 任内（2019--至今），Google Cloud 营收从约 \$80 亿
+增长至 2025 年超过 \$440 亿，首次实现了持续盈利。
+他的策略是将 Google 20 年的 AI 研究积累转化为企业级云服务——
+包括 Gemini API、Vertex AI 平台和定制 TPU 集群。
+
+% ----------------------------------------------------------------
+\subsection{Larry Ellison —— 77 岁的 AI 基础设施赌徒}
+\label{subsec:ellison}
+% ----------------------------------------------------------------
+
+在 AI 基础设施的军备竞赛中，最令人意外的参与者
+可能是 Oracle 的联合创始人 Larry Ellison。
+这位 2026 年已 81 岁的亿万富翁
+正在将 Oracle 从一家``遗产数据库公司''转型为
+\textbf{AI 基础设施的核心供应商}。
+
+Ellison 的赌注规模令人瞠目：
+Oracle 宣布了 2026 年 \$500 亿的资本支出计划，
+用于建设 ``Giga-scale'' AI 数据中心园区，
+其中包括作为 Stargate 项目成员与 OpenAI/SoftBank 合作
+在德克萨斯州 Abilene 建设的超大规模设施。
+Oracle 的总 AI 基础设施投资承诺更高达 \$1750 亿。
+
+这一战略转型的核心逻辑是：
+Oracle 虽然在公有云市场份额远不及 AWS/Azure/GCP，
+但在企业数据库市场的深厚积累
+让它能够为 AI 工作负载提供独特的``数据+计算''整合方案。
+而 Ellison 与 NVIDIA Jensen Huang 的紧密私人关系
+确保了 Oracle Cloud 能获得优先的 GPU 分配。
+
+% ----------------------------------------------------------------
+\subsection{CoreWeave 三人组 —— 从矿场到华尔街}
+\label{subsec:coreweave}
+% ----------------------------------------------------------------
+
+CoreWeave 的创始故事是 AI 时代最传奇的转型叙事。
+2017 年，三位华尔街交易员——\textbf{Michael Intrator}、
+\textbf{Brian Venturo} 和 \textbf{Brannin McBee}——
+创立了一家名为 Atlantic Crypto 的以太坊挖矿公司。
+2022 年 9 月以太坊切换至权益证明后，GPU 矿机一夜之间失去价值。
+但三人看到了机遇：
+\textbf{同样的 GPU，换一套软件栈就能从挖矿变成 AI 训练}。
+
+Michael Intrator 担任 CEO，负责战略和资本运作；
+Brian Venturo 担任首席战略官，负责技术架构和客户关系；
+Brannin McBee（后更名 Braden Perley）负责运营。
+
+他们的关键决策是大幅投资网络基础设施，
+将松散的 GPU 矿机群升级为真正的 HPC 集群。
+NVIDIA 将 CoreWeave 列为``Exemplar Cloud Partner''，
+在 GPU 分配上给予优先地位——
+这种深度绑定是一把双刃剑。
+
+2025 年 3 月 28 日，CoreWeave 在纳斯达克上市（CRWV），
+是近四年来美国最大的科技 IPO。
+2025 年营收 \$51.3 亿，同比增长 730\%。
+积压订单高达 \$668 亿。
+公司还以 \$17 亿收购了 Weights \& Biases，
+从纯基础设施向平台化演进。
+截至 2026 年 3 月，市值约 \$435 亿。
+
+% ================================================================
+\section{AI 基础设施创业者}
+\label{sec:infra-startups}
+% ================================================================
+
+在云巨头和芯片巨头之间，
+一群创业者正在构建 AI 基础设施的``中间层''——
+从推理优化到分布式计算框架，
+从 serverless GPU 到模型部署平台，
+他们的产品和服务构成了 AI 开发者日常工作的基础。
+
+% ----------------------------------------------------------------
+\subsection{Vipul Ved Prakash 与 Ce Zhang —— Together AI}
+\label{subsec:together-ai}
+% ----------------------------------------------------------------
+
+Together AI 的创始团队阵容堪称 AI 基础设施领域的``全明星''。
+CEO \textbf{Vipul Ved Prakash} 是一位印度裔连续创业者，
+简历横跨从 Napster 到 Apple：
+他曾创立 Cloudmark（反垃圾邮件技术公司，
+开发了 Vipul's Razor——至今仍被广泛使用的协作反垃圾邮件工具）、
+Topsy（社交媒体分析公司，被 Apple 收购）、
+并在 Apple 担任高级总监。
+更为人知的是，他年轻时是一名专业乒乓球选手。
+
+CTO \textbf{Ce Zhang}（张策）是苏黎世联邦理工学院（ETH Z\"{u}rich）
+和斯坦福大学的教授，数据基础设施领域的学术权威。
+联合创始人还包括 FlashAttention 的发明者 Tri Dao
+和斯坦福教授 Christopher R\'{e}。
+
+Together AI 的定位介于纯 GPU 云和模型 API 之间——
+它不仅提供裸 GPU，更提供\textbf{高度优化的推理和微调服务}。
+凭借 FlashAttention 等底层优化技术，
+推理性能在同等硬件上可比竞争对手高出数倍。
+2025 年完成 \$3.05 亿 B 轮融资，估值 \$33 亿。
+到 2026 年 3 月，年化营收突破 \$10 亿，
+正在洽谈以 \$75 亿估值融资 \$10 亿。
+
+% ----------------------------------------------------------------
+\subsection{Lin Qiao —— Fireworks AI 的 PyTorch 女将}
+\label{subsec:fireworks}
+% ----------------------------------------------------------------
+
+\textbf{Lin Qiao}（乔琳）在 Meta 工作了七年
+（2015--2022），领导超过 300 名工程师，
+负责 AI 框架和平台开发——
+包括 Caffe2 和 PyTorch 的工程化。
+在 Meta 内部，她的团队重构了整个 AI 软件栈
+以满足全球最大消费互联网公司的复杂需求。
+
+2022 年 10 月，她离开 Meta 创立 Fireworks AI，
+公司定位为``AI 云开发平台''——
+专注于为开发者提供极速推理、模型微调和 Agent 工作流。
+Lin Qiao 拥有 UC Santa Barbara 计算机科学博士学位，
+本硕毕业于中国复旦大学。
+她此前还在 LinkedIn 和 IBM Research 积累了丰富的分布式系统经验。
+
+Fireworks AI 获得了 Sequoia Capital 等顶级 VC 的投资，
+其核心差异化在于对开源模型的极致推理优化。
+Lin Qiao 的技术视野和工程领导力
+使 Fireworks 成为 AI 推理基础设施赛道中增长最快的公司之一。
+
+% ----------------------------------------------------------------
+\subsection{Robert Nishihara 与 Ion Stoica —— Anyscale 和 Ray}
+\label{subsec:anyscale}
+% ----------------------------------------------------------------
+
+2016 年，UC Berkeley 的博士生 \textbf{Robert Nishihara}
+和他的导师 \textbf{Ion Stoica} 教授（Apache Spark 的联合创始人）
+注意到一个问题：AI 应用在从研究原型走向生产部署时，
+面临的最大瓶颈不是模型本身，而是\textbf{分布式计算基础设施}。
+他们创建了 Ray——
+一个开源的分布式计算框架，
+让开发者可以用简单的 Python 代码将任务分布到数千台机器上。
+
+Ray 迅速成为 AI 基础设施的关键组件：
+OpenAI 用 Ray 来编排 RLHF 训练、
+Uber 用它管理机器学习管线、
+Anthropic 和 Cohere 等公司也广泛使用。
+Nishihara 和 Stoica 于 2019 年创立 Anyscale 来商业化 Ray，
+公司提供托管 Ray 平台，简化大规模 AI/ML 应用的开发和部署。
+
+Ion Stoica 是 UC Berkeley 的``教授创业家''典范——
+除了 Ray/Anyscale，他还是 Apache Spark（催生了 Databricks，估值超 \$1000 亿）
+的联合创始人。一位教授催生了两个价值数百亿美元的开源项目，
+这在硅谷历史上也极为罕见。
+
+% ----------------------------------------------------------------
+\subsection{Erik Bernhardsson —— Modal 的 Serverless GPU 革命}
+\label{subsec:modal}
+% ----------------------------------------------------------------
+
+\textbf{Erik Bernhardsson} 的职业轨迹横跨音乐推荐和 AI 基础设施两个领域。
+他出生于瑞典，在 KTH 获得硕士学位后，
+2009 年加入 Spotify。在 Spotify 的近七年间，
+他构建了第一版音乐推荐系统（Related Artists、Radio、Discover Weekly），
+并开源了两个广泛使用的工具：
+Luigi（工作流引擎，GitHub 10,000+ stars）
+和 Annoy（高维近似最近邻搜索库）。
+他后来在 Better.com 担任 CTO，管理 300 人的工程团队。
+
+2021 年疫情期间，Bernhardsson 开始思考 AI/ML 基础设施的痛点，
+并创立了 Modal——
+一个为 AI、数据和 ML 团队设计的 serverless 平台。
+Modal 的核心理念是：
+\textbf{serverless 这个概念一直是对的，只是被用在了错误的问题上}——
+它真正的杀手应用不是 Web API，而是数据和计算密集型任务。
+
+Modal 让开发者用几行 Python 代码就能在云端 GPU 上运行任务，
+按实际计算时间（精确到 CPU 周期）付费，无空闲成本。
+2025 年 9 月完成 \$8700 万 B 轮融资，估值达 \$25 亿。
+
+% ----------------------------------------------------------------
+\subsection{Ben Firshman —— Replicate 与模型民主化}
+\label{subsec:replicate}
+% ----------------------------------------------------------------
+
+\textbf{Ben Firshman} 是一位英国开发者工具创业者，
+他最知名的贡献是创建了 Docker Compose（最初叫 Fig）——
+容器编排领域最广泛使用的工具之一。
+在 Docker 担任产品管理总监后，他于 2019 年创立 Replicate，
+使命是``让 AI 模型像 Web API 一样容易使用''。
+
+Replicate 的平台让开发者可以用一个 API 调用
+运行数千个开源 AI 模型——
+从图像生成到语音合成到文本处理。
+2022 年 8 月的一个标志性时刻：
+Stability AI 的 Stable Diffusion 通过 Replicate 爆发式传播，
+流量一夜之间暴涨，验证了``模型即 API''的商业模式。
+Sequoia Capital 领投了 Replicate 的后续融资轮。
+
+2025 年底，Firshman 离开 Replicate，
+加入 Cloudflare 担任 AI 平台负责人——
+这一转变也折射了 AI 基础设施从创业公司向平台级公司整合的趋势。
+
+% ----------------------------------------------------------------
+\subsection{Stephen Balaban —— Lambda Labs 的学术基因}
+\label{subsec:lambda}
+% ----------------------------------------------------------------
+
+\textbf{Stephen Balaban} 和他的兄弟 Michael Balaban
+于 2012 年在硅谷创立了 Lambda Labs。
+Stephen 拥有 Carnegie Mellon 大学生物物理学博士学位，
+但公司最初的定位与学术背景高度相关：
+\textbf{面向机器学习研究者的 GPU 工作站供应商}。
+
+早年的客户以大学实验室和研究机构为主，
+Lambda 在学术圈建立了深厚的品牌信任。
+随着大模型时代到来，Lambda 将重心转向 GPU 云服务。
+2025 年 2 月完成 \$4.8 亿 Series D 融资，
+投资者包括 NVIDIA 和 Andrej Karpathy。
+2025 年 11 月又完成 \$15 亿 E 轮融资，
+累计融资达 \$23 亿，2025 年营收约 \$5.05 亿。
+公司将自己定位为``超级智能云''（Superintelligence Cloud），
+同时推出了 Lambda Chat AI 助手产品。
+
+Lambda 的差异化在于\textbf{开发者体验}：
+保留了早期做工具的基因，提供开箱即用的 PyTorch/JAX 环境、
+一键启动的 Jupyter Hub，
+对于急需跑大规模实验的学术团队来说上手成本极低。
+
+% ================================================================
+\section{网络与数据中心：AI 基础设施的隐形支柱}
+\label{sec:networking}
+% ================================================================
+
+在 AI 基础设施的讨论中，芯片和云往往占据了所有聚光灯，
+但有一个同样关键的层次常被忽视：
+\textbf{网络}。
+当一个 AI 训练集群包含数万块 GPU 时，
+GPU 之间的通信带宽和延迟
+往往比 GPU 本身的计算能力更能决定整个系统的效率。
+这就是为什么 AI 网络基础设施已成为一个价值数百亿美元的市场。
+
+% ----------------------------------------------------------------
+\subsection{Hock Tan —— Broadcom 的 AI 芯片帝国}
+\label{subsec:hock-tan}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Hock Tan（陈福阳）]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1953 年，马来西亚槟城 \\
+\textbf{教育} & MIT (BS, 机械工程)；哈佛商学院 (MBA) \\
+\textbf{职业} & PepsiCo $\to$ GM $\to$ ICS (CEO) $\to$
+                Integrated Device Technology $\to$
+                Avago Technologies CEO (2006) $\to$
+                收购 Broadcom 后更名并任 CEO (2016--至今) \\
+\textbf{成就} & 通过一系列收购将 Broadcom 打造为全球第二大芯片公司，
+                2023 年以 \$610 亿收购 VMware \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+Hock Tan 是半导体行业最具争议也最有效的并购整合大师。
+他通过一系列激进的收购——
+Avago 收购 LSI Logic、又收购 Broadcom
+（保留了被收购公司更知名的名字）、
+再收购 CA Technologies、Symantec 企业安全部门，
+最终在 2023 年以 \$610 亿完成了 VMware 的收购——
+将 Broadcom 从一家中等规模的芯片公司
+打造为年营收超过 \$500 亿的半导体巨头。
+
+但真正让 Broadcom 进入 AI 叙事核心的，
+是其\textbf{定制 AI 芯片}业务。
+与 NVIDIA 的通用 GPU 不同，
+Broadcom 为 Google（TPU）、Meta 和 OpenAI
+等超大规模客户\textbf{量身定制}AI 加速器。
+2026 年 Q1，Broadcom AI 芯片营收达 \$84 亿，同比增长 106\%。
+Tan 在财报电话会上宣布：
+``我们有清晰的路线图，到 2027 年仅 AI 芯片收入将
+\textbf{显著超过 1000 亿美元}。''
+
+这背后的具体数字令人瞠目：
+OpenAI 承诺了 10 吉瓦的定制加速器部署，
+Anthropic 承诺了 \$210 亿的 Broadcom 制造 TPU 机架采购。
+Broadcom 正在从``幕后''走向 AI 基础设施的最前台。
+
+% ----------------------------------------------------------------
+\subsection{Jayshree Ullal —— AI 网络的女王}
+\label{subsec:ullal}
+% ----------------------------------------------------------------
+
+\begin{keybox}[人物速览：Jayshree Ullal]
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{出生} & 1960 年代，印度（伦敦出生） \\
+\textbf{教育} & San Francisco State University (BS, EE)；
+                Santa Clara University (MS, EE) \\
+\textbf{职业} & AMD $\to$ Cisco SVP (负责 \$100 亿业务) $\to$
+                Arista Networks 创始 CEO (2008--至今) \\
+\textbf{成就} & 将 Arista 从零发展为市值超 \$1000 亿的 S\&P 500 公司；
+                Hurun 2025 全球最富印度裔职业经理人（净资产 \$57 亿） \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+在 AI 数据中心的网络层，有一位不可忽视的人物。
+Jayshree Ullal 于 2008 年加入当时还默默无闻的 Arista Networks 担任 CEO，
+此前她在 Cisco 担任高级副总裁，负责价值 \$100 亿的数据中心业务。
+她将 Arista 从零发展为市值超过 \$1000 亿的网络设备巨头，
+2014 年成功 IPO 并进入 S\&P 500。
+
+Arista 在 AI 时代找到了完美的产品市场契合：
+随着 AI 训练集群规模爆炸式增长，
+对高性能数据中心网络交换机的需求急剧上升。
+Arista 的 Extensible Operating System (EOS)
+和高密度 400G/800G 以太网交换机
+成为 Meta、Microsoft 等超大规模客户 AI 集群的核心网络设备。
+Ullal 拥有超过 40 年的网络和技术经验，
+被 Barron's 评为``全球最佳 CEO''之一（2018），
+Ernst \& Young ``年度企业家''（2015）。
+
+2025 年 12 月，Hurun India Rich List 将 Ullal 列为
+全球最富的印度裔职业经理人，净资产 \$57 亿——
+超过了 Satya Nadella 和 Sundar Pichai。
+这个排名本身就说明了 AI 网络基础设施市场的巨大价值。
+
+% ================================================================
+\section{自研芯片：云巨头的``去 NVIDIA 化''运动}
+\label{sec:custom-silicon}
+% ================================================================
+
+2024--2026 年间，一个深刻的产业趋势正在悄然展开：
+\textbf{超大规模云厂商纷纷投入自研 AI 芯片}。
+这不是要完全替代 NVIDIA——至少短期内不是——
+而是构建``第二供应商''以获取谈判筹码和成本优势。
+
+\textbf{Google TPU} 是这条路线的先驱，
+从 2013 年 Jonathan Ross 的 20\% 项目开始，
+到 2024 年的 Trillium（TPU v6e）和 2025 年的 Ironwood（TPU v7p），
+Google 已经迭代了七代自研芯片。
+最新的 Ironwood superpod 在 9,216 芯片配置下
+可提供 42.5 exaflops FP8 算力——
+规模之大让许多 NVIDIA 客户都感到震惊。
+Anthropic 部署超过一百万颗 TPU 训练 Claude 的承诺，
+是对 Google 自研芯片路线最有力的市场验证。
+
+\textbf{Amazon Trainium} 是 AWS 通过 2015 年收购的
+以色列芯片设计公司 Annapurna Labs 开发的自研加速器。
+到 Trainium2（2025 年量产）已支撑了 Project Rainier 超级集群。
+2025 年底发布的 Trainium3 基于 TSMC 3nm 工艺，
+每芯片提供 2.52 PFLOPS 算力，路线图中的 Trainium4
+更将支持 NVIDIA NVLink Fusion——
+让 GPU 和自研芯片在同一集群中混合部署。
+
+\textbf{Microsoft Maia 100} 是微软 2023 年发布的首款自研 AI 芯片，
+采用 TSMC 5nm 工艺，集成 105B 晶体管。
+虽然 Microsoft 的自研芯片进度落后于 Google 和 Amazon，
+但与 Azure 生态的深度整合
+以及与 OpenAI 的优先合作关系
+使其具有独特的市场定位。
+
+\begin{corebox}[自研芯片竞赛：关键数据对比]
+\small
+\begin{tabularx}{\textwidth}{l X X X}
+\toprule
+\rowcolor{figLightGray}
+& \textbf{Google TPU} & \textbf{Amazon Trainium} & \textbf{Microsoft Maia} \\
+\midrule
+\textbf{起始年份} & 2013 & 2018 & 2023 \\
+\textbf{当前代数} & 7 代 (Ironwood) & 3 代 (Trainium3) & 1 代 (Maia 100) \\
+\textbf{工艺节点} & TSMC & TSMC 3nm & TSMC 5nm \\
+\textbf{锚定客户} & Anthropic (100 万+ 颗) & Anthropic (50 万颗) & OpenAI \\
+\textbf{特色} & superpod 规模 & NVLink 兼容路线 & Azure 深度集成 \\
+\bottomrule
+\end{tabularx}
+\end{corebox}
+
+% ================================================================
+\section{小结：算力就是权力}
+\label{sec:infra-summary}
+% ================================================================
+
+回顾本章介绍的五十余位人物，
+一条清晰的主线浮现出来：
+\textbf{在 AI 时代，谁控制了算力，谁就控制了创新的节奏}。
+
+\begin{whybox}[算力权力的四层结构]
+AI 基础设施的权力结构可以用四个同心圆来理解：
+\begin{enumerate}[noitemsep]
+  \item \textbf{最内圈：芯片设计}（NVIDIA、AMD、自研芯片团队）——
+        决定了算力的``物理定律''
+  \item \textbf{第二圈：芯片制造}（TSMC）——
+        垄断了从设计到硅片的转化能力
+  \item \textbf{第三圈：云基础设施}
+        （Azure、AWS、GCP、Oracle、CoreWeave）——
+        决定了谁能获取算力
+  \item \textbf{最外圈：AI 基础设施中间件}
+        （Together AI、Fireworks、Anyscale、Modal）——
+        优化算力的使用效率
+\end{enumerate}
+每一层的人物都在争夺对 AI 发展方向的影响力。
+但有一个人——Jensen Huang——
+通过同时控制芯片设计（NVIDIA GPU）、
+软件生态（CUDA）和市场叙事（GTC 大会），
+在所有层面都拥有不成比例的权力。
+\end{whybox}
+
+这场算力军备竞赛的规模前所未有。
+2025--2026 年间，仅四大云巨头（微软、Amazon、Google、Meta）
+的年度资本支出总和就超过 \$3000 亿，
+其中绝大部分用于 AI 基础设施建设。
+NVIDIA 宣称至 2027 年订单总额达 \$1 万亿。
+Broadcom 预计 2027 年仅 AI 芯片收入超 \$1000 亿。
+Oracle 的 AI 基础设施投资承诺高达 \$1750 亿。
+
+这些数字背后是一个简单但深刻的信念：
+\textbf{AI 的潜力远未被充分释放，
+而释放这些潜力所需的算力
+将远远超过今天所有数据中心的总和}。
+正如 Jensen Huang 在 GTC 2026 上所言：
+``世界需要更多的计算。''
+而本章介绍的这些人——从台南到硅谷，从肯塔基的乡村学校到万亿美元的市值——
+正是将这个信念变为现实的人。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=1.2cm,
+  company/.style={
+    rectangle, rounded corners=4pt,
+    draw=figBlue, fill=figBlue!8,
+    minimum width=2.6cm, minimum height=0.7cm,
+    font=\footnotesize\bfseries, align=center,
+    text=figBlue
+  },
+  person/.style={
+    rectangle, rounded corners=2pt,
+    draw=figGray!50, fill=figLightGray,
+    minimum width=2.2cm, minimum height=0.5cm,
+    font=\tiny, align=center
+  },
+  layer/.style={
+    draw=figGray, dashed, rounded corners=6pt,
+    inner sep=8pt
+  },
+  arr/.style={-{Stealth[length=4pt]}, figGray, thick}
+]
+
+% Chip Design Layer
+\node[company] (nvidia) at (0,0) {NVIDIA};
+\node[person, below=0.3cm of nvidia] (jensen) {Jensen Huang\\Bill Dally};
+
+\node[company, right=1.5cm of nvidia] (amd) {AMD};
+\node[person, below=0.3cm of amd] (lisa) {Lisa Su};
+
+\node[company, left=1.5cm of nvidia] (startups) {Chip Startups};
+\node[person, below=0.3cm of startups] (keller) {Jim Keller\\A. Feldman};
+
+% Manufacturing Layer
+\node[company, fill=figRed!8, draw=figRed, text=figRed]
+  (tsmc) at (0,-2.3) {TSMC};
+\node[person, below=0.3cm of tsmc] (chang) {Morris Chang\\C.C. Wei};
+
+% Cloud Layer
+\node[company, fill=figGreen!8, draw=figGreen, text=figGreen]
+  (azure) at (-3.5,-4.2) {Azure};
+\node[person, below=0.3cm of azure] (nadella) {Satya Nadella};
+
+\node[company, fill=figGreen!8, draw=figGreen, text=figGreen]
+  (aws) at (-1,-4.2) {AWS};
+\node[person, below=0.3cm of aws] (jassy) {Andy Jassy};
+
+\node[company, fill=figGreen!8, draw=figGreen, text=figGreen]
+  (gcp) at (1.5,-4.2) {GCP};
+\node[person, below=0.3cm of gcp] (kurian) {Thomas Kurian};
+
+\node[company, fill=figGreen!8, draw=figGreen, text=figGreen]
+  (neo) at (3.8,-4.2) {Neoclouds};
+\node[person, below=0.3cm of neo] (core) {CoreWeave\\Lambda};
+
+% Middleware Layer
+\node[company, fill=figOrange!8, draw=figOrange, text=figOrange]
+  (mid) at (0,-6.3) {AI Infra Middleware};
+\node[person, below=0.3cm of mid] (togeth) {Together AI, Modal, Anyscale, Fireworks};
+
+% Networking
+\node[company, fill=figGray!15, draw=figGray]
+  (net) at (5.2,-2.3) {Networking};
+\node[person, below=0.3cm of net] (ullal) {Broadcom\\Arista};
+
+% Arrows
+\draw[arr] (nvidia) -- (tsmc);
+\draw[arr] (amd) -- (tsmc);
+\draw[arr] (startups) -- (tsmc);
+\draw[arr] (tsmc) -- (azure);
+\draw[arr] (tsmc) -- (aws);
+\draw[arr] (tsmc) -- (gcp);
+\draw[arr] (tsmc) -- (neo);
+\draw[arr] (azure) -- (mid);
+\draw[arr] (aws) -- (mid);
+\draw[arr] (gcp) -- (mid);
+\draw[arr] (neo) -- (mid);
+\draw[arr] (net) -- (aws);
+\draw[arr] (net) -- (neo);
+
+% Layer labels
+\node[font=\scriptsize\bfseries\color{figBlue}, anchor=east]
+  at (-5.5,0) {Chip Design};
+\node[font=\scriptsize\bfseries\color{figRed}, anchor=east]
+  at (-5.5,-2.3) {Manufacturing};
+\node[font=\scriptsize\bfseries\color{figGreen}, anchor=east]
+  at (-5.5,-4.2) {Cloud Infra};
+\node[font=\scriptsize\bfseries\color{figOrange}, anchor=east]
+  at (-5.5,-6.3) {Middleware};
+
+\end{tikzpicture}
+\caption{AI 基础设施权力结构图：从芯片设计到中间件的四层架构，
+以及关键人物在各层的分布。箭头表示供应链依赖关系。}
+\label{fig:infra-power-structure}
+\end{figure}
+
+\begin{keybox}[本章关键人物索引]
+\small
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{姓名} & \textbf{组织} & \textbf{核心贡献} \\
+\midrule
+Jensen Huang & NVIDIA CEO & GPU 发明者，NVIDIA 创始人，AI 算力垄断缔造者 \\
+Bill Dally & NVIDIA 首席科学家 & 并行计算理论，NVLink 架构 \\
+Ian Buck & NVIDIA VP & CUDA 创建者，GPU 通用计算先驱 \\
+Bryan Catanzaro & NVIDIA VP & 推动 NVIDIA 拥抱深度学习 \\
+Lisa Su & AMD CEO & AMD 史诗级逆袭，Zen 架构，Instinct AI \\
+Morris Chang & TSMC 创始人 & 专业代工模式发明者，半导体教父 \\
+C.C. Wei & TSMC CEO & TSMC 执行领导，先进工艺量产 \\
+Pat Gelsinger & 前 Intel CEO & Intel AI 战略失败的教训 \\
+Lip-Bu Tan & Intel 新 CEO & Intel 残酷重启 \\
+Jim Keller & Tenstorrent CEO & 传奇芯片架构师，RISC-V 开源革命 \\
+Andrew Feldman & Cerebras CEO & 晶圆级芯片创新 \\
+Jonathan Ross & Groq 创始人 & TPU 发明者，LPU 确定性推理 \\
+Rodrigo Liang & SambaNova CEO & 数据流架构 AI 芯片 \\
+Sid Sheth & d-Matrix CEO & 存内计算突破 \\
+Nigel Toon & Graphcore CEO & IPU 芯片，SoftBank 收购 \\
+Gavin Uberti & Etched CEO & Transformer 专用 ASIC 极端赌注 \\
+Satya Nadella & Microsoft CEO & OpenAI 合作，Azure AI 生态 \\
+Andy Jassy & Amazon CEO & AWS + Trainium + Anthropic \\
+Thomas Kurian & Google Cloud CEO & TPU 商业化，Google Cloud 盈利 \\
+Larry Ellison & Oracle 创始人 & AI 数据中心 \$1750 亿赌注 \\
+M. Intrator 等 & CoreWeave 创始人 & 从加密矿场到 AI 云 IPO \\
+Hock Tan & Broadcom CEO & 定制 AI 芯片，\$1000 亿营收目标 \\
+Jayshree Ullal & Arista CEO & AI 数据中心网络女王 \\
+Vipul Ved Prakash & Together AI CEO & 推理优化，全明星学术团队 \\
+Lin Qiao & Fireworks AI CEO & PyTorch 工程化，开源推理 \\
+R. Nishihara & Anyscale CEO & Ray 分布式框架 \\
+Erik Bernhardsson & Modal CEO & Serverless GPU 云 \\
+Ben Firshman & Replicate 创始人 & Docker Compose + 模型民主化 \\
+Stephen Balaban & Lambda Labs CEO & 学术 GPU 云 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}

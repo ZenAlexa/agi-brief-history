@@ -1,0 +1,175 @@
+% ============================================================
+% §2.6 Networking and Interconnect + §2.7 CDN and Edge AI
+% File: ch02-s67-network-edge.tex
+% ============================================================
+
+\section{网络与互联}
+\label{sec:infra-networking}
+
+数据的高速公路：为什么互联是AI基础设施的隐形瓶颈？当一个训练集群扩展到数万块GPU时，
+单块芯片的算力已不是第一约束——GPU之间``搬运数据''的速度才是。一个100,000 GPU集群
+每次all-reduce同步可产生PB级流量；若网络带宽不足或延迟过高，GPU将大量时间空转等待。
+这正是为什么2024--2026年间，光互联、高速网络fabric成为风险投资的新宠赛道。
+
+\subsection{光互联三巨头}
+
+传统电互联（铜缆）在400~Gbps以上面临严重的功耗墙和距离限制。共封装光学
+（Co-Packaged Optics, CPO）将光收发器直接集成到芯片封装中，从根本上突破了
+``silicon beachfront''约束——即芯片边缘可用于I/O的物理面积有限这一问题。
+三家创业公司在这一赛道形成了鲜明的技术路线分化。
+
+\begin{corebox}{光互联三巨头对比：Lightmatter vs Ayar Labs vs Celestial AI}
+\begin{tabularx}{\textwidth}{l X X X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{维度} & \textbf{Lightmatter} & \textbf{Ayar Labs} & \textbf{Celestial AI} \\
+\midrule
+成立 & 2017, Mountain View & 2015, San Jose & Santa Clara \\
+创始人背景 & Nick Harris, MIT光子学PhD & MIT/Berkeley/Colorado光子学联合团队 & 前Luxtera高管 \\
+核心产品 & Passage CPO芯片 & TeraPHY光I/O chiplet & Photonic Fabric \\
+技术路线 & DWDM多波长光引擎 & 硅光chiplet直接共封装 & 光子交换+远距光I/O \\
+最新里程碑 & 1.6 Tbps/光纤（世界纪录）; Passage L20 6.4 Tbps双向光引擎 & Series E \$500M @ \$3.75B (2026/3); 量产CPO chiplet & 2025/12 被Marvell \$3.25B收购 \\
+融资总额 & $\sim$\$850M (Series D \$400M @ \$4.4B) & \$870M & Series C1 \$250M @ \$2.5B \\
+投资者亮点 & Google, Viking Global & AMD, Intel, NVIDIA三巨头均投 & 未披露 \\
+\bottomrule
+\end{tabularx}
+\end{corebox}
+
+\textbf{Lightmatter}是光互联领域势头最猛的玩家。2026年3月，公司宣布Passage
+L20光引擎——单芯片双向带宽达6.4~Tbps，同时与Qualcomm合作实现了单根光纤
+1.6~Tbps的世界纪录（16波长DWDM技术，较传统FR-4方案实现8倍带宽密度提升）。
+更值得注意的是，Lightmatter在OCP（Open Compute Project）内牵头发起了CPO开放
+参考架构计划，意图将光互联从专有技术推向行业标准——这一策略若成功，将使其成为
+光互联领域的``ARM''。
+
+\textbf{Ayar Labs}走的是硅光chiplet共封装路线。2026年3月，公司完成\$500M的
+Series E融资，估值\$3.75B。其独特优势在于同时获得了AMD、Intel和NVIDIA三大芯片
+巨头的投资——这在半导体行业极为罕见，意味着TeraPHY chiplet有望成为跨平台的
+光I/O标准组件。NVIDIA在Ayar Labs融资的前一天还宣布向Coherent和Lumentum注资
+\$4B，显示出整个光互联供应链正在获得前所未有的资本投入。
+
+\textbf{Celestial AI}的Photonic Fabric采用了最激进的架构：不仅实现芯片间光互联，
+还提供光子交换和远距内存池化（论文展示了32~TB共享HBM3E内存 + 115~Tbps全对全
+数字交换的能力）。然而，公司在2025年12月被Marvell以\$3.25B收购，成为光互联领域
+首个重大并购退出案例。这一结局说明：即使技术领先，创业公司在面对半导体巨头的
+整合需求时，被收购可能比独立上市更现实。
+
+\subsection{网络芯片与fabric创业}
+
+\textbf{Enfabrica}（2019年，Mountain View）开发了ACF-S ``Millennium'' SuperNIC，
+单芯片3.2~Tbps带宽，定位为GPU集群的以太网fabric互联。公司累计融资\$290M，
+但在2025年9月被NVIDIA以超\$900M的价格``acquihire''——NVIDIA获得了CEO Rochan
+Sankar及核心团队和技术授权，但并非传统意义上的全资收购。这笔交易反映了NVIDIA
+在以太网AI网络领域加速布局的战略意图。
+
+\textbf{Astera Labs}（Santa Clara）是AI网络领域少有的IPO成功案例。2024年3月
+在NASDAQ上市（代码ALAB），首日股价暴涨72\%，成为2024年首个大型科技IPO。公司
+专注于PCIe/CXL智能连接芯片，融资\$713M，上市时市值\$9.46B。Astera Labs的成功
+说明：在AI基础设施的``管道工''层（连接芯片、retimer、信号调理），同样存在巨大的
+价值捕获机会。
+
+\subsection{InfiniBand vs 以太网：一场正在发生的大转折}
+
+\begin{keybox}{InfiniBand → 以太网：关键转折数据}
+\begin{itemize}
+  \item \textbf{2023年}：InfiniBand占据AI后端网络$\sim$80\%份额，几乎是唯一选择
+  \item \textbf{2025年中}：以太网首次超越InfiniBand（Dell'Oro Group数据）
+  \item \textbf{2025全年}：以太网AI后端交换机销售额\textbf{超过InfiniBand 2倍以上}，
+    占AI集群数据中心交换机总销售的三分之二以上
+  \item \textbf{以太网交换机销售额}在2025年Q4同比增长超过3倍
+  \item \textbf{UEC Spec 1.0}：2025年6月发布，标准化高性能AI以太网
+  \item \textbf{领军厂商}：NVIDIA和Celestica合计占以太网AI交换机近50\%份额
+\end{itemize}
+\end{keybox}
+
+这场转折的速度令人惊讶。仅仅两年前，InfiniBand还被视为大规模AI训练的唯一可行
+网络方案——NVIDIA的DGX SuperPOD默认使用InfiniBand，Meta最初也用IB训练LLaMA。
+但到2025年底，局势已彻底逆转。
+
+\begin{whybox}{为什么以太网正在赢得AI网络之战？}
+三个结构性因素驱动了这一转变：
+
+\textbf{1. 超大规模云厂商的集体选择。}Amazon、Microsoft、Meta、Oracle、xAI
+全部选择以太网作为下一代AI集群的后端网络。当你的五大客户都选择同一个方向时，
+市场重心的转移就是时间问题。这些厂商的核心诉求是：多供应商竞争（避免被NVIDIA
+锁定）、与现有数据中心网络架构统一、以及更低的总体拥有成本（TCO）。
+
+\textbf{2. 技术差距正在快速缩小。}Ultra Ethernet Consortium（UEC）在2025年6月
+发布了Spec 1.0，系统性地解决了以太网在AI训练场景中的短板：包括无损传输、
+精确拥塞控制、以及集合通信原语的硬件卸载。Arista CEO Jayshree Ullal明确表示：
+``以太网已经将InfiniBand推到一边。''
+
+\textbf{3. 流量模式从训练向推理迁移。}随着AI工作负载从集中式训练转向分布式
+推理，网络流量模式发生了根本变化——推理场景更适合以太网的弹性扩展模型，
+而非InfiniBand的紧耦合拓扑。
+\end{whybox}
+
+InfiniBand并未消亡——在追求极致延迟的小规模训练集群中（如部分CoreWeave部署
+和NVIDIA DGX Cloud），它仍有不可替代的优势。但在10万GPU以上的超大集群中，
+以太网已成为事实标准。
+
+%% ============================================================
+
+\section{CDN 与边缘 AI}
+\label{sec:infra-edge}
+
+如果说上一节讨论的是数据中心\emph{内部}的高速公路，本节关注的则是将AI推理能力
+\emph{推向用户身边}的最后一公里。边缘AI的核心命题是：当模型足够小、硬件足够强时，
+推理不必发生在远方的数据中心——它可以在CDN边缘节点、手机芯片、甚至笔记本电脑上
+完成。
+
+\subsection{CDN边缘推理}
+
+\textbf{Cloudflare Workers AI}是边缘推理的典型代表。2023年9月发布以来，
+Cloudflare将AI推理能力部署到全球300+边缘节点，提供真正的serverless推理服务——
+开发者无需管理GPU、无需容量规划，一次API调用即可在离用户最近的节点运行模型。
+截至2026年3月，平台已支持100+模型（包括Moonshot Kimi K2.5等大模型），覆盖
+LLM、图像生成、语音识别、embedding等全品类。Cloudflare还收购了Replicate，
+进一步补全了模型托管能力。Workers AI的核心优势在于：与Cloudflare既有的CDN、
+Workers、D1数据库、R2存储无缝集成，形成了``推理即基础设施''的完整开发者体验。
+
+\textbf{Fastly}从传统CDN转型边缘AI。其Compute@Edge平台新增了AI Gateway功能，
+支持多AI提供商路由——开发者可以在Fastly边缘节点上统一调用不同模型API，
+实现负载均衡、故障切换和成本优化。2026年2月，Fastly股价单日上涨42\%，
+市场对其AI边缘战略投出了信任票。
+
+\textbf{Vercel AI SDK}虽非严格意义上的边缘推理平台，却已成为TypeScript/JavaScript
+生态中构建LLM应用的事实标准。2026年3月，npm周下载量达$\sim$350万次；v0 AI
+辅助开发平台拥有350万用户。Vercel的战略定位是``AI应用的部署层''——通过Edge
+Runtime + AI SDK + v0，覆盖了从模型调用到前端渲染的全链路。
+
+\subsection{端侧AI芯片}
+
+\textbf{Qualcomm Cloud AI 200}专注于推理场景，配备768~GB LPDDR5X内存，
+定位数据中心级推理加速（而非训练）。其最引人注目的合作是与沙特HUMAIN签署的
+200~MW数据中心推理部署协议——这标志着AI推理基础设施正在成为主权国家级别的
+战略投资。Qualcomm在边缘推理领域的差异化优势在于其移动芯片的能效比积累：
+从手机到数据中心，同一架构的功耗优势具有可迁移性。
+
+\textbf{Apple Neural Engine}在M系列芯片中持续进化。M5芯片的架构突破在于：
+每个GPU核心内置Neural Accelerator，实现了4倍AI性能提升（相比M4）。Apple的
+边缘AI战略有两个独特之处：一是Apple Intelligence将大模型能力直接嵌入操作系统
+层面（而非App层），二是Private Cloud Compute（PCC）架构——当端侧算力不足时，
+请求被路由到Apple自有数据中心的Apple Silicon服务器上处理，全程端到端加密，
+甚至Apple自己也无法访问用户数据。这种``端云一体+隐私优先''的模式是Google和
+Microsoft都难以复制的。
+
+\begin{warnbox}{Intel Gaudi的教训：价格优势不够}
+Intel Gaudi 3（源自2019年收购的Habana Labs）定价仅\$15K，是H100的一半。
+然而，2025年出货目标下调30\%，全年营收约\$500M，远不及NVIDIA单季度的AI收入。
+
+\textbf{教训何在？}在AI加速器市场，\emph{价格低}不等于\emph{赢}。NVIDIA的护城河
+不在于硬件本身，而在于CUDA生态——数百万开发者、数千个优化库、以及十年积累的
+软件栈。Gaudi 3的硬件性能尚可，但软件生态（包括编译器成熟度、框架兼容性、
+社区支持）与CUDA生态存在代差。这对所有AI芯片挑战者（包括Cerebras、Groq、
+Tenstorrent等）都是同样的警示：\textbf{芯片是入场券，生态才是护城河。}
+\end{warnbox}
+
+\subsection{边缘AI的格局判断}
+
+边缘AI正在形成三个层次的分化：\textbf{CDN边缘}（Cloudflare、Fastly）负责轻量
+推理和API路由，延迟优势明显但模型尺寸受限；\textbf{设备端}（Apple、Qualcomm）
+负责隐私敏感和实时性要求极高的场景，受限于芯片面积和功耗但用户体验最优；
+\textbf{近边缘数据中心}（Qualcomm Cloud AI、区域推理集群）填补中间地带，
+适合中等规模模型的低延迟推理。2026年的共识是：没有单一方案能通吃所有场景，
+``端-边-云''协同推理将成为主流架构。

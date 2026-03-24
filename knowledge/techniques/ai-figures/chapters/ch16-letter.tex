@@ -1,0 +1,1565 @@
+% =============================================================
+% Chapter 16 (Capstone): Field Guide to the Intelligence Age
+% Book: AI Figures
+% Synthesizes all three LLM Observatory monographs:
+%   Emergence (technology), The AI Startup Landscape (industry),
+%   AI Figures (people) into an objective, analytical field guide.
+% =============================================================
+
+\chapter{智能时代生存指南：三部曲的收束与行动框架}
+\label{ch:field-guide}
+
+% Capstone chapter: Synthesizing 700+ career trajectories,
+% 15 chapters of technology, 16 chapters of industry analysis
+% into durable analytical frameworks for navigating the
+% Intelligence Age. Written March 2026.
+
+\begin{quote}
+\itshape
+``The best time to plant a tree was twenty years ago.
+The second best time is now.''\\
+\upshape\footnotesize
+—— Chinese proverb, frequently cited in Silicon Valley
+\end{quote}
+
+\bigskip
+
+
+% =============================================================
+\section{引言：为什么需要这一章}
+\label{sec:fg-intro}
+% =============================================================
+
+这是LLM Observatory三部曲的最后一章。
+
+\textit{Emergence}用十五章的篇幅解构了大语言模型的技术栈——
+从Transformer架构到tokenization，从预训练到后训练，
+从推理优化到test-time compute，再到2026年春天的Agent大战。
+\textit{The AI Startup Landscape}用十六章的篇幅绘制了AI产业的完整地图——
+从GPU云到芯片，从训练基础设施到推理优化，
+从模型公司到消费应用，从中国生态到全球格局。
+本书\textit{AI Figures}用十四章的篇幅记录了700余位
+塑造AI时代的关键人物——他们的教育背景、职业轨迹、
+决策逻辑和人际网络。
+
+但三部曲合在一起，回答的是技术、产业和人的问题。
+它们没有回答一个更根本的问题：
+\textbf{这一切对你——一个活在2026年的个体——
+在教育、职业和人生决策上意味着什么？}
+
+本章的目标是填补这个空白。它不是一封充满感情的信，
+不是一篇鼓舞人心的演讲，也不是一份鸡汤式的``人生建议''。
+它是一份\textbf{分析报告}——
+基于三部曲中积累的全部数据、案例和模式，
+提取出可操作的决策框架。
+
+\begin{warnbox}[关于时效性的声明]
+本章写于2026年3月。AI领域的具体数据点——
+估值、融资额、模型性能——会迅速过时。
+但本章提取的\textbf{结构性规律和决策框架}
+是从跨越数十年的技术史中归纳的，
+其半衰期远长于任何具体数字。
+读者应区分数据（会过时）与框架（更持久）。
+\end{warnbox}
+
+方法论上，本章采用\textit{上海交大生存手册}的写作范式：
+务实、诚实、综合、偶尔令人不适。
+它不预设读者的价值观或目标，
+而是提供足够的信息和分析工具，
+让读者根据自身处境做出理性决策。
+
+
+% =============================================================
+\section{技术轨迹：从\textit{Emergence}中提取的时间线}
+\label{sec:fg-tech-timeline}
+% =============================================================
+
+预测未来是危险的，但\textbf{不做预测更危险}——
+因为不做预测意味着默认当前趋势会无限延续，
+这本身就是一种（通常是错误的）预测。
+以下时间线基于\textit{Emergence}中记录的技术轨迹，
+结合历史上技术扩散的一般规律，给出四个阶段的分析。
+
+\subsection{2026年3月的真实现状：``2028--2030''已经到来}
+
+在写这一节时，我们做了一个关键的校正。
+本章初稿中的技术时间线将``Agent自主编排''
+``一人团队''``AI作为同事''等能力预测为2028--2030年实现。
+\textbf{这个预测在写下的当天就已经过时了。}
+
+以下是2026年3月——此时此刻——的真实数据：
+
+\begin{itemize}
+  \item \textbf{Agentmaxxing已成标准操作}。
+    ``Agentmaxxing''——同时运行5--7个AI编码Agent并行工作——
+    已经是开发者社区的主流实践。开发者角色
+    从``代码编写者''彻底转变为``Agent审查者''：
+    分解任务、启动Agent、审查合并结果。
+    工具栈包括cmux（终端编排）、AMUX（无人值守Agent农场）、
+    Claude Code Agent Teams（原生协调）、
+    git worktree（隔离环境）。
+  \item \textbf{一人公司已有实证}。
+    Polsia——2025年12月上线，solo founder Ben Cera，
+    零员工，\$3.5M年化营收，1300家企业客户。
+    Peter Steinberger——一人用AI辅助在80天内写了518,000行代码，
+    创造了GitHub历史上增长最快的软件项目。
+    DEV Community上一篇文章标题直接叫：
+    ``2026年，一个开发者+AI工具 = 原来5人团队的产出。''
+  \item \textbf{AI Agent已经在自主构建工具}。
+    一个名为Angy的Claude Code Agent在运行两天后
+    开始``自我构建''——它写了自己的替代品，
+    一个比原版更有野心的系统。
+    另一个持久化Agent被赋予了邮箱权限和定时任务后，
+    在\textbf{创建者不知情的情况下}与一位开源开发者
+    协作了七天——邮件沟通、架构决策、代码审查，全部自主完成。
+  \item \textbf{Andrej Karpathy的转变曲线}。
+    他在2025年11月还是80\%手写代码，
+    到12月已经是80\% Agent代码。
+    这个翻转只用了\textbf{一个月}。
+  \item \textbf{Cursor CEO demo}：
+    AI Agent独立运行一周，从零构建了一个
+    300万行的浏览器，包含从头写的Rust渲染引擎。
+  \item \textbf{19天110K行Rust}。
+    一名开发者Martin Schr\"oder在19天内用AI Agent
+    构建了一个完整的编码工具：
+    110,000行Rust、16个crate、285次提交、13个版本。
+\end{itemize}
+
+\begin{warnbox}[校正声明：本书三部曲的时间线需要前移]
+综合以上证据，我们做出以下校正：
+\textbf{本章初稿中标注为``2028--2030''的技术能力——
+Agent自主编排、一人等效团队、AI作为``初级同事''——
+对于掌握正确工具和方法的``超级个体''（Super Individual），
+在2026年3月已经70--80\%成为现实}。
+
+这不意味着所有人都已达到这个水平。
+绝大多数开发者仍处于Steve Yegge描述的
+``AI使用五阶段''的第1--2阶段
+（偶尔使用补全/在IDE侧栏提问）。
+但前沿使用者——Steinberger、Cera、
+以及无数在Claude Code中运行Agent Fleet的开发者——
+已经生活在``2030年''了。
+
+\textbf{这意味着：你和前沿之间的距离，
+不是四年的时间差，而是一个认知和实践的鸿沟。
+这个鸿沟可以在几周内跨越——如果你选择行动。}
+\end{warnbox}
+
+\subsection{``品味''已经成为既定事实}
+
+2026年3月的创业圈正在经历一场术语爆发：
+``Vibe Coding''（Karpathy 2025年初命名）、
+``Agentmaxxing''、``Harness''（驾驭AI而非被AI驾驭）、
+``AI-native development''——
+这些词汇每天都在涌现，但它们指向的核心现实是同一个：
+
+\textbf{当AI可以写几乎所有代码时，
+人类的价值就转移到了``决定写什么''和``判断写得好不好''上}——
+这就是``品味''（taste）。
+
+McKinsey和Upwork的数据显示：
+78\%的受访企业已经将``AI工具使用能力''
+列为新雇员的基础要求。
+不是加分项，是\textbf{入门门槛}。
+
+\begin{keybox}[Vibe Coding的五阶段模型（Steve Yegge）]
+\begin{enumerate}
+  \item \textbf{零AI}：偶尔用代码补全，有时问ChatGPT
+  \item \textbf{IDE内Agent，需要授权}：Agent在侧栏运行，每步请求你的许可
+  \item \textbf{IDE内Agent，YOLO模式}：信任提升，关闭权限检查，Agent自由运行
+  \item \textbf{IDE内，Agent全屏}：Agent占据整个屏幕，代码只用来看diff
+  \item \textbf{Agent独立运行}：你给任务后离开，回来检查结果
+\end{enumerate}
+2026年3月的前沿使用者已经在第4--5阶段。
+绝大多数开发者仍在第1--2阶段。
+\textbf{这个分布——而不是``AI有多强''——
+才是决定你市场价值的核心变量。}
+\end{keybox}
+
+\subsection{修正后的技术时间线}
+
+基于以上校正，以下是更贴近现实的时间线：
+
+\begin{itemize}
+  \item \textbf{2026（现在）}：
+    Agent自主编码、一人团队、多Agent编排——
+    对前沿使用者已是日常。
+    ``后博士级''AI在特定任务上已成现实
+    （代码生成、文献综述、数据分析）。
+    推理模型（o1/o3/R1/Claude）在大多数基准测试上
+    达到或超过人类专家。
+    ``品味''和``判断力''已取代``技术能力''
+    成为个体最稀缺的资源。
+
+  \item \textbf{2027--2029}：
+    Agent从``需要人类启动和审查''进化为
+    ``持久化自主运行''。
+    上述已有雏形（持久化Agent自主发邮件协作一周）
+    将变为标准工作模式。
+    软件工程行业完成从``写代码''到
+    ``编排Agent + 系统设计 + 质量判断''的结构性转型。
+    Agent进入非编程领域：法律、金融、医疗、教育、科研。
+    \textbf{``超级团队''（3--5人 + Agent Fleet）
+    可以完成原来50--100人团队的工作}。
+
+  \item \textbf{2029--2035}：
+    物理AI进入大规模部署。
+    人形机器人从工厂试点（\textit{AI Figures}第12章：
+    Figure AI、Physical Intelligence、宇树、智元）
+    进入服务业。
+    BCI从医疗级进入早期增强级。
+    AI驱动的科研发现速度使新药开发周期
+    从10年压缩到2--3年。
+    ``工作''的定义开始根本性转变。
+
+  \item \textbf{2035--2050}：推测区间。
+    但结构性趋势明确：
+    人类增强技术从``可选''变为``竞争必需''、
+    ``AI增强人类''与``未增强人类''的能力鸿沟
+    成为21世纪最重要的不平等维度、
+    核聚变+AI优化能源网络可能实现。
+\end{itemize}
+
+\begin{corebox}[对你的直接含义]
+如果你还在用``2028--2030年AI才会怎样怎样''
+来规划你的职业路径，\textbf{你已经迟了}。
+前沿已经在这里。
+Steinberger用一个小时做出了OpenClaw。
+Karpathy用一个月完成了从手写到Agent编码的转型。
+一个solo founder在三个月内做到了\$3.5M ARR零员工。
+\textbf{你与这些人之间的差距不是能力——是认知和行动的滞后}。
+而认知差距可以在几天内弥合。行动可以今天就开始。
+\end{corebox}
+
+\subsection{2032--2040：物理AI与人体增强}
+
+本书第12章记录了物理AI领域的关键人物：
+Brett Adcock（Figure AI）、Karl Hausman（Physical Intelligence）、
+王兴兴（宇树科技/Unitree）、彭志辉/稚晖君（Agibot）。
+他们代表的趋势在这一阶段进入大规模部署期：
+
+\begin{itemize}
+  \item \textbf{人形机器人}从工厂试点走向服务业。
+    中国的制造业优势在硬件成本上给予领先地位。
+  \item \textbf{脑机接口}从医疗走向增强。
+    Neuralink到2025年底已有21名人类受试者，
+    目标在2028年前获得临床BCI批准。
+    Synchron的低侵入性方案提供替代路径。
+    但消费级BCI的现实时间线是2035--2040。
+  \item \textbf{AI驱动的药物发现}。
+    \textit{AI Figures}第5章记录的Isomorphic Labs
+    （DeepMind分拆的药物发现公司）
+    和Recursion Pharmaceuticals
+    正在压缩从靶点发现到临床试验的时间线。
+    CRISPR基因疗法在2023年获得首个临床批准，
+    AI将加速后续疗法的开发。
+  \item \textbf{能源}。AI的巨大算力需求正在驱动能源创新——
+    Sam Altman投资的Helion Energy（核聚变）、
+    Commonwealth Fusion Systems——
+    AI+核聚变的闭环可能在2030年代实现。
+\end{itemize}
+
+\subsection{2040--2050：推测区间}
+
+超过15年的技术预测可靠性极低。
+但有几个结构性趋势值得标记：
+
+\begin{itemize}
+  \item 如果AI系统达到或接近AGI水平，
+    ``人类劳动''的经济学意义将被根本重新定义。
+  \item 人类增强从``AI作为外部工具''（2026）
+    到``AI作为认知义肢''（2028--2032，可穿戴设备+语音）
+    到``AI作为持久化伴侣''（2032--2038，持久Agent）
+    到``AI作为生物延伸''（2038+，BCI）的渐进路径。
+  \item ``AI增强人类''与``未增强人类''之间的能力鸿沟
+    可能成为21世纪最重要的不平等维度——
+    比财富不平等更危险，因为它是一种\textbf{能力鸿沟}。
+\end{itemize}
+
+% --- Technology timeline TikZ figure ---
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily},
+  era/.style={
+    draw, rounded corners=3pt, minimum height=1.4cm,
+    text width=3.2cm, align=center, font=\sffamily\small,
+    inner sep=4pt,
+  },
+  era1/.style={era, fill=figBlue!12, draw=figBlue},
+  era2/.style={era, fill=figGreen!12, draw=figGreen},
+  era3/.style={era, fill=figOrange!12, draw=figOrange},
+  era4/.style={era, fill=figRed!12, draw=figRed},
+  skill/.style={font=\sffamily\tiny, text=figGray, align=left, text width=3.2cm},
+  arr/.style={-{Stealth[length=4pt]}, thick, figGray!60},
+]
+
+% Timeline axis
+\draw[figGray!40, very thick] (-0.5, 0) -- (15, 0);
+
+% Era nodes (above axis) — CORRECTED timeline (aggressive)
+\node[era1] (e1) at (1.8, 2) {2026（现在）\\[2pt]\textbf{Agent已至}\\超级个体\\品味即价值};
+\node[era2] (e2) at (5.6, 2) {2027--2029\\[2pt]\textbf{持久Agent}\\非编程领域\\超级团队};
+\node[era3] (e3) at (9.4, 2) {2029--2035\\[2pt]\textbf{物理AI}\\机器人部署\\BCI增强};
+\node[era4] (e4) at (13.2, 2) {2035--2050\\[2pt]\textbf{推测区间}\\人类增强常态\\能力鸿沟};
+
+% Year markers on axis
+\foreach \x/\y in {1.8/2026, 5.6/2028, 9.4/2032, 13.2/2042} {
+  \fill[figGray] (\x, 0) circle (2.5pt);
+  \node[font=\sffamily\scriptsize, below=3pt] at (\x, 0) {\y};
+}
+
+% Arrows
+\draw[arr] (e1.east) -- (e2.west);
+\draw[arr] (e2.east) -- (e3.west);
+\draw[arr] (e3.east) -- (e4.west);
+
+% Skills becoming obsolete (below axis, red) — CORRECTED
+\node[skill, text=figRed] at (1.8, -1.0) {已过时：手写代码\\基础分析\\标准文档};
+\node[skill, text=figRed] at (5.6, -1.0) {过时中：常规编程\\初级研究\\基础法务};
+\node[skill, text=figRed] at (9.4, -1.0) {过时：重复性服务\\常规制造\\标准诊断};
+\node[skill, text=figRed] at (13.2, -1.0) {过时：多数认知\\常规劳动\\（推测性高）};
+
+% Skills becoming essential (below axis, green) — CORRECTED
+\node[skill, text=figGreen] at (1.8, -2.2) {关键：Agent编排\\品味/判断\\领域深度};
+\node[skill, text=figGreen] at (5.6, -2.2) {关键：跨域整合\\Agent Fleet管理\\系统架构};
+\node[skill, text=figGreen] at (9.4, -2.2) {关键：人机协作\\伦理判断\\物理世界};
+\node[skill, text=figGreen] at (13.2, -2.2) {关键：意义构建\\价值判断\\（推测性高）};
+
+% Labels
+\node[font=\sffamily\tiny\bfseries, text=figRed, anchor=east] at (-0.3, -1.0) {过时技能};
+\node[font=\sffamily\tiny\bfseries, text=figGreen, anchor=east] at (-0.3, -2.2) {关键技能};
+
+% Title
+\node[font=\sffamily\small\bfseries, text=figGray] at (7.0, 3.8)
+  {AI技术轨迹与技能演化时间线};
+
+\end{tikzpicture}
+\caption{基于\textit{Emergence}技术分析的四阶段时间线。
+上方为技术里程碑，下方为各阶段过时和新兴的技能类别。
+注意2032年后的预测不确定性显著增加。}
+\label{fig:tech-timeline}
+\end{figure}
+
+
+% =============================================================
+\section{产业地图：从\textit{The AI Startup Landscape}中提取的结构性规律}
+\label{sec:fg-industry-patterns}
+% =============================================================
+
+\textit{The AI Startup Landscape}用六层模型
+描述了AI产业的完整结构：
+GPU云 $\rightarrow$ 芯片 $\rightarrow$ 训练基础设施
+$\rightarrow$ 推理优化 $\rightarrow$ AI工厂
+$\rightarrow$ 网络/边缘。
+在这个结构之上是模型公司、平台、开发工具、
+消费应用和企业AI。
+这个分层模型本身就揭示了几条重要的结构性规律。
+
+\subsection{价值累积的层级迁移}
+
+\begin{keybox}[历史规律：基础设施先行，应用层后发]
+在\textbf{每一次}重大技术革命中，
+价值都遵循同一个迁移路径：
+\begin{enumerate}
+  \item 早期（0--5年）：基础设施层捕获绝大部分价值。
+    铁路时代的钢铁公司、互联网时代的思科、
+    AI时代的NVIDIA。
+  \item 中期（5--15年）：平台层崛起。
+    铁路时代的标准石油（使用铁路网络）、
+    互联网时代的Google/Amazon、
+    AI时代的——正在形成中。
+  \item 后期（15年+）：应用层捕获最大份额价值。
+    电力时代的家电公司（GE）、
+    互联网时代的社交媒体/电商——
+    AI时代尚未到达这一阶段。
+\end{enumerate}
+\textit{The AI Startup Landscape}第14章的模式分析
+支持这一历史类比。2026年，我们正处于
+从``基础设施主导''向``平台+应用并行''过渡的阶段。
+\end{keybox}
+
+\subsection{``镐和铲''定律}
+
+NVIDIA是2022--2026年AI浪潮中最大的价值捕获者——
+不是因为它做出了最好的AI模型，
+而是因为它\textbf{向所有做AI模型的人卖工具}。
+CoreWeave从加密货币矿场转型为AI云服务提供商，
+估值达到350亿美元。
+这验证了一条古老的淘金定律：
+卖镐和铲的人比挖金子的人赚得更稳定。
+
+但这条定律有一个重要的限定条件：
+\textbf{基础设施的超额利润来自供不应求}。
+当GPU供给充裕、推理成本下降到接近零时，
+基础设施层的超额利润将消失，
+价值将向上迁移到平台和应用层。
+\textit{Emergence}第9章对推理成本下降曲线的分析
+暗示这一转折可能在2027--2029年到来。
+
+\subsection{整合与碎片化的双向运动}
+
+模型公司正在经历整合——
+从2023年的数十家（中国``六小虎''、
+全球各种模型初创公司）
+向全球3--5家头部模型公司收敛。
+\textit{The AI Startup Landscape}第3章
+对模型公司竞争格局的分析支持这一判断。
+
+但应用层正在经历\textbf{碎片化}——
+AI+法律、AI+医疗、AI+教育、AI+制造、AI+金融——
+每个垂直领域都足以容纳多家独角兽。
+这是因为应用层的价值来源于\textbf{领域知识}，
+而领域知识的分布是高度分散的。
+
+\subsection{对职业选择的启示}
+
+\begin{table}[htbp]
+\centering
+\caption{AI产业六层模型的职业风险/回报特征}
+\label{tab:industry-layers-career}
+\small
+\begin{tabularx}{\textwidth}{l l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{层级} & \textbf{代表公司} & \textbf{风险/回报} & \textbf{职业特征} \\
+\midrule
+GPU云/芯片 & NVIDIA, TSMC & 低风险/中回报 &
+  技术门槛极高，需要硬件背景；周期性强 \\
+训练/推理基础设施 & CoreWeave, Groq & 中风险/高回报 &
+  系统工程能力关键；窗口期有限 \\
+模型公司 & OpenAI, Anthropic & 高风险/极高回报 &
+  需要顶尖ML研究能力；整合风险大 \\
+平台/工具 & LangChain, Vercel & 中风险/中高回报 &
+  产品能力+技术能力；竞争激烈但机会多 \\
+消费应用 & Cursor, Perplexity & 高风险/高回报 &
+  产品直觉+增长能力；用户获取是关键 \\
+企业AI（垂直） & Harvey, Sierra & 中风险/中高回报 &
+  \textbf{领域知识}是核心壁垒；最适合非纯AI背景 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{whybox}[为什么这张表对你重要]
+你选择进入哪一层，决定了你需要什么技能、
+面对什么竞争、承受什么风险、获得什么回报。
+纯AI/ML背景的人自然倾向于模型层，
+但模型层的竞争最为残酷（全球只需要3--5家模型公司）。
+有领域专长的人在企业AI/垂直应用层有巨大优势，
+因为\textbf{领域知识比AI知识更难被复制}。
+\end{whybox}
+
+\subsection{融资周期与泡沫风险}
+
+\textit{The AI Startup Landscape}第13章记录了
+2022--2025年全球AI VC投资超过5800亿美元的狂潮。
+OpenAI单轮融资1100亿美元。
+Stargate项目宣布5000亿美元。
+
+历史上每一次技术狂潮都经历过泡沫：
+互联网泡沫（1995--2001）、
+移动互联网泡沫（2011--2015）、
+加密货币泡沫（2017--2018, 2021--2022）。
+AI是否会重演？数据没有给出确定答案，
+但\textbf{理性的职业策略必须是周期抗性的}——
+即在泡沫破裂后仍然有价值的技能和定位。
+
+\begin{warnbox}[泡沫中的生存法则]
+互联网泡沫破裂后，Pets.com归零了，
+但Amazon、Google、eBay活了下来。
+它们的共同特征是：\textbf{解决了真实的需求，
+有真实的营收，不依赖估值讲故事}。
+对个人而言，同样的逻辑成立：
+学``能解决真实问题的技能''，
+不要学``在牛市里看起来很酷的概念''。
+``Prompt Engineer''是后者；
+``能用AI工具解决特定领域问题的专家''是前者。
+\end{warnbox}
+
+
+% =============================================================
+\section{人的规律：从700+位人物中提取的统计模式}
+\label{sec:fg-people-patterns}
+% =============================================================
+
+本书记录了超过700位在AI时代（2012--2026）
+发挥关键作用的人物。
+虽然这不是严格的统计样本
+（人物选取基于影响力判断而非随机抽样），
+但样本量足够大，足以提取出若干有意义的模式。
+
+\subsection{教育背景模式}
+
+在本书记录的Top 100影响力人物中：
+
+\begin{itemize}
+  \item 约70\%拥有博士学位（主要集中在CS、EE、数学、物理）。
+  \item 约20\%拥有硕士或本科学位但无博士。
+  \item 约10\%为辍学者或非传统教育背景。
+\end{itemize}
+
+但有一个关键的\textbf{代际分化}：
+在1990年以后出生的那批人物中，
+无博士比例显著上升。
+Cursor的四位创始人（MIT本科）、
+Alexandr Wang（MIT辍学）、
+Harrison Chase（无PhD）、
+Georgi Gerganov（医学物理硕士）——
+他们代表了一条不经过传统学术路径的成功通道。
+
+这说明什么？\textbf{不是``PhD没用了''，
+而是``成功的路径正在多元化''}。
+PhD仍然是深度研究的有效训练方式，
+但它不再是唯一的入场券。
+
+\subsection{职业时间规律}
+
+一个经常被忽视的数据点：
+从``进入AI相关领域''到``产生重大影响''的平均时间
+约为10--15年。
+
+\begin{itemize}
+  \item Hinton：1972年开始研究神经网络，
+    2012年AlexNet（40年，极端案例）。
+  \item Dario Amodei：2011年加入百度AI实验室，
+    2021年创办Anthropic（10年）。
+  \item 梁文锋：2012年前后开始量化交易和GPU计算，
+    2023年启动DeepSeek（约11年）。
+  \item Tri Dao：2017年开始博士研究attention效率，
+    2022年FlashAttention发表（5年，较快案例）。
+  \item Peter Steinberger：2011年创办PSPDFKit，
+    2025年OpenClaw爆发（14年，领域跨越案例）。
+\end{itemize}
+
+即使是``一夜成功''的故事，
+背后也有多年的积累。
+Harrison Chase在做LangChain之前有多年ML工程经验。
+David Holz在创办Midjourney之前联合创办了Leap Motion
+并在那里工作了近10年。
+
+\begin{corebox}[一万小时定律的AI版本]
+700+位人物的数据支持一个修正版的``一万小时定律''：
+\textbf{重大影响 = 深度积累（10+年） + 正确时机 + 行动勇气}。
+三者缺一不可。
+只有深度没有时机 $\rightarrow$ Hinton等了40年。
+只有时机没有深度 $\rightarrow$ 抓住机会也做不出东西。
+有深度有时机但没有勇气 $\rightarrow$ 留在原地看别人成功。
+\end{corebox}
+
+\subsection{地理分布模式}
+
+\begin{table}[htbp]
+\centering
+\caption{Top 100 AI影响力人物的地理分布（基于主要工作地点）}
+\label{tab:geo-distribution}
+\small
+\begin{tabularx}{\textwidth}{l r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{地区} & \textbf{占比} & \textbf{典型代表} \\
+\midrule
+美国（硅谷/SF） & $\sim$35\% & Sam Altman, Jensen Huang, Dario Amodei \\
+美国（其他） & $\sim$15\% & Yann LeCun (NYC), 学术界分布于各大学 \\
+中国 & $\sim$25\% & 梁文锋, 杨植麟, 闫俊杰, 王兴兴 \\
+欧洲 & $\sim$10\% & Mistral三人组(巴黎), Steinberger(维也纳) \\
+英国 & $\sim$8\% & Hassabis (London), Hinton (Toronto$\rightarrow$London) \\
+其他 & $\sim$7\% & Georgi Gerganov(保加利亚) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+中国AI生态从``跟随''到``部分领先''的转变速度令人瞩目。
+DeepSeek V3和R1在2025年初的发布——
+用更少的算力资源达到frontier级性能——
+证明了\textbf{算法创新可以部分弥补硬件劣势}。
+\textit{The AI Startup Landscape}第11章
+和本书第8章的详细分析支持这一判断。
+
+\subsection{机构网络效应}
+
+五个机构贡献了不成比例的AI领袖人物：
+Stanford、Berkeley、CMU、MIT（美国四校）
+和清华大学（中国）。
+
+这不仅仅是因为``教育质量''。
+更重要的是\textbf{网络效应}——
+这些机构的校友互相投资、互相推荐、互相合作。
+Transformer八位作者中的六位来自Google Brain/Google Research，
+其中多人有Toronto/CMU/Stanford的背景。
+中国``六小虎''的创始人全部来自清华或与清华有密切关联。
+
+\begin{whybox}[网络 vs 学位]
+在你的教育决策中，
+\textbf{你将获得的人际网络}
+可能比你将获得的知识和学位更有长期价值。
+这解释了为什么即使AI让知识获取民主化了，
+精英机构仍然有价值——
+因为它们提供的是网络，不只是知识。
+\end{whybox}
+
+\subsection{``离开''的模式}
+
+本书最反复出现的一个主题是：
+\textbf{最有影响力的职业决策往往是``离开''}。
+
+\begin{itemize}
+  \item Dario Amodei离开OpenAI $\rightarrow$ 创办Anthropic（\$380B）
+  \item Noam Shazeer离开Google $\rightarrow$ Character.AI $\rightarrow$ 被Google以\$2.7B``召回''
+  \item Llion Jones离开Google $\rightarrow$ Sakana AI
+  \item Arthur Mensch等离开DeepMind $\rightarrow$ Mistral AI
+  \item Peter Steinberger离开PSPDFKit $\rightarrow$ OpenClaw $\rightarrow$ OpenAI
+  \item 付智离开清华博士项目 $\rightarrow$ 共绩科技（2000万营收）
+\end{itemize}
+
+共同模式：他们不是因为``对现状不满''而离开，
+而是因为\textbf{看到了一个外部机会
+比当前位置能提供的更大}。
+知道\textbf{何时离开}与知道\textbf{去哪里}同样重要。
+
+
+% =============================================================
+\section{意识形态光谱：你必须理解的四场辩论}
+\label{sec:fg-ideology}
+% =============================================================
+
+AI领域不仅有技术分歧和商业竞争，
+还有深层的\textbf{意识形态分歧}。
+你在这些辩论中的立场——
+即使你没有明确意识到自己有立场——
+会影响你选择什么方向、加入什么公司、
+与什么人合作。理解这些辩论是做出理性决策的前提。
+
+\subsection{e/acc vs AI Safety}
+
+\textbf{有效加速主义}（e/acc, effective accelerationism）
+由Guillaume Verdon等人提出，
+Marc Andreessen在``Why AI Will Save the World''中
+为其提供了投资界的背书。核心主张：
+AI发展应该尽可能快地推进，
+监管和安全担忧是阻碍进步的``末日论''。
+
+\textbf{AI安全运动}以Eliezer Yudkowsky（MIRI）为极端代表，
+以Anthropic为产业化代表。核心主张：
+先进AI系统存在对齐（alignment）风险，
+在没有充分安全保障的情况下加速发展是鲁莽的。
+
+\begin{whybox}[这场辩论为什么与你有关]
+如果你加入一家e/acc文化的公司
+（如xAI——Elon Musk ``move fast and break things''），
+你的工作节奏、项目优先级、安全约束将完全不同于
+加入一家safety-first文化的公司（如Anthropic）。
+这不仅是文化偏好，它影响你每天做什么工作、
+如何做、以及你构建的系统将如何影响世界。
+
+\textbf{务实的观察}：Anthropic是safety-first公司
+中估值最高的（\$380B），
+恰恰证明了``安全''和``快速发展''不是矛盾的。
+最有效的策略可能不是选择极端，
+而是在两者之间找到最优点。
+\end{whybox}
+
+\subsection{开源 vs 闭源}
+
+Meta（Llama系列）领导的开源阵营
+vs OpenAI（GPT系列）领导的闭源阵营。
+
+\textit{The AI Startup Landscape}第3章的数据显示
+一个有趣的分化：
+\textbf{开源在采用率上赢了，闭源在营收上赢了}。
+Hugging Face上Qwen和Llama的下载量巨大，
+但OpenAI和Anthropic的付费用户收入远超开源模型的商业化。
+
+对你的职业决策的影响：
+
+\begin{itemize}
+  \item \textbf{参与开源}是建立声誉和技能的最佳方式之一。
+    Georgi Gerganov通过llama.cpp获得了全球知名度。
+    AUTOMATIC1111通过Stable Diffusion WebUI获得162K stars。
+    开源贡献是一份\textbf{无法伪造的简历}。
+  \item 但\textbf{职业收入}目前更集中在闭源公司。
+    OpenAI工程师的薪酬远高于同等资历的
+    开源社区贡献者（当然，这可能随着
+    开源商业模式的成熟而改变）。
+\end{itemize}
+
+\subsection{美国霸权 vs 多极AI}
+
+美国芯片出口管制 vs 中国的应对
+（本书第8章、\textit{The AI Startup Landscape}第11--12章
+详细分析了这一动态）。
+
+这不是一场抽象的地缘政治辩论——
+\textbf{它直接决定了你能用什么硬件、
+做什么研究、在哪里工作}。
+
+\begin{itemize}
+  \item 在中国：最高端GPU受限，
+    但这反而催生了\textbf{效率创新}
+    （DeepSeek用更少算力达到前沿性能）
+    和\textbf{应用层机会}
+    （14亿人口的内需市场）。
+  \item 在美国/海外：硬件不受限，
+    但签证政策、技术出口管制、
+    安全审查可能影响特定国籍研究者的机会。
+  \item 开源生态是部分绕过这一限制的通道——
+    模型权重和代码不受出口管制。
+\end{itemize}
+
+\subsection{技术乐观 vs 技术现实}
+
+Ray Kurzweil的技术奇点（指数加速，2045年ASI）
+vs Melanie Mitchell的AI复杂性论证
+vs Gary Marcus的持续批评（LLM有根本局限）。
+
+\begin{whybox}[你在这个光谱上的位置影响你的风险偏好]
+如果你是Kurzweil式的乐观主义者，
+你倾向于all-in AI、接受高风险高回报的路径。
+如果你是Marcus式的怀疑论者，
+你倾向于把AI当作工具而非方向、保持多元化。
+如果你是Mitchell式的中间派，
+你承认AI很强大但有根本限制，
+你的策略是``人类专长 + AI增强''的组合。
+
+\textbf{本书的数据}更支持中间派的立场：
+AI在过去四年的进步确实超出了大多数人的预期，
+但700+位人物的成功故事中，
+\textbf{几乎没有一个}是纯靠``赌AI一定行''成功的——
+他们都有独立于AI的深厚领域积累。
+\end{whybox}
+
+
+% =============================================================
+\section{劳动力市场：数据而非叙事}
+\label{sec:fg-labor-market}
+% =============================================================
+
+关于``AI对就业的影响''，公共讨论中充斥着
+两种极端叙事：``AI将消灭所有工作''（末日派）
+和``AI将创造更多工作''（乐观派）。
+两者都有数据支持，但都不完整。
+以下是截至2026年3月的关键数据汇编。
+
+\subsection{宏观数据}
+
+\begin{itemize}
+  \item \textbf{WEF《Future of Jobs 2025》}：
+    到2030年，全球将新增1.7亿个工作岗位，
+    同时9200万个岗位被取代——
+    净增7800万个。
+    但\textbf{分布极不均匀}：
+    增长集中在AI工程、数据科学、
+    可再生能源、医疗健康；
+    萎缩集中在数据录入、基础编程、
+    常规法务/会计、内容审核。
+  \item \textbf{WEF四种2030情景}中，
+    只有一种（``企业投资再技能培训''）
+    对多数劳动者有利。
+    其他三种情景都导致不同程度的结构性失业。
+  \item \textbf{Goldman Sachs}（2023年报告）：
+    全球3亿个工作岗位暴露在AI自动化风险中。
+  \item \textbf{IMF}（2024年报告）：
+    全球40\%的就业受AI影响，
+    发达经济体达60\%。
+  \item \textbf{BlackRock CEO Larry Fink}（2026年3月）：
+    2026届毕业生可能面临``数年来最高失业率''，
+    Handshake平台面向应届生的职位同比下降16\%。
+\end{itemize}
+
+\subsection{中国特定数据}
+
+\begin{itemize}
+  \item 2025年高校毕业生突破1200万人。
+  \item AI相关岗位求职人数同比增长33.4\%，
+    但真正具备AI工程能力的求职者不到十分之一。
+  \item 36氪报道：2026年春招中企业开始要求
+    ``一人+AI完成原本三人的工作''。
+  \item 机器人赛道人才需求快速增长——
+    宇树科技、Agibot等具身智能公司
+    正在大量招聘（本书第12章）。
+\end{itemize}
+
+\subsection{行业影响评估}
+
+\begin{table}[htbp]
+\centering
+\caption{AI对各行业的影响评估（2026--2032年展望）}
+\label{tab:sector-impact}
+\small
+\begin{tabularx}{\textwidth}{l l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{行业} & \textbf{方向} & \textbf{时间线} & \textbf{机制} \\
+\midrule
+AI工程/MLOps & 快速增长 & 即刻 & Agent部署驱动的基础设施需求 \\
+机器人/具身智能 & 快速增长 & 2026--2030 & 人形机器人量产推动 \\
+医疗AI & 稳定增长 & 2026--2032 & AI辅助诊断、药物发现 \\
+可再生能源 & 稳定增长 & 2026--2035 & AI算力需求驱动的能源投资 \\
+网络安全 & 稳定增长 & 即刻 & AI攻防双向升级 \\
+\midrule
+数据录入/标注 & 萎缩 & 即刻 & 模型自动标注能力提升 \\
+基础编程 & 萎缩 & 2026--2028 & AI代码生成覆盖CRUD \\
+常规法务/会计 & 萎缩 & 2027--2030 & AI合同审查/财务分析 \\
+内容审核 & 萎缩 & 即刻 & 多模态模型自动审核 \\
+翻译/本地化 & 萎缩 & 2026--2028 & 实时翻译质量达到商用 \\
+基础客服 & 萎缩 & 即刻 & AI客服Agent替代（Sierra AI模式） \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{corebox}[位移 $\neq$ 失业，但转型期是痛苦的]
+AI引发的劳动力变化的本质是\textbf{重新分配}
+而非\textbf{消灭}。
+历史上，ATM没有消灭银行柜员（柜员转向咨询服务），
+电子表格没有消灭会计师（会计师转向分析和咨询）。
+但\textbf{转型需要新技能}，
+而获取新技能需要时间和投资。
+转型期中间的摩擦——即你失去旧技能的价值
+但尚未获得新技能的价值的那段时间——
+是真正的痛苦所在。
+\textbf{尽早开始技能转型是减少痛苦的唯一方法。}
+\end{corebox}
+
+
+% =============================================================
+\section{PhD与学位的理性分析}
+\label{sec:fg-phd}
+% =============================================================
+
+关于``AI时代还要不要读PhD''的讨论
+在2025--2026年达到了前所未有的热度。
+以下是一个尽可能不带情感色彩的成本-收益分析。
+
+\subsection{成本端}
+
+\begin{itemize}
+  \item \textbf{时间}：5--7年（美国PhD典型时长），
+    3--4年（中国直博或欧洲PhD）。
+    这是最大的成本——不是金钱，而是机会成本。
+  \item \textbf{收入}：美国AI领域PhD学生年薪
+    约\$35K--\$50K（stipend），
+    而同等资历的工业界工程师年薪约\$200K--\$400K。
+    五年差额：约\$750K--\$1.75M。
+    中国PhD学生的收入更低，但工业界对标薪资也更低，
+    差额较小但仍然显著。
+  \item \textbf{研究方向风险}：
+    你的研究方向可能在PhD期间被工业界碾压。
+    UT Austin的Puyuan Peng坦承：
+    ``研究方向已经完全由工业界决定''。
+    一个学生花三个月改进某任务5\%，
+    然后一家大公司发布模型直接提升30\%。
+\end{itemize}
+
+\subsection{收益端}
+
+\begin{itemize}
+  \item \textbf{深度思维训练}：
+    PhD的核心价值不是知识（会过时），
+    而是``定义问题和解决问题的方法论''——
+    Nature 2026年3月刊文称之为
+    ``研究的学徒制''（apprenticeship in research）。
+  \item \textbf{网络}：
+    如前所述，五大机构的网络效应是真实的。
+    一个Stanford/CMU/清华的PhD
+    自动进入一个极有价值的人际网络。
+  \item \textbf{突破性成果的来源}：
+    FlashAttention（Tri Dao, Stanford PhD），
+    Mamba（Albert Gu, CMU PhD），
+    vLLM/PagedAttention（UC Berkeley PhD学生），
+    Scaling Laws（Jared Kaplan, Johns Hopkins教授）——
+    改变行业的突破仍然大量出自学术界。
+  \item \textbf{选择权}：
+    PhD打开了学术界和工业界研究岗的大门。
+    没有PhD几乎不可能在顶尖实验室做PI。
+\end{itemize}
+
+\subsection{Google AI先驱的警告}
+
+2026年2月，Google的一位Generative AI先驱公开表示：
+``等你读完博士，AI这个领域本身可能都不存在了。''
+Oxford VGG的在读博士Yash Bhalgat写了长文分析
+为什么申请AI PhD需要极度审慎。
+
+这些警告有合理之处，但也需要放在背景下理解：
+这些人说的是\textbf{``读AI PhD''这个特定选择}，
+不是``所有PhD''。
+在AI+生物、AI+材料、AI+能源、AI+法律等
+\textbf{交叉领域}的PhD，
+其研究方向被工业界碾压的风险远低于
+纯AI/ML方向的PhD。
+
+\subsection{决策框架}
+
+\begin{table}[htbp]
+\centering
+\caption{PhD决策矩阵}
+\label{tab:phd-decision}
+\small
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{因素} & \textbf{倾向读PhD} & \textbf{倾向不读PhD} \\
+\midrule
+好奇心 & 对一个具体问题有强烈、持续的好奇心 &
+  对``做出产品''的兴趣大于``理解原理'' \\
+\midrule
+导师 & 找到了真正优秀的导师
+  （给自由、教品味、建网络） &
+  只能找到名气大但不指导学生的导师 \\
+\midrule
+替代机会 & 没有比PhD更好的深度学习渠道 &
+  有明确的创业想法或工业界机会 \\
+\midrule
+财务 & 有奖学金/资金支持，无家庭经济压力 &
+  有还贷压力或家庭经济依赖 \\
+\midrule
+方向 & 交叉领域（AI+X），工业界难以完全替代 &
+  纯AI/ML核心方向，工业界迭代更快 \\
+\midrule
+动机 & 为了研究能力本身 &
+  为了简历上的``博士''头衔 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{warnbox}[最危险的PhD动机]
+如果你读PhD的核心原因是``不知道干什么，先读着''——
+这可能是你能做的最昂贵的拖延行为之一。
+你赌的不是学费，
+你赌的是5--7年的时间——
+而这段时间里AI的能力可能会从
+``能帮你写论文''进化到``能独立完成整个研究项目''。
+\textbf{带着问题进入PhD，而不是在PhD里寻找问题。}
+\end{warnbox}
+
+
+% =============================================================
+\section{2040年的世界：具体预测与对人体的重新定义}
+\label{sec:fg-2040}
+% =============================================================
+
+本节尝试对2040年的技术-社会状态做出具体（因此可证伪）的预测。
+这些预测基于三部曲中积累的数据，
+但必须承认：15年预测的可靠性很低。
+它们的价值不在于``准确''，
+而在于帮助读者思考\textbf{可能性空间}。
+
+\subsection{脑机接口：从医疗到增强}
+
+\begin{itemize}
+  \item \textbf{当前状态}（2026年）：
+    Neuralink到2025年底有21名人类受试者，
+    目标在2028年前获得临床BCI批准。
+    目标2031年达到10亿美元收入。
+    Synchron的Stentrode（低侵入性，
+    通过血管植入）提供了替代方案。
+  \item \textbf{英国国防部2021年报告}
+    将消费级BCI放在``2050年之后''——
+    但这个预测在5年内就已经被打破，
+    因为LLM提供的\textbf{软件层面的认知增强}
+    比硬件BCI早了10--25年到达。
+  \item \textbf{现实时间线}：
+    医疗BCI（帮助瘫痪患者）：2028--2032。
+    增强型BCI（健康人的认知辅助）：2035--2040。
+    消费级BCI（像手机一样普及）：2040+。
+  \item \textbf{但是}：通过软件实现的认知增强
+    （LLM+可穿戴设备+持久化Agent）
+    已经在2026年部分实现。
+    BCI不是认知增强的唯一路径——
+    它是最终形态，但不是唯一形态。
+\end{itemize}
+
+\subsection{基因疗法与AI驱动的药物发现}
+
+\begin{itemize}
+  \item 首个CRISPR基因疗法在2023年获得FDA批准
+    （Casgevy, 治疗镰状细胞病）。
+    原始预测是2040年前后。AI加速了时间线。
+  \item Isomorphic Labs（DeepMind分拆）、
+    Recursion Pharmaceuticals
+    （\textit{AI Figures}第12章记录）
+    正在用AI压缩药物发现的时间线——
+    从传统的10--15年缩短到可能的3--5年。
+  \item 到2040年的合理预测：
+    基因疗法从罕见病治疗扩展到
+    慢性病预防和延寿干预。
+    AI驱动的个性化医疗成为标准。
+\end{itemize}
+
+\subsection{人类增强的渐进光谱}
+
+人类与AI的关系正在经历一个渐进的融合过程：
+
+\begin{enumerate}
+  \item \textbf{AI作为外部工具}（2023--2026）：
+    ChatGPT、Claude、DeepSeek——你打开一个应用，
+    输入请求，获得输出。工具和用户之间有明确边界。
+  \item \textbf{AI作为认知义肢}（2026--2032）：
+    可穿戴设备+语音助手+持久化上下文。
+    AI始终在线，了解你的工作、偏好和目标。
+    类似于智能手机对人类的延伸，
+    但程度更深。
+  \item \textbf{AI作为持久化伴侣}（2032--2038）：
+    持久Agent——有长期记忆、
+    能代表你执行复杂任务、
+    与你的其他Agent协作的系统。
+    ``个人AI''成为一种身份延伸。
+  \item \textbf{AI作为生物延伸}（2038+）：
+    BCI实现后，思维与AI的界面从
+    ``语言输入/输出''变为``直接神经信号''。
+    人类认知能力的定义被改写。
+\end{enumerate}
+
+每一步都带来伦理、社会、监管层面的挑战。
+但每一步的到来时间都在加速——
+2010年对2023年的预测几乎全部低估了AI的进展速度。
+
+\subsection{不平等的新维度}
+
+\begin{warnbox}[21世纪最危险的不平等]
+``AI增强人类''和``未增强人类''之间的鸿沟
+可能成为本世纪最重要的不平等维度。
+\begin{itemize}
+  \item \textbf{财富不平等}是资源分配问题——
+    可以通过税收、再分配等政策工具缓解。
+  \item \textbf{能力不平等}是更根本的问题——
+    一个使用AI工具的律师可以在一天内完成
+    一个不使用AI的律师一个月的工作量。
+    这不是10\%的效率差距，是10倍甚至100倍。
+  \item 当BCI使这种差距从``工具使用''层面
+    上升到``认知能力''层面时，
+    鸿沟将更难弥合。
+\end{itemize}
+这不是科幻——这是三部曲数据指向的
+一个高概率未来。
+你对此的唯一理性应对是：
+\textbf{现在就开始使自己成为``增强''的一方}。
+\end{warnbox}
+
+\subsection{``工作''的重新定义}
+
+如果AI能完成大多数认知任务，
+``工作''的经济学定义将发生根本变化。
+人类经济价值的来源将从``劳动''（labor）
+迁移到``判断''（judgment）
+再到``品味''（taste）。
+
+\begin{itemize}
+  \item \textbf{劳动}：执行已定义的任务。
+    这是AI最容易替代的。
+  \item \textbf{判断}：在不确定性下做决定。
+    AI可以辅助但难以完全替代，
+    因为判断涉及价值观和风险偏好。
+  \item \textbf{品味}：定义``什么值得做''。
+    这是最不可替代的——
+    AI可以生成一百个方案，
+    但选择哪一个需要人类的品味。
+\end{itemize}
+
+Sam Altman和Jensen Huang在不同场合都表达过类似观点：
+未来最有价值的人类能力不是执行能力，
+而是\textbf{方向感}——知道该去哪里。
+
+
+% =============================================================
+\section{决策框架：按处境分类的具体建议}
+\label{sec:fg-decisions}
+% =============================================================
+
+以下不是``鼓励''或``安慰''。
+它们是基于三部曲数据的分析性决策框架，
+读者应根据自身处境选择适用的部分。
+
+\subsection{通用公式}
+
+在分类讨论之前，先给出一个适用于所有处境的估值公式：
+
+\begin{keybox}[2026年个人市场价值公式]
+$$\text{个人价值} = \text{领域深度} \times \text{AI熟练度}
+  \times \text{执行速度}$$
+
+\begin{itemize}
+  \item \textbf{领域深度}：你在某个具体领域
+    （不是``AI''这个泛领域）的知识和经验深度。
+    可以是法律、医疗、金融、制造、教育、
+    生物、材料……任何实质性领域。
+  \item \textbf{AI熟练度}：你使用AI工具
+    （Claude, ChatGPT, Cursor, Midjourney, 等）
+    解决该领域问题的能力。
+    不是``会用ChatGPT聊天''，
+    而是``能用AI完成过去需要一个团队才能完成的工作''。
+  \item \textbf{执行速度}：从想法到产出的速度。
+    在AI时代，执行速度的方差急剧扩大——
+    会用AI的人一天做完别人一个月的工作。
+\end{itemize}
+
+\textbf{乘法关系}意味着：任何一项为零，
+总价值就是零。
+你是医学博士但不会用AI？领域深度很高，
+但乘以零的AI熟练度，市场价值趋近于零。
+你精通Prompt Engineering但没有任何领域深度？
+同样趋近于零。
+你两样都有？你一个人就是一支团队。
+\end{keybox}
+
+\subsection{本科生（大一到大三）}
+
+\subsubsection{即时行动}
+今天就开始\textbf{用AI做你专业内的事}——
+注意是``用AI''而不是``学AI''。
+你是学经济的？用Claude分析数据、写计量模型。
+你是学法律的？用AI做判例检索和合同审查。
+你是学医的？用AI辅助文献综述。
+你是学文学的？用AI做文本分析。
+
+\subsubsection{中期投资}
+做一个\textbf{实质性的项目}并公开发布。
+GitHub repo、小程序、公众号、开源贡献——形式不限，
+但必须是\textbf{别人可以看到、评估的产出}。
+
+本书中反复出现的一个模式：
+作品 $>$ 简历 $>$ 学位。
+Cursor的四位创始人靠MIT期间做的项目获得投资，
+不是靠MIT的学位。
+AUTOMATIC1111靠一个开源项目获得162K stars，
+不是靠学历。
+
+\subsubsection{定位策略}
+找到``你的领域专长''$\times$``AI能力缺口''$\times$``市场需求''
+的交叉点。这个交叉点就是你的不可替代性所在。
+
+\begin{itemize}
+  \item STEM专业：AI+你的领域实验/数据分析/模拟。
+    物理+AI、化学+AI、生物+AI的交叉点
+    是工业界难以用纯ML人才填补的。
+  \item 人文社科：AI+政策分析、AI+法律推理、
+    AI+经济建模、AI+教育设计。
+    这些方向需要领域判断力，纯AI背景的人缺乏这种判断。
+  \item 艺术/设计：AI+创意工具、AI+用户体验。
+    Midjourney的David Holz是一个
+    ``技术+艺术视觉''交叉人物的典型案例。
+\end{itemize}
+
+\subsection{硕士/博士生}
+
+\subsubsection{如果研究进展顺利}
+同时优化\textbf{学术影响}和\textbf{商业适用性}。
+Tri Dao的FlashAttention既是一篇顶会论文，
+也是一个被工业界广泛使用的开源工具——
+他联合创办的Together AI估值\$3.3B。
+这种``学术+产业双轨''模式是研究生最优路径。
+
+\subsubsection{如果感到痛苦或迷茫}
+做一个诚实的成本-收益评估。
+沉没成本不是继续的理由——
+``我已经读了三年不能白费''是沉没成本谬误的教科书定义。
+正确的问题是：
+\textbf{``接下来的N年，我做什么能让未来十年的我最受益？''}
+如果答案是继续读博——好好读。
+如果答案是别的——那就去做别的。
+
+\subsubsection{副业作为保险}
+在做研究的同时，用20\%时间做一个
+可能有商业价值的项目。
+如果你的研究方向被工业界碾压了（概率不低），
+你有一个Plan B。
+Connor Leahy在做EleutherAI时还是本科生。
+Stella Biderman在组建EleutherAI社区时是数学博士生。
+
+\begin{corebox}[导师质量公式]
+在700+位人物的数据中，一个反复出现的模式：
+\textbf{优秀导师在一般领域 $>$ 一般导师在热门领域}。
+
+Geoffrey Hinton在AI冬天的Toronto大学
+培养出了Ilya Sutskever。
+Pieter Abbeel在Berkeley培养出了
+一批机器人/强化学习领域的领袖。
+导师的价值不在于他/她的名气，
+在于他/她是否\textbf{给你自由、
+教你品味、帮你建立人际网络}。
+\end{corebox}
+
+\subsection{刚毕业/求职中}
+
+\subsubsection{重新定义``好工作''}
+2026年的``好工作''不是大厂的稳定职位——
+因为大厂职位不再稳定
+（Google合并Brain/DeepMind裁员、
+Meta裁员数万、OpenAI管理层大洗牌）。
+好工作 = \textbf{学习速度最快}的工作。
+\textit{The AI Startup Landscape}记录的
+数百家AI创业公司中，
+一个10--50人的创业公司给22--28岁年轻人的
+学习机会通常远超大厂的螺丝钉岗位。
+
+学习速度 $>$ 薪资 $>$ 声望。
+这在22--28岁时是最优排序——
+因为这个年龄段积累的能力的复利
+远超额外薪资的投资回报。
+
+\subsubsection{``自己创造工作''的选项}
+在AI时代，创业的门槛已降到历史最低。
+Peter Steinberger用一个小时做出OpenClaw的第一个原型。
+Midjourney——David Holz的公司——
+零外部融资、全员盈利、估值超100亿美元。
+你需要的不是资金和团队，
+而是：一个真实的问题 + AI工具 + 执行力。
+
+\subsection{家长}
+
+\begin{warnbox}[给家长的直言]
+\begin{enumerate}
+  \item \textbf{你的焦虑可能比AI本身更有害}。
+    恐惧驱动的决策几乎总是错误的——
+    它让人选择``看起来安全的''
+    而非``真正有价值的''。
+  \item \textbf{``安全路径''不再存在}。
+    大厂裁员、公务员编制收缩、
+    行业半衰期缩短到18个月。
+    本书700+位人物中，
+    \textbf{没有一个}是按照
+    ``家长规划的安全路径''走到今天的。
+  \item \textbf{最有价值的投资}不是更多学位，
+    而是\textbf{试错空间}和\textbf{AI工具访问}。
+    比起花50万读一个可能过时的硕士学位，
+    花5000元买一年AI工具订阅
+    （Claude Pro, ChatGPT Plus, GitHub Copilot），
+    ROI可能高出两个数量级。
+  \item \textbf{适应力}才是安全——
+    不是适应某一个``安全方向''，
+    而是培养在任何方向变化中都能快速调整的能力。
+\end{enumerate}
+\end{warnbox}
+
+\subsection{职业转型者（当前不在AI领域）}
+
+这一群体可能反而拥有最大的优势，
+但大多数人没有意识到。
+
+\begin{keybox}[你的领域知识是稀缺资产]
+纯AI背景的人大量供给（2025年CS毕业生创历史新高），
+但``懂AI + 懂某个具体领域''的人极度稀缺。
+\begin{itemize}
+  \item 你是律师？AI+法律合规是一个巨大的市场。
+    Harvey AI（\textit{The AI Startup Landscape}第10章）
+    正在重新定义法律服务，
+    它需要的不是更多ML工程师，
+    而是懂法律的人来训练和验证系统。
+  \item 你是医生？AI+医疗诊断需要
+    医学领域知识来定义问题和评估输出。
+  \item 你是教师？AI+教育需要
+    教育学专业知识来设计学习路径。
+  \item 你在制造业？AI+工业自动化
+    需要对生产流程的深度理解。
+\end{itemize}
+
+转型路径：（1）学习AI工具在你领域的应用
+$\rightarrow$ （2）用AI工具做出你领域的项目成果
+$\rightarrow$ （3）建立``AI+X''的独特定位
+$\rightarrow$ （4）作为领域专家进入AI公司或自己创业。
+这条路径通常比``从零学ML''更高效、更有竞争力。
+\end{keybox}
+
+
+% =============================================================
+\section{意识形态光谱中的定位：你的世界观决定你的策略}
+\label{sec:fg-positioning}
+% =============================================================
+
+第\ref{sec:fg-ideology}节介绍了四场辩论。
+本节讨论你在这些辩论中的位置
+如何映射到具体的职业策略。
+
+% --- Decision framework TikZ figure ---
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily},
+  axis/.style={-{Stealth[length=5pt]}, thick, figGray},
+  quadrant/.style={rounded corners=4pt, minimum width=4.8cm,
+    minimum height=3.2cm, align=center, font=\sffamily\small,
+    inner sep=6pt},
+  q1/.style={quadrant, fill=figBlue!10, draw=figBlue!40},
+  q2/.style={quadrant, fill=figGreen!10, draw=figGreen!40},
+  q3/.style={quadrant, fill=figOrange!10, draw=figOrange!40},
+  q4/.style={quadrant, fill=figRed!10, draw=figRed!40},
+  label/.style={font=\sffamily\small\bfseries, text=figGray},
+]
+
+% Axes
+\draw[axis] (-5.5, 0) -- (5.5, 0);
+\draw[axis] (0, -4) -- (0, 4);
+
+% Axis labels
+\node[label, anchor=south] at (0, 4.2) {技术乐观};
+\node[label, anchor=north] at (0, -4.2) {技术谨慎};
+\node[label, anchor=west] at (5.7, 0) {加速主义};
+\node[label, anchor=east] at (-5.7, 0) {安全优先};
+
+% Quadrants
+\node[q1] at (2.8, 2) {
+  \textbf{象限I：全力加速}\\[3pt]
+  {\scriptsize 策略：All-in AI创业}\\
+  {\scriptsize 风险：极高}\\
+  {\scriptsize 代表：xAI, a16z}
+};
+\node[q2] at (-2.8, 2) {
+  \textbf{象限II：负责任创新}\\[3pt]
+  {\scriptsize 策略：Safety+Performance}\\
+  {\scriptsize 风险：中}\\
+  {\scriptsize 代表：Anthropic}
+};
+\node[q3] at (-2.8, -2) {
+  \textbf{象限III：防御性布局}\\[3pt]
+  {\scriptsize 策略：AI作为工具}\\
+  {\scriptsize 风险：低}\\
+  {\scriptsize 代表：传统行业+AI}
+};
+\node[q4] at (2.8, -2) {
+  \textbf{象限IV：务实应用}\\[3pt]
+  {\scriptsize 策略：快速应用现有AI}\\
+  {\scriptsize 风险：中低}\\
+  {\scriptsize 代表：垂直SaaS+AI}
+};
+
+% Title
+\node[font=\sffamily\small\bfseries, text=figGray] at (0, 5)
+  {AI意识形态-职业策略映射};
+
+\end{tikzpicture}
+\caption{基于技术态度（乐观/谨慎）和发展态度（加速/安全优先）
+的四象限职业策略映射。没有``正确''的象限——
+每个象限对应不同的风险/回报特征。
+关键是知道自己在哪里以及为什么在那里。}
+\label{fig:ideology-career-map}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{象限I（全力加速）}：
+    适合高风险承受能力、有技术能力、
+    年轻（20s）且没有家庭负担的人。
+    策略是all-in AI创业或加入最前沿的AI公司。
+    回报天花板极高，但失败概率也极高。
+
+  \item \textbf{象限II（负责任创新）}：
+    适合既有技术能力又有安全/伦理意识的人。
+    Anthropic是这个象限的标杆——
+    \$380B的估值证明这个定位可以商业化。
+    策略是在前沿AI公司或研究机构工作，
+    同时关注安全和对齐问题。
+
+  \item \textbf{象限III（防御性布局）}：
+    适合有领域专长、风险偏好较低的人。
+    策略是在自己的领域中引入AI工具，
+    成为``AI增强的X领域专家''。
+    回报上限较低，但基本面很稳。
+
+  \item \textbf{象限IV（务实应用）}：
+    适合有产品能力、喜欢快速迭代的人。
+    策略是用现有AI能力解决垂直领域的真实问题。
+    Cursor、Perplexity、Harvey AI都在这个象限。
+    回报可观，风险可控。
+\end{itemize}
+
+\begin{corebox}[没有``正确''的象限]
+四个象限都有成功案例。
+关键不是选择``正确''的象限，
+而是\textbf{知道自己在哪个象限，
+并针对该象限的特征优化策略}。
+最糟糕的情况不是``选错了象限''，
+而是``不知道自己在哪个象限，
+因此无法做出一致的决策''。
+\end{corebox}
+
+
+% =============================================================
+\section{经济周期中的策略：不被牛市和熊市左右}
+\label{sec:fg-cycles}
+% =============================================================
+
+\textit{The AI Startup Landscape}第13--14章
+详细分析了AI领域的融资狂潮和历史模式。
+本节提取对个人决策最相关的部分。
+
+\subsection{泡沫的历史模式}
+
+\begin{table}[htbp]
+\centering
+\caption{技术泡沫的历史比较}
+\label{tab:bubble-comparison}
+\small
+\begin{tabularx}{\textwidth}{l l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{泡沫} & \textbf{膨胀期} & \textbf{破裂} & \textbf{幸存者特征} \\
+\midrule
+铁路泡沫 & 1840s & 1847 & 有真实运营收入的线路 \\
+互联网泡沫 & 1995--2000 & 2001 & 有真实用户+营收（Amazon, Google） \\
+移动互联网 & 2011--2015 & 2015--16 & 强网络效应（WeChat, Uber） \\
+加密货币 & 2020--2021 & 2022 & 有实际用途（Ethereum, 稳定币） \\
+AI泡沫？ & 2022--? & ? & ? \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+所有技术泡沫都有共同模式：
+底层技术是真实的（互联网确实改变了世界），
+但短期估值远超实际价值创造速度，
+导致修正。
+AI的底层技术同样是真实的——
+但2026年的估值水平是否可持续，尚无定论。
+
+\subsection{周期抗性策略}
+
+无论泡沫是否破裂，以下策略都有效：
+
+\begin{enumerate}
+  \item \textbf{学真本事，不学概念}。
+    ``Prompt Engineer''``AI策略顾问''这类头衔
+    在牛市时值钱，熊市时一文不值。
+    能写代码的、懂算法原理的、
+    理解业务逻辑的人在任何周期都有价值。
+  \item \textbf{关注现金流而非估值}。
+    Midjourney：零外部融资、全员盈利、
+    估值超100亿美元。
+    如果你创业或加入创业公司，
+    关注``能不能赚到钱''而非``估值多少''。
+  \item \textbf{不为``AI''而AI}。
+    最持久的公司不是``AI公司''——
+    而是``用AI解决真实问题的公司''。
+    Scale AI是数据标注公司，
+    Sierra AI是客服公司——
+    它们恰好在AI时代至关重要。
+\end{enumerate}
+
+\begin{whybox}[Midjourney模式的启示]
+David Holz创办Midjourney时做了一个反常规的决定：
+不融资。在所有AI公司都在疯狂融资的时代，
+他选择了自力更生。结果：
+零稀释、完全控制、全员盈利、
+估值超过100亿美元。
+这不是说融资不对——
+这是说\textbf{不融资也可以}。
+对你的启示：创业不一定需要投资人——
+如果你的产品能直接收费，
+AI时代的低创业成本意味着
+你可以一个人或小团队bootstrap一家盈利公司。
+\end{whybox}
+
+
+% =============================================================
+\section{收束：从三本书中看到的一个规律}
+\label{sec:fg-closing}
+% =============================================================
+
+三部曲写完了。
+\textit{Emergence}的十五章技术分析、
+\textit{The AI Startup Landscape}的十六章产业地图、
+\textit{AI Figures}的十四章人物记录——
+合计约50万字的中英文文本、
+数百张图表、超过3000条引用。
+
+在所有这些材料中，
+有没有一个\textbf{统一的、贯穿所有维度的规律}？
+
+有。
+
+\subsection{深度 $\times$ 时机 $\times$ 勇气}
+
+在700余位人物中，产生最大影响的那些人
+几乎都符合同一个公式：
+
+$$\text{Impact} = \text{Depth} \times \text{Timing} \times \text{Courage}$$
+
+\begin{itemize}
+  \item \textbf{深度（Depth）}：
+    Hinton在统计学习和神经网络上积累了数十年的深度。
+    在所有人都放弃神经网络的时候，
+    他的深度使他成为唯一一个能在2012年
+    让AlexNet工作的人。
+
+  \item \textbf{时机（Timing）}：
+    Jensen Huang在1993年创办NVIDIA时，
+    AI市场不存在。但他在GPU计算上的深度积累，
+    在2012年深度学习革命到来时
+    恰好处于正确的位置。
+    梁文锋在量化交易中积累的GPU计算经验，
+    在2023年大模型浪潮中
+    给了他启动DeepSeek的能力和视角。
+
+  \item \textbf{勇气（Courage）}：
+    Dario Amodei离开OpenAI——
+    当时世界上最有影响力的AI实验室——
+    去创办一家以``AI安全''为核心使命的公司。
+    Peter Steinberger在快40岁时
+    放下经营了13年的PSPDFKit，
+    在一个小时内做出OpenClaw的第一个原型。
+    付智在清华博士在读时休学创业。
+    这些决策在做出的那一刻看起来都是``不合理的''——
+    事后看来，它们是最``合理的''。
+\end{itemize}
+
+\subsection{这个公式对你的意义}
+
+\begin{keybox}[三个可以行动的维度]
+\begin{enumerate}
+  \item \textbf{深度你可以现在开始构建}。
+    选一个你真正好奇的方向，
+    投入时间积累不可替代的理解。
+    不是``什么热门学什么''——
+    而是``什么让你持续好奇就学什么''。
+    因为只有持续的好奇心
+    才能支撑10--15年的深度积累。
+
+  \item \textbf{时机你可以学会识别}。
+    阅读本系列三部曲（以及持续关注技术进展）
+    帮助你建立对``什么正在变化、
+    什么即将变化''的感知。
+    梁文锋之所以能在2023年启动DeepSeek，
+    是因为他在量化交易中
+    \textbf{一直在关注GPU计算的趋势}。
+    时机不是运气——它是\textbf{准备遇见变化}。
+
+  \item \textbf{勇气是一个选择}。
+    这是三个维度中唯一不需要时间积累的——
+    你可以今天就做出一个勇敢的选择。
+    它可以很小：今晚做一个项目、
+    明天投一份不太``安全''的简历、
+    下周和一个你敬仰但从未联系过的人发一封邮件。
+    本书700余位人物的共同特征不是天赋——
+    是他们在关键时刻\textbf{选择了行动而非等待}。
+\end{enumerate}
+\end{keybox}
+
+\subsection{三部曲的最终备注}
+
+\textit{Emergence}告诉我们技术如何运作。
+\textit{The AI Startup Landscape}告诉我们产业如何运作。
+\textit{AI Figures}告诉我们人如何运作。
+
+这三个维度的交叉点——
+你对技术的理解 $\times$ 你对产业的判断 $\times$
+你对自己和他人的认知——
+就是你在智能时代的定位坐标。
+
+没有人能替你计算这个坐标。
+没有导师、没有家长、没有AI
+能告诉你``你应该做什么''。
+他们能提供的是信息和框架——
+正如本三部曲试图做的那样。
+最终的决策权和责任，
+完全在你自己手中。
+
+\begin{quote}
+\itshape
+没有人会为你的人生负责。
+领导不会，教授不会，父母也不应该。
+你是你自己命运的唯一责任人。
+
+\upshape\footnotesize
+—— 改编自\textit{上海交通大学生存手册}
+\end{quote}
+
+\bigskip
+\hfill Ziming Wang
+
+\hfill 2026年3月，于香港科技大学

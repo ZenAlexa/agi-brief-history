@@ -1,0 +1,1131 @@
+% =============================================================
+% Chapter 7: The New Constellations — xAI, Mistral, Cohere
+%             & the Lab Explosion (2023–2026)
+% Book: AI Figures — Who's Who in the Age of AI
+% =============================================================
+
+\chapter{新星座群：xAI、Mistral 与实验室大爆炸}
+\label{ch:western-labs}
+
+如果说OpenAI、Anthropic和Google DeepMind是AI银河系中最耀眼的三颗
+恒星，那么本章要讲述的，则是2023年以来在它们引力场边缘骤然点亮的
+数十颗新星——它们有的诞生于不甘居人后的亿万富翁的雄心
+（xAI），有的生长于欧洲科技主权的焦虑之中（Mistral），
+有的则是那篇改变了一切的论文的作者们各奔前程后留下的余辉
+（Sakana、Essential AI、Cohere）。
+
+ChatGPT在2022年11月掀起的海啸效应，不仅唤醒了公众对AI的想象力，
+更催生了一波前所未有的AI实验室创业潮。从2023年初到2026年初，
+超过200家新的基础模型公司在全球涌现。但并非所有实验室都能
+存活——2024年爆发的"\textbf{反向人才收购}"（acqui-hire）浪潮，
+让Microsoft、Google和Amazon以一种绕过反垄断审查的精巧方式，
+将Inflection AI、Character.AI和Adept AI的核心团队"购回"。
+这一现象深刻地揭示了AI创业生态的残酷法则：
+\textbf{在一个资本需求以十亿美元为单位计量的行业里，
+独立生存的空间正在急剧收窄}。
+
+本章将追踪50余位关键人物的职业轨迹，勾勒出一幅
+"后ChatGPT时代"西方AI实验室的全景图。
+
+\begin{corebox}[本章人物地图]
+本章覆盖的实验室和关键人物可以沿三个维度分类：
+\begin{itemize}
+  \item \textbf{资本驱动型}：xAI（Elon Musk的算力暴力美学）、
+    Inflection AI（\$1.3B融资后被Microsoft"消化"）——
+    这些实验室的故事是资本与算力的故事；
+  \item \textbf{技术驱动型}：Mistral（三位法国研究员的开源赌注）、
+    Cohere（Transformer论文作者的企业AI路线）、
+    Sakana AI（东京的进化智能实验）——
+    这些实验室的故事是算法创新的故事；
+  \item \textbf{应用驱动型}：Runway（视频生成）、Midjourney（图像生成）、
+    Suno（音乐生成）、Pika（视频创作）、
+    Perplexity（AI搜索）、Cursor（AI编程）——
+    这些实验室的故事是产品想象力的故事。
+\end{itemize}
+\end{corebox}
+
+
+% =============================================================
+\section{xAI：Elon Musk 的AI赌局}
+\label{sec:xai}
+% =============================================================
+
+2023年7月12日，Elon Musk正式宣布成立xAI，一家旨在"理解宇宙真正本质"
+的人工智能公司。这家公司的诞生，与其说是技术远见的产物，不如说是
+一场持续数年的个人恩怨的高潮——Musk与OpenAI之间从共同创始人到
+公开敌对的关系转变，构成了AI产业最富戏剧性的叙事之一。
+
+\subsection{Elon Musk：最具争议的AI推手}
+
+\textbf{Elon Reeve Musk}（1971年生于南非比勒陀利亚）是地球上最富有的
+人之一，也是AI领域最矛盾的存在。他是Tesla的CEO（市值一度超过万亿
+美元的电动车公司）、SpaceX的创始人（人类首家实现火箭回收的私人
+航天公司）、以及X（前Twitter）的拥有者。
+
+Musk与AI的纠葛始于2015年，他作为联合创始人和早期资助者帮助创建了
+OpenAI，声称要以非营利形式确保AI造福全人类。但到2018年，他因与
+Sam Altman的路线分歧而退出董事会。此后，Musk成为OpenAI最猛烈的
+批评者，指控其背叛了非营利使命、沦为Microsoft的附庸。2024年，
+他甚至对OpenAI提起诉讼，尽管该诉讼后来又被撤回，再被提起，法律前景
+不甚明朗。
+
+\begin{whybox}[为什么Musk要亲自下场做AI？]
+表面上，Musk创办xAI是因为他对OpenAI的"不安全"和"闭源"感到不满。
+但更深层的动机至少包含三层：
+\begin{enumerate}
+  \item \textbf{数据优势}：X平台（前Twitter）每天产生数亿条
+    实时文本数据——这是预训练大模型的宝贵语料来源，
+    尤其是在其他数据源因版权纠纷日趋封闭的背景下；
+  \item \textbf{产品分发}：Grok可以直接内嵌于X平台，
+    面向数亿用户——这是任何独立AI实验室都无法比拟的分发渠道；
+  \item \textbf{商业协同}：Tesla的自动驾驶需要顶级AI人才和算力，
+    SpaceX的火箭优化可以受益于高级推理模型，
+    xAI与Musk帝国的其他版图形成战略闭环。
+\end{enumerate}
+\end{whybox}
+
+xAI的起步速度令人瞠目。公司成立仅4个月后，首款模型Grok-1便在X平台
+上线。到2024年底，xAI已在田纳西州孟菲斯（Memphis）一座废弃的
+Electrolux工厂中，建造了名为"Colossus"的超级计算集群——
+初始规模为10万块NVIDIA H100 GPU，仅用122天便完成部署，
+随后在92天内又翻倍至20万块GPU。到2026年初，Colossus 2已扩展至
+超过30万块GPU（含H100、H200和GB200混合配置），
+成为全球最大的单一AI训练集群，功率达到吉瓦级别。
+
+2025年3月，xAI以一种异乎寻常的方式收购了X（Twitter）。
+随后在2026年初，SpaceX以约2500亿美元的价格收购了xAI，
+使得合并后的实体估值超过1.25万亿美元——
+这是人类历史上最大的私人企业合并。
+
+\subsection{十二位联合创始人：一场人才集结与离散}
+
+xAI的创始团队堪称"AI全明星阵容"——12位联合创始人全部来自
+DeepMind、OpenAI、Google Research、Microsoft Research和多伦多大学
+等顶级机构。然而，到2026年2月底，\textbf{已有7位联合创始人离开}，
+流失率超过58\%。这一"创始人出走潮"与SpaceX的合并和Musk的管理
+风格密切相关。
+
+\begin{keybox}[xAI 十二位联合创始人（2023年7月）]
+\begin{enumerate}
+  \item \textbf{Elon Musk}——CEO，Tesla/SpaceX/X 创始人
+  \item \textbf{Igor Babuschkin}——前 DeepMind 研究科学家，
+    曾参与 AlphaCode、Chinchilla 等项目
+    （已离开）
+  \item \textbf{Toby Pohlen}——前 DeepMind 高级研究员，
+    曾参与 AlphaStar（星际争霸II AI）
+    （2026年2月离开，第7位离开的创始人）
+  \item \textbf{Jimmy Ba}——多伦多大学助理教授，
+    Adam优化器的共同发明人（与Diederik Kingma合作），
+    Layer Normalization的提出者
+    （2026年2月离开）
+  \item \textbf{Yuhuai ``Tony'' Wu}——前 Google Research 研究员，
+    Autoformalization 领域的先驱，曾在斯坦福大学读博
+    （2026年2月离开）
+  \item \textbf{Greg Yang}——前 Microsoft Research 研究员，
+    $\mu$Transfer（超参数迁移）的发明人，Tensor Programs
+    系列论文的作者（已离开）
+  \item \textbf{Guodong Zhang}——前多伦多大学博士，
+    研究方向为深度学习优化理论（已离开）
+  \item \textbf{Zihang Dai}——Transformer-XL 的共同作者，
+    前Google Brain研究员
+  \item \textbf{Christian Szegedy}——Inception网络的发明人，
+    Batch Normalization的共同提出者，
+    前 Google Research 杰出研究科学家（已离开）
+  \item \textbf{Manuel Kroiss}——前 DeepMind 工程师
+  \item \textbf{Jared Kaplan}——Johns Hopkins大学物理学教授，
+    Scaling Laws 的共同发现者（该工作在Anthropic时期完成）
+  \item \textbf{Ross Nordeen}——前 Tesla Autopilot 工程师
+\end{enumerate}
+\end{keybox}
+
+这份名单中有几位尤为值得关注。
+
+\textbf{Igor Babuschkin}作为xAI最早期的技术核心之一，
+此前在DeepMind参与了多个里程碑式项目。他的离开标志着xAI从
+"研究驱动"向"产品和基础设施驱动"的战略转型——一个在Musk旗下
+公司中反复出现的模式。
+
+\textbf{Jimmy Ba}是深度学习优化领域的重要贡献者。他与
+Diederik Kingma在2014年共同提出的Adam优化器，至今仍是训练
+神经网络最广泛使用的优化算法。他与Geoffrey Hinton等人共同提出的
+Layer Normalization也是Transformer架构中不可或缺的组件。
+Ba在多伦多大学担任教职期间加入xAI，他的离开可能意味着
+回归学术界。
+
+\textbf{Christian Szegedy}是Google时代AI研究的标志性人物。
+他发明的Inception网络架构赢得了2014年ImageNet大赛，
+与Sergey Ioffe共同提出的Batch Normalization（2015年）至今仍是
+几乎所有深度神经网络的标配技术。他后来的研究兴趣转向
+AI的数学推理能力。
+
+\textbf{Jared Kaplan}是另一个有趣的案例。作为Johns Hopkins大学的
+理论物理学教授，他在Anthropic时期与Dario Amodei等人共同发现了
+"Scaling Laws"——即模型性能与参数量、数据量、算力之间的幂律
+关系。这一发现为AI实验室的资源分配决策提供了定量框架，是
+推动"大力出奇迹"范式的理论基石之一。
+
+\begin{whybox}[xAI创始人出走潮说明了什么？]
+12位联合创始人中有7位在不到三年内离开，这一比例远超AI创业公司的
+平均水平。可能的解释包括：
+\begin{itemize}
+  \item \textbf{管理风格}：Musk以"极限工作节奏"和"扁平化但
+    独裁式决策"著称——这对习惯于学术自由或DeepMind式研究文化
+    的科学家而言可能难以适应；
+  \item \textbf{SpaceX合并}：2026年初SpaceX收购xAI后，
+    公司治理结构发生根本性变化，研究自主权可能被削弱；
+  \item \textbf{股权与IPO预期}：SpaceX计划通过IPO让xAI上市，
+    创始人可能在股权锁定期结束后选择套现离场；
+  \item \textbf{研究方向分歧}：Musk对xAI的定位日趋"产品化"
+    和"基础设施化"，而许多创始人更关注前沿研究。
+\end{itemize}
+\end{whybox}
+
+
+% =============================================================
+\section{Mistral AI：欧洲的AI冠军}
+\label{sec:mistral}
+% =============================================================
+
+在硅谷和中国的AI巨头主导全球叙事的时代，一家法国创业公司
+以惊人的速度闯入前沿战场——\textbf{Mistral AI}，
+三位年轻法国研究员的造梦工程。
+
+\subsection{三位创始人：从Google和Meta到巴黎}
+
+Mistral AI于2023年4月28日在巴黎成立，创始团队由三人组成，
+他们全部毕业于法国精英教育体系的顶尖院校。
+
+\textbf{Arthur Mensch}（CEO），毕业于\'{E}cole Polytechnique（X2011届）
+和\'{E}cole Normale Sup\'{e}rieure，此前在Google DeepMind巴黎办公室担任
+研究科学家。他参与了DeepMind多个大模型项目的研究工作，对
+大规模模型训练的工程和科学挑战有第一手经验。Mensch的领导风格
+以务实和低调著称——与Musk的高调截然不同，他更倾向于让产品和论文
+说话。2025年9月，Mistral的三位创始人成为法国首批AI亿万富翁。
+
+\textbf{Guillaume Lample}（Chief Scientist），同样毕业于\'{E}cole
+Polytechnique（X2011届），此前在Meta AI（FAIR）担任研究科学家。
+他是Meta旗舰大模型LLaMA的核心开发者之一——正是这一经验让他
+深刻理解了开放权重模型的技术路线和竞争策略。Lample被同事和
+媒体称为Mistral背后的"AI天才"（Sifted, 2025年10月），
+是公司技术方向的灵魂人物。
+
+\textbf{Timoth\'{e}e Lacroix}（CTO），毕业于\'{E}cole Normale
+Sup\'{e}rieure，此前同样在Meta AI工作，专注于深度学习的分布式训练
+和系统优化。他负责Mistral的工程基础设施和模型训练管线。
+
+\begin{corebox}[Mistral 的里程碑时间线]
+\begin{itemize}
+  \item \textbf{2023年4月}——公司成立，仅三人
+  \item \textbf{2023年6月}——种子轮融资1.05亿欧元（Lightspeed领投），
+    创下欧洲AI创业公司种子轮纪录
+  \item \textbf{2023年9月}——发布 Mistral 7B，
+    通过种子链接（magnet link）在社交媒体上直接公开权重，
+    以"开源游击战"的方式迅速赢得开发者社区关注
+  \item \textbf{2023年12月}——A轮融资超过4亿欧元，
+    Andreessen Horowitz领投
+  \item \textbf{2024年1月}——发布 Mixtral 8$\times$7B，
+    采用Mixture-of-Experts架构，性能逼近GPT-3.5，
+    标志着开源模型进入"可用"级别
+  \item \textbf{2024年6月}——B轮融资6亿欧元，估值约60亿美元
+  \item \textbf{2025年}——陆续发布 Mistral Large、Mistral Medium、
+    Mistral Small、Codestral（代码模型）、Pixtral（视觉模型）
+    等系列产品
+  \item \textbf{2025年9月}——C轮融资使估值超过140亿美元，
+    三位创始人成为法国首批AI亿万富翁
+  \item \textbf{2026年}——发布 Magistral（推理模型）、Devstral（编程工具）、
+    Voxtral（语音模型），员工扩展至350人
+\end{itemize}
+\end{corebox}
+
+Mistral的战略可以概括为"\textbf{开放权重 + 商业API}"的双轨模式。
+一方面，通过发布开放权重的小模型（Mistral 7B、Mixtral）赢得开发者
+社区的信任和生态粘性；另一方面，通过闭源的前沿大模型（Mistral Large）
+和企业级API服务（Le Platforme）实现商业变现。这一策略在欧洲语境下
+尤其有效——Mistral被法国总统Macron、欧盟委员会和欧洲科技界视为
+"欧洲AI主权"的象征，获得了超越纯粹商业逻辑的政治支持。
+
+\begin{whybox}[为什么Mistral 7B的发布方式如此重要？]
+2023年9月，Mistral以一个种子链接（magnet link）——没有博客文章、
+没有发布会、没有API文档——将Mistral 7B的权重公开在社交媒体上。
+这种"扔出来就跑"的发布方式具有深层战略意义：
+\begin{enumerate}
+  \item \textbf{信号传递}：向开发者社区传达"我们是真正的开源信仰者"，
+    而非做做样子的企业Open Washing；
+  \item \textbf{成本效率}：无需构建下载基础设施和文档体系，
+    社区会自发填补——这对一家当时只有数十人的公司至关重要；
+  \item \textbf{规避监管}：当时欧盟AI法案（EU AI Act）对开源模型
+    的监管义务低于闭源API——开放权重在欧洲语境下是一种合规策略。
+\end{enumerate}
+\end{whybox}
+
+
+% =============================================================
+\section{Cohere：Transformer论文作者的企业AI之路}
+\label{sec:cohere}
+% =============================================================
+
+在AI创业的光谱上，如果说OpenAI代表的是"消费者先行"路线，
+那么Cohere代表的则是"企业先行"路线——一家从第一天起就
+专注于将大语言模型带入受监管行业的加拿大公司。
+
+\subsection{Aidan Gomez：最年轻的Transformer作者}
+
+\textbf{Aidan Gomez}（生于加拿大安大略省Brighton）是Cohere的
+联合创始人兼CEO，也是改变世界的论文"Attention Is All You Need"
+（2017年）八位作者中最年轻的一位——当时他只是多伦多大学
+计算机科学本科生，在Google Brain实习。
+
+Gomez在多伦多大学获得计算机科学和数学本科学位后，前往牛津大学
+攻读计算机科学博士学位，但中途暂停学业创办了Cohere。他于2024年
+获得了牛津大学的博士学位。作为一名20岁时就参与了AI领域最具
+影响力论文的研究者，Gomez的职业轨迹本身就是AI时代学术与产业
+边界日益模糊的缩影。
+
+\subsection{Nick Frosst 与 Ivan Zhang}
+
+\textbf{Nick Frosst}是Cohere的联合创始人，此前在Google Brain
+工作了近四年（2016--2020年）。在Google之前，他曾在多伦多大学的
+Tsotsos计算机视觉实验室担任研究员，并在Geoffrey Hinton的指导下
+开展研究工作——Hinton的人脉网络和学术声誉为Cohere的早期招聘
+和投资者关系提供了重要背书。
+
+\textbf{Ivan Zhang}是第三位联合创始人。他与Gomez在多伦多大学期间
+就已开始合作AI研究。Zhang主导了Cohere的"效率优先"产品哲学——
+与行业主流的"越大越好"思维相悖，Cohere专注于构建体量适中但
+高度优化的企业级模型。这一策略在2025年看来相当有远见：
+当推理成本成为大模型商业化的核心瓶颈时，更小、更快、更便宜的
+模型反而获得了企业客户的青睐。
+
+Cohere于2019年在多伦多成立，专注于自然语言处理（NLP）和企业AI。
+截至2025年，Cohere通过四轮融资（A到D轮，含2025年的5亿美元D轮）
+达到了68亿美元的估值。公司在多伦多和旧金山设有总部，
+并在蒙特利尔、伦敦、纽约、巴黎和首尔设有办公室。
+
+\begin{corebox}[Cohere 的企业AI差异化]
+Cohere的竞争策略与OpenAI和Anthropic截然不同：
+\begin{itemize}
+  \item \textbf{数据主权}：支持私有部署和本地化数据处理——
+    这在金融、医疗和政府等受监管行业中至关重要；
+  \item \textbf{多语言优先}：模型从训练阶段就支持100多种语言——
+    这使Cohere在非英语市场（尤其是亚洲和欧洲）
+    获得了差异化优势；
+  \item \textbf{RAG（检索增强生成）}：Cohere的Embed和Rerank
+    模型在信息检索领域处于领先地位——
+    企业搜索是一个规模庞大且刚需明确的市场。
+\end{itemize}
+\end{corebox}
+
+
+% =============================================================
+\section{Transformer 论文作者去向图谱}
+\label{sec:transformer-alumni}
+% =============================================================
+
+2017年，Google Brain的八位研究员共同发表了"Attention Is All You
+Need"——这篇论文引入的Transformer架构成为GPT、BERT、Claude以及
+几乎所有现代AI系统的基础。到2023年底，\textbf{所有八位作者都已离开
+Google}，各自开辟了截然不同的道路。他们的去向，堪称AI产业图谱的
+一面镜子。
+
+% Transformer authors career trajectory TikZ figure
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily\scriptsize},
+  person/.style={draw=figBlue, thick, fill=figBlue!8, rounded corners=3pt,
+             inner sep=4pt, font=\sffamily\scriptsize\bfseries,
+             text width=2.6cm, align=center},
+  dest/.style={draw=figOrange, thick, fill=figOrange!6, rounded corners=3pt,
+             inner sep=3pt, font=\sffamily\scriptsize,
+             text width=2.4cm, align=center},
+  arr/.style={-{Stealth[length=2mm]}, thick, figGray!70},
+]
+
+% Left column: authors
+\node[person] (ash) at (0, 9) {Ashish Vaswani\\{}(第一作者)};
+\node[person] (noam) at (0, 7) {Noam Shazeer};
+\node[person] (niki) at (0, 5) {Niki Parmar};
+\node[person] (jakob) at (0, 3) {Jakob Uszkoreit};
+\node[person] (llion) at (0, 1) {Llion Jones};
+\node[person] (aidan) at (0, -1) {Aidan Gomez};
+\node[person] (illia) at (0, -3) {Illia Polosukhin};
+\node[person] (lukasz) at (0, -5) {{\L}ukasz Kaiser};
+
+% Right column: destinations
+\node[dest] (adept) at (6, 9.5) {Adept AI\\{}(2022, 创始人)};
+\node[dest] (essential) at (6, 8) {Essential AI\\{}(2023, 创始人)};
+\node[dest] (char) at (6, 7) {Character.AI\\{}(2021, CEO)};
+\node[dest] (google2) at (6, 6) {Google DeepMind\\{}(2024, Gemini 联合负责人)};
+\node[dest] (anthropic) at (6, 5) {Anthropic\\{}(2025)};
+\node[dest] (incept) at (6, 3) {Inceptive\\{}(2021, RNA药物)};
+\node[dest] (sakana) at (6, 1) {Sakana AI\\{}(2023, CTO)};
+\node[dest] (cohere) at (6, -1) {Cohere\\{}(2019, CEO)};
+\node[dest] (near) at (6, -3) {NEAR Protocol\\{}(2017, 区块链)};
+\node[dest] (openai) at (6, -5) {OpenAI\\{}(研究)};
+
+% Arrows
+\draw[arr] (ash) -- (adept);
+\draw[arr] (ash) -- (essential);
+\draw[arr] (noam) -- (char);
+\draw[arr] (noam) -- (google2);
+\draw[arr] (niki.east) to[out=0, in=180] (adept.west);
+\draw[arr] (niki) -- (anthropic);
+\draw[arr] (jakob) -- (incept);
+\draw[arr] (llion) -- (sakana);
+\draw[arr] (aidan) -- (cohere);
+\draw[arr] (illia) -- (near);
+\draw[arr] (lukasz) -- (openai);
+
+% Title
+\node[font=\sffamily\small\bfseries, figBlue] at (3, 10.5)
+  {``Attention Is All You Need'' 八位作者的去向};
+
+\end{tikzpicture}
+\caption{Transformer论文八位作者的职业轨迹——从Google出发，
+散布于AI创业、科技巨头、生物技术和区块链等截然不同的领域。
+箭头从作者指向其当前或最近的主要职位。}
+\label{fig:transformer-alumni}
+\end{figure}
+
+让我们逐一追踪这八位"AI教父级"研究员的足迹。
+
+\subsection{Ashish Vaswani：第一作者的连续创业}
+
+\textbf{Ashish Vaswani}是"Attention Is All You Need"的第一作者，
+也是Self-Attention机制的核心贡献者。他在Google待到2021年后
+离开，先是联合创办了\textbf{Adept AI}（2022年），致力于构建
+能够操作软件界面的AI Agent。但他在2023年离开Adept，
+与Niki Parmar一起创办了\textbf{Essential AI}——一家专注于
+企业AI的公司。
+
+Essential AI于2023年12月从隐身模式（stealth mode）走出，
+宣布完成5650万美元A轮融资，由March Capital领投，
+Google、NVIDIA和AMD等科技巨头参投。公司的目标是构建
+"Enterprise Brain"——一个能够理解和自动化复杂企业工作流的
+AI系统。
+
+Vaswani的创业轨迹揭示了一个有趣的模式：
+\textbf{Transformer的发明者并没有去做最引人注目的通用模型竞赛，
+而是选择了企业应用这条更务实但可能更可持续的道路}。
+
+\subsection{Noam Shazeer：27亿美元的回归}
+
+\textbf{Noam Shazeer}的故事堪称AI时代最昂贵的"浪子回头"。
+Shazeer在2000年作为Google最早的数百名员工之一加入公司，
+此后在Google工作了超过20年。他不仅是Transformer论文的核心作者，
+更早在2017年之前就与Geoffrey Hinton共同提出了Mixture-of-Experts
+（MoE）在大规模语言模型中的应用——这一思想后来被证明是
+模型效率的关键突破。
+
+2021年，Shazeer与同事\textbf{Daniel De Freitas}共同开发了一个
+名为LaMDA（后来成为Google Bard/Gemini前身的一部分）的
+对话式AI系统。当Google管理层以安全风险为由拒绝发布该系统时，
+Shazeer愤而离职，与De Freitas共同创立了\textbf{Character.AI}——
+一个允许用户创建和与AI角色对话的平台。Character.AI迅速走红，
+估值一度超过10亿美元。
+
+\textbf{Daniel De Freitas}（Character.AI联合创始人）此前也是
+Google的研究工程师。他与Shazeer在Google期间共同研发的对话AI技术，
+成为Character.AI的技术根基。De Freitas擅长将研究原型转化为
+用户产品——Character.AI上线后迅速吸引了数百万用户，其"角色扮演"
+模式开创了消费级AI社交的全新品类。
+
+然而，2024年8月，Google以一种出人意料的方式"收回"了Shazeer——
+支付了约\textbf{27亿美元}用于获取Character.AI技术的非独占许可权，
+并将Shazeer、De Freitas及核心研究团队重新纳入Google DeepMind。
+Shazeer被任命为Gemini项目的联合技术负责人（co-lead），
+与Jeff Dean和Oriol Vinyals并列。
+
+\begin{whybox}[Google为什么愿意花27亿美元请Shazeer回来？]
+这个金额背后的逻辑不仅是"人才回购"：
+\begin{itemize}
+  \item Shazeer是世界上极少数同时深度理解Transformer架构和
+    MoE技术的人之一——而Gemini正是基于MoE的；
+  \item Character.AI的技术和用户数据具有战略价值——
+    尤其是对话式AI的用户偏好数据；
+  \item 更重要的是，\textbf{消除竞争对手}：
+    Google花27亿不是在"买"Shazeer，
+    而是在确保他不会被OpenAI或Anthropic挖走。
+\end{itemize}
+\end{whybox}
+
+\subsection{Niki Parmar：从Adept到Essential再到Anthropic}
+
+\textbf{Niki Parmar}是Transformer论文的第三作者，在Google工作多年后，
+先是与Vaswani共同创办了Adept AI，又共同创办了Essential AI。
+2025年2月，Parmar做出了一个引人注目的选择——\textbf{加入Anthropic}。
+作为连续创办了两家AI创业公司的Transformer论文作者，她选择加入
+Anthropic而非继续独立创业，这一决定被业界解读为
+"独立AI创业难度正在急剧上升"的信号。
+
+\subsection{Jakob Uszkoreit：将Transformer带入生物学}
+
+\textbf{Jakob Uszkoreit}选择了一条与AI产业截然不同的道路。
+这位在Google工作了13年的资深工程师（2008--2021年），
+毕业于柏林工业大学，在Transformer论文中贡献了Self-Attention的
+核心概念——据Illia Polosukhin回忆，正是Uszkoreit在一次午餐
+讨论中首次提出了Self-Attention的想法。
+
+2021年，Uszkoreit联合创办了\textbf{Inceptive}——一家利用
+Transformer架构设计RNA分子的生物技术公司。这家公司获得了
+Andreessen Horowitz的投资，致力于用生成式AI重新发明药物设计流程。
+Uszkoreit的逻辑很简单：\textbf{如果Transformer能理解自然语言的
+"语法"，那么它同样能理解RNA的"语法"}——生物分子序列在某种意义上
+也是一种需要"翻译"的语言。
+
+\subsection{Llion Jones：东京的进化智能实验}
+
+\textbf{Llion Jones}是八位作者中最后一位离开Google的。
+2023年8月，他与前Google Brain研究科学家\textbf{David Ha}共同
+在东京创办了\textbf{Sakana AI}。Jones担任CTO，Ha担任CEO。
+
+David Ha在离开Google之前以其在神经进化（neuroevolution）和
+创意AI方面的研究著称——他是学术社区中的"网红"研究员，
+其关于"World Models"的研究被广泛引用。Ha选择东京作为
+Sakana AI的根据地，部分原因是他曾在Google Brain东京办公室
+工作，对日本的AI生态有深入了解。
+
+Sakana AI的核心理念是"\textbf{进化与集体智能}"——公司名称来自
+日语中的"鱼"（さかな/sakana），象征鱼群通过简单规则形成
+协调整体的集体智能。公司的研究方向包括"进化模型合并"
+（Evolutionary Model Merge）、"AI科学家"（The AI Scientist）和
+"连续思维机器"（Continuous Thought Machines）。
+2025年，Sakana AI达到了26.5亿美元的估值，
+成为日本历史上最快达到独角兽地位的AI公司。
+
+\subsection{Illia Polosukhin：从Transformer到区块链}
+
+\textbf{Illia Polosukhin}的职业轨迹是八位作者中最出人意料的。
+他是Transformer论文中第一个实现Self-Attention代码原型的人——
+据他自己回忆，在与Uszkoreit的午餐讨论后回到办公桌，
+他就开始编写了"可能是世界上第一个Transformer"。
+
+但Polosukhin没有沿着AI的路线继续前进。2017年从Google离开后，
+他联合创办了\textbf{NEAR Protocol}——一个去中心化区块链平台。
+NEAR在加密货币领域获得了相当的影响力，尤其是在Layer 1区块链
+竞争中。随着AI浪潮的到来，Polosukhin开始将NEAR的重心转向
+"用户拥有的AI"（user-owned AI）和去中心化AI基础设施，
+试图将他作为Transformer发明者的身份与Web3的理念相融合。
+
+\subsection{{\L}ukasz Kaiser：留在最前线}
+
+\textbf{{\L}ukasz Kaiser}是八位作者中唯一选择留在大型AI实验室的。
+他从Google转到了OpenAI，继续从事前沿模型的研究工作。
+Kaiser的选择在某种意义上是"最传统的"——继续做研究，
+不创业，不转行——但在一个人人都想当创始人的时代，
+这种坚守也自有其力量。
+
+
+% =============================================================
+\section{反向人才收购浪潮：Character.AI、Inflection、Adept}
+\label{sec:acqui-hire}
+% =============================================================
+
+2024年，AI产业出现了一种前所未有的公司重组模式：
+\textbf{反向人才收购}（reverse acqui-hire）。Microsoft"雇走"了
+Inflection AI的创始团队，Google"雇走"了Character.AI的创始团队，
+Amazon"雇走"了Adept AI的创始团队——而这三家创业公司名义上
+仍然独立存在。
+
+这种操作的精妙之处在于：\textbf{它在法律上不是"收购"
+（因此不触发反垄断审查），但在实质上达到了与收购
+完全相同的效果}——核心人才、关键技术和战略知识全部
+转移到了大公司。
+
+\begin{corebox}[2024年三大AI ``伪收购'' 一览]
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{创业公司} & \textbf{收购方} & \textbf{金额/估算} & \textbf{关键人物} \\
+\midrule
+Inflection AI & Microsoft & \$\,650M & Suleyman, Simonyan \\
+Character.AI & Google & \$\,2.7B & Shazeer, De Freitas \\
+Adept AI & Amazon & 未披露 & Luan, Odena, Nye \\
+\bottomrule
+\end{tabular}
+\end{center}
+上述"交易"的共同模式：大公司向创业公司支付一笔费用用于
+"技术许可"和投资者回购，同时雇用创始团队和核心研究人员。
+创业公司名义上继续运营，但已失去灵魂。
+\end{corebox}
+
+\subsection{Inflection AI $\to$ Microsoft：最典型的``消化''}
+
+\textbf{Inflection AI}的故事是AI创业泡沫中最具戏剧性的章节之一。
+
+\textbf{Mustafa Suleyman}（1984年生于伦敦）是Inflection AI的
+CEO和联合创始人，也是\textbf{DeepMind的联合创始人}——这一身份
+让他成为整个AI产业的元老级人物。Suleyman早年曾辍学，在成为
+科技企业家之前做过社会活动家。2010年，他与Demis Hassabis、
+Shane Legg共同创办了DeepMind，随后该公司在2014年被Google以
+约5亿美元收购。在DeepMind时期，Suleyman负责应用部门，将
+AI技术引入NHS（英国国家卫生服务体系）等实际场景。
+
+但Suleyman与DeepMind创始团队的关系后来出现裂痕——据报道，
+他被要求退出日常管理层，随后在2022年离开Google。
+同年，他与\textbf{Kar\'{e}n Simonyan}和\textbf{Reid Hoffman}共同
+创立了Inflection AI。
+
+\textbf{Kar\'{e}n Simonyan}（亚美尼亚裔，牛津大学博士）
+是深度学习领域的重要人物。他与Andrew Zisserman共同提出的
+VGGNet（2014年）是计算机视觉领域最具影响力的架构之一——
+VGG论文是Google Scholar上被引用次数最高的深度学习论文之一，
+截至2026年引用次数超过10万次。Simonyan此前在DeepMind工作多年。
+
+\textbf{Reid Hoffman}是LinkedIn的联合创始人，也是硅谷最有影响力的
+风险投资人之一（Greylock Partners合伙人）。他为Inflection AI提供了
+资本网络和商业经验。
+
+Inflection AI于2023年6月宣布完成13亿美元融资（Microsoft是最大
+投资方），开发了名为Pi的"个人AI助手"。但到2024年3月，
+Microsoft以一种令人震惊的方式"吞噬"了Inflection：Suleyman和
+Simonyan被聘为Microsoft AI部门的CEO和首席科学家，
+Inflection的大部分员工也一并转入Microsoft。Microsoft向
+Inflection的投资者支付了约6.5亿美元的"许可费"作为补偿。
+
+Suleyman在Microsoft的头衔是"Microsoft AI CEO"——
+他负责领导Microsoft的消费级AI产品线（包括Copilot），
+以及新的AI研究方向。Simonyan则担任该部门的首席科学家。
+
+\begin{whybox}[Inflection的失败说明了什么？]
+Inflection AI在不到两年时间里融资13亿美元，
+却未能找到可持续的商业模式——Pi虽然在用户体验上获得好评，
+但未能实现显著的用户增长或收入。
+这一案例揭示了AI创业的核心矛盾：
+\begin{itemize}
+  \item \textbf{训练成本过高}：训练一个前沿基础模型的成本已达
+    数亿美元——对于一家独立创业公司而言，
+    这意味着融资的大部分直接"烧"在GPU上，
+    几乎没有余力打磨产品；
+  \item \textbf{分发困难}：没有像Google Search或Microsoft Office
+    那样的既有分发渠道，独立AI公司必须从零获取用户——
+    但ChatGPT已经占据了消费者心智的"通用AI"品类；
+  \item \textbf{人才引力}：大公司开出的薪酬和资源远超创业公司——
+    当Microsoft可以给每个人配备无限GPU时，
+    创业公司的吸引力就大打折扣。
+\end{itemize}
+\end{whybox}
+
+\subsection{Adept AI $\to$ Amazon：Agent先驱的命运}
+
+\textbf{Adept AI}是AI Agent领域最早的先行者之一，
+创始团队阵容同样星光熠熠。
+
+\textbf{David Luan}（CEO）此前担任OpenAI的工程副总裁，
+是OpenAI早期团队的核心成员。在OpenAI之前，
+他还曾在Google工作。Luan在2022年创办Adept时的愿景是
+构建"能够使用任何软件的AI Agent"——这比2025年Agent浪潮
+的爆发早了整整三年。
+
+Adept的其他联合创始人包括\textbf{Augustus Odena}、
+\textbf{Maxwell Nye}、\textbf{Erich Elsen}和\textbf{Kelsey Szot}——
+他们都有Google或OpenAI的研究背景。值得注意的是，
+Transformer论文作者Ashish Vaswani和Niki Parmar也是Adept的
+联合创始人，尽管两人后来离开创办了Essential AI。
+
+2024年6月，Amazon以类似Inflection-Microsoft模式的方式
+"雇走"了Luan和多位联合创始人，同时获得了Adept技术的许可权。
+剩余员工在新CEO Zach Brock的领导下继续运营Adept。
+
+\subsection{``伪收购''的深层逻辑}
+
+2024年的acqui-hire浪潮不是偶然——它反映了AI产业的结构性力量：
+
+\begin{keybox}[AI创业公司面临的``不可能三角'']
+独立AI创业公司同时面对三个相互矛盾的约束：
+\begin{enumerate}
+  \item \textbf{算力需求指数增长}：
+    下一代模型的训练成本每18个月翻一倍；
+  \item \textbf{人才竞争白热化}：
+    顶级AI研究员的薪酬已达数百万美元/年；
+  \item \textbf{商业化时间窗口收窄}：
+    OpenAI和Anthropic正在快速建立品牌壁垒。
+\end{enumerate}
+独立创业公司无法同时满足这三个需求——
+而被大公司"消化"，恰恰是解决这个三角矛盾的一种方式。
+\end{keybox}
+
+
+% =============================================================
+\section{SSI、AI21与其他独立实验室}
+\label{sec:other-labs}
+% =============================================================
+
+并非所有AI实验室都走向了被收购的命运。一些公司找到了
+独特的生态位，或是由足够重量级的人物创办，
+以至于能够维持独立运营。
+
+\subsection{SSI：Ilya Sutskever的安全超智能使命}
+
+2024年5月15日，\textbf{Ilya Sutskever}离开了他联合创办的OpenAI——
+这一事件在AI产业引发了地震级的震动。Sutskever是OpenAI的首席科学家，
+也是深度学习领域最受尊敬的研究者之一（师从Geoffrey Hinton，
+GPT系列模型的主要技术架构师）。他在2023年11月的OpenAI董事会
+风波中曾投票解雇Sam Altman，此后与Altman的关系不可修复。
+
+仅一个月后的2024年6月19日，Sutskever宣布创办
+\textbf{Safe Superintelligence Inc.}（SSI），明确声明公司的
+\textbf{唯一}目标是"安全地开发超级智能"——不做产品，不追求短期收入，
+只专注于这一个使命。
+
+SSI的联合创始人还包括\textbf{Daniel Gross}和\textbf{Daniel Levy}。
+
+\textbf{Daniel Gross}的履历同样令人印象深刻。他是搜索引擎Greplin
+（后更名为Cue）的创始人，该公司于2013年被Apple收购。
+之后他在Apple领导AI/ML特别项目。离开Apple后，他成为知名的
+科技投资人，与Nat Friedman（前GitHub CEO）共同投资了多家
+AI创业公司。TIME曾将他列为"AI领域最有影响力的人物"之一。
+
+然而，2025年7月，Gross离开SSI加入了\textbf{Meta}的新超级智能实验室。
+这意味着SSI的三位联合创始人中只剩Sutskever一人——
+他随即被任命为CEO，继续带领SSI。Sutskever在声明中表示
+"期待奇迹"，暗示公司的研究进展可能即将产生突破性成果。
+
+\textbf{Daniel Levy}是SSI的第三位联合创始人，
+此前是一位AI研究员和投资人。
+SSI在2024年9月完成了10亿美元融资，并在帕洛阿尔托和特拉维夫
+设有办公室，到2025年7月已有约50名员工。
+
+SSI的战略定位独特到几乎没有直接可比的对象：
+\textbf{一家声称不做产品、只做研究的AI公司，
+在拿到10亿美元融资后完全专注于一个尚无时间表的目标}。
+这在正常的商业逻辑中几乎不可理解——
+但Sutskever的个人声誉和技术判断力为这种模式赢得了信任。
+
+\subsection{AI21 Labs：以色列的NLP先驱}
+
+\textbf{AI21 Labs}成立于2017年，总部位于特拉维夫——
+这使它成为大模型竞赛中最早起步的公司之一，甚至早于OpenAI
+发布GPT-2。
+
+三位联合创始人的组合颇具特色：
+
+\textbf{Yoav Shoham}是斯坦福大学计算机科学教授（已退休），
+AI领域的元老级人物。他是多智能体系统和知识表示方面的权威学者，
+也是"AI Index"年度报告的发起人——这份报告已成为衡量全球AI
+发展进程的标准参考。
+
+\textbf{Ori Goshen}是AI21的联合创始人兼联席CEO。
+他此前有超过20年的科技创业和军事系统开发经验。
+Goshen主导了AI21从纯研究向产品化的转型——公司最著名的产品
+Wordtune是一款AI写作助手，于2020年发布，被Google评为2021年
+最受欢迎的Chrome扩展之一。
+
+\textbf{Amnon Shashua}是AI21的联合创始人兼董事长，
+也是Mobileye（自动驾驶视觉系统公司）的创始人兼CEO。
+Mobileye于2017年被Intel以153亿美元收购，后于2022年以更高估值
+重新IPO。Shashua是以色列科技界最成功的企业家之一，
+他将Mobileye式的"深度技术+垂直应用"路线带入了NLP领域。
+
+AI21在2024年发布了自己的大模型Jamba（基于Mamba状态空间模型架构），
+显示出与Transformer主流路线的差异化尝试。2026年初，有报道称
+AI21正在与NVIDIA等公司进行早期收购谈判。
+
+\subsection{Reka AI：多模态先行者}
+
+\textbf{Reka AI}成立于2022年，由一群来自Google DeepMind和Meta AI
+的研究员创办，总部位于加利福尼亚州Sunnyvale。
+
+\textbf{Yi Tay}（联合创始人）此前在Google Research工作，
+是大模型效率和架构设计方面的多产研究者，
+发表了大量关于高效Transformer变体的论文。
+
+\textbf{Dani Yogatama}（联合创始人兼CEO）此前在Google DeepMind
+担任高级研究科学家，研究方向为NLP和机器学习，
+尤其擅长组合推理和高效学习算法。他拥有语言技术方面的博士学位。
+
+Reka的其他联合创始人还包括Cyprien de Masson d'Autume、
+Mikel Artetxe和Qi Liu。
+
+Reka从一开始就专注于\textbf{多模态}——其旗舰模型Reka Core能够
+同时处理文本、图像、视频和音频。2025年7月，Reka完成了1.1亿美元
+融资，跻身独角兽行列。此前，2024年5月曾有报道称Snowflake
+计划以约7亿美元收购Reka，但该交易未能完成。
+
+
+% =============================================================
+\section{生成式媒体的开拓者}
+\label{sec:generative-media}
+% =============================================================
+
+如果说前几节讨论的实验室主要围绕"语言模型"展开竞争，
+那么本节聚焦的公司则将AI的创造力延伸到了图像、视频和音乐领域。
+
+\subsection{Stability AI 与 Black Forest Labs：开源图像生成的裂变}
+
+\textbf{Stability AI}和\textbf{Black Forest Labs}的故事，
+是一个关于"开源理想与商业现实碰撞"的寓言。
+
+\textbf{Emad Mostaque}（1983年生于约旦，英国国籍）
+于2019年创办了Stability AI，声称要"让AI民主化"。
+Mostaque不是典型的技术创始人——他的背景在金融和对冲基金，
+而非AI研究。但他抓住了一个历史性的时机：
+2022年，一群来自Ludwig Maximilian大学慕尼黑分校（LMU Munich）
+的研究人员——\textbf{Robin Rombach}、\textbf{Patrick Esser}和
+\textbf{Andreas Blattmann}——开发了\textbf{Stable Diffusion}模型。
+Mostaque说服他们将这一模型以开源形式通过Stability AI发布。
+
+Stable Diffusion的开源发布（2022年8月）引发了AI图像生成的
+"寒武纪大爆发"——数以百万计的用户开始使用AI创作图像，
+衍生出了数千个基于Stable Diffusion的应用和社区。
+Stability AI也因此获得了超过1亿美元的融资，估值一度达到
+约10亿美元。
+
+但好景不长。2023到2024年间，Stability AI陷入了严重的管理混乱和
+资金困境。核心研究团队——正是那些创造了Stable Diffusion的人——
+纷纷出走。2024年3月，在投资者"逼宫"和员工大规模离职的压力下，
+\textbf{Mostaque辞去了CEO职务}。公司后来由前Weta Digital CEO
+Prem Akkaraju接任领导。
+
+\textbf{Robin Rombach}——Stable Diffusion的核心创造者，
+2024年8月与Patrick Esser和Andreas Blattmann共同创办了
+\textbf{Black Forest Labs}。公司总部位于德国弗莱堡
+（Freiburg），紧邻他们此前做研究的LMU Munich。
+Black Forest Labs迅速推出了\textbf{FLUX.1}系列模型，
+在图像生成质量上被广泛认为超越了Stable Diffusion。
+公司获得了Andreessen Horowitz领投的3100万美元种子轮融资，
+到2025年12月的B轮已达到32.5亿美元估值（3亿美元融资额）。
+
+\begin{whybox}[Stability AI的教训是什么？]
+Stability AI的兴衰揭示了一个关键问题：
+\textbf{在开源AI领域，技术创造者与公司品牌之间的关系极其脆弱}。
+\begin{itemize}
+  \item 当核心研究人员离开时，公司的技术竞争力随之消失——
+    因为开源模型的护城河不在于代码（任何人都可以fork），
+    而在于\textbf{创造下一代模型的能力}，
+    而这种能力寄托在人的身上；
+  \item 非技术创始人在AI领域的合法性依赖于技术团队的忠诚——
+    一旦团队离开，公司就只剩下一个品牌和一堆GPU；
+  \item Black Forest Labs的迅速崛起证明：
+    真正的价值从来不在公司实体中，
+    而在创造者手中——他们可以随时"重建"。
+\end{itemize}
+\end{whybox}
+
+\subsection{Runway：从NYU艺术学院到AI视频霸主}
+
+\textbf{Runway}的故事证明，AI创业的灵感不一定来自斯坦福的
+计算机科学实验室——它也可以来自纽约大学的艺术学院。
+
+\textbf{Crist\'{o}bal Valenzuela}（CEO，智利裔）于2018年与
+\textbf{Alejandro Matamala}和\textbf{Anastasis Germanidis}在
+NYU Tisch School of the Arts相识，三人均有交互设计背景。
+Valenzuela从一开始就将Runway定位为"创作者的AI工具"，
+而非纯粹的研究实验室。
+
+这种以艺术和创作为出发点的DNA，让Runway在产品设计上始终
+保持着对用户体验的敏感度。公司的AI工具被用于制作获得
+奥斯卡奖的电影\textit{Everything Everywhere All at Once}，
+以及\textit{The Late Show with Stephen Colbert}等电视节目。
+
+\textbf{Anastasis Germanidis}（CTO，希腊裔）负责Runway的
+技术架构。2024年7月，Runway发布了Gen-3 Alpha——被广泛认为是
+当时最先进的视频生成模型。Germanidis在多次公开演讲中描述了
+Gen-3 Alpha中涌现出的令人惊讶的新能力——模型似乎
+"理解了"物理世界的某些规律，例如光影效果和物体运动。
+
+截至2025年，Runway已完成5.44亿美元的累计融资，估值达到30亿美元。
+投资方包括Google、NVIDIA和Salesforce Ventures。公司的战略方向
+正从"视频生成工具"转向"沉浸式世界构建平台"——
+用AI实时渲染可交互的3D环境。
+
+\subsection{Midjourney：最赚钱的独行侠}
+
+\textbf{David Holz}（生于佛罗里达州Fort Lauderdale）
+创办的\textbf{Midjourney}可能是整个AI创业潮中最独特的公司：
+\textbf{零外部融资、已实现盈利、团队极小、完全独立}。
+
+Holz在创办Midjourney之前，曾联合创办了\textbf{Leap Motion}——
+一家基于手势识别的人机交互公司（2008--2019年），
+该公司后来以失败告终并被Ultrahaptics收购。这段经历让Holz
+对"技术演示"和"真实产品"之间的鸿沟有了刻骨铭心的认识。
+
+2021年8月，Holz在旧金山创办了Midjourney。
+公司于2022年7月公开beta版本，最初完全通过Discord机器人
+提供服务——这一看似"不正经"的产品形态反而成为了病毒式传播
+的加速器。用户在Discord上生成图像、分享创作、互相启发，
+形成了一个自我增长的社区飞轮。
+
+\begin{corebox}[Midjourney 的反常识商业模式]
+在一个AI公司动辄融资数十亿美元的时代，
+Midjourney以其惊人的"反常识"著称：
+\begin{itemize}
+  \item \textbf{零外部融资}——公司从未接受任何VC投资；
+  \item \textbf{自创立第二年起盈利}——
+    Holz在2022年8月就声称公司已经盈利；
+  \item \textbf{团队极小}——据报道公司员工不到40人，
+    这在AI领域堪称不可思议；
+  \item \textbf{估值超过100亿美元}——
+    尽管没有融资，但根据二级市场交易估算。
+\end{itemize}
+Midjourney证明了一个被行业主流忽视的可能性：
+\textbf{AI公司可以不烧钱、不融资、不上市，
+仅靠订阅收入就能建立一个高利润的持续经营企业}。
+这个模式的前提是Holz极其审慎的成本控制——
+他不训练自己的基础模型（使用定制的diffusion模型），
+不搞军备竞赛，专注于产品体验和社区运营。
+\end{corebox}
+
+2025年4月，Midjourney发布了V7版本，在图像生成的
+逼真度和可控性上再次刷新行业标准。
+
+
+% =============================================================
+\section{新兴力量：搜索、编程、视频与音乐}
+\label{sec:emerging}
+% =============================================================
+
+除了基础模型实验室和生成式媒体公司之外，2023--2025年间
+还涌现出一批在\textbf{垂直应用}领域取得突破的AI创业公司。
+它们的共同特征是：不训练通用基础模型，
+而是将现有模型的能力与特定产品场景深度结合。
+
+\subsection{Perplexity AI：向Google宣战的搜索引擎}
+
+\textbf{Aravind Srinivas}（CEO，生于印度）可能是AI创业潮中
+最雄心勃勃的挑战者——他创办的\textbf{Perplexity AI}直接瞄准了
+Google的核心业务：\textbf{搜索}。
+
+Srinivas的学术背景令人印象深刻：他在UC Berkeley获得
+计算机科学博士学位，研究方向为强化学习和生成模型。
+读博期间，他曾先后在\textbf{DeepMind}、\textbf{Google Research}和
+\textbf{OpenAI}实习——这三个地方覆盖了全球AI研究的金字塔尖。
+
+2022年8月，Srinivas与\textbf{Denis Yarats}（前Meta AI Research研究员）、
+\textbf{Johnny Ho}和\textbf{Andy Konwinski}共同创办了Perplexity AI。
+公司的核心产品是一个"答案引擎"（answer engine）——
+与传统搜索引擎返回链接列表不同，Perplexity利用大语言模型
+直接合成答案，并附上信息来源的引用。
+
+到2025年9月，Perplexity的估值达到了200亿美元。
+Srinivas本人也是一位活跃的天使投资人——
+他的投资组合包括Cursor、ElevenLabs、Suno、Mistral、Pika等
+AI领域最热门的创业公司。
+
+Perplexity的成功也伴随着争议——多家主要媒体机构（包括BBC、
+道琼斯和纽约时报）指控Perplexity未经授权使用其内容，
+引发了AI搜索与版权保护之间的法律灰色地带讨论。
+
+\subsection{Cursor (Anysphere)：AI编程的现象级产品}
+
+\textbf{Cursor}——由\textbf{Anysphere}公司开发的AI编程编辑器——
+是2024--2025年间增长最快的SaaS产品之一，
+也是"Vibe Coding"（凭感觉编程）这一概念的标志性载体。
+
+四位联合创始人全部来自MIT，在创业时年仅20多岁：
+
+\textbf{Michael Truell}（CEO）、\textbf{Sualeh Asif}（CPO）、
+\textbf{Aman Sanger}（COO）和\textbf{Arvid Lunnemark}于2022年
+在MIT就读期间创办了Anysphere。公司最初的目标是利用AI重新定义
+软件开发工具。
+
+Cursor于2023年发布后迅速走红。到2025年，公司的年经常性收入
+（ARR）突破\textbf{10亿美元}——从发布到达到这一里程碑仅用了
+约21个月，创下了SaaS历史上的最快纪录。2025年6月，Anysphere完成
+了9亿美元C轮融资，估值达到99亿美元（Thrive Capital领投，
+a16z、Accel和DST Global参与）。到2025年底，公司估值
+已达到293亿美元。
+
+\begin{corebox}[四位MIT学生如何创造SaaS历史？]
+Cursor的成功源于几个关键洞察：
+\begin{itemize}
+  \item \textbf{开发者先行}：程序员是最早、最深度使用AI的群体——
+    他们不需要被教育"AI能做什么"，因为他们每天都在使用模型；
+  \item \textbf{编辑器即操作系统}：Cursor不是IDE的"插件"，
+    而是一个\textbf{以AI为核心的完整编辑器}——
+    这使得AI辅助不是锦上添花，而是整个工作流的基座；
+  \item \textbf{模型无关性}：Cursor使用多家模型供应商的API
+    （OpenAI、Anthropic、Google），根据任务自动选择最优模型——
+    这让它不受任何单一模型供应商的限制。
+\end{itemize}
+2025年11月，Forbes报道四位联合创始人均已成为亿万富翁。
+\end{corebox}
+
+\subsection{Pika Labs：斯坦福辍学生的视频革命}
+
+\textbf{Demi Guo}和\textbf{Chenlin Meng}在斯坦福大学攻读AI博士
+学位期间，参加了一个由Runway主办的AI电影节。
+他们发现当时的AI视频工具"太难用了"——
+界面复杂、生成速度慢、质量不可控。
+
+于是在2023年，两人做了一个大胆的决定：辍学创办\textbf{Pika}。
+
+\textbf{Demi Guo}（CEO）本科毕业于哈佛大学，此前一直在硅谷的
+交叉地带——技术与诗歌、AI与创意——寻找自己的方向。
+\textbf{Chenlin Meng}（CTO）是扩散模型（diffusion model）领域的
+活跃研究者，在斯坦福期间发表了多篇高影响力论文。
+
+Pika的免费应用允许用户将自拍照和文字提示转化为短视频——
+完整的电影感画面，包括配乐、灯光和镜头运动。
+到2024年，Pika已完成1.35亿美元融资，估值约4.7亿美元，
+拥有超过500万用户。
+
+\subsection{Suno：AI音乐的``ChatGPT时刻''}
+
+\textbf{Mikey Shulman}（CEO，哈佛大学物理学博士）在2022年意识到
+一个被AI行业忽视的巨大空白：\textbf{音频是机器学习中最被低估的
+模态}——尽管音乐和声音无处不在，但AI研究社区的注意力
+几乎完全集中在文本和图像上。
+
+Shulman此前在\textbf{Kensho}（一家AI金融科技公司，后被S\&P Global
+收购）领导机器学习团队。在Kensho时期，他与未来的联合创始人
+\textbf{Martin Camacho}、\textbf{Georg Kucsko}和\textbf{Keenan Freyberg}
+建立了紧密的合作关系。四人共同创办了\textbf{Suno}，
+总部位于马萨诸塞州剑桥市。
+
+Suno的产品允许任何人通过文字描述生成完整的歌曲——
+包括歌词、旋律、编曲和人声。到2025年，Suno已拥有超过1亿用户，
+每天生成700万首歌曲。公司完成了1.25亿美元融资，估值达到25亿美元。
+
+Suno也面临着严峻的法律挑战——美国唱片业协会（RIAA）以版权侵权为由
+对其提起了诉讼，数千名音乐人签署公开信要求公司停止使用
+受版权保护的音乐作为训练数据。这一法律争端的结果将对整个
+AI生成媒体行业产生深远影响。
+
+
+% =============================================================
+\section{全景回顾：AI实验室大爆炸的模式与规律}
+\label{sec:patterns}
+% =============================================================
+
+纵览本章涉及的数十家公司和50余位关键人物，
+我们可以提炼出若干贯穿性的模式。
+
+\subsection{人才流动的引力场}
+
+% Talent flow TikZ diagram
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily\scriptsize},
+  bigco/.style={draw=figRed, thick, fill=figRed!8, rounded corners=4pt,
+             inner sep=5pt, font=\sffamily\small\bfseries,
+             minimum width=2.5cm, align=center},
+  startup/.style={draw=figBlue, thick, fill=figBlue!6, rounded corners=3pt,
+             inner sep=4pt, font=\sffamily\scriptsize\bfseries,
+             minimum width=2cm, align=center},
+  flow/.style={-{Stealth[length=2.5mm]}, thick},
+  backflow/.style={-{Stealth[length=2.5mm]}, thick, densely dashed},
+]
+
+% Big companies
+\node[bigco] (google) at (0, 4) {Google\\DeepMind};
+\node[bigco] (meta) at (5, 4) {Meta\\FAIR};
+\node[bigco] (msft) at (10, 4) {Microsoft};
+\node[bigco] (amzn) at (13, 4) {Amazon};
+
+% Startups
+\node[startup] (xai) at (0, 0) {xAI};
+\node[startup] (mistral) at (2.5, 0) {Mistral};
+\node[startup] (char) at (5, 0) {Character.AI};
+\node[startup] (infl) at (7.5, 0) {Inflection};
+\node[startup] (adept) at (10, 0) {Adept};
+\node[startup] (ssi) at (12.5, 0) {SSI};
+
+% Outflow: Big → Startup
+\draw[flow, figBlue] (google.south) -- (xai.north)
+  node[midway, left, font=\sffamily\tiny] {Babuschkin};
+\draw[flow, figBlue] (meta.south) -- (mistral.north)
+  node[midway, left, font=\sffamily\tiny] {Lample};
+\draw[flow, figBlue] (google.south) to[out=-60, in=120] (char.north)
+  node[midway, right, font=\sffamily\tiny] {Shazeer};
+
+% Backflow: Startup → Big (acqui-hire)
+\draw[backflow, figRed] (char.north) to[out=60, in=-60] (google.south)
+  node[midway, right, font=\sffamily\tiny, text=figRed] {\$2.7B};
+\draw[backflow, figRed] (infl.north) -- (msft.south)
+  node[midway, right, font=\sffamily\tiny, text=figRed] {\$650M};
+\draw[backflow, figRed] (adept.north) -- (amzn.south)
+  node[midway, right, font=\sffamily\tiny, text=figRed] {许可+雇用};
+
+% Legend
+\node[font=\sffamily\tiny, figBlue] at (6.5, -1.2) {实线 = 人才流出（大公司$\to$创业）};
+\node[font=\sffamily\tiny, figRed] at (6.5, -1.7) {虚线 = 人才回流（acqui-hire）};
+
+\end{tikzpicture}
+\caption{AI人才流动的"潮汐效应"——2021--2024年间，顶级研究员从
+Google、Meta等大公司流出创办AI创业公司（蓝色实线）；
+2024年，acqui-hire浪潮将他们中的许多人"吸回"大公司（红色虚线）。}
+\label{fig:talent-tide}
+\end{figure}
+
+\subsection{四种生存策略}
+
+在本章覆盖的公司中，我们可以识别出四种不同的生存策略：
+
+\begin{keybox}[AI创业公司的四种生存策略]
+\begin{enumerate}
+  \item \textbf{``核武器''策略}（xAI、SSI）：
+    依靠超级创始人（Musk、Sutskever）的个人品牌和融资能力，
+    追求极限规模的算力和研究投入。
+    风险：高度依赖个人，创始人离开即灭亡。
+
+  \item \textbf{``瑞士军刀''策略}（Mistral、Cohere）：
+    开放权重小模型建立生态，闭源大模型实现收入，
+    企业API提供可预测的商业模式。
+    风险：夹在OpenAI和开源社区之间，两面受敌。
+
+  \item \textbf{``利基深耕''策略}（Runway、Midjourney、Suno、Pika）：
+    不做通用模型，在特定媒体模态（视频/图像/音乐）深耕，
+    建立产品壁垒和社区粘性。
+    风险：大公司随时可能进入（如Google Veo、OpenAI Sora）。
+
+  \item \textbf{``被消化''策略}（Inflection、Character.AI、Adept）：
+    创办→获取人才和技术→被大公司"反向收购"。
+    对创始人而言这可能是不错的结局（高额补偿），
+    但对投资者而言回报率远低于预期。
+\end{enumerate}
+\end{keybox}
+
+\subsection{地理分布的多极化}
+
+本章覆盖的公司虽然以美国为主，但已经呈现出明显的地理多极化趋势：
+
+\begin{itemize}
+  \item \textbf{巴黎}：Mistral AI——代表欧洲AI主权的旗帜；
+  \item \textbf{东京}：Sakana AI——日本首家AI独角兽；
+  \item \textbf{特拉维夫}：AI21 Labs、SSI（双总部之一）——
+    以色列AI创业的深厚传统；
+  \item \textbf{多伦多}：Cohere——Geoffrey Hinton的"多伦多学派"
+    遗产的延续；
+  \item \textbf{弗莱堡}：Black Forest Labs——德国学术城市
+    孵化出的AI图像生成冠军；
+  \item \textbf{伦敦/剑桥}：多家公司的办公室——英国AI生态
+    仍然活跃，但正在被美国虹吸人才。
+\end{itemize}
+
+这种多极化的背后是一个简单的逻辑：
+\textbf{AI创业不需要和硅件（硅谷的芯片和数据中心）在同一个地方——
+算力可以远程租赁，数据可以从互联网获取，
+但人才是在全球各地的大学和研究机构中培养的}。
+
+\subsection{一个时代的缩影}
+
+本章记录的故事，本质上是关于\textbf{人}的故事——关于
+那些在学术论文中发现了技术原理、在实验室中实现了原型系统、
+然后在商业世界中试图将这些突破转化为持久价值的人。
+
+他们中的一些人成功了（Holz的Midjourney、Mensch的Mistral）；
+一些人被大公司的引力场重新俘获（Shazeer回到Google、
+Suleyman加入Microsoft）；一些人选择了完全不同的道路
+（Uszkoreit将Transformer带入RNA药物、Polosukhin将其带入区块链）；
+还有一些人仍在为超级智能的安全性做着看似西西弗斯式的努力
+（Sutskever的SSI）。
+
+\begin{whybox}[为什么追踪人物轨迹比追踪公司更重要？]
+在AI产业中，\textbf{公司是暂时的，但人是持续的}。
+\begin{itemize}
+  \item Inflection AI从创立到被"消化"不到两年——
+    但Mustafa Suleyman的影响力从DeepMind延伸到了Microsoft AI；
+  \item Character.AI作为独立公司的生命周期不到三年——
+    但Noam Shazeer从Google到Character.AI再回到Google的轨迹，
+    串联起了从Transformer发明到Gemini模型的完整叙事；
+  \item Stable Diffusion的品牌已与Stability AI分离——
+    但Robin Rombach带走了技术能力，在Black Forest Labs重建了
+    一切。
+\end{itemize}
+正因如此，本书选择以\textbf{人物}而非公司作为叙事的基本单位——
+因为在这个快速变化的产业中，
+\textbf{理解一个人的技术判断、价值取向和职业选择，
+往往比理解一家公司的商业模式更能预测未来}。
+\end{whybox}

@@ -1,0 +1,1659 @@
+\chapter{声音、愿景与新星——AI 的良知、喉舌与未来力量}
+\label{ch:policy-rising}
+%% ============================================================
+%% Chapter 14 — AI Policy, Ethics, Media Figures & Rising Stars
+%% ============================================================
+
+当技术以指数级速度演进时，
+围绕技术的\textbf{叙事}——谁来讲述、谁来质疑、谁来规范——
+往往决定了技术最终服务于谁。
+2023--2026 年的 AI 浪潮中，
+一群政策制定者、伦理学者、科普传播者、开源英雄和年轻创业者
+从不同角度塑造了这场革命的面貌。
+他们不一定训练模型，但他们定义了模型被训练的\emph{边界}、
+被使用的\emph{方式}和被理解的\emph{语境}。
+
+本章覆盖五个互相交织的群体：
+制定规则的\textbf{政策人物}、
+发出警告的\textbf{伦理学者}、
+连接公众与前沿的\textbf{媒体与公共知识分子}、
+构建共享基础设施的\textbf{开源社区英雄}、
+以及正在重新定义可能性边界的\textbf{35 岁以下新星}。
+
+%% ============================================================
+\section{AI 政策：监管者追赶技术}
+\label{sec:policy}
+%% ============================================================
+
+2023 年是 AI 监管的「觉醒之年」。
+在 ChatGPT 发布不到一年后，
+全球主要经济体几乎同时启动了各自的 AI 治理框架。
+这种速度在技术监管史上前所未有——
+相比之下，互联网经历了近 20 年才迎来第一部全面的数据隐私法规（GDPR，2018）。
+
+\subsection{美国：行政令与芯片管制的双重策略}
+
+美国的 AI 治理采取了一种独特的「双轨制」：
+行政令（Executive Order）处理国内安全与创新，
+出口管制（Export Controls）处理地缘政治竞争。
+
+\textbf{Kamala Harris}（1964--）作为副总统，
+成为 Biden 政府 AI 政策的核心推动者和公众面孔。
+2023 年 10 月 30 日，Biden 签署了美国历史上第一份
+AI 行政令（Executive Order on the Safe, Secure, and Trustworthy
+Development and Use of Artificial Intelligence），
+Harris 在签字仪式上鼓掌的画面成为标志性时刻。
+该行政令要求：
+开发双用途基础模型（dual-use foundation models）的公司
+在发布前必须向联邦政府报告安全测试结果；
+商务部制定 AI 红队测试（red-teaming）标准；
+联邦机构任命首席 AI 官（Chief AI Officers）。
+Harris 随后亲赴 2023 年 11 月的 Bletchley Park AI 安全峰会，
+代表美国发布了关于 AI 安全的新倡议，
+包括成立美国 AI 安全研究所（US AI Safety Institute，隶属 NIST）。
+2024 年 3 月，她宣布了 OMB 的首份联邦 AI 使用政策，
+标志着从「自愿承诺」向「制度约束」的转变。
+
+\begin{whybox}[为什么行政令而非立法？]
+美国国会在 AI 立法上进展缓慢——
+截至 2026 年初，仍未通过任何联邦级别的综合性 AI 法案。
+行政令虽然法律效力有限（可被下一任总统撤销），
+但它能在数周内生效，不需要经历旷日持久的两党博弈。
+Biden 团队选择行政令，本质上是一种
+``先建立框架、再推动立法'' 的策略。
+事实上，Trump 在 2025 年 1 月就任后迅速撤销了该行政令，
+证明了这种路径的脆弱性。
+\end{whybox}
+
+\textbf{Bruce Reed}（1960--）是这些政策背后的关键操盘手。
+作为白宫副幕僚长（Deputy Chief of Staff），
+Reed 负责协调跨部门的 AI 政策制定，
+被《Politico》称为 ``Biden AI 政策的大脑''。
+他的团队在不到 90 天内完成了行政令的起草——
+这在白宫的政策制定流程中堪称闪电速度。
+Reed 此前在 Clinton 政府时期就负责过互联网政策，
+他将那个时代的经验——``不要过早扼杀创新，但要建立安全护栏''——
+带入了 AI 治理。
+
+\textbf{Gina Raimondo}（1971--）作为商务部长，
+掌控着美国 AI 地缘战略中最锋利的武器：芯片出口管制。
+2022 年 10 月，商务部产业与安全局（BIS）发布了对华芯片出口限制，
+禁止向中国出口先进 AI 芯片（如 NVIDIA A100/H100）
+和先进制程半导体设备。
+Raimondo 在一次 CBS 采访中坦言：
+``今天的国家安全不只是坦克和导弹，而是技术。
+是半导体，是 AI，是无人机。''
+她主导了三轮逐步升级的出口管制：
+2022 年 10 月（初始限制）、
+2023 年 10 月（堵住 NVIDIA 通过降规格芯片绕过管制的漏洞）、
+2024 年 12 月（扩展至 24 类芯片制造设备和 140 个实体清单新增条目）。
+2025 年 1 月 13 日，在 Biden 政府的最后几天，
+她发布了最全面的 AI 出口管制框架，
+按国家分三级（盟友/中立/受限）分配 AI 芯片配额。
+Raimondo 的策略核心是：
+\emph{不追求彻底脱钩（decoupling），
+而是精准管控关键瓶颈技术}。
+
+\begin{corebox}[芯片管制的意外后果]
+Raimondo 的出口管制在遏制中国获取最先进 AI 芯片方面取得了部分成功，
+但也产生了深远的意外后果：
+它加速了中国 AI 芯片自主化的进程
+（华为昇腾 910B/C 的快速迭代即是直接回应），
+催生了复杂的灰色市场走私网络，
+并促使 DeepSeek 等中国实验室在软件层面进行极致优化——
+DeepSeek V3 在受限的 H800 集群上实现了与 H100 集群可比的训练效率，
+某种程度上证明了出口管制的``水床效应''：
+按下一处，另一处鼓起。
+\end{corebox}
+
+\subsection{英国：Bletchley Park 与 AI 安全研究所}
+
+英国选择了一条与美国和欧盟不同的道路：
+不急于立法，而是聚焦于\textbf{技术安全评估}。
+这一策略的执行者是
+\textbf{Ian Hogarth}（1983--），
+一位天使投资人和科技企业家。
+
+Hogarth 在 2023 年 6 月发表了一篇广受关注的
+\emph{Financial Times} 文章 ``We Must Slow Down the Race to God-Like AI''，
+随后被 Rishi Sunak 首相任命为英国前沿 AI 任务组
+（Frontier AI Taskforce）的负责人。
+2023 年 11 月 1--2 日，在具有深刻象征意义的 Bletchley Park
+（二战密码破解中心、Alan Turing 的工作地）
+举行了全球首届 AI 安全峰会（AI Safety Summit）。
+28 国代表（包括中国）签署了《Bletchley 宣言》，
+承认了 frontier AI 的潜在风险，
+并同意在安全测试方面开展国际合作。
+
+峰会的核心成果是英国 AI 安全研究所
+（UK AI Safety Institute, AISI）的正式成立，
+Hogarth 出任首任所长。
+AISI 的任务是：在 frontier model 发布前后对其进行安全评估，
+检测有害能力（如生化武器知识生成、网络攻击辅助）。
+这种``政府级红队测试''的模式启发了美国（NIST AI Safety Institute）、
+日本和加拿大建立类似机构。
+
+\begin{keybox}[Bletchley Park 的符号意义]
+选择 Bletchley Park 作为峰会地点并非巧合：
+1940 年代，Turing 和团队在这里破解了 Enigma 密码，
+改变了二战进程。80 年后，
+各国领导人在同一地点讨论如何应对 Turing 的智力遗产
+所带来的最深远挑战。
+这种历史回响赋予了峰会超越外交辞令的叙事力量。
+\end{keybox}
+
+\subsection{欧盟：AI Act——全球首部综合性 AI 法案}
+
+如果说美国靠行政令、英国靠安全评估，
+欧盟则选择了它最擅长的工具：\textbf{立法}。
+
+EU AI Act 的立法历程始于 2021 年 4 月的欧盟委员会提案，
+历经近三年的谈判，于 2024 年 3 月 13 日
+以 523 票赞成、46 票反对的压倒性多数在欧洲议会通过。
+这是全球第一部全面的、具有法律约束力的 AI 监管框架。
+
+三位关键推动者值得记录：
+
+\textbf{Thierry Breton}（1955--），
+法国人，时任欧盟内部市场专员（Commissioner for Internal Market）。
+Breton 是 AI Act 在欧盟委员会层面的首席推动者。
+他在 AI Act 通过后高调宣布：
+``欧洲现在是 AI 的全球标准制定者。
+我们监管尽可能少——但必要时绝不手软。''
+Breton 此前是 Atos（欧洲最大 IT 服务公司之一）的 CEO，
+他将企业家的务实与监管者的决心结合在一起。
+他坚持 AI Act 必须覆盖通用目的 AI 模型（GPAI），
+这一条款在最终版本中成为最具争议也最具影响力的部分。
+
+\textbf{Dragoș Tudorache}（1972--），
+罗马尼亚人，欧洲议会议员，AI Act 在议会的两位联合报告人之一。
+Tudorache 此前是罗马尼亚内政部长，
+他回忆说自己对 AI 的兴趣始于 2015 年阅读 Nick Bostrom 的
+\emph{Superintelligence} 一书。
+他与意大利议员 \textbf{Brando Benifei} 搭档，
+花了两年时间在欧洲议会中推动 AI Act 的通过。
+Tudorache 在接受 \emph{MIT Technology Review} 采访时表示：
+``没有人以前做过这样的事。
+这不是从架子上拿一份旧模板就能完成的。''
+
+AI Act 的核心是一个\textbf{风险分级框架}：
+\begin{itemize}[noitemsep]
+  \item \textbf{不可接受风险}（Unacceptable Risk）：
+        社会信用评分、实时远程生物识别（执法例外除外）——直接禁止。
+  \item \textbf{高风险}（High Risk）：
+        关键基础设施、教育、就业中的 AI 系统——需通过合规评估。
+  \item \textbf{有限风险}：
+        聊天机器人、深度伪造——需透明度义务（标注 AI 生成内容）。
+  \item \textbf{最低风险}：
+        垃圾邮件过滤器等——不受额外监管。
+\end{itemize}
+
+对通用目的 AI 模型（GPAI）的特别条款要求：
+所有 GPAI 提供者必须提供模型卡（model cards）和技术文档；
+被认定为具有``系统性风险''的模型（训练算力超过 $10^{25}$ FLOPs）
+还必须进行对抗性安全测试并向欧洲 AI 办公室报告严重事件。
+
+\subsection{中国：渐进式、分领域的 AI 治理}
+
+中国的 AI 治理路径与西方截然不同。
+中国没有选择``一步到位的综合立法''，
+而是采取了\textbf{渐进式、分领域的监管策略}——
+先针对具体场景出台规定，再逐步构建统一框架。
+
+三部关键法规构成了中国 AI 治理的基础框架：
+\begin{itemize}[noitemsep]
+  \item \textbf{《互联网信息服务算法推荐管理规定》}
+        （2022 年 3 月生效）：
+        规范推荐算法，要求算法透明度和用户选择权。
+  \item \textbf{《互联网信息服务深度合成管理规定》}
+        （2023 年 1 月生效）：
+        针对深度伪造（deepfake）技术，
+        要求内容标识和备案管理。
+  \item \textbf{《生成式人工智能服务管理暂行办法》}
+        （2023 年 8 月生效）：
+        这是全球首个专门针对生成式 AI 的监管法规，
+        要求备案审批、内容安全和数据合规。
+\end{itemize}
+
+2025 年 10 月，修订后的《网络安全法》
+新增了专门的``人工智能合规''条款，
+标志着 AI 治理正式被纳入中国网络安全的顶层法律架构。
+同时，2025 年 8 月国务院发布的
+《关于深入实施``人工智能+''行动的意见》
+则代表了另一个方向：
+以政策激励推动 AI 与实体经济的深度融合，
+设定了到 2027 年 AI 应用普及率超 70\%、
+2030 年超 90\% 的宏大目标。
+
+\begin{whybox}[中国为什么没有出台综合性 AI 法？]
+2025 年，中国曾将综合性 AI 立法列入计划议程，
+但随后将其移出。
+分析认为，这并非``放弃监管''，
+而是务实地认识到：
+在 AI 技术快速迭代的阶段，
+过早的综合立法可能抑制创新。
+相比之下，``先试点、再标准、再立法''的路径
+允许监管者通过观察 DeepSeek、Kimi 等国产模型的实际部署效果
+来校准监管力度。
+这种方法更灵活，但也导致了
+企业面临多套重叠规则的``法规碎片化''挑战。
+\end{whybox}
+
+\subsection{Yoshua Bengio：从学术殿堂到政策前线}
+
+\textbf{Yoshua Bengio}（1964--）
+是深度学习三巨头之一（2018 年图灵奖共同获得者），
+但在 2023--2026 年间，他的角色发生了深刻转变：
+从纯粹的学术研究者变成了全球 AI 安全政策的首席科学顾问。
+
+2023 年 7 月，Bengio 在美国参议院隐私与技术小组委员会作证，
+呼吁政府投资 AI 安全研究并建立监管框架。
+2023 年 11 月的 Bletchley Park 峰会后，
+他被委托领导《国际 AI 安全科学报告》
+（International Scientific Report on the Safety of Advanced AI）——
+一个受 IPCC（政府间气候变化专门委员会）启发的倡议，
+由 30 多个国家的代表支持，
+超过 100 位独立专家参与撰写。
+临时报告于 2024 年 5 月的首尔 AI 峰会发布，
+完整版于 2026 年 2 月的巴黎 AI 行动峰会发布。
+
+Bengio 的转变在 AI 社区引发了争议。
+一些同行（尤其是 Yann LeCun）批评他的安全立场过于悲观，
+认为当前的 AI 系统距离 AGI 还很遥远。
+Bengio 的回应是：
+``我宁愿因为过早发出警告而被嘲笑，
+也不愿因为沉默而在灾难发生后被追责。''
+
+%% ============================================================
+\section{AI 伦理：技术的良心}
+\label{sec:ethics}
+%% ============================================================
+
+如果说政策制定者从\emph{外部}为 AI 设定边界，
+伦理学者则从\emph{内部}审视 AI 的价值观、偏见和权力结构。
+2020--2026 年间，一系列标志性事件——
+Google 伦理 AI 团队的解散、``随机鹦鹉''论文的发表、
+面部识别偏见的曝光——
+将 AI 伦理从学术角落推到了公众聚光灯下。
+
+\subsection{Google 伦理 AI 风暴：Timnit Gebru 与 Margaret Mitchell}
+
+2020 年 12 月，Google 伦理 AI 团队联合负责人
+\textbf{Timnit Gebru}（1982/1983--）的离职
+成为 AI 伦理领域的分水岭事件。
+
+Gebru 是一位厄立特里亚裔埃塞俄比亚出生的计算机科学家，
+在加入 Google 前已是 AI 公平性研究的先驱——
+她共同创立了 Black in AI，
+一个推动更多黑人参与 AI 研发的倡导组织。
+在 Google，她与 Margaret Mitchell 共同领导伦理 AI 团队，
+建立了一支包含大量少数族裔成员的研究小组。
+
+导火索是一篇论文。
+Gebru 与 Emily Bender、Mitchell 等人合著了
+``On the Dangers of Stochastic Parrots:
+Can Language Models Be Too Big?''，
+系统性地分析了大型语言模型的风险：
+环境成本（训练的碳排放）、
+训练数据中嵌入的社会偏见、
+以及模型``看起来流利但不理解''的根本局限。
+据 Gebru 所述，Google 管理层要求她撤回论文或移除所有 Google 员工的署名。
+当她要求知晓审稿人身份和具体反馈时，
+被告知``已经接受了辞职''——Gebru 否认自己曾辞职，
+坚称这是被解雇。
+
+两个月后，2021 年 2 月，
+\textbf{Margaret Mitchell}（也被解雇。
+Google 声称她违反了公司行为准则，
+将文件转移到公司外部。
+Mitchell——一位在自然语言生成、
+视觉描述和模型偏见评估方面有深厚积累的研究者——
+否认了不当行为。
+
+\begin{corebox}[``Stochastic Parrots'' 论文的深远影响]
+``随机鹦鹉''论文最初因 Google 内部的审查争议而广为人知，
+但它的学术价值远超其引发的公关危机。
+论文提出的核心论点——
+大型语言模型本质上是在``拼接''训练数据中的模式，
+而非真正``理解''语言——
+成为此后所有关于 LLM 能力边界讨论的起点。
+该论文发表于 2021 年 ACM FAccT 会议。
+值得注意的是，Mitchell 的署名被化名为
+``Shmargaret Shmitchell''，
+这个黑色幽默式的伪名本身就成了对学术审查的无声抗议。
+有趣的是，2026 年 3 月，
+Mitchell 本人撰文 ``No, `AI' is not a Stochastic Parrot''，
+对该术语的\emph{过度简化使用}进行了反思——
+她区分了论文的原始论点（警告过度依赖规模）
+与某些人将其简化为``AI 不可能有任何能力''的误读。
+\end{corebox}
+
+Gebru 离开 Google 后创立了
+\textbf{DAIR 研究所}（Distributed AI Research Institute），
+一个独立于大型科技公司的 AI 研究机构，
+致力于以社区为中心的 AI 研究。
+Mitchell 则于 2021 年 10 月加入 Hugging Face，
+担任首席伦理科学家（Chief Ethics Scientist），
+在那里她将伦理原则嵌入开源 AI 平台的架构中——
+这被 \emph{TIME} 杂志 2023 年 ``AI 百大影响力人物''
+选中为标志性案例，
+证明伦理不只是批评，也可以是\emph{建设}。
+
+\subsection{Emily Bender：语言学家的警告}
+
+\textbf{Emily Bender}（约 1973--）
+是华盛顿大学的计算语言学教授，
+``随机鹦鹉''论文的第一作者。
+与许多 AI 研究者不同，
+Bender 的学术根基在\emph{语言学}而非计算机科学。
+这种独特的视角使她能够提出一个
+许多 AI 从业者不愿面对的问题：
+\emph{LLM 是在使用语言，还是在模拟使用语言的统计模式？}
+
+Bender 是 AI 批评界最一致的声音之一。
+在 2024 年 11 月 Harvey Mudd College 的演讲中，
+她将 RAG（检索增强生成）比作``用好数据做的纸浆模型——
+材料更好了，但本质上还是纸浆''。
+她的核心观点可以概括为三个层次：
+\begin{enumerate}[noitemsep]
+  \item LLM 的输出正确时，这在很大程度上是\emph{偶然}的；
+  \item 流利性（fluency）不等于理解（comprehension）；
+  \item 将 LLM 的输出当作``知识''是一种危险的范畴错误。
+\end{enumerate}
+
+\subsection{Joy Buolamwini：揭示算法歧视的``诗人战士''}
+
+\textbf{Joy Buolamwini}（约 1990--）的故事
+始于一个简单而令人不安的发现：
+作为 MIT Media Lab 的研究生，
+她发现面部识别软件无法检测到她的面孔——
+除非她戴上一张白色面具。
+
+这个个人经历推动她进行了系统性研究。
+她的 \textbf{Gender Shades} 项目（2018）揭示了
+IBM、Microsoft 和 Face++ 的商业面部识别系统中的严重偏见：
+对深肤色女性的错误率高达 34.7\%，
+而对浅肤色男性仅为 0.8\%。
+这一 43 倍的差距——不是抽象的统计数字，
+而是真实的人被错误识别、错误逮捕、错误排斥的风险。
+
+Buolamwini 创立了\textbf{算法正义联盟}
+（Algorithmic Justice League, AJL），
+她将自己定位为``诗人战士''（poet of code），
+因为她在技术抗议中融入了说唱和表演艺术。
+AJL 的使命不仅是技术审计，
+更是``建立受影响社区的声音和选择权''。
+
+她的工作产生了直接的政策影响：
+IBM 在 2020 年宣布退出通用面部识别市场，
+明确引用了偏见问题；
+多个美国城市（包括旧金山、波士顿）
+通过了限制政府使用面部识别的法规。
+
+\subsection{Meredith Whittaker：从 Google 罢工到 Signal 总裁}
+
+\textbf{Meredith Whittaker}（约 1977--）
+的职业轨迹本身就是一部 AI 伦理运动的缩影。
+
+在 Google 工作 13 年期间，
+她创立了 Google 的 Open Research 项目，
+并共同创立了\textbf{AI Now 研究所}
+（AI Now Institute，纽约大学）——
+全球最早的跨学科 AI 社会影响研究机构之一（2017）。
+2018 年 11 月，她参与组织了
+Google 历史上最大规模的员工罢工（Google Walkout），
+抗议公司对性骚扰投诉的处理方式以及与军方的 AI 合作（Project Maven）。
+
+罢工后，Whittaker 表示被告知如果要留在 Google，
+必须放弃 AI 伦理工作和在 AI Now 的角色。
+她选择在 2019 年离开。
+此后她担任 FTC（联邦贸易委员会）主席 Lina Khan 的顾问，
+并于 2022 年 9 月被任命为\textbf{Signal}
+（加密通信应用）的首任总裁。
+
+Whittaker 在 Signal 的角色将她的 AI 批评
+与一个具体的替代愿景结合在一起：
+如果大型科技公司的商业模式本质上依赖监控，
+那么 Signal 所代表的\emph{加密、非营利、开源}模式
+就是一种结构性的反命题。
+
+\subsection{Kate Crawford：AI 的``政治经济学''}
+
+\textbf{Kate Crawford}（约 1976--）是 AI Now 研究所的联合创始人，
+USC Annenberg 的研究教授。
+她的 2021 年著作 \emph{Atlas of AI: Power, Politics,
+and the Planetary Costs of Artificial Intelligence}
+开创性地将 AI 分析的视角从``算法''扩展到``供应链''：
+从内华达州的锂矿到亚马逊仓库的工人，
+从 ImageNet 数据集中的标注偏见到军事监控的应用。
+
+Crawford 的核心论点是：
+AI 既不是``人工的''也不是真正``智能的''——
+它是一个建立在\emph{人类劳动、自然资源提取和权力不对称}
+之上的社会技术系统。
+\emph{Atlas of AI} 被 \emph{New Yorker} 称为
+``对机器学习训练数据的迷人历史''，
+被 \emph{Science} 称为``及时而紧迫的贡献''。
+
+\subsection{Safiya Noble：搜索引擎的种族政治}
+
+\textbf{Safiya Umoja Noble}（约 1975--）
+是 UCLA 信息学教授，
+她的 2018 年著作 \emph{Algorithms of Oppression:
+How Search Engines Reinforce Racism}
+通过一个简单实验揭示了深层问题：
+在 Google 中搜索 ``Black girls'' 得到的结果
+与搜索 ``white girls'' 截然不同——
+前者充斥着色情化内容，后者则相对中性。
+
+Noble 的工作将``算法偏见''的讨论从面部识别
+扩展到了\emph{信息检索}——
+一个看似中立但实际上深度嵌入了社会权力结构的技术领域。
+她指出，搜索引擎的排名算法不是``客观的''，
+而是反映了广告商的商业利益和社会的既有偏见。
+
+\subsection{Gary Marcus：AI 最响亮的怀疑者}
+
+\textbf{Gary Marcus}（1970--）的角色很独特：
+他既不是伦理学者也不是政策制定者，
+而是一个在 AI 能力问题上最持久、最高调的\textbf{技术怀疑者}。
+
+Marcus 是 NYU 心理学与神经科学荣休教授，
+认知科学家，著有多本 AI 通俗读物。
+2016 年，他创立了 Geometric Intelligence
+（一家将认知科学与机器学习结合的 AI 初创公司），
+后被 Uber 收购。
+他还在美国参议院 AI 听证会上作证。
+
+2022 年，Marcus 发表了引发广泛争议的文章
+``Deep Learning is Hitting a Wall''，
+预测深度学习在可靠性和推理能力上的根本瓶颈。
+AI 圈对他的态度高度两极化——
+支持者称他为``AI 的良心''，
+批评者称他为``永远唱衰的人''（Elon Musk 曾转发讽刺他的 meme）。
+然而，Marcus 2024 年初在 \emph{IEEE Spectrum} 的访谈中指出，
+他关于可靠性问题的许多预测已经被验证：
+幻觉（hallucination）仍然是 LLM 最难解决的问题之一。
+
+Marcus 自己的总结颇为精辟：
+``讽刺是针对我的；失败是深度学习之主的。''
+
+\subsection{Melanie Mitchell：复杂性视角下的 AI}
+
+\textbf{Melanie Mitchell}（约 1969--）
+是圣塔菲研究所（Santa Fe Institute）教授，
+她的独特贡献在于从\textbf{复杂系统科学}的视角分析 AI。
+她的著作 \emph{Complexity: A Guided Tour}（2010，获 Phi Beta Kappa 奖）
+和 \emph{Artificial Intelligence: A Guide for Thinking Humans}（2019）
+为非技术读者提供了理解 AI 的深度框架。
+
+Mitchell 的研究聚焦于``概念抽象和类比推理''——
+她认为这些是人类智能的核心，
+也是当前 AI 系统最薄弱的环节。
+她既不属于``AI 将毁灭人类''的末日论阵营，
+也不属于``深度学习能解决一切''的乐观派，
+而是坚持一种基于证据的、精细的中间立场。
+
+%% ============================================================
+\section{AI 媒体与公共知识分子}
+\label{sec:media}
+%% ============================================================
+
+AI 革命的独特之处在于它的\textbf{极度公开性}。
+与过去的技术革命不同（半导体革命发生在洁净室里，
+互联网革命发生在大学实验室里），
+AI 革命很大程度上发生在 YouTube、Twitter/X、
+Substack 和播客上。
+一批``翻译者''——将前沿论文转化为公众理解的人——
+成为了 AI 时代不可或缺的角色。
+
+\subsection{Lex Fridman：AI 时代的 Charlie Rose}
+
+\textbf{Lex Fridman}（1983--），
+出生于苏联塔吉克斯坦的美裔计算机科学家和播客主持人。
+他在 Drexel University 获得学士、硕士和博士学位，
+此后在 MIT 人工智能实验室和 AgeLab 担任研究员。
+2018 年起，他开始主持 \emph{Lex Fridman Podcast}，
+至今已制作超过 460 期，
+嘉宾涵盖 Elon Musk、Sam Altman、Mark Zuckerberg、
+Jensen Huang、Yann LeCun、Jeff Bezos 乃至
+印度总理 Narendra Modi。
+
+Fridman 的访谈风格——超长形式（通常 2--4 小时）、
+深度技术问题与哲学思考交织、
+极其温和的追问方式——使他成为 AI 领域最有影响力的媒体人之一。
+批评者认为他对嘉宾过于客气，缺乏批判性追问；
+支持者则认为这种方式让嘉宾放松后更可能吐露真实想法。
+无论如何，``上 Lex 的播客''已成为 AI 领袖
+向科技社区传达信息的标准渠道。
+
+Fridman 2019 年因 Elon Musk 赞扬他一篇关于 Tesla Autopilot
+驾驶员注意力的研究而迅速走红——
+尽管该研究未经同行评审并受到 AI 专家批评。
+自 2022 年起他切换为 MIT 无薪职位，
+全职投入播客和内容创作。
+截至 2026 年，他的 YouTube 频道拥有数百万订阅者。
+
+\subsection{Andrej Karpathy：从研究到教育的全栈 AI 人}
+
+\textbf{Andrej Karpathy}（1986--）
+可能是 AI 领域最成功的``知识翻译者''。
+他是 OpenAI 的创始团队成员（2015），
+后任 Tesla 自动驾驶（Autopilot / FSD）负责人（2017--2022），
+再回到 OpenAI（2023），最终于 2024 年离开创立
+\textbf{Eureka Labs}——一个``AI 原生''教育平台。
+
+但 Karpathy 最深远的影响力来自他的\emph{教育内容}。
+他在 Stanford 开设的 CS231n（卷积神经网络与视觉识别）
+是深度学习教育史上最有影响力的课程之一。
+他的 YouTube 频道以极其清晰的风格
+从零讲解神经网络、GPT、Tokenizer 等核心概念——
+他 2023 年的视频 ``Let's Build GPT from Scratch''
+在数周内获得数百万播放量，
+使数以万计的工程师第一次真正理解了 Transformer 的工作原理。
+
+Karpathy 的独特之处在于他的\emph{全栈经历}：
+他既做过前沿研究（ImageNet 上的 CNN），
+也管理过大规模工程团队（Tesla 数百人的 Autopilot 团队），
+还能将这些经验转化为任何人都能跟随的教程。
+Eureka Labs 是他将这种能力制度化的尝试——
+用 AI 辅助教学，让``世界上最好的老师''能够扩展到百万学生。
+
+\subsection{Grant Sanderson (3Blue1Brown)：数学可视化的魔术师}
+
+\textbf{Grant Sanderson}（约 1988--）
+创建的 YouTube 频道 3Blue1Brown
+用精美的数学动画解释了从线性代数到神经网络的核心概念。
+他的``But What is a Neural Network?'' 系列（2017 年首发，2026 年更新）
+可能是互联网上对神经网络最直观的入门解释。
+
+Sanderson 的贡献看似``只是科普''，
+但其实际影响不可低估：
+对于一代在 AI 浪潮中成长的学生来说，
+3Blue1Brown 的动画是他们理解高维空间、
+反向传播和注意力机制的第一扇窗口。
+2026 年 2 月，他受邀在 UC Santa Cruz 演讲，
+主题是``高维球体的美与实用''——
+而听众中的许多人正是因为他的视频才对数学产生了兴趣。
+
+\subsection{Lilian Weng：从博客到 OpenAI 副总裁}
+
+\textbf{Lilian Weng}是一个罕见的案例：
+她的\emph{个人博客}可能比许多研究论文
+产生了更大的教育影响力。
+
+Weng 出生于中国，在北京航空航天大学获学士学位，
+后在卡内基梅隆大学获计算机科学博士学位。
+2018 年加入 OpenAI，
+她从 2017 年起维护的博客 \textbf{Lil'Log}
+（lilianweng.github.io）
+以极其清晰、系统的长文
+覆盖了从强化学习到扩散模型到
+test-time compute 的几乎所有 LLM 核心主题。
+每篇文章都像一部迷你教科书，
+包含大量公式推导、代码片段和精心绘制的图表。
+
+到 2025 年中，
+Weng 已晋升为 OpenAI 研究与安全副总裁
+（VP of Research and Safety），
+接替此前一系列离职高管的空缺。
+她的轨迹体现了一种独特的职业路径：
+\emph{通过公开的知识贡献建立声望，
+再将这种声望转化为组织内部的领导力。}
+
+\subsection{Jeremy Howard 与 Rachel Thomas：AI 民主化的先驱}
+
+\textbf{Jeremy Howard}（1973--）和
+\textbf{Rachel Thomas}（约 1980--）
+在 2016 年共同创立了 \textbf{fast.ai}，
+这是 AI 教育史上最重要的项目之一。
+
+Howard 的背景非同寻常：
+他曾是 Kaggle 平台的总裁和首席科学家，
+两次获得国际机器学习竞赛排名第一；
+他创立了 Enlitic（第一家将深度学习应用于医疗的公司），
+被 \emph{MIT Technology Review} 连续两年评为
+全球 50 大最聪明公司。
+
+fast.ai 的哲学与当时主流的``先学三年数学再碰代码''的
+深度学习教育方式截然相反。
+Howard 和 Thomas 借鉴了教育家 Paul Lockhart 的理念——
+不要让学生在接触真正的创造之前
+花费数年在干燥的理论基础上——
+设计了``自上而下''的课程：
+第一节课就训练一个图像分类器，
+理论在实践中逐步引入。
+
+Thomas 不仅是 fast.ai 的联合创始人，
+还是 AI 伦理教育的开拓者——
+她是 USF 数据伦理课程的首位讲师，
+将 AI 公平性和社会影响整合进了技术教育。
+她后来担任了 fast.ai 的首席执行官。
+
+\subsection{其他重要的 AI 传播者}
+
+\textbf{Chip Huyen}（约 1992--）是一位越南裔的 AI 系统工程师和作家。
+她在越南的稻田村庄长大，
+后在 Stanford 教授``机器学习系统设计''课程。
+她的著作 \emph{Designing Machine Learning Systems}（2022）
+成为 Amazon AI 类目的 \#1 畅销书，翻译成 10+ 种语言；
+2025 年的 \emph{AI Engineering} 一书
+自上市以来一直是 O'Reilly 平台上阅读量最高的书籍。
+她此前在 NVIDIA（NeMo 核心开发者）、Snorkel AI 和 Netflix 工作，
+还创立并出售了一家 AI 基础设施创业公司。
+
+\textbf{Sebastian Raschka}（约 1989--）是威斯康星大学麦迪逊分校的
+统计学助理教授，后加入 Lightning AI 担任首席 AI 教育官。
+他的著作 \emph{Machine Learning with PyTorch and Scikit-Learn}
+以及 \emph{Build a Large Language Model (From Scratch)}
+以``代码优先''的风格解释了从经典 ML 到 LLM 的全栈知识。
+他的博客和 Twitter 内容是 ML 社区中被引用最频繁的教育资源之一。
+
+\textbf{李沐}（Mu Li）是前 Amazon Web Services 应用科学家，
+他与 Aston Zhang 等人合著的
+\emph{Dive into Deep Learning}（D2L，《动手学深度学习》）
+是全球被 70 个国家 500+ 所大学采用的交互式深度学习教材。
+他的中文 YouTube 频道``跟李沐学 AI''
+为中文世界提供了高质量的 AI 教育内容。
+D2L 的独特之处在于它是\emph{可执行的}——
+每一章的代码都可以直接在 Jupyter Notebook 中运行。
+
+\textbf{Yannic Kilcher} 是一位瑞士的 ML 研究者和 YouTube 创作者，
+以逐页拆解最新 AI 论文而闻名。
+他的视频覆盖了从 GPT-4 技术报告到 Mamba 论文的几乎所有重要工作，
+风格直接、不加修饰，偶尔尖锐——
+他是许多研究者了解新论文的第一站。
+
+\subsection{AI 哲学家与未来学家}
+
+\textbf{Ray Kurzweil}（1948--）
+是 AI 未来学领域最具影响力（也最具争议性）的声音。
+他的 2005 年著作 \emph{The Singularity Is Near}
+预测``技术奇点''——人工智能超越人类智能的时刻——将在 2045 年到来。
+自 2012 年起，他在 Google 担任工程总监，
+致力于自然语言处理和语音识别。
+2024 年，他出版了续作 \emph{The Singularity Is Nearer}，
+声称 AI 的进展正在验证他二十年前的预测。
+Kurzweil 的``加速回报定律''——
+技术进步的速度本身在指数级加速——
+对整整一代 AI 创业者产生了深刻影响，
+尽管许多学术研究者认为他的预测过于乐观。
+
+\textbf{Nick Bostrom}（1973--），
+瑞典哲学家，牛津大学教授，
+人类未来研究所（Future of Humanity Institute, FHI）创始主任。
+他的 2014 年著作 \emph{Superintelligence: Paths, Dangers, Strategies}
+是 AI 安全运动的奠基性文本之一——
+从 Elon Musk 到 Bill Gates，
+许多科技领袖都引用该书作为他们关注 AI 风险的原因。
+Bostrom 将``超级智能''定义为
+``在几乎所有认知领域大幅超越人类的智力''，
+并分析了``控制问题''——
+一旦超级智能出现，我们如何确保它的目标与人类一致？
+FHI 于 2024 年关闭，
+但 Bostrom 继续通过 Macrostrategy Research Initiative 从事 AGI 治理研究。
+他 2024 年的新书 \emph{Deep Utopia} 探讨了
+一个``所有问题都被 AI 解决''的世界中人类意义的问题。
+
+\textbf{Max Tegmark}（1967--），
+瑞典裔美国物理学家，MIT 教授。
+他的 2017 年著作 \emph{Life 3.0: Being Human in the Age of
+Artificial Intelligence} 将 AI 的讨论
+放置在宇宙学的宏大框架中：
+如果 Life 1.0 是生物演化（硬件和软件都由自然选择决定），
+Life 2.0 是文化演化（软件可以学习，硬件仍由进化决定），
+那么 Life 3.0 就是 AI 时代——
+``硬件和软件都可以自我设计''。
+Tegmark 共同创立了
+Future of Life Institute（FLI），
+该组织在 2023 年发起了要求暂停训练
+比 GPT-4 更强大的 AI 模型 6 个月的公开信，
+获得超过 33,000 个签名（包括 Elon Musk、Steve Wozniak、
+Yoshua Bengio 等知名人物），
+成为 AI 安全讨论中的标志性事件——
+尽管实际上没有任何实验室真正暂停了训练。
+
+\textbf{Yuval Noah Harari}（1976--），
+以色列历史学家，
+\emph{Sapiens} 和 \emph{Homo Deus} 的作者。
+Harari 并非 AI 技术专家，
+但他对 AI 对人类社会、劳动、意识和权力结构影响的分析
+使他成为全球最受关注的 AI 评论者之一。
+他在多次演讲中警告：
+AI 不需要``有意识''就能颠覆人类社会——
+它只需要比人类更擅长\emph{操纵叙事}。
+
+\textbf{李开复}（Kai-Fu Lee，1961--）
+在中美 AI 界都拥有独特的双重影响力。
+他曾任 Apple 语音识别研究负责人、
+Microsoft 全球副总裁、Google 中国区总裁，
+后创立创新工场（Sinovation Ventures）。
+他的 2018 年著作 \emph{AI Superpowers: China, Silicon Valley,
+and the New World Order} 是向西方世界解释
+中国 AI 生态系统的最有影响力的作品。
+2023 年，他创立了 \textbf{01.AI}
+并推出了 Yi 系列开源大模型，
+使他从 AI 评论家转变为 AI 实践者——
+少有人能同时在\emph{写关于} AI 和\emph{做} AI 两个维度上
+保持顶级影响力。
+
+%% ============================================================
+\section{下一代：35 岁以下的新星}
+\label{sec:rising}
+%% ============================================================
+
+AI 领域最令人振奋的特征之一是它的\textbf{年轻化}。
+在大多数技术领域，
+重大影响通常需要数十年的积累；
+但在 AI 的当前浪潮中，
+一群 25--35 岁的年轻人正在以创始人、
+关键论文作者或核心工程师的身份
+重新定义可能性的边界。
+
+\subsection{创业新星}
+
+\textbf{Alexandr Wang}（汪滔，1997--）
+是 AI 时代``天才少年创业者''的典型代表。
+他出生于新墨西哥州 Los Alamos
+（他的父母都是在 Los Alamos 国家实验室工作的物理学家），
+从小在科学氛围中成长。
+他在 MIT 读了一年后辍学，
+19 岁时（2016 年）与 Lucy Guo 共同创立了 \textbf{Scale AI}——
+一家提供 AI 训练数据标注和模型评估服务的公司。
+
+Scale AI 的核心洞察是：
+AI 模型的质量瓶颈不在算法而在\emph{数据}。
+公司为 OpenAI、Meta、美国国防部等客户提供高质量标注数据。
+2021 年，Wang 以 24 岁的年龄
+成为全球最年轻的白手起家亿万富翁。
+截至 2025 年，Scale AI 估值达 290 亿美元，
+\emph{Forbes} 估计 Wang 的个人净资产为 36 亿美元。
+
+2025 年 6 月，Wang 做出了一个出人意料的决定：
+离开 Scale AI，加入 Meta 担任首席 AI 官，
+领导新成立的 Superintelligence Labs。
+Meta 同时以 143 亿美元投资 Scale AI，获得 49\% 的股份。
+这一交易使 Scale AI 估值翻倍，
+也标志着 AI 行业``创始人级别人才''竞争的白热化。
+
+\begin{keybox}[从 Los Alamos 到 Meta：一条隐喻性的路径]
+Wang 的人生轨迹有一种历史性的对称：
+Los Alamos 是曼哈顿计划的诞生地，
+那里的科学家在 1940 年代创造了人类历史上最强大的武器；
+80 年后，同一个小镇培养出的年轻人
+正在构建人类历史上最强大的智能系统。
+这种地理巧合提醒我们：
+技术力量的集中——无论是核能还是 AI——
+始终伴随着深刻的伦理责任。
+\end{keybox}
+
+\textbf{Aravind Srinivas}（约 1993--）
+是 \textbf{Perplexity AI} 的联合创始人兼 CEO。
+出生于印度 Chennai，
+在 IIT Madras 获学士学位，
+UC Berkeley 获 PhD（研究方向为语言和扩散生成模型），
+期间在 OpenAI 担任研究科学家（2021--2022）。
+
+2022 年 8 月，
+他与 Denis Yarats、Johnny Ho、Andy Konwinski 共同创立了 Perplexity——
+一个``AI 答案引擎''，试图重新定义搜索的范式。
+与传统搜索引擎返回链接列表不同，
+Perplexity 直接生成带引用来源的综合答案。
+公司增长极为迅速：
+截至 2025 年 9 月估值达 200 亿美元。
+Srinivas 登上 2025 年 M3M Hurun India Rich List，
+成为榜单上最年轻的亿万富翁。
+
+不过，Perplexity 也面临严重的法律争议：
+BBC、道琼斯和纽约时报等媒体机构指控其未经授权使用内容；
+\emph{Wired} 和 Cloudflare 的分析发现，
+Perplexity 使用了伪装 user-agent 的未披露爬虫，
+引发了关于 AI 搜索产品与传统媒体之间利益冲突的广泛讨论。
+
+\textbf{Scott Wu}（1997--）
+是 \textbf{Cognition AI} 的联合创始人兼 CEO，
+该公司开发了 Devin——被宣传为``世界第一个自主 AI 软件工程师''。
+Wu 的背景极具竞争力编程色彩：
+他在国际信息学奥林匹克（IOI）获得三枚金牌
+（2014 年排名第一），
+Codeforces 峰值 rating 达到 3350，
+2021 年 Google Code Jam 第三名。
+他在 Harvard 读了两年经济学后辍学，
+先与他人共同创立了 AI 驱动的社交平台 Lunchclub，
+再于 2023 年 11 月创立 Cognition AI。
+
+Wu 声称 Devin 将在 2025 年底前编写公司 50\% 的代码。
+无论这一目标是否实现，
+Devin 的发布（2024 年 3 月）引发了
+关于``AI 是否会取代程序员''的全球性讨论——
+它的意义不仅在于技术能力，
+更在于它迫使整个软件行业
+重新思考``人类工程师''的价值定位。
+
+\textbf{Michael Truell}（约 1997--）
+是 \textbf{Anysphere} 的联合创始人兼 CEO，
+该公司开发了 \textbf{Cursor}——
+AI 时代增长最快的代码编辑器。
+Truell 在 MIT 学习并从事研究（2017--2021），
+2022 年创立 Anysphere。
+Cursor 的理念是将 AI 深度集成到编码工作流中——
+不是作为``聊天助手''附着在 IDE 旁边，
+而是作为编辑器的\emph{原生智能层}。
+截至 2026 年初，Cursor 的用户增长速度
+使其成为开发者工具领域最瞩目的创业公司之一。
+
+\textbf{Demi Guo}（约 1998--）和 \textbf{Chenlin Meng}
+是 \textbf{Pika Labs} 的联合创始人。
+两人在 Stanford 攻读博士期间，
+参加了 Runway 举办的 AI 电影节——
+对现有 AI 视频工具的失望促使她们决定自己动手。
+2023 年 4 月，她们从 Stanford 退学创立 Pika。
+到 2025 年 10 月，
+Pika 已拥有 1450 万用户，
+估值达 4.7 亿美元。
+Guo 在 \emph{Fortune} 的采访中表示：
+``我们不是在做专业视频工具，
+而是在做一个为 Gen Z 设计的创意平台。''
+Pika 的成功验证了一个重要趋势：
+AI 视频生成的杀手级应用可能不是好莱坞特效，
+而是\emph{社交媒体内容创作}。
+
+\textbf{杨植麟}（Yang Zhilin，1992--），
+广东汕头人，清华大学计算机系本科，
+Carnegie Mellon University 计算机科学博士（导师：Ruslan Salakhutdinov 和 William Cohen）。
+他是 Transformer-XL 和 XLNet 两篇里程碑论文的第一作者
+（均被引用超过一万次），
+曾在 Meta AI（与 Jason Weston）和 Google Brain（与 Quoc V.\ Le）工作。
+
+2023 年，杨植麟创立了 \textbf{Moonshot AI}（月之暗面），
+并推出了 Kimi 大模型。
+Kimi 的差异化定位是\textbf{超长上下文}——
+从一开始就支持 20 万字的输入窗口，
+后扩展至百万级别——
+这与他在 Transformer-XL 上的学术积累高度一致。
+公司迅速成长为中国 AI 独角兽之一。
+杨植麟入选 Forbes Asia 30 Under 30、NVIDIA Fellow、Siebel Scholar，
+是中国``90 后''大模型创业者中学术背景最深厚的代表。
+
+\textbf{Harrison Chase}（约 1996--）
+是 \textbf{LangChain} 的联合创始人兼 CEO。
+他在 Harvard 学习统计学和计算机科学，
+毕业后先后在金融科技公司 Kensho（实体链接团队负责人）
+和 Robust Intelligence（机器学习团队负责人）工作。
+
+2023 年 1 月，Chase 创立 LangChain——
+一个帮助开发者构建基于 LLM 的应用的开源框架。
+LangChain 几乎是``AI 应用开发层''这一赛道的代名词：
+它提供了链式调用（chains）、代理（agents）、
+检索增强生成（RAG）和记忆管理的标准抽象。
+LangChain 的 GitHub star 数在发布后数月内
+飙升至数万，成为 AI 开发者最常用的中间件之一。
+
+\subsection{学术新星}
+
+\textbf{Tri Dao}（约 1993--）和 \textbf{Albert Gu}（约 1993--）
+是两位正在重新定义深度学习底层架构的年轻研究者。
+
+Tri Dao 的学术履历几乎完美：
+Stanford 本科（数学）和博士（计算机科学，
+导师 Christopher Ré 和 Stefano Ermon），
+博士论文题为 ``Hardware-aware Algorithms for Efficient Machine Learning''。
+他最知名的贡献是 \textbf{FlashAttention}——
+一种 IO-aware 的精确注意力算法，
+通过重新安排 GPU 内存层次结构（SRAM vs.\ HBM）中的计算顺序，
+将 Transformer 的注意力计算加速 2--4 倍且不牺牲精度。
+FlashAttention 被几乎所有主流组织采用
+（Meta、Microsoft、NVIDIA、OpenAI、Google、DeepSeek 等），
+集成到了所有主要 ML 框架
+（PyTorch、JAX、Hugging Face transformers、vLLM、DeepSpeed 等）。
+
+Dao 于 2023 年共同创立了 \textbf{Together AI}
+（担任首席科学家），
+2024 年加入 Princeton 大学担任助理教授——
+同时在产业界和学术界保持活跃。
+
+Albert Gu 此前在 Stanford 和 CMU 工作，
+是结构化状态空间模型（Structured State Space Models, S4）
+的核心提出者。
+2023 年 12 月，
+Gu 和 Dao 联合发表了 \textbf{Mamba} 论文——
+一个基于选择性状态空间模型的序列建模架构，
+实现了\emph{线性时间复杂度}的序列建模，
+首次在语言模型中展示了与 Transformer 可比的性能。
+Mamba 论文引发了 AI 社区的强烈反响——
+这是自 2017 年 ``Attention Is All You Need'' 以来，
+第一个被认真讨论为``Transformer 的潜在替代者''的架构。
+
+\begin{whybox}[为什么 Mamba 如此重要？]
+Transformer 的自注意力机制具有 $O(n^2)$ 的序列长度复杂度，
+这意味着处理长序列的成本以二次方增长。
+Mamba 通过选择性状态空间实现了 $O(n)$ 复杂度，
+同时保持了内容感知推理（content-based reasoning）的能力——
+这是此前所有亚二次架构的致命弱点。
+虽然截至 2026 年，Transformer 仍然是主流架构，
+但 Mamba 及其后续版本（Mamba-2 基于``状态空间对偶性''理论，
+揭示了 SSM 和注意力变体之间的深层数学联系）
+正在开辟一个 hybrid 架构的新方向。
+\end{whybox}
+
+\textbf{Hyung Won Chung}（约 1989--）
+是推理模型研究领域的核心人物之一。
+他在 MIT 获得博士学位后先加入 Google Brain（2019--2023），
+在那里与 Jason Wei 长期合作，
+共同作为第一作者发表了
+``Scaling Instruction-Finetuned Language Models''（Flan-T5/PaLM 论文），
+这是指令微调（instruction tuning）领域最具影响力的工作之一。
+
+2023 年，他加入 OpenAI 的 ChatGPT 团队，
+成为 \textbf{o1 推理模型}的核心贡献者之一。
+o1 是 OpenAI 在 2024 年 9 月发布的专用推理模型，
+标志着``让模型学会思考''的新范式。
+2025 年，Chung 离开 OpenAI 加入 Meta（后为 Meta Superintelligence Labs）。
+他离开后公开分享了自己的深刻思考：
+``AI 是历史上最强大的杠杆——超越人类劳动、资本和代码。''
+
+\textbf{谢赛宁}（Xie Saining，约 1992--）
+是计算机视觉领域最具影响力的年轻研究者之一。
+他是 NYU Courant 研究所的助理教授，
+此前在 Meta AI（FAIR）工作了四年多，
+2024--2025 年在 Google DeepMind 的 GenAI 团队。
+
+他与合作者共同开发了多个广泛采用的架构：
+\textbf{ResNeXt}（深度残差网络的扩展）、
+\textbf{ConvNeXt}（证明了经过精心设计的 CNN
+在 Transformer 统治视觉任务的时代仍然极具竞争力）、
+以及 \textbf{DiT}（Diffusion Transformer，
+将 Transformer 架构引入扩散模型图像生成，
+被认为是 Sora 等视频生成模型的架构基础之一）。
+他还是 MoCo v2（对比学习）和 MAE（掩码自编码器）等
+里程碑工作的核心作者。
+
+2026 年初，谢赛宁共同创立了 \textbf{AMI Labs}，
+担任首席科学官（CSO），
+致力于开发超越纯语言系统的``世界模型''——
+能够直接从连续的、真实世界的感官输入中学习。
+他入选了 \emph{MIT Technology Review} 的 Innovators Under 35。
+
+\textbf{Lianmin Zheng}（郑连民）
+是高效 LLM 推理领域的关键贡献者。
+作为 UC Berkeley 和 Stanford 的研究者，
+他是 \textbf{vLLM} 推理引擎
+和 \textbf{SGLang}（结构化语言模型程序高效执行系统）
+的核心作者。
+
+vLLM 通过 PagedAttention 技术
+重新设计了 KV cache 的内存管理，
+实现了远超此前系统的吞吐量——
+截至 2026 年，vLLM 在 GitHub 上拥有超过 73,000 stars，
+成为 LLM 推理部署的事实标准之一。
+SGLang 则进一步引入了 RadixAttention
+（KV cache 复用）和压缩有限状态机
+（加速结构化输出解码）等创新，
+发表于 NeurIPS 2024。
+
+\textbf{稚晖君 / 彭志辉}（Peng Zhihui，1993--）
+是中国 AI 社区中最具传奇色彩的人物之一。
+他毕业于电子科技大学（UESTC），
+获信息与通信工程硕士学位（2018），
+在校期间就在 Bilibili 上通过 DIY 技术项目
+（自平衡机器人、微型电视、机械臂``Dummy''）
+积累了大量粉丝，被称为``野生钢铁侠''。
+
+他通过华为的``天才少年''计划
+（年薪百万级别的顶尖毕业生项目）加入华为，
+2023 年离开创立了 \textbf{Agibot}（智元机器人），
+一家总部位于上海的具身智能和人形机器人创业公司。
+Agibot 的机器人可以执行推轮椅、汽车制造等多种任务，
+一款机器人可举起 40 公斤。
+公司获得了比亚迪、高瓴资本等的投资，
+截至 2025 年 3 月估值达 21 亿美元。
+
+2025 年 4 月，彭志辉作为最年轻的代表（32 岁）
+参加了李强总理主持的企业家座谈会——
+这在中国的政商关系语境中是一个极具象征意义的信号，
+表明具身智能已被提升到国家战略层面。
+
+%% ============================================================
+\section{开源社区英雄}
+\label{sec:opensource}
+%% ============================================================
+
+AI 革命不仅是大公司的游戏。
+一个由开源贡献者、独立研究者和社区维护者组成的生态系统
+在很大程度上决定了 AI 技术的\emph{可及性}。
+他们不一定出现在融资新闻里，
+但他们的代码被数百万人使用。
+而在 2025--2026 年间，
+一个又一个``一个人改变整个行业''的故事反复上演——
+从保加利亚的 C 语言极客到奥地利的 PDF 工匠，
+开源社区英雄们证明了
+在 AI 时代，\emph{个体的杠杆率}达到了史无前例的高度。
+
+\subsection{Peter Steinberger 与 OpenClaw：从 PDF 工匠到 GitHub 之王}
+
+2025 年 11 月 24 日的晚上，
+\textbf{Peter Steinberger}（约 1985--）——
+一位居住在维也纳和伦敦之间的奥地利软件工程师——
+坐下来做了一个周末实验：
+将 WhatsApp 消息接口连接到 Anthropic 的 Claude API，
+让 AI 代理能够通过聊天应用执行任务。
+这个实验花了大约一个小时。
+他将它命名为 \textbf{Clawdbot}——
+``Claude'' 与 ``claw''（龙虾爪）的文字游戏，
+配上一只卡通龙虾作为吉祥物。
+
+接下来发生的事情，
+堪称开源史上最不可思议的增长曲线。
+
+Steinberger 的背景与典型的 AI 创业者截然不同。
+他是维也纳理工大学（Vienna University of Technology）校友，
+17 岁时就在 iOS 开发社区崭露头角。
+2011 年，他创立了 \textbf{PSPDFKit}——
+一个处理 PDF 渲染和标注的移动端框架，
+最终被安装在超过 10 亿台设备上，
+客户包括 Dropbox、Autodesk、IBM 等巨头。
+2021 年，Insight Partners 对 PSPDFKit 进行了
+1 亿欧元的战略投资，
+Steinberger 随后退出日常管理。
+用他自己的话说：
+``我花了 13 年做 PDF 工具，
+赚了很多钱，
+但也几乎燃尽了自己。''
+
+退出 PSPDFKit 后，
+Steinberger 转向 Web 开发和 AI 工具探索。
+Clawdbot 最初只是他众多实验中的一个——
+一个开源的、本地部署的自主 AI 代理框架，
+允许用户通过 WhatsApp、Telegram 等消息应用
+与 AI 助手互动，
+AI 可以自主执行代码、管理文件、调用 API。
+项目使用 TypeScript 和 Swift 编写，
+以 MIT 许可证发布。
+
+然后，它爆发了。
+
+2026 年 1 月初，Clawdbot 在 Hacker News 和 Twitter/X 上引爆。
+三天内获得 60,000 个 GitHub star。
+十天内达到 210,000。
+Steinberger 一个人在 80 天内提交了超过 6,600 次 commit，
+编写了 518,000 行代码——
+平均每天 6,475 行，
+是一个资深工程师正常产出的 65 倍。
+秘诀？他同时运行多个 AI 代理辅助编码，
+创造了一种``人类指挥、AI 执行''的极致开发模式。
+
+名字经历了戏剧性的变迁：
+2026 年 1 月 26 日，
+因 Anthropic 提出商标顾虑（``Clawdbot'' 太像 ``Claude''），
+项目更名为 \textbf{Moltbot}；
+三天后的 1 月 29 日，
+在完成商标调查后最终定名为 \textbf{OpenClaw}。
+更名期间还催生了 \textbf{Moltbook}——
+一个由 140 万个 AI 代理互相对话、
+人类只能观看的``AI 社交网络''，
+成为 2026 年初最超现实的互联网景观之一。
+
+2026 年 2 月 12 日，
+Steinberger 登上了 \textbf{Lex Fridman Podcast \#491}，
+在近四小时的访谈中讲述了 OpenClaw 的创造故事。
+他在节目中坦言：
+``有人出价数十亿美元，我不在乎。
+我已经有过一次大退出，发现它让我空虚。''
+\textbf{Sam Altman}（OpenAI CEO）
+和 \textbf{Mark Zuckerberg}（Meta CEO）
+都亲自联系了他。
+
+2026 年 2 月 14 日——情人节——
+Steinberger 在个人博客宣布加入 \textbf{OpenAI}，
+负责``将 AI 代理带给每一个人''。
+同时宣布 OpenClaw 将移交给一个独立的开源基金会，
+``保持开放和独立''。
+值得注意的是，
+他每月自掏腰包约 20,000 美元支付 API 费用
+来维护这个开源项目——
+这个事实本身就成为了关于
+开源 AI 可持续性的重要讨论素材。
+
+2026 年 3 月 3 日，
+OpenClaw 以超过 250,000 stars
+超越 React（243,000 stars），
+成为 GitHub 上 star 数最多的软件项目——
+React 花了十年建立的记录，
+OpenClaw 在四个月内打破。
+截至 2026 年 3 月中旬，star 数已突破 325,000。
+
+\begin{corebox}[一个人、一小时、一个时代]
+Steinberger 的故事之所以如此震撼，
+不仅因为增长速度的绝对数字，
+更因为它揭示了 AI 时代一个深刻的结构性变化：
+\emph{个体开发者的杠杆率已经达到了历史最高点}。
+一个人，利用 AI 辅助编码，
+可以在数周内构建出
+此前需要数十人团队花费数年才能完成的软件。
+OpenClaw 不仅是一个开源项目——
+它是``vibe coding''（直觉编程）
+和 AI 代理时代的\emph{宣言}。
+它也引发了严肃的安全讨论：
+一个拥有自主执行能力的 AI 代理框架，
+以 MIT 许可证向所有人开放，
+没有内置的安全护栏——
+这是民主化，还是潘多拉的盒子？
+\end{corebox}
+
+\subsection{Clément Delangue 与 Hugging Face：开源 AI 的``GitHub''}
+
+\textbf{Clément Delangue}（约 1986--），
+法国人，Sciences Po（巴黎政治学院）毕业，
+主修政治科学和经济学——
+一个看似与 AI 无关的背景。
+他 17 岁时就成为法国 eBay 排名最高的卖家之一，
+展现了早期的创业天赋。
+
+2016 年，Delangue 与 Julien Chaumond 和 Thomas Wolf
+共同创立了 Hugging Face——
+最初是一个有趣的 AI 聊天伴侣项目。
+在发现 NLP 社区急需一个开放的模型共享平台后，
+他们转型为模型仓库和开发者平台。
+
+截至 2026 年，Hugging Face 已成为 AI 领域的
+\emph{事实标准基础设施}：
+超过 100 万个模型在平台上托管，
+超过 5,000 家组织使用其工具。
+Hugging Face 的 \texttt{transformers} 库
+是世界上被引用和使用最多的 ML 代码库之一。
+平台估值超过 45 亿美元。
+
+Delangue 的核心哲学是``开放''：
+不是作为商业策略，而是作为\emph{信念}——
+AI 的发展应该是协作的、可访问的、社区驱动的。
+他经常将 Hugging Face 类比为``AI 的 GitHub''，
+这个类比在 2026 年 2 月变得更加贴切——
+llama.cpp 和 GGML 的创始团队正式加入了 Hugging Face。
+
+\subsection{Georgi Gerganov：让 AI 在笔记本电脑上运行}
+
+\textbf{Georgi Gerganov}，保加利亚索菲亚的软件工程师，
+是``本地 AI 运动''的奠基者。
+他的背景出人意料——
+Gerganov 拥有医学物理硕士学位，
+此前在 ViewRay（一家放射治疗技术公司）担任首席科学家，
+从事 MRI 引导放疗系统的软件开发。
+这种对底层性能优化的痴迷
+最终将他引向了一个完全不同的领域。
+
+2022 年 9 月，在 OpenAI 发布 Whisper 语音识别模型后不久，
+Gerganov 创建了 \textbf{whisper.cpp}——
+Whisper 的纯 C/C++ 移植版本，
+无需 Python 和 PyTorch 即可在消费级硬件上运行语音转文字。
+这个项目验证了一个关键直觉：
+\emph{许多 AI 模型并不真正需要 GPU 集群，
+只要推理代码足够精炼}。
+
+在此基础上，他创建了 \textbf{GGML}——
+一个极简的 C/C++ 机器学习张量库
+（核心代码仅数个源文件），
+专注于 Transformer 推理的极致效率。
+
+2023 年 3 月，在 Meta 发布 LLaMA 权重后不到一周，
+Gerganov 发布了 \textbf{llama.cpp}——
+一个纯 C/C++ 实现的 LLaMA 推理引擎，
+能够在\emph{没有 GPU 的普通笔记本电脑}上运行大型语言模型。
+这一项目从根本上改变了``本地 AI''的可能性边界。
+
+llama.cpp 的技术创新包括：
+\begin{itemize}[noitemsep]
+  \item 高效的量化推理
+        （支持 2-bit 到 8-bit 的多种量化格式）；
+  \item 纯 CPU 推理的极致优化
+        （利用 SIMD、内存映射等底层技术）；
+  \item \textbf{GGUF} 格式——
+        成为本地 AI 模型分发的事实标准。
+\end{itemize}
+
+截至 2026 年 2 月，llama.cpp 在 GitHub 上拥有超过 95,000 stars。
+Gerganov 的前期投资者包括 Nat Friedman（前 GitHub CEO）
+和 Daniel Gross。
+2026 年 2 月 20 日，Gerganov 和他的团队
+（包括 Xuan-Son Nguyen 和 Aleksander Grygier）
+正式加入 Hugging Face——
+这意味着开源 AI 生态系统的``推理层''（llama.cpp）
+和``分发层''（Hugging Face Hub）
+以及``模型定义层''（transformers）
+第一次合并在一个组织下。
+没有其他组织拥有这样的全栈控制力。
+
+\begin{corebox}[一个人改变一个行业]
+Gerganov 的案例挑战了``AI 需要数十亿美元投资''的叙事。
+他以一个人的力量（后来扩展到小团队），
+用不到 5 个源文件的核心代码库，
+使数百万人能够在自己的设备上运行 AI 模型。
+在一个由数十亿参数模型和数万块 GPU 集群主导的行业中，
+llama.cpp 证明了精巧的工程
+可以让``小''变得和``大''一样有影响力。
+\end{corebox}
+
+\subsection{Justine Tunney：Llamafile 与``一键运行 AI''}
+
+\textbf{Justine Tunney} 是一位独立开发者、系统程序员和安全研究者，
+在底层系统编程领域拥有近乎传奇的声望。
+她此前在 Google 担任高级软件工程师（2013--2018），
+以创建 \textbf{Cosmopolitan Libc}——
+一个允许 C 程序编译一次、
+在 Linux/macOS/Windows/FreeBSD/OpenBSD/NetBSD
+六个操作系统上无修改运行的跨平台 C 运行时——
+和 \textbf{Redbean}（单文件 Web 服务器）闻名。
+她也是 Occupy Wall Street 运动中
+\#OccupyWallSt.org 的早期技术志愿者，
+这种``技术服务于社会运动''的信念贯穿了她的职业生涯。
+
+2023--2024 年，在 Mozilla 的资助下，
+Tunney 将 Cosmopolitan Libc 的跨平台魔法
+应用到了 AI 推理领域，
+创建了 \textbf{llamafile}——
+一个将大型语言模型打包为\emph{单个可执行文件}的项目。
+llamafile 基于 llama.cpp，
+但做了一件 llama.cpp 没有做的事：
+将模型权重和推理引擎\emph{融合}为一个文件。
+用户可以双击一个文件就运行 AI 模型，
+不需要安装 Python、配置 CUDA 或理解命令行。
+更重要的是，Tunney 在 CPU 推理层面
+实现了显著的性能突破——
+她发现 llama.cpp 的矩阵乘法内核
+没有充分利用现代 CPU 的 SIMD 指令集，
+通过手写汇编和底层优化，
+在某些硬件上将推理速度提升了数倍。
+
+llamafile 是``AI 民主化''的极端案例：
+它将使用 AI 的门槛降低到了``能双击文件''。
+在一个 AI 基础设施日益复杂的时代，
+这种``返璞归真''的工程哲学具有独特的价值——
+它提醒我们，\emph{简单就是可及性的终极形式}。
+
+\subsection{TheBloke (Tom Jobbins)：量化之神}
+
+在 2023--2024 年的本地 AI 社区中，
+\textbf{TheBloke}（真名 Tom Jobbins）
+是一个几乎神话级别的存在。
+
+他在 Hugging Face 上拥有超过 26,000 名关注者，
+上传了\emph{数千个}量化模型——
+几乎每当一个新的开源模型发布，
+TheBloke 就会在数小时内提供
+GGUF、GPTQ 和 AWQ 等多种量化格式的版本。
+对于本地 AI 社区的用户来说，
+``去 TheBloke 的页面找模型''
+曾经是每天的例行操作。
+
+2024 年 1 月后，TheBloke 停止了活跃更新，
+社区迅速感受到了这个空缺——
+Reddit 的 r/LocalLLaMA 上出现了大量
+``谁能像 TheBloke 一样做量化？''的帖子。
+一个人的贡献之大，以至于他的缺席
+成为了社区讨论的主题。
+
+\subsection{Stella Biderman 与 EleutherAI：开源 AI 运动的火种}
+
+\textbf{Stella Biderman} 是 \textbf{EleutherAI} 的执行总监——
+这个从 Discord 服务器起步的草根研究集体
+可以说\emph{启动}了现代开源 AI 运动。
+
+Biderman 是一位数学家和 AI 研究者
+（芝加哥大学数学学士，Georgia Tech 计算机科学硕士），
+此前在 Booz Allen Hamilton 工作。
+EleutherAI 成立于 2020 年，
+最初是对 OpenAI 宣布 GPT-3 但不公开权重的\emph{回应}——
+一群志愿者决定自己复现一个开放的 GPT 级别模型。
+
+他们的成果改变了开源 AI 的格局：
+\textbf{GPT-Neo}（2021，GPT-3 的首个开源替代品）、
+\textbf{GPT-NeoX-20B}（2022，当时最大的开源 LLM 之一）、
+\textbf{Pythia}（系统化的 LLM scaling 实验套件）、
+以及参与 \textbf{BLOOM}（BigScience 176B 参数模型）。
+
+Biderman 的使命声明很明确：
+``确保学术界、审计机构和非营利研究者
+能够研究大规模 AI 技术，
+而不需要与出售这些技术的公司合作。''
+EleutherAI 从一个草根集体发展为正式的非营利研究机构，
+Biderman 在其中的角色从技术贡献者转变为
+整个开源 AI 生态系统的关键组织者。
+
+\subsection{Teknium 与 Nous Research：微调的艺术}
+
+\textbf{Teknium}（网络化名）是 \textbf{Nous Research} 的核心人物。
+Nous Research 定位为``美国开源 AI 运动的领导者''，
+专注于开源语言模型的训练和微调。
+
+Teknium 在 GitHub 和 Twitter 上以其名活跃，
+他的早期项目 GPTeacher（使用 GPT-4 生成模块化数据集
+用于指令微调、角色扮演和代码训练）
+展示了一种新的研究范式：
+用合成数据（synthetic data）大规模提升开源模型的能力。
+
+Nous Research 的 Hermes 系列模型
+以及他们在合成数据生成、推理训练和
+agent 架构方面的工作，
+使其成为开源社区中最受尊重的微调团队之一。
+他们的工作哲学是：
+``不可限制的可用性和使用，
+以及对科学和公众理解的促进。''
+
+\subsection{Simon Willison：AI 工具的``瑞士军刀''匠人}
+
+\textbf{Simon Willison}（约 1979--），
+英国人，Django Web 框架的联合创始人。
+在 AI 时代，他通过两个项目获得了新一轮的广泛影响力。
+
+\textbf{Datasette}——一个将 SQLite 数据库
+转化为即时可查询 API 和 Web 界面的工具——
+看似与 AI 无关，但它体现了 Willison 的核心理念：
+数据应该是可访问的、可探索的、可组合的。
+
+\textbf{LLM}——一个 CLI 工具和 Python 库，
+让用户从命令行与 OpenAI、Anthropic、Google、Meta 等
+数十种大型语言模型交互，
+将提示和响应存储在 SQLite 中，
+支持嵌入生成、结构化内容提取和工具执行。
+2025 年 5 月发布的 LLM 0.26
+引入了工具支持（tool use），
+允许 LLM 直接在终端中执行 Python 函数。
+
+但 Willison 最独特的贡献可能是他的\emph{博客}
+（simonwillison.net）。
+他以极其勤勉的写作习惯，
+几乎每天发布关于 AI 工具、安全隐患和实践技巧的深度文章。
+他的博客是许多开发者追踪 AI 工具生态发展的首选信息源——
+不是因为他做了最前沿的研究，
+而是因为他做了最好的\emph{翻译、评估和整合}。
+
+\subsection{Ollama：让本地 AI 变成``一行命令''}
+
+如果说 llama.cpp 证明了 AI 可以在笔记本上运行，
+\textbf{Ollama} 则让这件事变得\emph{任何人都能做到}。
+
+Ollama 由 \textbf{Jeffrey Morgan} 和 \textbf{Michael Chiang}
+于 2023 年创立，总部位于 Palo Alto。
+两人曾参加 Y Combinator 2021 冬季批次（当时创立的是 Infra，
+一个身份管理工具）。
+Morgan 的早期职业生涯与 Docker 生态深度绑定——
+他是 \textbf{Kitematic}（后被 Docker 收购）的创始人，
+曾在 Docker 担任高级工程师和产品经理，
+更早时在 Twitter 和 Google 实习。
+这种``把复杂基础设施包装成简单体验''的产品直觉，
+直接塑造了 Ollama 的设计哲学。
+
+Ollama 的核心创新不在算法层面——
+它底层依赖 llama.cpp——
+而在\emph{用户体验}层面：
+一条命令（\texttt{ollama run llama3}）
+就能自动下载模型、配置推理参数、启动本地 API 服务。
+它借鉴了 Docker 的镜像管理模式：
+\texttt{ollama pull}、\texttt{ollama list}、\texttt{ollama run}——
+对任何用过容器的开发者来说都是零学习曲线。
+
+截至 2026 年 3 月，Ollama 在 GitHub 上拥有超过 166,000 stars，
+支持 Llama、Qwen、DeepSeek、Gemma、GLM 等数十个模型家族。
+它已成为本地 AI 生态的\emph{事实标准入口}——
+Open WebUI、OpenClaw 等众多项目
+都以 Ollama 作为默认的本地模型后端。
+
+\begin{keybox}[Docker 思维的 AI 化]
+Ollama 的成功揭示了一个重要模式：
+AI 基础设施的瓶颈往往不在\emph{算法}，
+而在\emph{打包和分发}。
+就像 Docker 通过容器化让``在我机器上能跑''
+变成了``在任何机器上都能跑''，
+Ollama 通过极简的 CLI 抽象层
+让``本地运行 AI 模型''
+从极客的专利变成了所有开发者的日常工具。
+Morgan 的 Docker 背景在这里产生了直接的知识迁移。
+\end{keybox}
+
+\subsection{Timothy Jaeryang Baek 与 Open WebUI：本地 AI 的前端革命}
+
+有了 Ollama 做后端，
+社区仍然需要一个``好看、好用、功能丰富''的前端界面。
+\textbf{Open WebUI}（最初名为 Ollama WebUI）
+填补了这个空白。
+
+创始人 \textbf{Timothy Jaeryang Baek}（Tim Baek）
+毕业于伦敦大学（一等荣誉学位），
+后在 Simon Fraser University 获计算机科学硕士学位。
+他同时也是 Mozilla Builders 社区成员。
+Open WebUI 最初是 Baek 为自己的本地 AI 需求
+开发的 Web 界面，
+但很快因其功能的完整性和设计的精致度
+在社区中获得了爆炸性增长。
+
+Open WebUI 提供的功能列表
+几乎涵盖了一个本地 AI 助手可能需要的一切：
+RAG（检索增强生成）、离线支持、多模型切换、
+图像生成集成、语音交互、
+插件系统和 Markdown 渲染。
+它完全自托管，可以在不联网的情况下运行——
+对隐私敏感的用户和企业来说，这是核心卖点。
+
+截至 2026 年 3 月，
+Open WebUI 在 GitHub 上拥有超过 126,000 stars，
+成为 Ollama 生态中最受欢迎的前端。
+``Ollama + Open WebUI''的组合
+被社区公认为搭建本地 AI 助手的``黄金搭档''——
+类似于早年 LAMP（Linux + Apache + MySQL + PHP）
+作为 Web 开发标准栈的地位。
+
+\subsection{AUTOMATIC1111：Stable Diffusion 的``人民界面''}
+
+在文本生成领域之外，
+\textbf{图像生成}的开源民主化同样经历了
+由社区英雄驱动的关键时刻。
+
+2022 年 8 月，Stability AI 开源了 Stable Diffusion，
+但原始代码需要命令行操作和 Python 编程知识。
+一位匿名开发者 \textbf{AUTOMATIC1111}
+（真实身份从未公开）在 Stable Diffusion 发布后数周内
+创建了 \textbf{Stable Diffusion WebUI}——
+一个基于 Gradio 的 Web 界面，
+将图像生成的全部参数暴露为直观的滑块和输入框。
+
+这个项目的影响力是变革性的。
+它支持 txt2img（文本生成图像）、
+img2img（图像到图像转换）、
+Inpainting（局部重绘）、ControlNet 集成、
+LoRA 加载、Textual Inversion、
+面部修复、超分辨率放大等数十项功能。
+更关键的是，它建立了一个\emph{扩展生态系统}——
+社区开发者可以编写插件扩展 WebUI 的能力，
+形成了一个自组织的创新网络。
+
+截至 2026 年 3 月，
+AUTOMATIC1111 的 stable-diffusion-webui
+在 GitHub 上拥有超过 162,000 stars，
+是除 OpenClaw 外 star 数最多的 AI 项目之一。
+匿名身份使 AUTOMATIC1111 成为了一个
+纯粹以\emph{作品}定义影响力的案例——
+没有创始人故事，没有 VC 融资，没有公关团队，
+只有代码和社区。
+
+\subsection{ComfyUI 与 Comfyanonymous：节点化 AI 创作的先锋}
+
+如果说 AUTOMATIC1111 的 WebUI 是
+``让每个人都能生成图像''，
+\textbf{ComfyUI} 则是
+``让高级用户完全控制生成流程''。
+
+2022 年 10 月，一位匿名开发者 \textbf{comfyanonymous}
+在发现 Stable Diffusion 后被深深吸引——
+据项目官方叙述，最初的动机
+是为了``生成更好的兽耳角色图像''。
+这个看似轻浮的起点
+催生了 AI 图像生成领域最强大的开源工具之一。
+
+ComfyUI 的核心创新是\textbf{节点化工作流}（node-based workflow）：
+用户通过连接可视化节点来构建图像生成管线，
+每个节点代表一个操作
+（如加载模型、添加噪声、应用 ControlNet、执行采样）。
+这种设计灵感来自专业视效软件
+（如 Nuke、Houdini、Blender 的 Shader Editor），
+给予用户对扩散过程每一个步骤的精确控制。
+
+ComfyUI 从个人项目发展为正式公司 \textbf{Comfy Org}，
+由 \textbf{Yoland Yan} 担任 CEO。
+2025 年 9 月，Comfy Org 完成了 1,700 万美元融资，
+目标是成为``创意 AI 的操作系统''。
+截至 2026 年 3 月，
+ComfyUI 在 GitHub 上拥有超过 106,000 stars，
+已支持图像、视频、3D 资产和音频生成，
+被无数艺术家、工作室和开发者用于创意生产。
+
+\begin{whybox}[为什么两个 Stable Diffusion UI 可以共存？]
+AUTOMATIC1111 和 ComfyUI 看似竞争，
+实际上服务不同的用户群体和使用场景。
+AUTOMATIC1111 的 WebUI 类似 Photoshop——
+功能完整、即开即用、学习曲线平缓；
+ComfyUI 类似 After Effects 或 Houdini——
+节点化、可组合、学习曲线陡峭但上限极高。
+前者服务``想要生成图像的人''，
+后者服务``想要精确控制生成过程的人''。
+这种分层共存模式在开源生态中反复出现——
+就像 VS Code 和 Vim 的关系。
+\end{whybox}
+
+\subsection{Kohya：LoRA 训练的无名英雄}
+
+在 Stable Diffusion 生态中，
+``生成图像''只是故事的一半；
+另一半是``训练自己的模型''。
+日本开发者 \textbf{kohya-ss}（匿名）
+编写的 \textbf{sd-scripts} 训练脚本
+成为了社区进行 \textbf{LoRA}
+（Low-Rank Adaptation）微调的事实标准工具。
+
+LoRA 是一种参数高效的微调方法，
+允许用户用少量图像（通常 20--50 张）
+和有限的 GPU 资源
+训练出能够生成特定角色、风格或概念的模型适配器。
+kohya-ss 的脚本使这一流程\emph{可操作化}——
+从数据准备到训练参数配置到模型导出，
+覆盖了完整的工作流。
+社区开发者 \textbf{bmaltais} 为这些脚本
+构建了 Gradio GUI 界面（kohya\_ss GUI），
+进一步降低了使用门槛。
+
+kohya-ss 的脚本在 GitHub 上拥有约 7,000 stars
+（bmaltais 的 GUI 封装约 12,000 stars），
+数字看似不起眼，
+但它们的实际影响力远超 star 数所能反映的范围——
+Hugging Face 和 Civitai 上数以万计的
+LoRA 微调模型都是用这些脚本训练的。
+kohya-ss 是``基础设施级''的开源贡献者：
+不显眼，但移除它，整个生态会塌陷。
+
+\subsection{vLLM 与 Inferact：从学术论文到推理基础设施}
+
+\textbf{vLLM} 的故事始于一个简单的观察：
+LLM 推理的瓶颈不在计算，
+而在\emph{内存管理}。
+
+2023 年，UC Berkeley 的博士生
+\textbf{Woosuk Kwon}、\textbf{Zhuohan Li}、
+\textbf{Siyuan Zhuang}、\textbf{Lianmin Zheng}
+以及 Stanford 的 \textbf{Ying Sheng}
+等人发表了 \textbf{PagedAttention} 论文
+（发表于 SOSP 2023），
+提出了一个受操作系统虚拟内存和分页技术启发的
+注意力算法：
+将 KV cache 存储在非连续的内存块中，
+通过``页表''（page table）进行管理，
+几乎消除了内存碎片和冗余复制。
+在此基础上构建的 vLLM 推理引擎
+实现了接近零浪费的 KV cache 管理
+和灵活的跨请求 KV cache 共享，
+吞吐量比当时的主流方案高 2--4 倍。
+
+vLLM 迅速成为\emph{生产级 LLM 部署}的首选引擎，
+被 Anyscale、Databricks、多家 LLM API 提供商采用。
+2025 年，vLLM 的核心维护者——
+\textbf{Simon Mo}、\textbf{Woosuk Kwon}、
+\textbf{Kaichao You}、\textbf{Roger Wang}——
+将项目商业化为创业公司 \textbf{Inferact}。
+2026 年 1 月，Inferact 宣布完成
+1.5 亿美元种子轮融资（估值 8 亿美元），
+由 Andreessen Horowitz 和 Lightspeed 联合领投。
+这是 AI 推理基础设施领域最大的种子轮之一，
+标志着行业关注点正从\emph{训练}向\emph{推理}转移。
+
+\begin{keybox}[从训练时代到推理时代]
+vLLM/Inferact 的融资是一个
+行业范式转移的信号。
+2023--2024 年，资本主要流向``训练更大的模型''
+（基础模型公司、GPU 集群）；
+2025--2026 年，瓶颈转向了``高效地服务这些模型''——
+延迟、吞吐量、冷启动时间、成本效率
+成为了新的竞争维度。
+PagedAttention 从一篇学术论文
+到一家 8 亿美元估值公司的路径，
+也证明了基础设施层的``无聊创新''
+往往比应用层的``炫酷产品''
+拥有更持久的商业价值。
+\end{keybox}
+
+%% ============================================================
+\section{交叉与张力}
+\label{sec:tensions}
+%% ============================================================
+
+本章覆盖的人物看似分布在截然不同的领域——
+政策、伦理、媒体、开源、创业——
+但他们之间存在深刻的\textbf{结构性张力}：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{开放 vs.\ 安全}：
+        开源社区（EleutherAI、Hugging Face、Nous Research、OpenClaw）
+        坚信透明和可访问性是安全的\emph{前提}；
+        而部分安全倡导者（Bostrom 的某些论点、
+        英国 AISI 的评估框架）则担忧
+        开放权重模型和自主代理框架可能被恶意使用。
+        OpenClaw 的 MIT 许可证发布方式
+        将这一张力推到了新的高度——
+        一个``无护栏''的自主 AI 代理框架向所有人开放。
+  \item \textbf{监管 vs.\ 创新}：
+        EU AI Act 的分级框架在保护公民权利的同时，
+        被批评者指责增加了 AI 创业者的合规成本，
+        可能使欧洲在 AI 竞赛中进一步落后。
+  \item \textbf{批评 vs.\ 建设}：
+        Gebru 和 Bender 的批评被一些人视为必要的警告，
+        被另一些人视为对技术进步的阻碍。
+        Mitchell 从``被解雇的批评者''到``Hugging Face 首席伦理科学家''
+        的转变，暗示了一种可能的综合：
+        伦理不必只是``说不''，也可以是``更好地说是''。
+  \item \textbf{年轻 vs.\ 经验}：
+        25 岁的创始人（Wang、Wu、Chase）
+        正在构建价值数十亿美元的公司，
+        而 70 多岁的哲学家（Kurzweil、Bostrom）
+        仍在塑造关于 AI 未来的根本叙事。
+        这种代际共存——
+        实践者和思考者、建设者和批评者——
+        正是当前 AI 生态系统活力的来源。
+\end{itemize}
+
+\begin{whybox}[为什么``谁''的问题和``什么''的问题一样重要？]
+本书前几章讨论了 AI 的技术架构、训练方法和部署策略。
+但技术从来不是在真空中发展的。
+\emph{谁}获得资金、\emph{谁}制定规则、\emph{谁}发出警告、
+\emph{谁}教育下一代——
+这些``谁''的问题在很大程度上决定了
+AI 技术最终是增进还是削弱人类福祉。
+
+Timnit Gebru 被 Google 解雇的故事
+不仅仅是一个雇佣纠纷——
+它是关于\emph{谁有权定义 AI 的风险}的权力斗争。
+Alexandr Wang 从 Los Alamos 到 Meta 的轨迹
+不仅仅是一个创业成功故事——
+它是关于\emph{AI 产业权力如何集中}的案例研究。
+Georgi Gerganov 的 llama.cpp
+不仅仅是一个技术项目——
+它是关于\emph{AI 可及性}的政治宣言。
+
+理解这些人的故事，
+就是理解 AI 革命的深层结构。
+\end{whybox}

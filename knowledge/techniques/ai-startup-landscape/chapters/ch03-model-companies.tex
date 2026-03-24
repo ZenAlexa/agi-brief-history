@@ -1,0 +1,2284 @@
+% =============================================================
+% Chapter 3: Model Layer — Foundation Model Companies
+%              and the Open-Source Ecosystem
+% Book: The AI Startup Landscape
+% =============================================================
+
+\chapter{模型层：基础模型公司与开源生态}
+\label{ch:models}
+
+如果说第~\ref{ch:infrastructure}~章描绘的基础设施层是AI大厦的地基和钢梁，那么
+本章聚焦的模型层就是整栋建筑的核心引擎——它决定了这座大厦能做什么、
+能做到多好、以及谁有资格住在里面。
+
+想象一个反事实场景：假如OpenAI没有在2022年底发布ChatGPT，或者假如
+Meta在2023年初没有"意外泄露"Llama 1的权重——AI创业生态的面貌会
+完全不同。正是基础模型层的技术突破和竞争博弈，在过去三年间催生了
+上千家AI创业公司，重塑了数万亿美元的产业格局。
+
+从2022年ChatGPT引爆公众想象力开始，基础模型（Foundation Model）的
+竞赛就进入了前所未有的白热化阶段。短短三年间，这个赛道经历了三次
+范式转换：第一波是"闭源称王"——OpenAI的GPT-4和Anthropic的Claude
+定义了性能标杆；第二波是"开源反击"——Meta的Llama系列和DeepSeek
+证明了开放权重模型可以逼近甚至超越闭源前沿；第三波是"模态爆炸"——
+视频、音频、3D等多模态生成模型从实验室走向产品化，催生了一批估值
+数十亿美元的新物种。
+
+与此同时，中国的基础模型生态在DeepSeek的"鲶鱼效应"催化下，从模仿
+追随转向独立创新，智谱、MiniMax先后登陆港交所，月之暗面估值三个月
+翻四倍，整个行业正经历从"烧钱大战"到"商业化验证"的关键转折。
+
+本章的核心论点是：\textbf{模型层的竞争格局正在从"谁的模型最大最强"
+转向"谁能最高效地将模型能力转化为可持续的商业价值"}。纯粹的参数
+竞赛让位于推理效率、垂直深度、多模态融合和生态构建。这一转变深刻
+影响着每一个建立在模型层之上的平台、工具和应用公司。
+
+\begin{corebox}[模型层公司分类框架]
+模型层的创业公司可以沿两个维度分类：
+\begin{itemize}
+  \item \textbf{通用性维度}：从通用前沿模型（OpenAI、Anthropic）到
+    垂直领域模型（Harvey法律、Hippocratic AI医疗），再到单一模态
+    专精模型（Runway视频、Suno音乐）；
+  \item \textbf{开放性维度}：从完全闭源API（OpenAI）到开放权重
+   （Meta Llama、DeepSeek）再到完全开源含训练代码
+   （OLMo、StarCoder）。
+\end{itemize}
+这两个维度的交叉创造了丰富的战略空间。通用+闭源=OpenAI（平台锁定）；
+通用+开源=Meta Llama（生态控制）；垂直+闭源=Harvey（行业壁垒）；
+垂直+开源=BioMistral（社区贡献）。本章将沿此框架逐一展开，从前沿
+闭源实验室开始，经过开源生态、垂直领域和多模态，最后深入中国市场和
+开源项目商业化的案例。
+\end{corebox}
+
+% Model company positioning map: openness × capability
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily\scriptsize},
+  us/.style={draw=figBlue, thick, fill=figBlue!8, rounded corners=2pt,
+             inner sep=3pt, font=\sffamily\scriptsize\bfseries},
+  cn/.style={draw=figRed, thick, fill=figRed!8,
+             diamond, aspect=1.6, inner sep=2pt, font=\sffamily\scriptsize\bfseries},
+  eu/.style={draw=figGreen, thick, fill=figGreen!8,
+             regular polygon, regular polygon sides=3, inner sep=2pt,
+             font=\sffamily\scriptsize\bfseries},
+]
+
+% --- Axes ---
+\draw[-{Stealth[length=3mm]}, thick, figGray]
+  (0, 0) -- (13.5, 0)
+  node[right, font=\sffamily\small] {开源程度};
+\draw[-{Stealth[length=3mm]}, thick, figGray]
+  (0, 0) -- (0, 10.5)
+  node[above, font=\sffamily\small] {模型能力};
+
+% X-axis labels
+\node[below, figGray, font=\sffamily\tiny] at (1.5, -0.15) {完全闭源};
+\node[below, figGray, font=\sffamily\tiny] at (5, -0.15) {API开放};
+\node[below, figGray, font=\sffamily\tiny] at (8.5, -0.15) {开放权重};
+\node[below, figGray, font=\sffamily\tiny] at (12, -0.15) {完全开源};
+
+% Y-axis labels
+\node[left, figGray, font=\sffamily\tiny, rotate=90, anchor=south] at (-0.3, 2.5) {垂直/小模型};
+\node[left, figGray, font=\sffamily\tiny, rotate=90, anchor=south] at (-0.3, 6.5) {通用前沿};
+
+% Shaded zones
+\fill[figBlue!4] (0.3, 0.3) rectangle (4, 10);
+\fill[figOrange!4] (9.5, 0.3) rectangle (13, 10);
+\node[figBlue!30, font=\sffamily\tiny, rotate=90] at (0.6, 5) {闭源区};
+\node[figOrange!30, font=\sffamily\tiny, rotate=90] at (12.7, 5) {开源区};
+
+% --- Legend ---
+\begin{scope}[shift={(9.5, 10)}]
+  \node[us, font=\sffamily\tiny] (leg1) at (0, 0) {US};
+  \node[right, font=\sffamily\tiny] at (0.5, 0) {美国};
+  \node[cn, font=\sffamily\tiny] (leg2) at (2, 0) {CN};
+  \node[right, font=\sffamily\tiny] at (2.5, 0) {中国};
+  \node[eu, font=\sffamily\tiny] (leg3) at (4, 0) {EU};
+  \node[right, font=\sffamily\tiny] at (4.4, 0) {欧洲};
+\end{scope}
+
+% ========== US Companies ==========
+% OpenAI — most closed, highest capability
+\node[us] at (1.5, 9.5) {OpenAI};
+% Anthropic — closed API, frontier
+\node[us] at (2.5, 8.8) {Anthropic};
+% Google — closed, frontier
+\node[us] at (1.8, 8.0) {Google};
+% xAI — semi-open (Grok open-sourced then re-closed)
+\node[us] at (5.5, 7.5) {xAI};
+% Meta — open weights, frontier
+\node[us] at (9.5, 8.5) {Meta};
+% AI2 (OLMo) — fully open
+\node[us] at (12, 5.5) {AI2 (OLMo)};
+% Cohere — API + open weights for some models
+\node[us] at (6, 6.0) {Cohere};
+% Stability AI — open source focus
+\node[us] at (10.5, 5.0) {Stability AI};
+
+% ========== Chinese Companies ==========
+% DeepSeek — open weights, near-frontier
+\node[cn] at (10, 9.0) {DeepSeek};
+% 智谱 (Zhipu/GLM) — semi-open
+\node[cn] at (7.5, 7.0) {智谱};
+% MiniMax — mostly closed API
+\node[cn] at (3.5, 6.5) {MiniMax};
+% 月之暗面 (Moonshot/Kimi) — closed
+\node[cn] at (2, 6.0) {月之暗面};
+% 百川 (Baichuan) — open weights
+\node[cn] at (9, 5.5) {百川};
+% 零一万物 (01.AI) — open
+\node[cn] at (10, 6.5) {零一万物};
+% 阶跃星辰 (StepFun) — API
+\node[cn] at (4, 5.0) {阶跃星辰};
+% Qwen (Alibaba) — open weights
+\node[cn] at (10.5, 7.5) {通义千问};
+
+% ========== European Companies ==========
+% Mistral — open weights + API
+\node[eu] at (8.5, 8.0) {Mistral};
+% Aleph Alpha — closed, enterprise
+\node[eu] at (2, 4.0) {Aleph Alpha};
+% Reka — semi-open
+\node[eu] at (5, 4.5) {Reka};
+
+% Dashed annotation: "DeepSeek moment" arrow
+\draw[-{Stealth}, figOrange, thick, dashed]
+  (10, 8.5) -- (10, 9.8)
+  node[above, figOrange, font=\sffamily\tiny, text width=2cm, align=center]
+  {DeepSeek 冲击\\(2025.1)};
+
+% Annotation: capability frontier line
+\draw[figGray!40, thick, densely dotted]
+  (0.5, 9.2) .. controls (5, 8.5) and (8, 8.8) .. (12.5, 7.0)
+  node[right, figGray, font=\sffamily\tiny] {能力前沿};
+
+\end{tikzpicture}
+\caption{模型层公司定位图：开源程度与模型能力的二维映射。方框=美国公司，
+菱形=中国公司，三角=欧洲公司。虚线标注能力前沿趋势。}
+\label{fig:model-positioning}
+\end{figure}
+
+
+% =============================================================
+\section{前沿闭源实验室：简要回顾}
+\label{sec:models-frontier}
+% =============================================================
+
+前沿闭源实验室的详细分析已在\textit{Emergence}第十二章中展开，此处
+仅做战略维度的简要回顾，聚焦于2025--2026年的最新融资和产品动态。
+读者如需了解技术架构和训练方法论，请参阅该章节。
+
+这些实验室的融资规模在过去一年内达到了令人目眩的新高度：OpenAI
+单轮1100亿美元、Anthropic 300亿美元、xAI 200亿美元——这三笔交易
+加在一起，超过了大多数国家的年度科技研发预算。理解这些数字背后的
+战略逻辑，对于评估整个AI创业生态至关重要。
+
+\subsection{OpenAI：八千亿美元的赌注}
+\label{subsec:openai-recap}
+
+2026年2月27日，OpenAI宣布完成1100亿美元融资，估值达到8400亿
+美元——这是人类历史上最大的私募融资交易，一举超越了此前所有
+科技公司的融资纪录（Crunchbase, 2026年2月；TechCrunch, 2026年
+2月）。CEO Sam Altman将这笔资金定位为"从实验性研究到全球消费级
+基础设施"的桥梁。公司2025年营收约85亿美元，员工超过5300人
+（同比增长19.3\%），在86个国家运营，累计融资总额达740亿美元。
+
+这一融资的规模需要放在适当的参考框架中理解。1100亿美元——
+\begin{itemize}
+  \item 超过了SpaceX自创立以来的全部融资总额；
+  \item 约等于2025年整个美国风投市场季度投资总额的一半；
+  \item 足以从零建造约15座1GW的AI超级数据中心。
+\end{itemize}
+
+OpenAI的战略轨迹清晰：\textbf{从模型公司演变为平台公司}。GPT-5系列
+持续推进前沿能力边界，ChatGPT已成为月活超3亿的超级应用，Stargate
+项目则试图通过自建算力基础设施（与SoftBank、Oracle合作）锁定长期
+计算资源。此外，OpenAI还在洽谈与TPG和Bain Capital建立100亿美元的
+合资企业——显示出其向资本密集型基础设施运营的扩张意图。
+
+但8400亿美元的估值意味着市场期望OpenAI成为一家"AI时代的
+Google+AWS"——一个同时拥有最强模型、最大用户基础和自有基础设施的
+超级平台。这一期望的兑现远非确定。从利润率的角度看，OpenAI 2025年
+仍处于亏损状态，推理成本（为每个ChatGPT查询提供算力）随用户增长
+持续攀升。\textbf{当你的产品越受欢迎，你的成本就越高}——这是AI
+公司独有的"增长悖论"。
+
+\subsection{Anthropic：安全优先的商业化路径}
+\label{subsec:anthropic-recap}
+
+2026年2月12日，Anthropic完成300亿美元Series G融资，估值3800亿美元，
+由GIC（新加坡主权财富基金）和Coatue领投，微软和NVIDIA参投。这是
+科技史上第二大私募融资交易，仅次于OpenAI数周前的巨额融资
+（Anthropic官方公告, 2026年2月；CNBC, 2026年2月）。
+
+Anthropic的财务数据同样令人瞩目：年化营收（ARR）突破140亿美元，
+其中Claude Code单一产品线就贡献了约25亿美元。Constellation Research
+在2026年2月报道称，Claude Code的收入自2026年1月1日以来翻倍——
+这一增速表明AI编程助手正在经历真正的产品-市场契合（PMF）时刻。
+
+Anthropic的差异化在于\textbf{"安全即品牌"}的战略定位。Constitutional AI
+（宪法AI）等技术路线不仅是研究方向，更是商业护城河——当企业客户
+面对AI部署的合规和声誉风险时，"最安全的AI"这一标签具有直接的
+商业溢价。在企业采购决策中，"我们选择了安全性最高的AI供应商"比
+"我们选择了性能最强的AI供应商"更容易获得CEO和董事会的批准。
+
+Claude 4系列在代码生成、长文档分析和复杂推理等任务上持续刷新基准。
+Claude Code则开创了"AI编程助手即服务"的新品类——不是简单的代码
+补全，而是能够理解整个代码库、执行复杂重构任务的AI编程伙伴。
+这一产品方向的成功，对后续章节讨论的开发者工具生态产生了深刻影响。
+
+\begin{whybox}[Anthropic的安全研究如何成为商业壁垒？]
+初看之下，"安全研究"似乎只是消耗资源的成本中心。但Anthropic将其
+转化为商业壁垒的逻辑链条是清晰的：
+\begin{enumerate}
+  \item \textbf{安全声誉}$\to$\textbf{企业信任}：Fortune 500公司
+    在评估AI供应商时，安全性和合规性是首要考量；
+  \item \textbf{安全技术}$\to$\textbf{产品差异化}：Constitutional AI、
+    RLHF、可解释性研究等让Claude的输出更加可控和可预测；
+  \item \textbf{安全标准制定}$\to$\textbf{监管话语权}：Anthropic
+    积极参与AI安全标准的制定，其RSP（负责任扩展政策）正在成为
+    行业参考——当你的安全框架成为监管标准时，你天然具有合规优势。
+\end{enumerate}
+这一策略的风险在于：如果市场最终证明AI安全的重要性被高估，或者
+竞争对手在安全性上快速追赶，"安全溢价"就会消失。但至少在2026年，
+企业对AI安全的关注度仍在上升，这一策略仍然有效。
+\end{whybox}
+
+\subsection{Google DeepMind：全球最大的AI研究机构}
+\label{subsec:deepmind-recap}
+
+Google DeepMind是全球规模最大、历史最悠久的AI研究机构。由Demis
+Hassabis领导的这个组织，在2023年由Google Brain和DeepMind合并而成，
+汇聚了全球最顶尖的AI研究人才。
+
+在模型产品层面，Google DeepMind在2025年底发布了Gemini 3——被
+Sundar Pichai称为"我们最智能的模型"。随后在2026年2月推出Gemini 3.1
+Pro，在复杂推理任务上达到新的性能水平。Gemini的独特之处在于其
+\textbf{原生多模态设计}——从训练开始就同时处理文本、图像、音频和
+视频，而非将不同模态的模型拼接在一起。这种架构选择让Gemini在
+跨模态理解任务上表现出色。
+
+作为Alphabet旗下的研究机构，DeepMind不直接融资，但其研发投入
+估计超过任何独立AI实验室——Alphabet 2025年的资本支出超过500亿
+美元，其中大部分与AI相关。Gemini模型深度集成于Google全产品线
+（Search、Workspace、Android、Cloud），这种"模型即平台基础设施"
+的路径是其他实验室难以复制的。每天有数十亿次搜索查询流经
+Gemini——这种规模的实际使用数据是任何创业公司梦寐以求的。
+
+DeepMind的独特优势还在于\textbf{科学研究}：AlphaFold在蛋白质
+结构预测领域的突破已获2024年诺贝尔化学奖（Demis Hassabis和John
+Jumper分享该奖项），证明了基础模型在科学发现方面的变革潜力。
+AlphaGeometry在数学定理证明、AlphaProteo在蛋白质设计领域的后续
+工作表明，Google DeepMind正在系统性地将AI能力推向科学前沿——
+这是一个OpenAI和Anthropic目前尚未深入的领域。
+
+\subsection{xAI：Elon Musk 的算力豪赌}
+\label{subsec:xai-recap}
+
+xAI在2026年1月完成200亿美元Series E融资（从最初计划的100亿美元
+翻倍），估值约2350亿美元（Mashable, 2026年1月；NextBigFuture,
+2026年1月）。这使xAI成为仅次于OpenAI和Anthropic的第三大AI公司。
+
+Grok模型系列从最初与X/Twitter深度绑定的"反叛型AI"（强调无过滤、
+幽默风格），逐步进化为更通用的前沿模型。Grok 4 Fast在多项推理
+基准上进入前列。但xAI最引人注目的不是模型本身，而是其
+\textbf{基础设施投入的规模}。
+
+位于孟菲斯的"Colossus"训练集群据报道拥有超过10万块NVIDIA H100
+GPU——这是全球最大的单一AI训练集群之一。Musk的策略是典型的
+"硬件暴力美学"：在竞争对手还在排队等GPU的时候，先确保自己拥有
+最大的算力池。这种策略需要巨额资本（200亿美元融资中的大部分将
+用于基础设施扩建），但如果成功，将为xAI在下一代模型训练中提供
+决定性的算力优势。
+
+xAI的核心不确定性在于\textbf{产品层面的竞争力}。拥有最多GPU不等于
+拥有最好的模型（算法效率同样重要——DeepSeek已经证明了这一点），
+更不等于拥有最好的产品体验。ChatGPT和Claude Code在产品打磨上的
+积累不是单纯砸算力能追上的。此外，Grok与X平台的深度绑定也是
+双刃剑——X的争议性内容和政治化倾向可能让部分企业客户对Grok
+保持距离。xAI最近被调查的deepfake问题进一步加剧了这一担忧。
+
+\subsection{Meta AI：开源的战略意义}
+\label{subsec:meta-recap}
+
+Meta AI的Llama系列将在下一节详细讨论，但其战略定位值得在此点明。
+Meta选择开源并非出于利他主义——Mark Zuckerberg在2024年的公开信中
+明确表示，开源模型降低了整个生态系统对闭源API的依赖，从而削弱了
+OpenAI和Google的"模型即平台"锁定效应，这对Meta的社交和元宇宙
+业务形成了战略保护。
+
+从投入规模看，Meta 2025年的资本支出（主要用于AI基础设施）超过
+400亿美元。这一数字本身就说明了问题——Meta在AI上的年度投入，
+超过了绝大多数AI创业公司的全部融资总额。但Meta不直接从模型销售
+中获取收入——Llama完全免费（月活用户超过7亿的公司需额外授权）。
+这是一种\textbf{"以研发投入换生态控制"的大公司特权}，创业公司
+无法模仿。
+
+Meta AI的研究产出同样惊人：除了Llama系列外，Segment Anything
+（图像分割）、DINO（自监督视觉学习）、Emu（图像生成）等项目
+持续推进视觉AI的前沿。Meta的"AI+元宇宙"长期战略虽然在短期内
+尚未兑现，但其在AI研发上的深厚积累为这一愿景提供了坚实的技术底座。
+
+\subsection{Mistral：欧洲的旗帜}
+\label{subsec:mistral-recap}
+
+Mistral AI由前Google DeepMind和Meta AI的研究者Arthur Mensch、
+Guillaume Lample和Timoth\'{e}e Lacroix于2023年5月在巴黎创立。
+公司迅速成为欧洲AI主权叙事的旗帜——在几乎所有AI大公司都位于
+美国或中国的格局中，Mistral是唯一一家有能力挑战前沿的欧洲力量。
+
+2025年9月，Mistral完成了17亿欧元Series C融资，估值117亿欧元。
+ASML（欧洲最重要的半导体设备公司）领投13亿欧元——这笔投资的
+战略意义远超财务回报，它代表了欧洲半导体产业链对本土AI能力的
+战略押注。NVIDIA和a16z也参与了本轮融资。
+
+Mistral的营收增速令人瞩目：从2024年的约2000万美元暴增至2025年底
+的超过4亿美元，目标2026年突破10亿欧元。其旗舰模型Mistral Large 3
+采用675B总参数（41B激活参数）的MoE架构，配备原生多模态能力
+（文本+图像）和256K上下文窗口。在LMArena排名中，Mistral Large 3
+位列开源非推理模型第二名、总榜第六（1418 Elo分），仅落后于最强的
+闭源模型。API定价\$0.50/\$1.50 per million tokens——比GPT-4o级别
+模型便宜约80\%。
+
+Mistral的战略意义在三个层面：第一，它为欧洲的"数字主权"叙事提供了
+技术支撑——GDPR和AI Act等监管框架需要本土技术能力来落地；第二，
+其开源策略（Mistral 7B和Mixtral等早期模型完全开源）帮助建立了强大
+的社区生态；第三，它证明了欧洲不仅能做合规和监管，也能做前沿
+创新。当然，Mistral的挑战在于如何在美国和中国的双重挤压下保持
+技术领先——117亿欧元的估值在OpenAI 8400亿美元面前显得微不足道。
+
+\begin{keybox}[前沿闭源实验室：核心数据一览（截至2026年3月）]
+\small
+\begin{tabularx}{\textwidth}{l X r r}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{最新融资} & \textbf{估值/市值} & \textbf{ARR} \\
+\midrule
+OpenAI       & \$110B (2026/2)   & \$840B   & $\sim$\$8.5B \\
+Anthropic    & \$30B (2026/2)    & \$380B   & $\sim$\$14B  \\
+xAI          & \$20B (2026/1)    & \$235B   & 未披露 \\
+Mistral AI   & \texteuro1.7B (2025/9) & \texteuro11.7B& $>$\$400M \\
+\midrule
+\multicolumn{4}{l}{\textit{Google DeepMind和Meta AI作为大公司内部研究机构，不独立融资。}} \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent 数据来源：Crunchbase, 公司公告, TechCrunch, Bloomberg, Reuters。
+截至2026年3月。
+\end{keybox}
+
+\begin{whybox}[为什么前沿闭源实验室的融资额持续刷新纪录？]
+答案在于\textbf{算力军备竞赛}的自我强化逻辑。训练下一代前沿模型
+需要数万块顶级GPU运行数月，仅电费和硬件折旧就可能耗资数十亿美元。
+融更多的钱意味着能买更多GPU、训更大的模型、吸引更好的人才、获得
+更多用户数据、再融更多的钱。这个飞轮效应解释了为什么头部实验室的
+融资额在三年内从数亿美元飙升至千亿美元级别。
+
+但这个飞轮能持续多久？两个力量可能打破它：
+\begin{enumerate}
+  \item \textbf{效率革命}：DeepSeek用不到600万美元训练成本达到
+    GPT-4o级别性能，提出了根本性质疑——暴力堆算力是否是唯一的
+    通往AGI之路？
+  \item \textbf{收入现实}：1100亿美元的融资意味着投资者期望数百亿
+    美元的年收入——但全球企业的AI预算是否能支撑这样的期望？
+\end{enumerate}
+如果这两个力量中的任何一个显著发力，当前的融资"超新星"可能
+迅速冷却。
+\end{whybox}
+
+
+% =============================================================
+\section{开源模型生态全景}
+\label{sec:models-opensource}
+% =============================================================
+
+如果说前沿闭源实验室代表了AI模型竞赛的"顶级联赛"，那么开源模型
+生态就是让这场技术革命真正民主化的力量。2024年是开源模型的"觉醒之年"，
+2025年则是"赶超之年"——在多个基准测试上，开源模型首次系统性地逼近
+甚至超越同期闭源模型。2026年，这一趋势进一步加速：DeepSeek V3.2
+声称达到GPT-5级别性能，Llama 4 Maverick在LMArena上与GPT-4o并驾
+齐驱，Qwen3和Mistral Large 3也进入前沿梯队。
+
+这一趋势的意义远超技术层面：它重新定义了AI价值链中的权力分配，
+让创业公司和研究机构不再完全依赖少数闭源API提供商。更深远地，
+它正在改变AI经济学的基本方程式——当基础模型能力从"稀缺资源"
+变为"公共品"时，价值创造的重心自然向上层应用和下层基础设施转移。
+
+\subsection{Meta Llama：定义开源标杆}
+\label{subsec:llama}
+
+Meta的Llama系列是开源大模型运动的标志性项目。从2023年2月的
+Llama 1（意外泄露后被社区广泛采用，这一"意外"本身就充满了争议和
+传奇色彩）到2024年的Llama 3/3.1（首次在性能上真正逼近闭源模型），
+再到2025年4月发布的\textbf{Llama 4}，每一代都在性能和开放程度上
+大幅跃进。
+
+\subsubsection{Llama 4的技术突破}
+Llama 4标志着多项架构突破。旗舰模型采用MoE（混合专家）架构，
+总参数量达4000亿，但每次推理仅激活约520亿参数——这一设计大幅
+降低了推理成本，让性能与效率不再矛盾。这种"大模型不等于大推理
+成本"的设计哲学正在成为开源社区的共识。
+
+Llama 4系列包含多个变体，各有定位：
+\begin{itemize}
+  \item \textbf{Llama 4 Scout}：专为长上下文场景优化，支持极长的
+    输入窗口，适合文档分析和代码理解；
+  \item \textbf{Llama 4 Maverick}：通用能力最强的旗舰变体，在
+    LMArena排名中位居开源第一梯队；
+  \item 更小的部署友好变体：面向移动设备和边缘场景。
+\end{itemize}
+
+更重要的是，Llama 4首次\textbf{原生支持多模态输入}（文本+图像）——
+不是将视觉编码器"外挂"到语言模型上，而是从训练开始就将视觉理解
+能力融入模型。这使得Llama 4在视觉问答、图表理解、OCR等任务上
+表现出色，为下游应用开发打开了更广阔的空间。
+
+\subsubsection{Llama生态的经济影响}
+在LMArena排名中，Llama 4 Maverick位居开源模型前列，性能可比肩
+GPT-4o级别的闭源模型。但Llama的真正威力不在于单个模型的基准
+分数，而在于\textbf{生态效应}。Llama的许可证允许商业使用（月活
+用户超过7亿的公司需额外授权），这意味着全球数十万开发者和数千家
+公司可以基于Llama构建产品，而不必向Meta支付任何费用。
+
+据估算，Llama系列模型的HuggingFace总下载量已超过数亿次。
+Together AI、Fireworks AI、Groq等推理平台上运行的模型中，Llama
+系列占据了最大的份额。每一次部署都在强化Llama的生态地位——更多
+部署$\to$更多下游工具和框架支持$\to$更低的迁移成本$\to$更多采用。
+这是一个经典的网络效应。
+
+\begin{whybox}[Meta为什么愿意"免费"开放花费数十亿美元训练的模型？]
+这个问题的答案揭示了大公司开源AI的根本逻辑：
+\begin{enumerate}
+  \item \textbf{削弱竞争对手的平台锁定}：如果OpenAI和Google通过
+    闭源API建立了"模型即平台"的垄断，Meta的社交和广告业务将被迫
+    依赖竞争对手的基础设施。开源Llama相当于"拆平台"；
+  \item \textbf{社区贡献的杠杆效应}：开源后，全球开发者免费帮助
+    发现漏洞、优化部署、拓展应用场景——这是任何内部团队无法匹敌的
+    研发杠杆。微调版本、量化版本、领域适配版本层出不穷；
+  \item \textbf{人才吸引}：在AI研究者社区中，开源是声誉货币。发表
+    论文和开源代码比高薪更能吸引顶级人才——Meta AI的论文发表量和
+    引用量持续位居行业前列；
+  \item \textbf{推理基础设施受益}：越多人使用Llama，推理平台（包括
+    Meta自己的基础设施）的需求越大，间接降低了单位推理成本。
+\end{enumerate}
+简言之，Meta用研发支出换取了生态控制权。这不是慈善——这是战略。
+但它是一种只有现金流充裕的大公司才能执行的战略。
+\end{whybox}
+
+\subsection{DeepSeek：改变游戏规则的"鲶鱼"}
+\label{subsec:deepseek-open}
+
+DeepSeek的故事堪称2025年AI行业最具戏剧性的叙事。这家脱胎于杭州
+量化对冲基金幻方（High-Flyer）的AI实验室，用一系列令人瞠目的
+技术成果证明了：\textbf{在AI模型竞赛中，算法效率可以在很大程度上
+补偿算力规模的差距}。
+
+\subsubsection{"DeepSeek震荡"：AI的"斯普特尼克时刻"}
+2025年1月27日，DeepSeek发布R1推理模型。这个模型在数学、代码和
+复杂推理任务上达到了OpenAI o1的水平——而其公开声称的训练成本仅为
+约600万美元（尽管实际总投入包括预训练基座模型和失败实验，可能
+远高于此）。
+
+这一事件的冲击波远超技术社区。发布当天，NVIDIA股价单日暴跌17\%，
+市值蒸发近6000亿美元——因为市场突然意识到，如果高效训练成为常态，
+对GPU的天量需求可能不如预期。全球科技股集体承压，"DeepSeek震荡"
+成为2025年科技行业最重要的市场事件之一。
+
+这一刻被广泛类比为AI领域的"斯普特尼克时刻"——正如1957年苏联
+卫星的发射让美国重新审视其太空技术优势，DeepSeek的发布迫使
+硅谷重新审视"暴力堆算力"这一主导范式的可持续性。白宫科技政策
+办公室和多位国会议员在随后的数周内发表了关于中国AI能力的评论——
+DeepSeek不仅是一个技术事件，更成为了地缘政治叙事的一部分。
+
+\subsubsection{DeepSeek V3系列：持续进化}
+DeepSeek随后发布了V3系列，展示了惊人的迭代速度：
+\begin{itemize}
+  \item \textbf{DeepSeek V3}（2024年12月）：671B参数MoE架构，
+    37B激活参数，训练成本约557万美元；
+  \item \textbf{DeepSeek V3.1}：在agentic工具使用能力上位居
+    开源模型第一；
+  \item \textbf{DeepSeek V3.2}：声称达到GPT-5级别性能——如果
+    这一声称得到广泛验证，将标志着开源模型首次在全面能力上
+    与最前沿闭源模型持平。
+\end{itemize}
+所有模型均采用MIT许可证开源——这是最宽松的开源许可，意味着任何人
+可以自由使用、修改和商业化，无需任何限制或署名要求。
+
+\begin{keybox}[DeepSeek的核心技术创新]
+DeepSeek的贡献不仅是"便宜"，而是在多个技术维度上的系统性创新：
+\begin{itemize}
+  \item \textbf{Multi-Head Latent Attention (MLA)}：将KV缓存
+    压缩为低维潜变量，大幅降低推理时的内存占用。在传统
+    Multi-Head Attention中，KV缓存随序列长度线性增长，成为
+    长上下文推理的主要瓶颈。MLA通过联合压缩将缓存需求降低
+    数倍，同时保持注意力质量；
+  \item \textbf{DeepSeekMoE}：更细粒度的MoE路由策略。相比
+    传统MoE（如Mixtral的8个专家），DeepSeek使用更多更小的专家
+    单元，配合精细的路由算法，在专家利用率和计算效率之间
+    取得更优平衡；
+  \item \textbf{FP8混合精度训练}：DeepSeek V3是首批成功将FP8
+    精度应用于大规模训练的模型之一。在保持模型质量的前提下，
+    FP8将训练吞吐量提升近一倍，直接降低了训练成本；
+  \item \textbf{强化学习驱动的推理}（R1）：通过Group Relative
+    Policy Optimization (GRPO)算法让模型"学会思考"，无需大量
+    人工标注的推理链数据。GRPO的关键创新是使用组内相对奖励
+    代替绝对价值函数，大幅简化了RL训练流程。
+\end{itemize}
+这些创新共同构成了一个一致的技术叙事：\textbf{在资源受限的条件下
+（相比美国大公司），通过算法创新实现最大化的计算利用效率}。
+\end{keybox}
+
+\subsubsection{DeepSeek的组织独特性}
+DeepSeek目前约有46名员工（同比增长约238\%，但绝对数量仍然极小），
+不接受外部融资，完全由幻方的自有资金支持。创始人梁文锋（Liang
+Wenfeng）很少公开露面——他1985年出生于广东湛江，浙江大学电子
+信息工程专业毕业，后攻读信号与通信方向硕士。在创立DeepSeek之前，
+他已经通过幻方量化积累了丰厚的财务基础——据报道幻方管理规模超过
+千亿元人民币，2025年收益率达57\%。
+
+这种"隐士型"的运营风格与其"极致效率"的技术哲学一脉相承。DeepSeek
+几乎不做市场营销——产品说话就够了。当全行业都在融资、发布会、
+媒体造势的时候，DeepSeek安静地发论文、开源代码，然后看着世界
+为之震动。
+
+DeepSeek的存在对整个行业的最大意义在于它提出了一个根本性问题：
+\textbf{当600万美元的训练成本能产出GPT-4o级别的模型时，那些融资
+数百亿美元的公司到底在为什么买单？}可能的答案包括：更大规模的
+算力储备（为下一代模型准备）、更庞大的产品和工程团队、更昂贵的
+推理基础设施、以及投资者对"赢者通吃"终局的赌注。但DeepSeek证明了
+至少在当前阶段，\textbf{钱不是成功的充分条件}。
+
+\subsection{Alibaba Qwen：中国开源的领跑者}
+\label{subsec:qwen}
+
+阿里巴巴的通义千问（Qwen）系列已成为中国最活跃、覆盖面最广的
+开源大模型项目。如果说DeepSeek以"极致效率"著称，Qwen则以
+"全面覆盖"见长——从0.5B到235B参数，从纯文本到视觉、音频、代码、
+数学，Qwen几乎在每一个子领域都部署了有竞争力的开源模型。
+
+\subsubsection{Qwen模型矩阵}
+2025年发布的Qwen 2.5系列覆盖了完整的参数规模（0.5B/1.5B/3B/7B/
+14B/32B/72B），其中Qwen 2.5-Max采用大规模MoE架构（总参数2350亿，
+激活参数220亿），在HumanEval代码生成基准上得分达90\%。
+
+2026年进入Qwen 3时代，标志性升级包括：
+\begin{itemize}
+  \item \textbf{Qwen3-235B-A22B}：旗舰MoE模型，独特地支持"思考模式"
+    （类似DeepSeek R1的推理链）和"非思考模式"（高效对话）之间
+    的\textbf{无缝切换}——用户可以在同一个模型中根据任务复杂度
+    动态选择推理深度，这在产品层面极为实用；
+  \item \textbf{100+语言支持}：在多语言能力上位居开源模型前列，
+    这对面向全球市场的应用开发尤其重要；
+  \item \textbf{Qwen-VL系列}：在开源视觉语言模型中性能最强，支持
+    多分辨率输入和跨模态理解。
+\end{itemize}
+
+\subsubsection{商业化逻辑：开源即获客}
+阿里巴巴已将大模型品牌统一为"千问"（Qwen），并将其深度集成于
+阿里云的百炼（Model Studio）平台。这一策略的商业逻辑是：
+\textbf{开源模型吸引开发者$\to$开发者在阿里云上部署$\to$消耗阿里云
+的计算和存储资源$\to$云收入增长}。Qwen的开源不是成本中心，而是
+阿里云增长战略的获客引擎——类似于AWS开源Kubernetes工具来促进
+云服务消费。
+
+到2026年3月，阿里云百炼平台每周都有新模型或新版本上线——包括
+tongyi-embedding向量模型系列、基于Qwen3底座的视觉向量化模型等。
+更新频率之高在全球云厂商中也属罕见，反映了阿里对大模型生态的
+持续重投入。
+
+在Artificial Analysis等第三方评测中，Qwen系列在中文任务上持续领先，
+在英文任务上也进入第一梯队。特别值得注意的是，在DeepSeek的中文
+语料质量可能受限于其量化基金出身的情况下，Qwen凭借阿里巴巴
+庞大的电商和内容数据积累，在中文生成质量上保持了微妙的优势。
+
+\subsection{其他重要开源模型}
+\label{subsec:other-opensource}
+
+\subsubsection{Google Gemma：消费级硬件的性能标杆}
+Google于2024年2月推出Gemma系列，将Gemini的技术以开源形式分享给
+社区。2025年3月发布的\textbf{Gemma 3}以27B稠密参数模型在消费级
+硬件（单张GPU）上实现了令人印象深刻的性能——128K上下文窗口、
+140+语言支持、原生多模态能力（文本+图像），全部可在一张NVIDIA
+RTX 4090上运行。
+
+Gemma 3在MMLU上达到78.6\%，在MMLU-Pro上达到67.5\%——这些数字
+在同参数规模中极为出色，虽然不及百亿参数以上的大模型。Gemma的
+定位是"最佳小模型"，瞄准两个核心场景：（1）无法承担大模型推理
+成本的创业公司和个人开发者；（2）需要在边缘设备（手机、IoT设备）
+上运行AI的场景。其许可证允许商业使用，已被集成到Android设备和
+Chromebook中，是Google"端侧AI"战略的核心组件。
+
+Gemma的量化版本（通过GGUF等格式）更是将运行门槛进一步降低——
+在MacBook的M系列芯片上，用户可以以接近实时的速度运行Gemma 3，
+这为"本地AI"（不依赖云端API的AI体验）开辟了广阔空间。
+
+\subsubsection{Microsoft Phi：小模型的极致追求}
+微软的Phi系列代表了"小语言模型"（SLM）领域的极致探索。2025年4月，
+微软发布了Phi-4系列的最新成员——Phi-4-reasoning和
+Phi-4-reasoning-vision——使用仅14B参数，通过高质量合成训练数据
+和精心设计的课程学习（curriculum learning），在推理任务上达到了
+\textbf{远超其参数规模的性能}。
+
+Phi的战略意义在于证明了\textbf{数据质量可以在一定程度上补偿参数
+规模}——这一洞察对两个场景至关重要：
+\begin{enumerate}
+  \item \textbf{边缘AI部署}：在手机、嵌入式设备和车载系统上，
+    模型大小直接决定了延迟、内存占用和功耗；
+  \item \textbf{成本敏感型应用}：对于每秒需要处理数千请求的
+    高吞吐场景（如客服机器人、内容审核），小模型的推理成本
+    优势是数量级的。
+\end{enumerate}
+
+Phi模型采用MIT许可证开源，可自由商业使用。微软通过Azure AI平台
+提供Phi的托管服务，但也鼓励用户在任何环境中部署——这种"无条件
+开源"的态度与其Azure云服务的推广并行不悖。
+
+\subsubsection{Yi系列（零一万物）}
+由李开复创立的零一万物（01.AI）于2023年发布Yi-34B，凭借强劲的
+中英双语能力和在同参数规模中的优异表现迅速获得关注。Yi系列后续
+扩展到Yi-Coder（代码专精）、Yi-VL（视觉语言）等变体，开源于
+HuggingFace和ModelScope。
+
+然而，零一万物在2025年经历了从模型预训练到企业AI Agent平台的
+战略转型，Yi系列的更新速度放缓。这一转型的细节将在
+§\ref{subsec:01ai}中展开讨论。Yi的案例提醒我们：开源模型的社区
+影响力不等于商业可持续性——当一家创业公司的核心战略发生转向时，
+其开源项目的维护和迭代可能成为牺牲品。
+
+\subsubsection{OLMo（AI2）：最"彻底"的开源}
+Allen Institute for AI（AI2）的OLMo项目是开源大模型运动中
+透明度最高的一个：不仅开放模型权重，还完整发布训练代码、训练数据
+（Dolma数据集）、评估工具和详细的训练日志。研究者可以精确复现每
+一步训练过程，分析模型在不同训练阶段的行为变化——这种级别的透明度
+是Llama、Qwen等"开放权重但不开放训练过程"的模型无法提供的。
+
+OLMo的最新版本在同等参数规模下性能逼近Llama 3.1，证明了完全透明
+与性能之间不必然存在矛盾。对于AI安全研究、可解释性研究和学术
+复现而言，OLMo是不可替代的。AI2在2025年还发布了Tulu系列
+（指令微调模型）和WildChat（大规模用户对话数据集），进一步
+丰富了完全开源的AI研究基础设施。
+
+\subsubsection{StableLM / Stability AI：警示案例}
+Stability AI曾是开源AI运动的先驱——Stable Diffusion在2022年的发布
+是AI图像生成民主化的标志性事件。但公司在2024--2025年经历了严重的
+管理层动荡和财务困难。创始人Emad Mostaque在2024年3月被迫辞职，
+随后多轮裁员和融资困难使得StableLM系列的更新放缓。
+
+Stability AI的困境是一个重要的警示案例：
+\textbf{开源声誉不等于商业可持续性}。拥有全球最热门的开源AI
+项目（Stable Diffusion在GitHub上超过10万颗星）并不意味着公司
+能找到可持续的盈利模式。当你的核心产品免费提供给所有人时，
+"卖什么"就成了一个存在性问题。Stability AI尝试过API服务、
+企业定制、订阅会员等多种变现方式，但没有一种能产生足够的收入
+来覆盖其高昂的GPU训练成本。
+
+\begin{keybox}[开源模型生态：核心项目对比（截至2026年3月）]
+\small
+\begin{tabularx}{\textwidth}{l l l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{模型} & \textbf{机构} & \textbf{参数量} & \textbf{许可证} & \textbf{特色} \\
+\midrule
+Llama 4        & Meta        & 400B MoE  & Llama License  & 最大开源MoE，多模态原生 \\
+DeepSeek V3.2  & DeepSeek    & 671B MoE  & MIT            & 推理效率极致，GPT-5级别 \\
+Qwen3-235B     & 阿里巴巴    & 235B MoE  & Apache 2.0     & 中英双语最强，100+语言 \\
+Mistral Large 3& Mistral AI  & 675B MoE  & Apache 2.0     & 欧洲旗舰，LMArena \#6 \\
+Gemma 3        & Google      & 27B dense & Gemma License  & 单GPU可跑，边缘部署标杆 \\
+Phi-4          & Microsoft   & 14B       & MIT            & SLM冠军，推理能力超参数级 \\
+OLMo           & AI2         & 7--65B    & Apache 2.0     & 完全开源含数据和训练代码 \\
+Yi-34B         & 零一万物    & 34B       & Apache 2.0     & 中英双语，社区活跃 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+\subsubsection{Nous Research：社区驱动的开源模型}
+Nous Research是一家成立于2023年、总部位于纽约的开源AI研究实验室，
+团队约24人，累计融资5000万美元（2025年5月Series A）。Nous以
+Hermes系列开源模型闻名——该系列在HuggingFace上的累计下载量超过
+5000万次。2025年8月发布的Hermes 4（基于Llama 3.1 70B微调）是一
+个混合推理模型，支持"思考"与"直答"两种模式的无缝切换；2025年12月
+的Hermes 4.3（基于Seed-OSS-36B-Base）进一步将上下文长度扩展到
+512K，可在消费级GPU上本地运行。Nous的独特之处在于其
+\textbf{分布式训练网络Psyche}——利用DisTrO优化器让全球的GPU持有者
+共同参与模型训练，这是一种"去中心化AI训练"的前沿实验。创始人
+teknium在开源社区拥有极高的号召力，Hermes系列的中立对齐（neutrally
+aligned）理念吸引了大量追求"不受限AI"的用户群体。
+
+\subsubsection{Upstage SOLAR：韩国AI的旗手}
+韩国AI创业公司Upstage由前Naver AI负责人Kim Sung-hoon于2020年创立，
+是韩国融资最多的AI软件公司（累计超过1.57亿美元）。其旗舰模型
+SOLAR LLM采用独创的\textbf{Depth-Up Scaling (DUS)}技术——不同于
+传统的横向扩展（增加模型宽度），DUS通过纵向增加深度来提升小模型
+性能。2025年8月，Upstage完成4600万美元Series B Bridge融资，由韩国
+产业银行领投，\textbf{Amazon和AMD战略参投}——Amazon同时成为
+Upstage的首选云合作伙伴（在AWS上构建和部署SOLAR），AMD则提供
+Instinct MI355X GPU支持。Upstage还参与了韩国政府的"主权AI基础模型"
+开发项目，使其成为韩国AI主权叙事中的核心角色，地位类似Mistral之于
+欧洲。
+
+\subsubsection{InternLM（书生·浦语）：中国科研体系的开源代表}
+上海人工智能实验室（Shanghai AI Lab）主导开发的InternLM（书生）
+系列是中国科研体系中最活跃的开源模型项目。2025年1月发布的
+InternLM3-8B-Instruct仅用4T数据训练，即在同规模开源模型中达到最优
+性能，\textbf{训练成本降低超过75\%}——体现了"数据效率优先于数据
+规模"的理念。2025年7月，上海AI Lab在WAIC上发布了科学多模态模型
+Intern-S1，融合语言与多模态能力并重点强化科学理解；2026年2月进一步
+开源了\textbf{Intern-S1-Pro}——一个1万亿参数MoE科学大模型（512个
+专家，推理仅激活22B参数），在AI4S（AI for Science）领域实现了
+跨学科评估的国际领先水平。InternLM系列完全免费开源，代表了
+中国政府资助的科研机构在AI开源生态中的独特角色。
+
+\subsubsection{StarCoder2：代码生成的开源标杆}
+StarCoder2由BigCode社区（ServiceNow和Hugging Face联合管理）与
+NVIDIA合作开发，是开源代码生成模型的重要里程碑。该系列包含3B/7B/
+15B三个规模，在\textbf{619种编程语言}上训练，支持源代码生成、
+代码摘要、代码检索等任务。StarCoder2的独特之处在于其训练数据的
+\textbf{合规治理}——BigCode社区建立了严格的数据许可审查流程，
+确保训练数据不包含未授权的受版权保护代码。对于企业级代码AI应用
+（如ServiceNow的工作流自动化），这种数据合规性至关重要。StarCoder2
+采用BigCode Open RAIL-M许可证，允许商业使用但附带一定的使用限制。
+
+\begin{corebox}[开源模型的商业化悖论]
+开源模型面临一个深层矛盾：\textbf{越成功的开源项目，其创造者越难
+直接从中获利}。这一悖论的表现形式因创造者的不同而不同：
+\begin{itemize}
+  \item \textbf{大公司（Meta、Google、Microsoft）}：有其他收入来源
+    （广告、云服务、操作系统），开源模型是战略工具而非盈利中心。
+    它们不需要从开源中直接赚钱；
+  \item \textbf{中型创业公司（Mistral、01.AI）}：需要在"开源获取
+    社区影响力"和"闭源或差异化服务获取收入"之间艰难平衡。
+    Mistral的策略是早期模型开源、大模型商业化；
+  \item \textbf{研究机构（AI2、LMSYS）}：依赖基金会或大学资助，
+    开源是使命的一部分，但可持续性取决于外部资金；
+  \item \textbf{"佛系"实验室（DeepSeek）}：不需要商业化——由母公司
+    交叉补贴，开源是价值观而非策略。
+\end{itemize}
+这种差异化的生存策略解释了为什么开源生态的繁荣并不意味着每一个
+参与者都能活下去——它更像一个由不同动机的参与者共同维护的
+\textbf{公共品}。
+\end{corebox}
+
+
+% =============================================================
+\section{垂直领域模型公司}
+\label{sec:models-domain}
+% =============================================================
+
+当通用基础模型的性能越来越强，一个自然的问题浮出水面：是否还需要
+专门的垂直领域模型公司？答案是明确的\textbf{yes}——至少在法律、
+医疗、金融等"高风险高合规"领域，通用模型的"够好"远远不够。
+
+这些领域需要的不仅是语言能力，更是对专业知识体系、行业工作流程
+和监管约束的深刻理解。一个通用模型可能在MMLU的医学子集上得分90\%，
+但如果它在1\%的案例中自信地给出错误的药物剂量，这个模型在真实
+医疗场景中就是不可用的。垂直模型公司的核心价值不在于"比通用模型
+更聪明"，而在于\textbf{"在特定领域比通用模型更可靠"}。
+
+\subsection{Harvey：AI律师的诞生}
+\label{subsec:ch03-harvey}
+
+Harvey是垂直AI领域估值增长最快的公司之一，也是"AI+法律"赛道的
+标杆。公司由Gabriel Pereyra和Winston Weinberg于2022年创立，
+两位创始人分别拥有DeepMind的AI研究背景和顶级律所的法律实践经验
+——这种"技术+行业"的双重基因是垂直AI公司成功的典型特征。
+
+\subsubsection{估值飙升与融资历程}
+Harvey的估值轨迹堪称AI行业最陡峭的增长曲线之一。2024年底估值
+80亿美元，仅数月后的2026年2月便以110亿美元估值洽谈2亿美元新
+融资，由Sequoia和GIC领投（TechCrunch, 2026年2月；
+LegalTechTalk, 2026年2月）。从成立到估值超过100亿美元，Harvey
+用了不到四年。
+
+\subsubsection{产品能力与差异化}
+Harvey的产品面向大型律师事务所和企业法务部门，核心能力包括：
+\begin{itemize}
+  \item \textbf{合同审阅与对比分析}：自动识别合同条款中的风险点、
+    异常条款和与模板的偏差；
+  \item \textbf{法律研究与案例检索}：在海量判例法和法规中快速找到
+    相关先例，并生成结构化的研究备忘录；
+  \item \textbf{诉讼文书起草}：根据案件事实和法律论据自动生成
+    诉状、答辩书和法律意见书的初稿；
+  \item \textbf{尽职调查自动化}：在M\&A等交易中自动审阅数千份
+    文件，提取关键条款和风险因素。
+\end{itemize}
+
+Harvey的关键差异化不在于底层模型本身（Harvey使用OpenAI的模型为
+基础，同时发展自研能力），而在于\textbf{法律领域特有的三层护城河}：
+\begin{enumerate}
+  \item \textbf{RAG管线}：法律文档的检索和引用需要极高的精确度——
+    引用错误的判例可能导致败诉。Harvey构建了专门针对法律文献
+    的检索增强生成系统；
+  \item \textbf{合规安全层}：法律工作涉及客户保密义务（attorney-client
+    privilege）和严格的数据隔离要求。Harvey的安全架构确保不同
+    客户的数据绝对隔离；
+  \item \textbf{工作流集成}：Harvey不是一个独立的聊天界面，而是
+    深度嵌入律师日常使用的文档管理系统和案件管理平台。
+\end{enumerate}
+
+Harvey的增长速度反映了法律行业AI化的巨大需求——全球法律服务市场
+规模约1万亿美元，但数字化程度极低。律所的计费模式长期以"按小时
+收费"为基础，当AI能将一个初级律师数小时的合同审阅工作压缩到几分钟，
+效率提升带来的经济价值是巨大的。更深层的意义在于：Harvey正在改变
+法律工作的\textbf{人才杠杆}——一个配备Harvey的律师可以完成原来
+需要三到四个人的工作量。这对律所的成本结构和新入行律师的就业前景
+都有深远影响。
+
+\begin{warnbox}[垂直AI的"幻觉"风险：法律和医疗的生死线]
+法律和医疗AI面临一个特有的风险：\textbf{AI幻觉在高风险场景中的
+后果可能是灾难性的}。2023年，纽约律师Steven Schwartz因使用
+ChatGPT生成了六个完全虚构的案例引用（"hallucinated citations"）
+而被联邦法院制裁——这一事件成为AI法律应用的标志性警示。
+
+Harvey通过多层机制管控这一风险：
+\begin{itemize}
+  \item \textbf{强制引用验证}：AI生成的每一个法律引用都必须与
+    真实法律数据库交叉验证；
+  \item \textbf{Human-in-the-loop设计}：AI不替代律师的判断，而是
+    提供初稿供律师审阅和修改；
+  \item \textbf{行业特定安全过滤}：屏蔽可能生成误导性法律建议的
+    输出模式。
+\end{itemize}
+
+但挑战远未解决。对于任何垂直AI公司，\textbf{幻觉率不是一个技术
+指标——它是生死线}。一次严重的幻觉事件就可能摧毁公司的声誉，
+尤其是在法律和医疗这种"零容错"的领域。
+\end{warnbox}
+
+\subsection{Hippocratic AI：当AI学会希波克拉底誓言}
+\label{subsec:hippocratic}
+
+Hippocratic AI专注于医疗保健领域的生成式AI代理，由连续创业者
+Munjal Shah创立。2025年11月完成Series C融资1.26亿美元，估值35亿
+美元，由Avenir Growth领投。公司累计融资4.02亿美元，员工约200人
+（同比增长132\%，反映了快速扩张阶段），2025年营收约7600万美元。
+公司还收购了Grove AI以扩展其技术能力。
+
+\subsubsection{产品策略："从低风险切入"}
+与Harvey类似，Hippocratic AI的核心壁垒不在底层模型，而在
+\textbf{医疗安全验证层}。其AI代理处理的是一系列"非诊断"任务：
+\begin{itemize}
+  \item 患者预约排程和提醒；
+  \item 病史采集和入院问卷；
+  \item 社会决定因素筛查（Social Determinants of Health）；
+  \item 出院后随访和用药依从性跟踪；
+  \item 慢性病管理的日常健康问答。
+\end{itemize}
+
+这些任务的共同特点是：\textbf{重要但不危险}。AI处理这些任务出错的
+后果——比如预约时间搞混或遗漏一个随访电话——虽然不理想，但不会
+直接威胁患者生命。这种"从低风险切入、逐步扩展"的策略是医疗AI
+创业公司绕过监管壁垒的典型路径。相比之下，试图直接用AI做医学诊断
+的公司（如早期的IBM Watson Health）几乎都遭遇了监管和临床验证
+方面的巨大阻力。
+
+公司名字"Hippocratic"（源自希波克拉底誓言的核心原则："首先，
+不伤害"——Primum non nocere）本身就是产品哲学的宣言。在一个幻觉
+可能导致患者伤害的领域，安全性不是功能特性，而是存在前提。
+
+\subsection{Cohere：企业NLP的护城河}
+\label{subsec:cohere}
+
+总部位于多伦多的Cohere由Aidan Gomez（Transformer论文"Attention Is
+All You Need"的八位共同作者之一）创立，这一学术血统赋予了Cohere
+独特的技术公信力。2025年8月完成5亿美元融资，估值68亿美元。年化
+经常性收入（ARR）突破2.4亿美元，2026年IPO的可能性正在被市场
+讨论（TechFundingNews, 2026年2月）。
+
+\subsubsection{数据主权：被低估的护城河}
+Cohere的核心差异化在于\textbf{数据主权和部署灵活性}。与OpenAI和
+Anthropic主要通过云端API提供服务不同，Cohere的模型可以部署在
+客户自己的私有云、本地服务器甚至完全离线的环境中。这一"主权AI"
+（Sovereign AI）策略在以下场景中具有不可替代的价值：
+\begin{itemize}
+  \item \textbf{欧洲GDPR合规}：欧洲企业在使用AI时必须确保数据
+    不离开欧盟境内——Cohere的本地部署选项直接满足这一需求；
+  \item \textbf{政府和国防}：各国政府和军事机构不允许敏感数据
+    通过第三方云API传输；
+  \item \textbf{金融合规}：银行和保险公司的数据安全规定通常禁止
+    将客户数据发送到外部API端点。
+\end{itemize}
+
+Cohere的Command R系列模型在RAG（检索增强生成）任务上性能突出，
+配合其Embed（向量嵌入）和Rerank（重排序）模型构成了完整的企业搜索
+和知识管理解决方案。这种"全栈NLP"的产品策略使Cohere在企业市场上
+与OpenAI形成了差异化竞争，而非正面对抗。
+
+\subsubsection{与加拿大的战略绑定}
+作为总部位于加拿大的AI公司，Cohere与加拿大政府的AI主权议程天然
+契合。加拿大在AI研究（Geoffrey Hinton、Yoshua Bengio均在加拿大）
+和AI政策（首个发布国家AI战略的G7国家）方面有深厚积累，但缺乏
+本土的大模型公司。Cohere填补了这一空白，并已与多个加拿大联邦
+机构建立了合作。
+
+\subsection{Writer：企业AI的全栈平台}
+\label{subsec:writer}
+
+Writer从AI写作助手起步，逐步演化为企业级生成式AI平台。公司开发了
+自研的Palmyra模型系列，提供从文案生成到工作流自动化的全栈能力。
+Writer在2025年完成了约2亿美元的Series C融资，估值接近19亿美元。
+公司约有400名员工。
+
+Writer的独特之处在于其\textbf{品牌一致性引擎}（Brand Consistency
+Engine）：企业客户可以将品牌指南、术语表、写作风格规范、法律
+免责声明等输入系统，Writer生成的所有内容自动遵循这些约束。对于
+大型企业，这种"品牌安全的AI生成"具有直接的商业价值——每一篇偏离
+品牌调性的内容都可能损害品牌一致性和合规性。
+
+Writer的客户包括多家Fortune 500公司，覆盖金融、医疗、零售等
+行业。其商业模式是典型的企业SaaS——按用户席位数收费，附加定制
+训练和API调用的增量收入。在AI公司普遍面临"如何变现"困境的
+当下，Writer的SaaS模式提供了一个相对清晰的盈利路径。
+
+\subsection{AI21 Labs：以色列的NLP先驱}
+\label{subsec:ai21}
+
+总部位于特拉维夫的AI21 Labs由AI研究者Yoav Shoham和Ori Goshen
+创立（2017年成立），是最早的基础模型创业公司之一——早于OpenAI的
+商业化转型。公司累计融资约6.17亿美元，包括2025年5月的3亿美元
+Series D（CBInsights）。
+
+然而，2026年1月的报道显示了令人担忧的信号：AI21此前宣布的3亿
+美元融资实际上并未完全关闭（close），NVIDIA正在考虑收购公司
+（Calcalist, 2026年1月）。这一消息暗示AI21可能正在经历严重的
+融资困难。
+
+AI21的Jamba模型（基于Mamba架构与Transformer的混合设计）在长上下文
+处理上有独到之处——Mamba的线性复杂度让它在处理极长文本时比纯
+Transformer更高效。但公司面临的挑战具有代表性：\textbf{中型通用
+模型公司被夹在"大公司免费开源"（Meta Llama、Google Gemma）和
+"头部闭源超强性能"（GPT-5、Claude 4）之间，生存空间日益逼仄}。
+在这个"哑铃型"市场结构中，最难受的是中间地带——模型不够强，无法
+与闭源前沿竞争；体量不够大，无法像Meta那样以开源换生态。
+
+AI21的可能结局——被NVIDIA或其他大公司收购——可能成为"中型模型
+公司"的典型命运。
+
+\subsection{其他垂直与小众领域模型}
+\label{subsec:other-vertical}
+
+除了上述估值最高的垂直AI公司，一批更小众但同样重要的领域模型正在
+各自的专业赛道中构建护城河。
+
+\subsubsection{FinGPT：金融领域的开源先锋}
+FinGPT是一个开源金融大模型项目，旨在让金融NLP能力"平民化"。
+与BloombergGPT（使用3630亿token金融数据预训练的闭源模型）不同，
+FinGPT采用\textbf{轻量化微调}策略——在开源基座模型（如Llama）上
+用金融新闻、SEC文件、收益电话会议等数据进行LoRA微调，大幅降低了
+构建金融AI的成本门槛。项目在GitHub上获得了显著关注，被Star History
+评选为2025年垂直LLM领域的代表项目。FinGPT的核心价值不在于单一
+模型，而在于其\textbf{金融数据管线}——自动抓取和处理实时金融信息
+的工具链，使任何团队都能快速构建自己的金融AI。英国创业公司Aveni
+Labs的FinLLM则走了另一条路——完全面向FCA/PRA等金融监管合规场景
+定制，强调审计性和可解释性。
+
+\subsubsection{Meditron：医学推理的开源基准}
+Meditron是由瑞士EPFL（洛桑联邦理工学院）开发的医学大模型系列，
+基于Llama 2微调，在PubMed医学文献、临床指南和医学教科书上进行
+领域适配训练。Meditron-70B在MedQA等医学问答基准上的表现显著优于
+同规模通用模型，证明了领域数据微调对专业任务的关键作用。作为学术
+开源项目，Meditron的价值在于为医学AI研究提供了一个可复现、可扩展
+的基准——任何研究团队都可以在此基础上进一步适配特定的医学子领域
+（如放射学、病理学、药理学）。
+
+\subsubsection{Phind：程序员的AI搜索引擎}
+Phind定位为"面向开发者的AI搜索引擎"，其自研的Phind Model（基于
+CodeLlama微调）专门针对编程问题优化。与通用搜索引擎不同，Phind
+能够理解代码上下文、搜索技术文档并生成可直接使用的代码解决方案。
+Phind-70B在编码基准上一度超过GPT-4 Turbo，证明了垂直优化模型在
+特定任务上超越通用前沿模型的可能性。
+
+\subsubsection{Cortex Research Vera：英国的推理型模型}
+伦敦创业公司Cortex Research于2026年1月发布了Vera 1.5——一款
+基于高稀疏度MoE架构的推理优化模型，配备200K上下文窗口。Vera 1.5
+在数学推理、竞赛编程和Agent任务上表现出色，目标是在推理密集型场景
+中与GPT-4级别模型竞争。Cortex代表了欧洲AI创业生态中除Mistral之外
+的另一股力量——更小规模、更垂直聚焦的推理型模型公司。
+
+\begin{corebox}[垂直模型公司的战略启示]
+纵观Harvey、Hippocratic AI、Cohere、Writer和AI21的案例，
+垂直模型公司的成功取决于三个关键要素：
+\begin{enumerate}
+  \item \textbf{领域壁垒的深度}：法律和医疗的监管复杂性天然阻挡了
+    通用模型的"即插即用"。合规要求越高、专业知识越深、行业数据
+    越独特，垂直公司的护城河就越宽；
+  \item \textbf{工作流集成的紧密度}：不是替代人类专家，而是嵌入
+    现有工作流程成为"增强层"。Harvey嵌入律师的文档系统，
+    Hippocratic嵌入医院的患者管理系统——脱离工作流的AI是无用的；
+  \item \textbf{安全验证的严格度}：在高风险领域，"不犯错"比
+    "更聪明"更重要。这意味着大量投入在验证、测试和安全过滤上
+    ——这些"看不见的工作"是通用模型公司不会投入的。
+\end{enumerate}
+通用模型越强，垂直公司越需要在这三个维度上加深护城河。反过来说，
+如果一个垂直领域的合规要求不高、工作流简单、容错度高，那么通用
+模型就足够了——在这样的领域，垂直模型公司的生存空间有限。
+\end{corebox}
+
+
+% =============================================================
+\section{多模态模型公司}
+\label{sec:models-multimodal}
+% =============================================================
+
+2024--2025年，生成式AI最引人注目的前沿从文本扩展到了视频、音频、
+3D和数字人。OpenAI的Sora预告片在2024年2月点燃了公众对AI视频生成
+的想象，但真正将这一能力产品化的是一批专注于多模态的创业公司。
+到2026年3月，这个赛道已涌现出多家估值超过40亿美元的独角兽，
+覆盖视频、音乐、语音和数字人等细分领域。
+
+多模态AI的崛起不仅仅是技术进步——它代表了\textbf{AI从"理解世界"到
+"创造世界"的跨越}。文本模型理解和生成语言，视觉模型理解和生成图像，
+而视频模型需要同时理解时间、空间、物理规律和叙事逻辑。这种能力的
+质变催生了全新的产品品类和商业模式。
+
+\subsection{AI视频生成：从惊艳到实用}
+\label{subsec:video-gen}
+
+\subsubsection{Runway：视频AI的先驱}
+Runway可能是AI创意工具领域最具先见之明的公司。2018年成立时，
+创始人Cristobal Valenzuela（出生于智利，在NYU获得MFA学位——
+注意，不是CS学位而是艺术学位）就将公司定位为"AI驱动的创意工具"
+——远早于大众认知到这一市场的存在。
+
+从作为Stable Diffusion的联合开发者到Gen-1/Gen-2/Gen-3视频模型，
+Runway始终站在AI视觉生成的最前沿。但Runway真正令人印象深刻的不是
+某一个模型的突破，而是其\textbf{持续迭代的速度}——几乎每隔数月
+就推出性能显著提升的新版本。
+
+2026年2月，Runway完成3.15亿美元Series E融资，估值53亿美元，由
+General Atlantic领投。公司累计融资超过5.7亿美元。更值得注意的是
+Runway的战略转向：从"AI视频生成"转向更宏大的\textbf{"世界模型"
+（World Model）}愿景。在官方公告中，Runway将自己重新定义为
+"一家致力于构建能模拟物理现实的世界模型的公司"——不再是视频
+编辑工具，而是AI时代的"物理引擎"。
+
+这一转向的深层逻辑是：单纯的视频生成很快会被商品化（OpenAI、
+Google、Meta都在做），但\textbf{理解和模拟物理世界的能力}是更
+基础、更难复制的技术壁垒。如果Runway的世界模型能成功，其应用场景
+将远超视频创作——机器人训练、自动驾驶仿真、游戏世界生成等都将
+受益。
+
+Gen-4.5系列模型在视频质量和一致性上持续进步，但Runway面临的竞争
+格局已大为不同：OpenAI的Sora（虽然实际用户体验低于预期）、
+Google的Veo 3.1、以及一众中国竞品（Kling 3.0、Vidu Q3）正在
+快速追赶。Runway的核心防线在于其\textbf{创作者社区和工作流生态}——
+数百万专业创作者已将Runway融入日常工作流程，这种粘性不容易被
+单纯的模型性能提升打破。
+
+\subsubsection{Pika：病毒式传播的视频AI}
+Pika由两位斯坦福AI博士辍学生——Demi Guo和Chelin Meng——于2023年
+创立。两人放弃了即将到手的斯坦福AI博士学位（在学术界，这需要
+相当大的勇气），凭借极简的用户界面和病毒式传播迅速获得关注。
+
+公司在2024年6月完成了8000万美元Series B融资，累计融资约1.35亿
+美元。目前约55名员工（同比增长58.5\%），总部位于Palo Alto。尽管
+Pika的融资规模远小于Runway，但其在消费者市场的品牌认知度并不逊色。
+
+与Runway的"专业工具"定位不同，Pika瞄准的是\textbf{大众创作者和
+社交媒体用户}——不需要任何视频编辑经验，输入一句话就能生成短视频。
+这种"零门槛"的产品哲学让Pika在TikTok、Instagram等平台上获得了
+极高的传播度。但也正因为用户门槛极低，Pika面临着更严峻的
+用户留存挑战——当所有人都能用AI生成视频时，新鲜感消退后的
+日常使用率是关键问题。
+
+\subsubsection{Luma AI：从3D扫描到视频生成}
+Luma AI的发展路径独特——从NeRF（神经辐射场）3D扫描技术起步，
+逐步扩展到AI视频生成。创始人Amit Jain在3D重建领域有深厚的
+技术积累，这赋予了Luma AI区别于其他视频AI公司的"3D原生"基因。
+
+2025年11月，Luma AI完成了9亿美元巨额融资，由沙特AI公司Humain
+领投，估值超过40亿美元（CNBC, 2025年11月）。双方还合作在沙特
+阿拉伯建设2GW的AI超级集群"Project Halo"——这一合作的规模（9亿
+美元投资+超级算力中心）暗示了沙特在AI基础设施方面的雄心。
+
+Luma AI的Dream Machine模型在视频质量评测中持续位居前列。其
+\textbf{"3D原生"的技术基因}使得Luma在理解物体空间关系、物理运动
+和光照效果方面具有天然优势——这是纯文本到视频的Diffusion Transformer
+方法难以匹敌的。当你让AI生成"一个杯子从桌子边缘掉落并碎裂"
+这样的视频时，理解重力、碰撞和材质属性的3D原生模型比纯粹的
+像素预测模型更有可能生成物理上合理的结果。
+
+但9亿美元的融资和沙特资本的深度绑定也带来了地缘政治层面的复杂性
+——在AI技术出口管制日益严格的背景下，与海湾国家的合作可能引发
+西方政府的审查。
+
+\begin{keybox}[AI视频生成赛道：核心公司对比（截至2026年3月）]
+\small
+\begin{tabularx}{\textwidth}{l r r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{估值} & \textbf{总融资} & \textbf{差异化定位} \\
+\midrule
+Runway       & \$5.3B  & $>$\$570M & 世界模型愿景+专业创作者生态 \\
+Luma AI      & \$4B+   & $>$\$1B   & 3D原生技术+沙特Project Halo \\
+Pika         & $\sim$\$500M & \$135M & 零门槛大众创作+社交传播 \\
+快手Kling     & 内部     & ---      & 中国最大短视频生态整合 \\
+生数科技Vidu   & 未披露  & 未披露   & 全球首个16秒音视频直出 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+\subsection{AI音乐与语音}
+\label{subsec:audio-gen}
+
+\subsubsection{Suno：人人都是音乐家}
+如果说Runway让每个人都能"拍电影"，Suno则让每个人都能"作曲"。
+这家位于波士顿的AI音乐生成公司，在2026年2月宣布其付费订阅用户
+突破200万，年化经常性收入达到3亿美元（TechCrunch, 2026年2月27日）。
+
+这一数据令人震撼——它意味着AI音乐已经从"新奇玩具"跨越到了
+"大规模消费产品"的阶段。200万付费用户是一个不小的数字——作为
+对比，Spotify在上市时的付费用户约为7500万。当然，Suno的用户量级
+和增长曲线与Spotify不可直接类比，但它证明了AI生成音乐确实存在
+真实且付费意愿强烈的用户需求。
+
+Suno的产品体验极其简单：输入一段文字描述（"一首关于夕阳和告别的
+民谣"）或哼一段旋律，系统在几十秒内生成一首完整的歌曲——包括
+人声、伴奏、编曲和歌词。这种"魔法般"的体验引发了音乐产业的
+深度焦虑和法律争议。Suno目前面临来自多家大型唱片公司的版权诉讼——
+核心争议在于：用于训练Suno模型的数据集是否包含受版权保护的音乐？
+如果包含，这种使用是否构成"合理使用"（fair use）？这一法律问题
+的判决将对整个AI生成内容产业产生深远影响。
+
+\subsubsection{ElevenLabs：语音AI的110亿美元独角兽}
+ElevenLabs在2026年2月完成5亿美元Series D融资，估值达到110亿美元，
+由Sequoia Capital领投（Reuters, 2026年2月4日；ElevenLabs Blog,
+2026年2月4日）。公司由Piotr D\k{a}bkowski和Mati Staniszewski在
+2022年创立，总部位于伦敦和纽约——两位创始人均来自波兰，这使
+ElevenLabs成为欧洲AI创业的另一面旗帜。
+
+ElevenLabs的产品矩阵包括：
+\begin{itemize}
+  \item \textbf{高保真文本转语音}（TTS）：在自然度和表达力上
+    持续领先行业——生成的语音几乎无法与人声区分；
+  \item \textbf{语音克隆}：只需几分钟的样本音频，就能克隆任何人
+    的声音——包括音色、语调、节奏和情感表达；
+  \item \textbf{语音翻译}：将一种语言的语音翻译为另一种语言，
+    同时保持说话者的原始音色——这对于视频本地化极为有价值；
+  \item \textbf{Eleven Music}：新推出的AI音乐生成功能，直接
+    挑战Suno。
+\end{itemize}
+
+ElevenLabs的语音技术已被广泛应用于有声书制作（据报道已为多家
+出版商制作了数千本有声书）、播客生产、游戏配音和视频本地化。但其
+语音克隆技术也引发了深度伪造方面的严重担忧——xAI的Grok因整合
+ElevenLabs技术生成deepfake内容而被调查。\textbf{音频AI的滥用风险
+可能比文本和图像更为棘手}——因为人类对声音的辨别能力远弱于对
+图像的辨别能力，一段伪造的语音在电话中几乎无法被识破。
+
+ElevenLabs从110万美元估值的种子轮到110亿美元估值的Series D，仅用了
+约三年——增长了10000倍。这一速度即使在AI泡沫时代也属罕见，反映了
+市场对语音AI基础设施的极度看好。
+
+\subsection{AI数字人与虚拟形象}
+\label{subsec:avatar}
+
+\subsubsection{HeyGen：跨境AI视频的隐形冠军}
+HeyGen由中国创业者Joshua Xu（徐卓）创立于2020年，总部位于
+洛杉矶。公司的核心产品允许用户上传一段视频，AI自动将说话者的
+语言翻译成其他语言，同时精确同步口型（lip-sync）——说话者看起来
+就像在用目标语言发言。
+
+这种"AI配音+口型同步"的技术在以下场景中有巨大需求：
+\begin{itemize}
+  \item \textbf{跨境电商}：将一段中文产品介绍视频自动转化为
+    英语、西班牙语、阿拉伯语等多个版本；
+  \item \textbf{在线教育}：将一门英语课程自动本地化为数十种语言；
+  \item \textbf{企业内部培训}：跨国企业的培训视频只需录制一次，
+    AI自动生成所有语言版本。
+\end{itemize}
+
+HeyGen的估值据报道已超过5亿美元。作为一家由华人创立但面向全球
+市场的公司，HeyGen代表了"中国AI技术出海"的一种成功模式——不是
+将中国产品简单翻译后推向海外，而是从一开始就以全球用户需求为
+导向来设计产品。
+
+\subsubsection{Synthesia：企业培训视频的AI化}
+总部位于伦敦的Synthesia是AI数字人领域的先驱。2026年1月完成2亿
+美元融资（由Alphabet旗下GV和NVIDIA领投），估值达40亿美元
+（TechStartups, 2026年1月；SiliconANGLE, 2026年1月）。
+
+Synthesia的AI虚拟形象（Avatar）技术被超过50\%的Fortune 100公司
+用于企业培训视频制作——传统方式需要拍摄团队、演员、场地租赁和
+后期剪辑，Synthesia将这一流程压缩到几分钟，成本降低90\%以上。
+用户只需输入文本脚本并选择一个AI形象，系统自动生成看起来完全专业
+的培训视频。
+
+公司正将定位从"视频生成工具"扩展到"AI培训平台"——不仅生成视频，
+还提供学习管理、知识检测和效果分析等功能。这一转型如果成功，
+将大幅提升其TAM（总可寻址市场）——从"视频制作工具"（市场规模
+约100亿美元）扩展到"企业培训平台"（市场规模超过3000亿美元）。
+Alphabet和NVIDIA的投资背景也为Synthesia在分发渠道（Google Workspace
+集成）和技术基础设施（GPU优化）方面提供了战略支持。
+
+\subsection{中国多模态力量}
+\label{subsec:china-multimodal}
+
+在AI视频生成领域，中国公司展现了与美国竞品不相上下甚至更胜一筹的
+技术能力——这在基础模型领域尚不多见。中国的优势在于：庞大的短视频
+用户基础提供了海量训练数据和即时的产品反馈循环。
+
+\subsubsection{快手可灵（Kling）}
+快手于2024年6月发布的可灵（Kling）AI视频生成模型迅速成为中国最具
+影响力的视频AI产品。到2026年初，Kling已迭代到3.0版本，在Artificial
+Analysis的全球视频AI评测中位居前列。
+
+Kling的核心优势在于\textbf{与快手短视频生态的深度整合}。快手拥有
+超过6亿月活用户，这些用户每天上传和观看海量短视频内容。这一生态
+为Kling提供了三个不可替代的优势：
+\begin{enumerate}
+  \item \textbf{训练数据}：数十亿条真实短视频为模型训练提供了
+    规模和多样性远超学术数据集的素材；
+  \item \textbf{产品测试场景}：6亿用户意味着每一次模型更新都能在
+    真实场景中获得即时、大规模的反馈；
+  \item \textbf{分发渠道}：AI生成的视频可以直接在快手平台上
+    发布和传播，无需额外的分发基础设施。
+\end{enumerate}
+
+这种"大平台孵化AI工具"的模式是中国多模态AI的典型路径——抖音的
+即梦（Jimeng）、腾讯的混元视频（Hunyuan Video）也采用了类似策略。
+对比来看，美国的视频AI公司（Runway、Pika）需要独立获客，而中国
+同行可以直接利用母平台的用户池——这是一个巨大的结构性优势。
+
+\subsubsection{生数科技Vidu}
+生数科技（Shengshu Technology）的Vidu系列是中国AI视频生成领域的
+另一支重要力量，来自清华大学朱军教授团队的技术积累。2026年1月
+发布的Vidu Q3实现了多项突破：
+
+\textbf{全球首个16秒音视频同步直出}——不仅生成动态画面，还同步
+生成语音、音效和背景音乐，实现了从"AI默片"到"AI有声影片"的跨越。
+在Artificial Analysis最新榜单中，Vidu Q3位列中国第一、全球第二，
+仅以微弱差距落后于xAI的Grok视频系统，超越了Runway Gen-4.5和
+Google Veo 3.1。
+
+更值得关注的是Vidu Agent功能——支持"一键成片"：用户输入简短描述，
+AI自动完成剧本编排、镜头规划、视频生成和音频合成的全流程。
+这将AI视频从"素材生成器"推进到了"内容创作流水线"的阶段。如果说
+Runway聚焦的是"世界模型"这一基础能力层，Vidu聚焦的是"端到端内容
+生产"这一应用层——两种路径各有优势，反映了不同的技术和市场判断。
+
+字节跳动旗下的"即梦"（Seedance）2.0也在同期发布，三家中国视频AI
+产品在Artificial Analysis榜单上形成了"三足鼎立"的格局。
+
+\subsection{小众多模态公司：长尾创新}
+\label{subsec:niche-multimodal}
+
+在Runway、Pika、Suno等头部公司之外，一批更小规模的多模态创业公司
+正在各自的细分赛道中构建差异化能力。
+
+\subsubsection{AI视频生成的"第二梯队"}
+
+\textbf{Haiper}（伦敦）由前Google DeepMind研究者创立，累计种子轮
+融资约1910万美元。Haiper的定位是构建"感知基础模型"（Perceptual
+Foundation Model），其2.0/2.5版本在超写实风格和快速生成速度上获得
+用户好评，6.5M用户在9个月内生成了超过5200万个视频和图像。但2026年
+初Haiper宣布停止独立运营，其技术被整合到ImagineArt等平台中——这是
+AI视频赛道残酷竞争的又一例证。
+
+\textbf{Genmo}（旧金山）累计融资5840万美元（2024年10月Series A），
+约12名员工。Genmo的目标是成为"下一个十亿AI视频创作者"的入口，
+聚焦于降低视频创作门槛。团队规模极小但估值不低，反映了投资者对
+视频AI赛道的持续看好。
+
+\textbf{PixVerse}（新加坡/中国）累计融资6000万美元（2025年9月
+Series B），约28名员工但增长迅猛（同比+585\%）。PixVerse的v4.5
+模型在TikTok和Instagram上引发了多次病毒式传播效应——"AI变脸"和
+"AI特效"视频成为社交媒体爆款，这种\textbf{社交传播驱动的增长}
+是PixVerse区别于专业级工具的核心策略。
+
+\textbf{LTX Studio}（以色列Lightricks旗下）定位为"AI视频制作的创意
+工作室"，而非单一的视频生成工具。LTX-2.3模型支持从概念到终剪的
+全流程，面向影视制作人、广告公司和企业内部制作团队。其差异化在于
+\textbf{专业级的制作控制}——不仅生成视频，还提供镜头规划、色彩
+校正、多轨编辑等专业功能。
+
+\subsubsection{AI音频生成的新势力}
+
+\textbf{Fish Audio}（总部Mountain View，约15人）是开源语音AI领域
+的新锐力量。2025年10月发布的Fish-Speech采用创新的双自回归（Dual-AR）
+架构和Firefly-GAN声码器，实现了近100\%的码本利用率和业界领先的
+表达性语音合成；2025年11月的S1模型在Seed TTS Eval上达到0.8\% WER
+和0.4\% CER，训练数据超过200万小时；2026年3月的\textbf{S2模型}
+更是实现了\textbf{词级粒度的语音控制}——支持在单词层面通过内联标签
+（inline tags）精确控制情感、停顿、强调和语速，覆盖80种语言，并
+完全开源。Fish Audio代表了开源语音AI的"小而美"路线。
+
+\textbf{ChatTTS}是中国开源社区贡献的语音合成模型，采用Apache 2.0
+许可证，上线6个月即在GitHub上获得超过1.2万Star。ChatTTS的核心创新
+是将语音与文本联合预训练引入TTS领域，支持中英双语，MOS评分达4.2
+（满分5.0），接近专业录音师水平。其\textbf{轻量化设计}（参数量可
+压缩至30M以内）使其可在树莓派等边缘设备上实时运行。ChatTTS在有声书、
+智能客服、游戏NPC配音等场景中被广泛采用，是中国开源AI社区在
+语音赛道的代表性贡献。
+
+\textbf{CosyVoice}（阿里通义团队）是另一个值得关注的开源语音模型。
+最新的CosyVoice 3.0/Fun-CosyVoice版本实现了\textbf{0.81\% CER的
+内容一致性}和77.4\%的说话人相似度，仅0.5B参数即达到行业领先水平。
+CosyVoice支持双向流式合成（bi-streaming），首包延迟低至150ms，支持
+9种主要语言和18种以上中国方言，具备零样本语音克隆能力。2026年1月，
+通义团队进一步发布了cosyvoice-v3-flash版本，新增24种音色覆盖方言、
+营销、诗词朗诵、有声书等多元场景。
+
+\textbf{Stability Audio 2.5}（Stability AI）是为企业级声音制作设计的
+音频生成模型——不同于面向消费者的Suno，Stability Audio瞄准的是
+\textbf{品牌定制化声音}这一B端市场，支持广告配乐、店内音效、品牌
+声音资产等规模化音频生产场景。
+
+\begin{corebox}[多模态AI的"模态爆炸"意味着什么？]
+回顾2023年初，生成式AI几乎等同于"文本聊天"。到2026年，AI已经能够
+生成高质量的视频、音乐、语音、3D模型和数字人。这种"模态爆炸"
+带来三个深层影响：
+\begin{enumerate}
+  \item \textbf{内容创作的民主化}：创作的门槛从"掌握专业技能"
+    （视频编辑、音乐制作、3D建模）降到"描述你想要什么"——
+    这将释放数十亿没有专业技能但有创意想法的潜在创作者；
+  \item \textbf{真伪边界的模糊}：当AI生成的视频和音频与真实无异时，
+    信息验证的成本急剧上升。深度伪造不再需要专业工具，任何人
+    都能生成以假乱真的内容——这对选举安全、司法证据和媒体公信力
+    构成了前所未有的挑战；
+  \item \textbf{创意产业的重构}：传统按"人$\cdot$时"收费的创意
+    服务（摄影、配音、视频制作、音乐编曲）面临根本性的定价压力。
+    当AI可以在30秒内完成人类创作者数小时的工作时，创意产业的
+    价值链将被彻底重塑。
+\end{enumerate}
+这些影响将在后续关于消费者创意应用的章节中进一步展开。
+\end{corebox}
+
+
+% =============================================================
+\section{中国基础模型公司深度}
+\label{sec:models-china}
+% =============================================================
+
+中国的基础模型赛道在2023--2026年间经历了一场浓缩了硅谷十年
+历程的加速演化。从"百模大战"的蜂拥而入，到"六小虎"格局的初步
+形成，再到DeepSeek的横空出世和港交所IPO潮，这个赛道的每一个月
+都有新的剧情。本节将深入分析十家最具代表性的中国基础模型公司。
+
+\begin{keybox}[中国"大模型六小虎"：核心数据速览]
+\small
+\begin{tabularx}{\textwidth}{l l r r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{创始人} & \textbf{估值} & \textbf{状态} & \textbf{差异化定位} \\
+\midrule
+智谱AI      & 唐杰等  & 港股3200亿+  & 已上市(01月)& 清华系, GLM架构, 国产芯片 \\
+MiniMax     & 闫俊杰  & 港股3000亿+  & 已上市(01月)& 多模态, 海螺AI, 出海 \\
+月之暗面    & 杨植麟  & \$180亿      & 融资中    & Kimi爆发, 3个月估值翻4倍 \\
+百川智能    & 王小川  & 约200亿元    & 计划上市  & 医疗AI转型, Baichuan-M3 \\
+零一万物    & 李开复  & 未披露       & 战略转型  & Yi模型转向企业AI Agent \\
+阶跃星辰    & 姜大昕  & \$40--60亿   & 计划上市  & 多模态+端侧AI \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent 港股市值以2026年2月峰值计（港元计价）。数据来源：公司公告、
+品玩、财新、彭博。
+\end{keybox}
+
+\subsection{智谱AI：清华系的"大模型第一股"}
+\label{subsec:zhipu}
+
+智谱AI是中国大模型赛道最具学术基因的公司，也是全球首家以纯大模型
+业务登陆资本市场的上市公司。2019年脱胎于清华大学计算机系知识
+工程实验室（KEG Lab），核心团队包括清华教授唐杰等人——唐杰在
+知识图谱和学术数据挖掘领域有着国际级的学术声誉（AMiner系统的
+创造者）。
+
+\subsubsection{GLM架构：独立于GPT的技术路线}
+智谱的自主研发GLM（General Language Model）架构是国内最早的
+千亿级模型架构之一。区别于GPT的单向自回归（从左到右生成），GLM
+采用了\textbf{自回归填空}（autoregressive blank-filling）的训练
+目标——在输入文本中随机遮挡若干片段，然后以自回归方式生成被遮挡
+的内容。这种设计理论上让GLM在理解任务（类似BERT）和生成任务
+（类似GPT）上都能表现出色，尽管实际性能差异的大小在学术界
+仍有争论。
+
+智谱已迭代发布超过20款模型产品，形成了覆盖基座模型、推理模型、
+多模态模型和AI Agent的完整矩阵。2025年被智谱定义为"开源年"，
+全新的GLM-5系列陆续开源。GLM-4.5在编码能力上接近Claude Sonnet 4，
+已接入Claude Code、Cline、Gemini CLI、Grok CLI、CodeGeeX等多款
+主流编程工具——这使得智谱的模型获得了非常广泛的开发者触达。
+
+\subsubsection{融资历程：从学术到国资}
+智谱的融资历程反映了中国大模型赛道资本结构的演变：
+\begin{itemize}
+  \item 2024年9月：投前估值200亿元人民币，完成数十亿元融资。
+    投资方包括高瓴、启明、君联以及美团、阿里、腾讯、小米等
+    互联网巨头——几乎集齐了中国科技资本的全明星阵容；
+  \item 2025年3月：超10亿元战略融资，杭州城投产业基金、上城资本
+    等地方国资领投——标志着长三角地方政府开始以资本手段引入
+    外部AI龙头企业；
+  \item 2025年7月：浦东创投和张江集团战略投资10亿元，三方还
+    启动了人工智能新型基础设施共建项目；
+  \item 之后还有成都高新区3亿元战略投资等。
+\end{itemize}
+
+这一融资模式的显著特征是\textbf{地方国资的深度介入}。不同于美国
+AI公司主要依靠风投和大公司战略投资，中国AI创业公司的资金来源中
+地方政府基金占比越来越高。这背后的逻辑是双向的：AI公司需要资金，
+地方政府需要AI产业——杭州、上海、成都争相引入智谱，本质上是在
+争夺AI产业集群的先发优势。
+
+\subsubsection{港交所上市与市值表现}
+2026年1月8日，智谱在港交所挂牌上市，成为全球"大模型第一股"。
+开盘市值约528亿港元，此后一路攀升至超过3200亿港元——在2026年2月
+峰值时，智谱的市值一度超过了京东等传统互联网巨头。这一市值表现
+既反映了资本市场对AI赛道的极度乐观，也引发了"估值泡沫"的广泛
+讨论。
+
+\subsubsection{国产芯片适配：被低估的壁垒}
+智谱的一个独特优势是\textbf{国产芯片兼容性}：GLM架构适配40余种
+国产GPU芯片（包括华为昇腾、寒武纪、海光等），这在美国芯片出口
+管制日益收紧的背景下具有不可忽视的战略意义。对于信创（信息技术
+应用创新）领域的政府和国企客户——这些客户被要求逐步替换美国技术
+栈——智谱几乎是不可替代的选择。这一政策驱动的市场可能不是最大的，
+但利润率极高且竞争者有限。
+
+\begin{whybox}[为什么智谱和MiniMax选择港交所而非美股？]
+2026年初的港交所AI上市潮并非偶然，背后有三个结构性因素：
+\begin{enumerate}
+  \item \textbf{地缘政治风险}：中国AI公司面临VIE架构下赴美上市的
+    政策不确定性——2024年滴滴在美上市后的遭遇让所有中国科技公司
+    对赴美IPO更加谨慎；
+  \item \textbf{港交所规则创新}：港交所2024年修订了主板上市规则
+    （18C章），允许"未商业化公司"（Pre-Revenue）在满足特定科技
+    门槛条件下上市——这为仍处于高投入、低利润阶段的AI公司
+    打开了大门；
+  \item \textbf{双向资本通道}：港股连接了国际和内地两个资本市场——
+    既能吸引全球机构投资者，又能对接内地南下资金（沪深港通）。
+\end{enumerate}
+从结果看，智谱和MiniMax上市后均获得了超预期的市场追捧。但市值的
+快速膨胀也带来了期望管理的挑战——当市值达到3000亿港元级别时，
+市场对收入增长和盈利时间表的要求会急剧上升。
+\end{whybox}
+
+\subsection{MiniMax：出海最成功的"六小虎"}
+\label{subsec:minimax}
+
+MiniMax（上海稀宇科技）由前商汤科技副总裁闫俊杰于2021年底创立，
+是"六小虎"中成立最早的一家。其发展路径与其他几家有显著不同：
+从一开始就将\textbf{多模态能力和海外市场}作为核心战略。
+
+\subsubsection{上市与财务表现：全球首份大模型年报}
+2026年1月9日，即智谱上市次日，MiniMax在港交所挂牌。以165港元的
+定价上限发行，暗盘盘中涨超32\%，开盘日大涨42.67\%，市值达719亿
+港元——一度超越前一天上市的智谱。此后市值持续攀升，峰值逼近
+3000亿港元。IPO募资总额约48.18亿港元。
+
+作为\textbf{全球首家发布完整年度财报的大模型上市公司}，MiniMax的
+财务数据具有标本意义：
+\begin{itemize}
+  \item 2025年全年营收7904万美元，同比增长158.9\%；
+  \item 超过70\%的收入来自国际市场——在"六小虎"中海外收入占比
+    最高；
+  \item 2026年2月ARR突破1.5亿美元；
+  \item 毛利同比飙升437\%，但经调整净亏损仍为2.5亿美元。
+\end{itemize}
+
+这份财报揭示了大模型公司商业化的一个核心矛盾：\textbf{增速惊人，
+但亏损同样惊人}。158.9\%的营收增长令人兴奋，但2.5亿美元的亏损
+意味着公司每赚1美元就亏约3美元。如果增长持续加速并最终覆盖亏损，
+当前的高估值是合理的；如果增长趋缓而亏损缩减不够快，估值就面临
+下行风险。
+
+\subsubsection{产品矩阵：海螺AI与多模态}
+MiniMax的旗舰C端产品"海螺AI"（Hailuo AI）在海外市场表现突出，
+尤其是其AI视频生成和AI角色对话功能获得了大量海外用户。
+MiniMax-01系列模型采用"Lightning Attention"注意力机制优化超长
+上下文处理——支持超过400万token的有效上下文长度。
+
+MiniMax在其首份年报中预判了2026年三大"超级PMF"方向：
+AI Agent智能体、AI视频生成和AI角色对话。这三个方向各自对应了
+不同的商业化路径：Agent面向企业效率提升、视频面向创作者经济、
+角色对话面向情感陪伴和娱乐。
+
+\subsubsection{投资方阵容}
+MiniMax的股东名单本身就是一道中国科技资本的风景：阿里巴巴、
+腾讯（通过博裕资本）、米哈游、红杉中国等。米哈游的投资尤其
+值得注意——作为《原神》的开发商，米哈游对AI角色对话、AI NPC和
+AI内容生成有着直接的战略兴趣，这为MiniMax提供了重要的应用场景
+合作伙伴。
+
+\subsection{月之暗面（Moonshot AI / Kimi）：估值增速最快的中国AI公司}
+\label{subsec:moonshot}
+
+月之暗面由前清华大学教授杨植麟（Yang Zhilin）于2023年创立，
+这是"六小虎"中最年轻的创始人之一（90后）。杨植麟此前在Carnegie
+Mellon University读博期间参与了XLNet等知名NLP研究，后在Meta和
+Google的AI项目中积累了工程经验。
+
+\subsubsection{Kimi的爆发式增长：教科书级的"PMF时刻"}
+月之暗面旗下的AI助手"Kimi"在2025年底至2026年初经历了教科书式的
+爆发增长，其速度之快让整个行业瞠目。
+
+融资时间线：
+\begin{itemize}
+  \item 2025年底：完成约5亿美元C轮融资，估值约43亿美元；
+  \item 2026年初（约1月）：完成超7亿美元新一轮融资，估值突破
+    100亿美元，正式跻身"十角兽"行列——创下中国公司从成立到
+    晋级十角兽的最快纪录（仅约两年）；
+  \item 2026年3月：以约180亿美元估值洽谈最高10亿美元的新融资
+    （彭博；腾讯新闻, 2026年3月14日）。
+\end{itemize}
+
+\textbf{三个月内从43亿美元到180亿美元}——估值翻了超过四倍。
+
+这种令人眩晕的估值攀升背后是Kimi产品数据的惊人表现。关键催化剂是
+2026年初发布的\textbf{Kimi Claw}——一个深度搜索+链式推理功能。
+据报道，Kimi Claw上线后，\textbf{仅20天的收入就超过了2025年全年}。
+全球支付巨头Stripe的数据显示，Kimi个人订阅用户1月支付订单数
+环比增长8280\%（东方财富, 2026年2月）。
+
+杨植麟在全员信中表示，"融资金额超过绝大部分IPO募资"。
+
+\subsubsection{从长上下文到深度搜索}
+Kimi最初以\textbf{超长上下文窗口}（200K tokens）作为差异化卖点
+——在2024年上半年其他模型还在8K--32K token上下文中挣扎时，Kimi
+允许用户一次性输入整本书或大量文档进行分析。这一技术优势虽然后来
+被多个竞争对手追上（Claude支持200K、Gemini支持1M），但为Kimi赢得
+了宝贵的先发用户基础和品牌认知——"长文档分析找Kimi"在中国用户
+中形成了心智占位。
+
+2026年初发布的Kimi Claw则代表了更深层的差异化——将搜索引擎的
+实时信息获取与大模型的推理能力深度结合，形成了一种"AI研究助手"
+的新品类。用户提出一个复杂问题，Kimi Claw会自动在互联网上搜索
+相关信息，构建多层次的推理链，最终给出结构化的分析报告——这个
+过程可能需要数十秒到几分钟，但输出质量远超简单的关键词搜索或
+单次模型推理。
+
+\begin{warnbox}[月之暗面的估值泡沫风险]
+从43亿美元到180亿美元，三个月翻四倍的估值增速在整个AI行业中也
+属罕见。支撑这一估值的核心假设是Kimi的增长势头能够持续，并最终
+转化为可持续的盈利能力。
+
+但需要考虑几个风险因素：
+\begin{enumerate}
+  \item \textbf{增长的可持续性}：消费AI产品的用户增长曲线通常是
+    S形的——爆发期之后必然进入增长放缓期。Kimi Claw的"20天超
+    全年"是可持续的增长还是一次性的流量脉冲？
+  \item \textbf{付费转化率}：中国用户对AI产品的付费意愿历史上
+    低于美国用户。8280\%的支付订单增长是否能在数月后维持？
+  \item \textbf{竞争格局}：百度文小言、字节豆包等大公司产品
+    正在快速迭代，DeepSeek的免费API更是直接冲击了付费模型。
+\end{enumerate}
+
+投资者需要区分\textbf{"增长故事"和"盈利故事"}——前者驱动估值，
+后者决定生死。在AI创业公司普遍尚未盈利的当下，180亿美元的估值
+几乎完全建立在增长预期之上。一旦增长曲线出现拐点，估值修正
+可能是剧烈的。
+\end{warnbox}
+
+\subsection{百川智能：从通用模型到医疗AI的战略转型}
+\label{subsec:baichuan}
+
+百川智能由前搜狗CEO王小川于2023年3月创立。王小川是中国互联网
+行业的老将——搜狗搜索引擎的创造者，清华大学计算机系毕业。在
+"六小虎"中，百川走了一条与众不同的路——\textbf{从最初的通用大模型
+竞赛中主动退出，转向以医疗AI为核心的垂直战略}。
+
+\subsubsection{战略转型的逻辑}
+百川的转型发生在2024年下半年。彼时，通用大模型赛道已经进入白热化
+竞争，DeepSeek等开源模型的出现进一步压缩了中小型通用模型公司的
+生存空间。王小川的判断是：\textbf{通用模型最终只会剩下三到五个
+赢家，中型公司必须找到自己的垂直壁垒}。
+
+医疗被选为切入点，基于以下逻辑：
+\begin{itemize}
+  \item \textbf{市场规模}：中国医疗市场超过8万亿元人民币，且
+    数字化程度低，AI化的增量空间巨大；
+  \item \textbf{专业壁垒}：医学知识体系、临床数据和合规能力的
+    深度整合不是通用模型能轻松实现的——这为专业公司创造了护城河；
+  \item \textbf{商业化清晰度}：医疗AI的付费方（医院、保险公司、
+    药企）明确且付费能力强，比C端消费者付费模式更可预测。
+\end{itemize}
+
+\subsubsection{Baichuan-M3：医疗AI的技术突破}
+2026年1月，百川发布了新一代开源医疗大模型Baichuan-M3，宣称在
+多个维度上实现了突破：
+\begin{itemize}
+  \item 在问诊能力、医疗幻觉控制、HealthBench和HealthBench Hard
+    评测上均排名第一；
+  \item 声称超越OpenAI GPT-5.2，并在所有环节超越人类医生的表现
+    （百川官方数据——需注意，自评结果通常比第三方评测更乐观）；
+  \item M3首次具备原生的"端到端"严肃问诊能力——不仅能回答医学
+    问题，更能像医生一样\textbf{主动追问}（"您的腹痛是饭前还是
+    饭后？有没有放射到其他部位？"），建立完整病史，给出诊断建议。
+\end{itemize}
+
+\subsubsection{财务与上市计划}
+百川的估值约200亿元人民币（约28亿美元），累计融资超过50亿元。
+王小川在2026年1月的Baichuan-M3发布会上透露了两个关键信息：
+\begin{enumerate}
+  \item 公司账上仍有30亿元现金，"完全足够烧"——这在"六小虎"中
+    是相对健康的现金状况；
+  \item 计划2027年启动IPO上市。
+\end{enumerate}
+
+王小川还对智谱和MiniMax的港股上市发表了尖锐评价，认为"它们的
+市值和商业化能力并不匹配"——这一判断虽然尖刻，但点出了一个真实
+的行业焦虑：当市值达到3000亿港元而年营收仅为数千万美元时，
+估值倍数确实高得惊人。
+
+百川的案例对所有"六小虎"都有启示意义：\textbf{当通用模型赛道的
+竞争者包括拥有无限资源的大公司（百度、阿里、腾讯）和不需要盈利的
+理想主义者（DeepSeek）时，创业公司的出路可能不是"更强的通用模型"，
+而是"更深的垂直壁垒"}。医疗AI是否是正确的垂直选择，取决于百川
+能否在中国复杂的医疗监管体系中找到可规模化的产品路径。
+
+\subsection{零一万物（01.AI）：创业的残酷现实}
+\label{subsec:01ai}
+
+零一万物由被称为"中国AI教父"的李开复于2023年3月创立。李开复在
+中国科技界的影响力无需赘述——前Google中国总裁、创新工场创始人、
+畅销书作者。这种个人品牌为零一万物的起步提供了巨大的势能。
+
+\subsubsection{辉煌的开局}
+凭借李开复的个人品牌和人脉，零一万物在成立之初就吸引了全球关注。
+Yi-34B模型在HuggingFace上获得了极高的下载量和社区评价——在当时
+（2023年底），Yi-34B是参数规模最大、中英双语性能最强的开源模型
+之一。公司据报道获得了包括阿里巴巴在内的多家投资方的支持。
+
+\subsubsection{痛苦的转型}
+然而，零一万物在2025年经历了痛苦的战略转型。2024年上半年，李开复
+曾公开表示"绝不放弃预训练"；但到2025年，零一万物从模型预训练
+转向了企业级AI Agent平台"WorldWise"。2025年初，李开复又公开
+承认，"赌上巨量资源去训练超大参数规模的模型，超低的性价比对
+初创公司来说，肯定不是一个务实的选择"。
+
+这一"食言"的背后是残酷的现实：
+\begin{enumerate}
+  \item \textbf{算力差距}：Meta和DeepSeek投入的算力是零一万物
+    负担不起的。当这两家各自以不同方式（暴力投入和极致效率）
+    把开源模型做到了前沿水平，再投入资源做通用预训练就是
+    资源浪费；
+  \item \textbf{融资困难}：据报道，阿里巴巴原本是重要投资方，
+    但后续投资意愿减弱。在其他"六小虎"纷纷获得数十亿美元融资
+    或成功上市的背景下，零一万物的融资处境显得格外艰难；
+  \item \textbf{人才流失}：当DeepSeek和其他头部公司以更高薪酬
+    吸引人才时，零一万物在人才竞争中处于不利地位。
+\end{enumerate}
+
+2026年初，零一万物将WorldWise企业平台升级到2.5版本，宣布
+2026年为"多Agent系统企业部署的关键年"。员工规模约100多人。
+
+零一万物的案例揭示了一个残酷的现实：\textbf{在AI创业中，创始人的
+个人品牌和技术声誉可以帮助公司起步，但无法替代可持续的商业模式
+和充足的资本支持}。当赛道进入"烧钱决赛"阶段，品牌光环的边际效用
+递减。
+
+\subsection{阶跃星辰（StepFun）：端侧AI的差异化赌注}
+\label{subsec:stepfun}
+
+阶跃星辰由前微软全球副总裁姜大昕于2023年4月在上海创立。在"六小虎"
+中，阶跃星辰以\textbf{"原生多模态+端侧AI"}的独特定位著称。
+
+\subsubsection{破纪录融资与管理层升级}
+2026年1月，阶跃星辰完成超50亿元人民币（约7.17亿美元）B+轮融资，
+\textbf{创下过去12个月中国大模型赛道单笔最高融资纪录}。投资方
+包括上国投先导基金、国寿股权、浦东创投、徐汇资本、无锡梁溪基金、
+厦门国贸、华勤技术等产业投资人，腾讯、启明、五源等老股东跟投
+（腾讯新闻, 2026年1月26日）。
+
+同时，旷视科技联合创始人\textbf{印奇}出任公司董事长，与CEO姜大昕、
+首席科学家张祥雨、CTO朱亦博组成核心管理团队。印奇的加入被解读为
+阶跃星辰向"AI+硬件"融合方向加速推进的信号——印奇在旷视积累的
+计算机视觉和AI硬件经验与阶跃的端侧AI战略高度契合。
+
+\subsubsection{上市计划}
+据《财经》杂志独家报道，阶跃星辰正在进行Pre-IPO融资：
+\begin{itemize}
+  \item 第一拨：投前估值约40亿美元，计划融资20--30亿元人民币；
+  \item 第二拨：投前估值50--60亿美元，计划4月中下旬交割。
+\end{itemize}
+计划2026年6月30日前在港股交表，预期基石定价约100亿美元。2025年
+收入约5亿元人民币。如果进展顺利，阶跃星辰有望成为第三家IPO的
+通用大模型独角兽。
+
+\subsubsection{端侧AI战略}
+阶跃星辰最核心的差异化在于\textbf{"端云协同"模型}。Step系列
+大模型覆盖语言、多模态和推理，但更独特的是其面向终端设备优化的
+小模型——这些模型可以直接运行在手机芯片或车载芯片上，无需云端
+调用，从而实现低延迟、高隐私的AI体验。
+
+与华勤技术等硬件厂商的合作中，阶跃星辰正试图打造一个从"模型
+训练$\to$端侧部署$\to$应用场景"的完整闭环。这也是为什么阶跃星辰
+被类比为"中国版xAI+Tesla"——大模型能力（类比xAI的Grok）+端侧
+硬件整合（类比Tesla的车载AI）。这一类比是否恰当仍有争议，但阶跃
+星辰确实在走一条"六小虎"中最差异化的路。
+
+\subsection{DeepSeek：改变中国AI行业的"局外人"}
+\label{subsec:deepseek-china}
+
+DeepSeek已在§\ref{subsec:deepseek-open}中从开源生态角度做了分析，
+此处聚焦其对中国AI创业生态的冲击。
+
+DeepSeek的存在对"六小虎"乃至整个中国AI赛道产生了五个维度的
+深远影响：
+
+\textbf{第一，重新定义"够好"的成本。}当DeepSeek以极低成本达到
+前沿水平时，所有声称需要数十亿融资来训练模型的公司都必须回答：
+"为什么你的效率比DeepSeek低这么多？"这个问题不仅是技术层面的，
+更是资本层面的——投资者开始质疑高额融资的必要性。
+
+\textbf{第二，加速开源替代。}DeepSeek的MIT许可证让任何公司都可以
+免费使用其模型。对于原本通过API收费的公司（如智谱、MiniMax的B端
+业务），这是直接的冲击——为什么客户要为API付费，如果可以免费
+部署一个性能相当甚至更好的开源模型？
+
+\textbf{第三，改变人才市场。}据报道，DeepSeek以极高薪酬（研究员
+年薪可达数百万元）从其他"六小虎"吸引人才。在一个人才极度稀缺的
+市场中，DeepSeek的人才虹吸效应加剧了其他公司的招聘难度。
+
+\textbf{第四，迫使差异化。}百川转向医疗、零一万物转向Agent平台、
+阶跃星辰聚焦端侧——这些战略调整在某种程度上都是对"DeepSeek
+已经把通用模型做到足够好且免费"这一现实的回应。
+
+\textbf{第五，提振民族自信。}DeepSeek R1引发的全球轰动让中国
+AI行业获得了前所未有的国际关注和认可——不再是"模仿者"，而是
+"创新者"。这种心理效应对整个行业的士气和人才吸引都有正面影响。
+
+DeepSeek最独特的地方在于其\textbf{组织结构}：作为量化基金幻方的
+"附属项目"，DeepSeek不接受外部融资、不追求估值增长、不需要商业化
+变现压力。据报道幻方2025年收益率达57\%——这意味着幻方的量化交易
+利润完全能够持续资助DeepSeek的AI研究。这种"对冲基金资助纯研究"
+的模式在全球AI行业中独一无二，它让DeepSeek拥有了一种创业公司和
+大公司都无法复制的\textbf{战略自由度}——不必为了下一轮融资而夸大
+产品能力，不必为了商业化而偏离研究方向。
+
+\subsection{百度文心大模型（ERNIE）}
+\label{subsec:ernie}
+
+百度是中国最早全面布局大模型的互联网巨头。文心一言（ERNIE Bot）
+于2023年3月上线，是中国第一个面向公众开放的大模型应用——比任何
+"六小虎"都要早数月。百度在AI领域的投入历史可以追溯到2013年成立
+的深度学习实验室，李彦宏对AI的个人信念（"All in AI"的口号早在
+2017年就已提出）使百度在这一领域有着十年以上的积累。
+
+\subsubsection{2025年财务表现}
+百度2025年全年总营收1291亿元人民币，其中AI业务营收400亿元。第四
+季度AI业务收入占百度一般性业务收入的43\%——这是百度首次对外披露
+这一核心指标。AI云业务全年收入300亿元，算力订阅Q4同比增长143\%。
+
+这些数据表明，百度的AI商业化已经进入"兑现期"——从成本中心转向
+利润中心。与"六小虎"仍在亏损中挣扎不同，百度作为上市公司已经
+需要（也有能力）展示AI投入的财务回报。
+
+\subsubsection{模型与平台的垂直整合}
+百度的大模型战略与其搜索引擎和云计算业务深度绑定：
+\begin{itemize}
+  \item \textbf{搜索}：文心大模型是百度搜索体验升级的核心引擎。
+    AI搜索重写了传统"蓝链"搜索的用户体验，直接给出结构化答案
+    而非链接列表；
+  \item \textbf{云计算}：百度智能云以文心大模型为核心卖点，企业
+    客户通过百度云部署文心模型；
+  \item \textbf{自动驾驶}：百度Apollo项目将大模型能力应用于
+    自动驾驶决策和场景理解；
+  \item \textbf{内容生态}：百度文库、百度百科等内容产品利用
+    文心进行内容生成和增强。
+\end{itemize}
+
+这种"模型+平台+应用"的垂直整合是百度区别于纯创业公司的最大优势
+——但也意味着文心大模型的发展方向必须服务于百度的整体商业利益，
+而非纯粹追求技术前沿。
+
+\subsection{阿里通义千问（Qwen）}
+\label{subsec:tongyi}
+
+阿里巴巴的大模型战略已在§\ref{subsec:qwen}的开源生态部分做了
+技术层面的讨论。此处补充其在中国市场的商业化和战略定位。
+
+2025--2026年，阿里巴巴完成了一次重要的品牌整合——将旗下所有
+大模型产品统一为"千问"（Qwen）品牌。此前，阿里的大模型产品分散
+在"通义千问"（对话）、"通义万相"（图像）、"通义听悟"（语音）等
+多个品牌下，容易造成用户认知混乱。品牌统一后，"千问"成为阿里
+大模型的唯一品牌入口。
+
+阿里通义的商业化路径在中国大公司中最为清晰——\textbf{一切为了云}。
+千问模型$=$阿里云的差异化$\to$开发者在阿里云上部署$\to$消费阿里云的
+计算和存储$\to$云收入增长。这个等式简单但有效。
+
+在中国大公司中，阿里对大模型的投入力度可能仅次于百度（两者都以
+数百亿元计），但阿里的开源策略更为激进——Qwen系列的开源程度远超
+百度文心。这种差异反映了不同的商业逻辑：百度更侧重通过搜索和
+云服务直接变现模型能力，阿里则更侧重通过开源扩大云生态。
+
+\subsection{科大讯飞星火（iFlytek Spark）}
+\label{subsec:spark}
+
+科大讯飞是中国AI领域的"老将"——成立于1999年，在语音识别和自然
+语言处理领域深耕超过25年。星火大模型是讯飞对大模型浪潮的回应。
+
+2026年2月，讯飞发布了\textbf{星火X2}——采用293B参数MoE稀疏架构，
+\textbf{完全在国产算力上训练}。"完全国产算力"这一标签在当前中美
+科技竞争的背景下具有特殊意义：它证明了即使在NVIDIA高端GPU受到
+出口管制限制的情况下，中国公司仍能训练出有竞争力的大模型。
+
+讯飞的差异化在于其\textbf{深厚的2B/2G（企业/政府）渠道}。作为
+A股上市公司（科大讯飞002230.SZ），讯飞在教育（智慧课堂、AI批改
+作业）、医疗（智医助理、AI辅助诊断）、智慧城市（政务服务、城市
+治理）等垂直领域拥有大量既有客户。星火大模型可以直接叠加到这些
+场景中形成增量收入——不需要从零获客。讯飞医疗（iFlytek Healthcare,
+02506.HK）更是独立在港交所上市，星火X2的发布直接为讯飞医疗的
+AI辅助诊断能力带来了显著升级。
+
+但讯飞面临两个核心挑战：一是在模型前沿性能上与互联网巨头和顶尖
+"六小虎"的差距——星火在通用基准上的排名不及DeepSeek、Qwen和
+GLM；二是其传统2B/2G收入结构中"项目制"占比较高，毛利率和
+可扩展性不如SaaS或API模式。
+
+\subsection{中国"六小虎"之外的模型力量}
+\label{subsec:china-others}
+
+除了"六小虎"和互联网巨头，中国AI生态中还有一批更小众但各具特色的
+模型公司和开源项目，它们共同构成了中国大模型赛道的"长尾"。
+
+\subsubsection{面壁智能（ModelBest）：端侧AI的极致追求}
+面壁智能由清华NLP实验室长聘副教授刘知远和前知乎CTO李大海联合
+创办于2022年8月，是中国端侧大模型赛道最坚定的践行者。公司以
+\textbf{"高效"为第一性原理}，专注于打造同等参数下性能更高、成本更低、
+功耗更小的端侧模型。
+
+面壁智能的代表作\textbf{MiniCPM系列}被称为"性能小钢炮"——以8--9B
+的极小参数规模，在端侧实现了接近甚至超越同期云端大模型的多模态
+能力。发展历程清晰地展示了其"密度法则"（Densing Law，刘知远提出，
+认为模型能力密度每100天倍增）的实践：
+\begin{itemize}
+  \item \textbf{MiniCPM-V 2.6}（2024年8月）：首次在端侧实现GPT-4V
+    级别的视觉理解；
+  \item \textbf{MiniCPM-o 2.6}（2025年1月）：首个端侧全模态模型，
+    首创"持续看、实时听、自然说"的实时交互能力；
+  \item \textbf{MiniCPM-o 4.5}（2026年2月）：仅9B参数，首创
+    \textbf{原生全双工}交互——模型可以一边输出一边持续接收视频和
+    音频输入，实现"边看、边听、主动说"的类人交互。
+\end{itemize}
+
+全平台下载量累计破1000万次。面壁智能还发布了面向车端的"小钢炮
+超级助手cpmGO"——全球首个纯端侧车载智能助手，已与长安马自达、
+上汽大众、长城汽车等多家车企达成量产合作。
+
+融资方面，面壁智能自2024年以来完成四轮数亿元级融资（2024年4月
+春华创投领投、2024年12月龙芯创投领投、2025年5月洪泰基金领投、
+2025年12月京国瑞等参投），是DeepSeek出圈后少数仍能持续融资的
+大模型公司。《麻省理工科技评论》和《经济学人》将面壁智能与
+DeepSeek并称为中国"高效创新"的代表。
+
+\subsubsection{出门问问（Mobvoi）：语音AI老兵的大模型转型}
+出门问问由前Google科学家李志飞于2012年创立，是中国最早的AI语音
+公司之一。2023年6月在港交所上市（2438.HK），是中国"AIGC第一股"。
+公司2025年总营收约7.5亿元人民币，其中AIGC业务增长迅速。出门问问
+的"序列猴子"大模型覆盖文本、语音和数字人三大模态，旗舰C端产品
+"奇妙文"和"魔音工坊"已积累数百万用户。出门问问的价值在于其
+\textbf{十余年语音AI积累}——在TTS、ASR和对话系统方面的工程经验，
+为大模型时代的语音交互产品提供了坚实基础。
+
+\subsubsection{深言科技（DeepLang）：NLP工具链的专注者}
+深言科技成立于2023年，由清华大学NLP实验室孵化，专注于将NLP技术
+产品化。公司的差异化在于不做通用大模型，而是聚焦于\textbf{文本
+处理工具链}——包括文本纠错、摘要生成、信息抽取、文档分析等中间层
+能力。对于需要将大模型集成到业务流程中的企业客户，这些"不起眼但
+不可或缺"的NLP中间件往往比通用对话能力更有实际价值。
+
+\subsubsection{商汤SenseTime：从计算机视觉到大模型平台}
+商汤科技（0020.HK）作为中国AI"四小龙"之一，2023年发布了"日日新
+SenseNova"大模型平台，涵盖语言模型、视觉模型、数字人生成等多模态
+能力。商汤的差异化在于其\textbf{强大的GPU集群基础设施}（SenseCore
+AI大装置）和十年以上的计算机视觉积累。2025--2026年，商汤加速向
+大模型平台转型，但也面临着从传统To-G（政府项目）收入向AI云服务
+转型的阵痛。
+
+\begin{corebox}[中国基础模型赛道的格局演变：三段论]
+\begin{enumerate}
+  \item \textbf{2023年：百模大战}——超过100家公司宣布做大模型，
+    资本蜂拥而入。"有清华/北大背景+一群GPU就能融资"是当时的
+    市场情绪。这一阶段的特征是同质化竞争——几乎每家公司的
+    pitch都是"中国的OpenAI"。
+
+  \item \textbf{2024年：六小虎分化}——市场开始分层。智谱、MiniMax、
+    月之暗面等头部公司拉开与其他竞争者的距离，资本高度向头部
+    集中。大量二三线模型公司退出或转型。这一阶段的特征是
+    \textbf{马太效应}——强者愈强，弱者出局。
+
+  \item \textbf{2025--2026年：商业化大考}——DeepSeek的冲击迫使
+    所有公司重新思考差异化定位。港股IPO潮提供了资本退出通道，
+    但也暴露了"高估值 vs.\ 低收入"的根本矛盾。这一阶段的
+    关键问题是：\textbf{谁能最先证明大模型可以盈利？}
+\end{enumerate}
+
+展望未来，中国基础模型赛道可能最终沉淀为三类玩家：
+\begin{itemize}
+  \item \textbf{大公司内部模型}（百度、阿里、腾讯）——以生态协同
+    为目标，不需要独立盈利；
+  \item \textbf{上市独角兽}（智谱、MiniMax、阶跃星辰）——以
+    规模增长换资本市场认可，面临盈利时间表的压力；
+  \item \textbf{垂直深耕者}（百川医疗、阶跃端侧）——以差异化
+    壁垒求生存，市场更小但利润率更高。
+\end{itemize}
+DeepSeek则作为"超然于商业竞争之外的技术公共品"继续存在——它不
+参与商业竞争，但改变了所有参与者的竞争条件。
+\end{corebox}
+
+
+% =============================================================
+\section{AI Agent与具身智能基础模型}
+\label{sec:models-agent-embodied}
+% =============================================================
+
+2025--2026年，AI模型竞赛的一个重要新赛道是\textbf{"行动模型"}
+（Action Model）——不仅理解语言和图像，更能在数字世界和物理世界中
+\textbf{采取行动}。这类模型公司可分为两个方向：面向软件操作的
+"数字Agent模型"和面向机器人控制的"具身智能基础模型"。
+
+\subsection{数字Agent模型公司}
+\label{subsec:agent-models}
+
+\subsubsection{Adept AI：被Amazon吸收的先驱}
+Adept AI由前OpenAI工程副总裁David Luan与Transformer论文共同作者
+Ashish Vaswani和Niki Parmar于2022年创立，旗舰模型ACT-1能够解读
+自然语言指令并在软件界面上执行操作——本质上是一个"AI同事"。公司
+累计融资4.15亿美元，估值超过10亿美元。
+
+然而，Adept的故事很快发生了戏剧性转折。2024年7月，Amazon以
+"非收购"形式雇用了Adept约三分之二的员工（包括CEO David Luan和
+四位联合创始人），并非独占授权了其模型、数据集和技术——这一交易
+结构模仿了Microsoft吸收Inflection的模式，旨在规避反垄断审查。
+Luan领导的Amazon AGI Lab随后开发了Nova Act——在REALBench等Agent
+基准上排名前列。2026年2月，Luan宣布从Amazon离职"去做新东西"。
+Adept的案例揭示了一个残酷现实：\textbf{在基础模型烧钱竞赛中，
+即使拥有Transformer论文作者级别的技术团队，初创公司也可能因资金
+压力而被大公司"体面收编"}。
+
+\subsubsection{Imbue：重新定义个人计算}
+Imbue（前身为Generally Intelligent，2020年成立）由Kanjun Qiu和
+Josh Albrecht创立于旧金山，2023年完成2亿美元Series B融资（包括
+Astera、NVIDIA和Alexa Fund参投），估值10亿美元，跻身独角兽行列。
+Imbue的使命是构建\textbf{"为人类工作的AI系统"}——不只是生成文本，
+而是能够推理、编码和在数字环境中自主行动的Agent。
+
+2025年9月，Imbue发布了\textbf{Sculptor}——一款AI编码Agent的UI
+工具，允许用户在安全容器中并行运行多个编码Agent并实时查看代码
+变更。2026年3月在Product Hunt亮相时，Imbue同时开源了\textbf{Vet}
+——一个用于验证AI编码Agent输出正确性的工具。Imbue的理念是"重燃
+个人计算机的梦想"——让软件真正忠于用户而非平台，让每个人都能通过
+AI Agent构建属于自己的软件。这一理念虽然宏大，但目前仍处于早期
+产品验证阶段。
+
+\subsection{具身智能基础模型公司}
+\label{subsec:embodied-models}
+
+如果说数字Agent模型让AI学会操作软件，具身智能基础模型则让AI学会
+操控\textbf{物理世界}——这可能是AI领域最后也最难的疆域。
+
+\subsubsection{Physical Intelligence（$\pi$）：机器人的通用大脑}
+Physical Intelligence（简称PI或$\pi$）由来自Google DeepMind、
+斯坦福和UC Berkeley的世界级机器人学家于2024年创立，是具身智能
+赛道融资最多的创业公司之一。公司在成立不到两年内累计融资
+\textbf{10.7亿美元}：种子轮7000万（Thrive Capital和OpenAI
+Startup Fund领投）、Series A 4亿、2025年11月6亿（CapitalG领投，
+估值56亿美元），投资人还包括Jeff Bezos、Lux Capital、Index
+Ventures和T. Rowe Price。员工约138人，同比增长183\%。
+
+PI的核心产品是\textbf{$\pi$0（pi-zero）}——号称"首个通用机器人
+基础模型"，能够控制多种不同形态的机器人执行多样化任务（折叠衣物、
+组装箱子、收拾餐桌、制作咖啡等）。$\pi$0是一个3B--5B参数的
+Vision-Language-Action（VLA）Transformer模型，接收RGB-D相机图像和
+机器人运动历史作为输入，预测未来50步动作轨迹，延迟约100ms。PI还
+开源了\textbf{openpi}——$\pi$0的代码和权重，让研究社区可以在此
+基础上进行实验。
+
+\subsubsection{Skild AI：从匹兹堡走向全球}
+Skild AI由CMU教授Abhinav Gupta联合创立于2023年，总部位于匹兹堡，
+已成为具身智能赛道融资规模最大的公司之一——累计融资
+\textbf{19亿美元}，包括2026年1月的Series C，估值达数十亿美元级别。
+员工约40人（同比增长111\%），在印度、沙特和新加坡有分支机构。
+
+2025年7月，Skild AI发布了\textbf{Skild Brain}——一个可运行在几乎
+任何机器人上的基础AI模型，支持空间推理和实时适应能力。Gupta的核心
+信念是："跨不同形态学习通用模型是必需的，这是解决问题的唯一方式"
+——即不为每种机器人定制模型，而是训练一个能泛化到所有机器人的通用
+智能。这一理念与PI类似但更激进，NVIDIA的投资也体现了对这一方向的
+看好。
+
+\subsubsection{Figure AI：人形机器人的算力雄心}
+Figure AI由Brett Adcock于2022年创立于圣何塞，是人形机器人赛道
+估值最高的公司之一。2025年9月，Figure完成超过10亿美元Series C融资，
+\textbf{估值达390亿美元}，由Parkway Venture Capital领投，
+Brookfield、NVIDIA、Intel Capital、Macquarie Capital、LG Technology
+Ventures、Salesforce、T-Mobile Ventures和Qualcomm Ventures等参投。
+
+Figure的AI平台\textbf{Helix}是一个Vision-Language-Action模型，
+驱动Figure 02人形机器人执行折叠衣物、装载洗碗机等家务任务。公司
+计划通过BotQ制造工厂在未来四年内出货10万台人形机器人。Figure的
+战略是同时面向家庭和商业场景——这比仅面向工业场景的机器人公司有
+更大的TAM（总可寻址市场），但技术挑战也指数级上升。390亿美元的
+估值反映了市场对"人形机器人+AI"这一终极愿景的极度乐观。
+
+\begin{keybox}[AI Agent与具身智能：核心公司对比（截至2026年3月）]
+\small
+\begin{tabularx}{\textwidth}{l l r r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{方向} & \textbf{估值} & \textbf{总融资} & \textbf{核心模型/产品} \\
+\midrule
+Physical Intelligence & 通用机器人    & \$5.6B  & \$1.07B & $\pi$0 VLA模型 \\
+Skild AI             & 通用机器人    & 未披露  & \$1.9B  & Skild Brain \\
+Figure AI            & 人形机器人    & \$39B   & $>$\$2.6B & Helix + Figure 02 \\
+Imbue                & 数字Agent     & \$1B    & \$232M  & Sculptor编码Agent \\
+Adept AI             & 软件操作Agent & ---     & \$415M  & ACT-1（已被Amazon吸收） \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+
+% =============================================================
+\section{从开源项目到公司}
+\label{sec:models-oss-to-company}
+% =============================================================
+
+AI领域一个引人入胜的现象是：一些最具影响力的基础设施项目诞生于
+学术研究或开源社区，而非风投资助的创业公司。当这些项目的影响力
+达到一定临界点后，它们面临一个共同的选择——继续以松散的开源社区
+方式运营（由志愿者维护、依赖捐赠或学术资金），还是成立公司
+进行商业化（引入风投、雇佣全职团队、建立商业模式）？
+
+2025--2026年，多个开源AI项目选择了后者，形成了一波"开源$\to$创业"
+的浪潮。这些案例不仅是创业故事，更是关于\textbf{AI基础设施如何
+从公共品演化为商业产品}的深刻叙事。
+
+\subsection{vLLM $\to$ Inferact：开源推理引擎的商业化}
+\label{subsec:vllm-inferact}
+
+vLLM是目前全球最流行的开源大模型推理引擎。其核心创新
+\textbf{PagedAttention}彻底改变了LLM推理的内存管理方式——通过
+借鉴操作系统的虚拟内存分页机制来管理KV缓存，将推理吞吐量提升了
+数倍。
+
+PagedAttention的灵感令人着迷：在传统的LLM推理中，每个请求的
+KV缓存占据一块连续的GPU内存，就像早期操作系统中进程占据
+连续物理内存一样。这导致严重的内存碎片和浪费——当一个请求结束时，
+其释放的内存空间可能无法被新请求使用（因为大小不匹配）。
+PagedAttention将KV缓存分割为固定大小的"页"，按需分配——正如
+操作系统的虚拟内存让进程可以使用不连续的物理内存页。这一看似
+简单的类比产生了巨大的实际效益：内存利用率从50--60\%提升到
+接近100\%，推理吞吐量成倍增长。
+
+到2025年底，vLLM在GitHub上拥有超过4.5万颗星，几乎成为开源模型
+部署的事实标准。当你使用Together AI、Fireworks AI或者任何一个
+开源模型推理平台时，底层很可能就是vLLM。
+
+\subsubsection{Inferact的成立}
+2026年1月，vLLM的创始团队正式成立商业公司\textbf{Inferact}，并
+宣布获得1.5亿美元种子轮融资，估值8亿美元（TechCrunch, 2026年1月；
+Bloomberg, 2026年1月）。投资方包括Andreessen Horowitz（a16z）、
+光速创投（Lightspeed）和红杉资本（Sequoia）——这三家顶级VC同时
+出现在一个种子轮中，几乎前所未有。
+
+Inferact目前仅有约9名员工——这一极小的团队规模与1.5亿美元的融资
+形成了鲜明对比（人均融资约1670万美元）。这反映了一个事实：
+\textbf{投资者投的不是团队规模，而是vLLM在AI推理生态中的战略
+位置}。
+
+\subsubsection{商业化路径}
+Inferact的使命是将vLLM从一个"很好用但需要自己运维"的开源工具，
+升级为一个"企业级的全托管推理平台"。具体而言：
+\begin{itemize}
+  \item \textbf{开源核心保持不变}：vLLM继续作为开源项目维护和
+    迭代——这是社区信任的基础；
+  \item \textbf{商业层叠加}：在开源核心之上，提供企业级的监控、
+    调度、安全、SLA保障和技术支持；
+  \item \textbf{托管服务}：提供一键部署的云端推理服务，用户无需
+    管理GPU集群和运维复杂度。
+\end{itemize}
+
+这种"开源核心+商业壳"的模式在软件行业有大量先例——Redis、MongoDB、
+Elastic都走过类似的路。但AI推理引擎的特殊之处在于其\textbf{跨模型
+通用性}——无论使用Llama、DeepSeek还是Qwen，都需要推理引擎。这种
+通用性赋予了Inferact类似于"AI行业的Linux内核"的平台潜力。
+
+\begin{whybox}[为什么AI推理引擎比AI模型更有"平台价值"？]
+模型来来去去——今天是Llama 4，明天可能是DeepSeek V4——但推理引擎
+是模型层和应用层之间的\textbf{不变中间层}。这种"跨模型通用性"
+赋予了vLLM/Inferact三个独特优势：
+\begin{enumerate}
+  \item \textbf{不受模型竞赛影响}：无论哪个模型胜出，推理引擎
+    都是必需品——它是"卖铲子给淘金者"的典型案例；
+  \item \textbf{网络效应}：越多人使用vLLM，社区贡献越多、bug修复
+    越快、性能优化越好$\to$更多人使用——这是经典的开源飞轮；
+  \item \textbf{数据洞察}：作为推理的中间层，Inferact可以观察到
+    哪些模型被最多部署、在什么场景中使用——这些数据本身
+    具有战略价值。
+\end{enumerate}
+如果Inferact能在开源社区领导力和商业化之间取得平衡，它有潜力
+成为AI推理的标准基础设施——就像Docker定义了容器化、Kubernetes
+定义了编排一样。
+\end{whybox}
+
+\subsection{FastChat / Chatbot Arena $\to$ LMArena}
+\label{subsec:lmarena}
+
+2023年，UC Berkeley的研究团队（包括Ion Stoica和Joseph Gonzalez
+等教授——两人也是Databricks和Ray的联合创始人，在系统研究领域有着
+极高的声誉）创建了两个开源项目：FastChat（开源聊天框架）和
+Chatbot Arena（众包模型评测平台）。
+
+Chatbot Arena的创新在于其评测方法：采用ELO评分系统（借鉴
+国际象棋排名），让真实用户在\textbf{匿名}条件下对比不同模型的
+回答质量并投票。这种"盲评众包"的方法迅速成为AI社区最受信任的
+模型排名——因为它不依赖任何静态基准测试（这些测试容易被过拟合），
+而是基于真实用户的主观判断。OpenAI、Google、Anthropic都在官方
+发布中引用Chatbot Arena的排名。
+
+\subsubsection{创纪录的估值增速}
+2025年，项目团队成立了商业公司\textbf{LMArena}，随后经历了可能是
+AI行业最快的估值攀升：
+\begin{itemize}
+  \item 2025年中：1亿美元种子轮融资；
+  \item 2026年1月6日：1.5亿美元Series A，估值17亿美元（TechCrunch,
+    2026年1月；Finimize, 2026年1月）。由Felicis和UC Investments
+    领投。
+\end{itemize}
+
+从"大学研究项目"到"17亿美元独角兽"仅用了不到一年——即使在AI泡沫
+时代，这一速度也令人瞠目。
+
+\subsubsection{商业化逻辑}
+LMArena的商业化并非直接"卖排名"，而是基于其在AI评测领域积累的
+独特资产：
+\begin{itemize}
+  \item \textbf{数据资产}：数百万次真实用户评测产生的偏好数据，
+    这是任何合成基准无法替代的；
+  \item \textbf{方法论资产}：统计上严格的评测框架，可以定制化
+    应用于企业特定场景；
+  \item \textbf{品牌资产}：在AI社区中"Chatbot Arena排名"已成为
+    模型质量的代名词。
+\end{itemize}
+
+当企业面临"几十个模型中选哪个最适合我的场景"这一决策时，LMArena
+的评测能力就有了直接的商业价值。企业版的A/B测试基础设施和定制化
+评估报告是其核心变现方式。
+
+\subsection{LlamaFactory：中国开源的商业化探索}
+\label{subsec:ch03-llamafactory}
+
+LlamaFactory是由中国开发者hiyouga创建的开源大模型微调框架，
+在GitHub上获得了极高的关注度。其核心价值在于\textbf{统一微调接口}
+——支持超过100种不同模型架构（Llama、Qwen、DeepSeek、GLM、Phi
+等），用户可以用同一套代码和配置完成全参数微调、LoRA微调、QLoRA
+微调等多种方式，极大降低了大模型适配特定任务的工程门槛。
+
+LlamaFactory已作为ACL 2024论文发表，并在Tracxn等平台上登记为
+商业公司。尽管其商业化路径尚不像vLLM/Inferact那样清晰——没有
+大额融资、没有知名VC背书——但LlamaFactory代表了中国开源AI项目
+商业化的早期探索。在中国的风投生态中，"开源项目转化为商业公司"
+的路径不如硅谷成熟（缺乏红帽、Elastic等成功先例的文化参照），
+但随着AI开发工具市场的快速增长，这类项目的商业潜力正在被逐渐
+认可。
+
+\subsection{Gradio $\to$ Hugging Face：被收购的开源传奇}
+\label{subsec:gradio}
+
+Gradio的故事代表了开源项目商业化的另一种路径：\textbf{被大平台
+收购}。Gradio由Abubakar Abid（Stanford计算机科学博士）于2019年
+创建，最初只是一个让机器学习研究者快速构建模型演示界面的小工具库
+——几行Python代码就能创建一个支持文本、图像、音频输入输出的
+交互式Web界面。
+
+2021年12月，Hugging Face收购了Gradio，将其深度整合进Hugging Face
+Spaces平台。这一收购产生了强大的飞轮效应：
+\begin{itemize}
+  \item Gradio让模型可视化变得极简$\to$
+  \item 更多人在Hugging Face上展示模型demo$\to$
+  \item 更多开发者涌入Hugging Face生态$\to$
+  \item Hugging Face的平台价值持续增长。
+\end{itemize}
+
+到2026年，Gradio已成为AI领域最广泛使用的模型演示框架之一，
+几乎每一个新发布的开源模型都会附带一个Gradio Demo。Abubakar Abid
+分享的创业和被收购故事也成为了AI开源社区中广为流传的经典案例
+（Hugging Face Blog, 2024年1月；36氪, 2026年3月）——它展示了
+一个小工具库如何通过精准满足社区需求、被合适的平台收购，最终
+产生远超创始人预期的影响力。
+
+\begin{keybox}[开源$\to$商业化的四种路径]
+\small
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{路径} & \textbf{代表案例} & \textbf{特点与风险} \\
+\midrule
+独立创业      & vLLM$\to$Inferact      & 开源核心+企业级托管。风险：社区可能fork \\
+平台化扩展    & FastChat$\to$LMArena   & 数据和方法论$\to$评测平台。风险：护城河窄 \\
+被收购整合    & Gradio$\to$HuggingFace & 嵌入大平台生态。风险：创始人失去控制权 \\
+开源+SaaS    & LlamaFactory           & 开源工具+付费云端服务。风险：商业化路径不清 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+\begin{corebox}["开源$\to$公司"浪潮的深层意义]
+从vLLM、FastChat到LlamaFactory，2025--2026年的"开源$\to$创业"
+浪潮揭示了AI基础设施的一个结构性特征：\textbf{最有价值的AI基础设施
+往往不是自上而下设计的，而是自下而上涌现的}。
+
+这些项目的共同轨迹是：
+\begin{enumerate}
+  \item 从解决创始人自己遇到的具体痛点开始——vLLM解决推理效率
+    问题，Gradio解决模型演示问题，LlamaFactory解决微调繁琐问题；
+  \item 通过开源获得社区验证和快速迭代——真实用户的反馈比任何
+    市场调研都更有价值；
+  \item 在达到临界采用规模后，面临商业化的选择。
+\end{enumerate}
+
+这一路径与传统的"先融资、再开发、后推广"恰好相反。它的优势是
+产品已经被市场验证（Product-Market Fit在商业化之前就已实现），
+劣势是开源社区可能对商业化持抵触态度（"你要开始收费了吗？
+那我fork你的代码自己维护"）。
+
+如何在开源社区的信任和商业可持续性之间取得平衡，是每一个走上
+这条路的项目必须面对的核心挑战。Inferact的策略——保持开源核心
+不变、只在商业层叠加增值服务——可能是目前最优的平衡点，但这一
+平衡是脆弱的。一旦商业利益开始影响开源项目的发展方向（比如将
+某些性能优化保留给付费版本），社区信任就可能迅速瓦解。
+\end{corebox}
+
+
+% =============================================================
+% Chapter summary
+% =============================================================
+
+\bigskip
+
+\begin{keybox}[本章小结：模型层的五大趋势]
+\begin{enumerate}
+  \item \textbf{开源赶超闭源}：在越来越多的基准测试上，开源模型
+    （DeepSeek V3.2、Llama 4、Qwen3、Mistral Large 3）已经
+    逼近甚至超越闭源前沿。纯模型性能不再是闭源实验室的独有
+    优势。这一趋势的最大受益者是下游的应用开发者和推理平台——
+    免费的高质量模型让构建AI应用的成本急剧下降。
+
+  \item \textbf{效率优先于规模}：DeepSeek证明了算法创新可以大幅
+    降低训练成本。"用更少的计算做更多的事"正在取代"堆更多GPU
+    训更大模型"成为行业新共识。这一趋势可能改变整个AI行业的
+    资本结构——如果效率持续提升，天量融资的必要性就会下降。
+
+  \item \textbf{垂直化分层}：模型层正在分化为"通用基座层"（少数
+    赢家通吃）和"垂直应用层"（大量领域专精公司）。创业机会
+    越来越多出现在后者——Harvey、Hippocratic AI等的估值增速
+    证明了垂直壁垒的商业价值。
+
+  \item \textbf{多模态融合}：文本不再是唯一的模态。视频（Runway、
+    Kling、Vidu）、音频（Suno、ElevenLabs）、3D和数字人
+    （Luma AI、Synthesia）的生成能力正在催生全新的产品品类和
+    商业模式。多模态不是"文本的延伸"，而是全新的市场机会。
+
+  \item \textbf{中国生态独立化}：从DeepSeek的技术突破到智谱/MiniMax
+    的港股上市，中国的基础模型生态正在走出"追随硅谷"的阶段，
+    形成具有独立创新能力和资本市场支撑的自循环体系。这一趋势
+    在美国芯片出口管制加强的背景下将进一步加速。
+\end{enumerate}
+
+本章描绘的模型层是整个AI创业生态的"引力中心"——模型能力的每一次
+提升都会在上层应用中产生连锁反应。下一章将讨论建立在模型层之上的
+\textbf{平台层}——那些将原始模型能力转化为可部署、可管理、可监控
+的企业级服务的公司。
+\end{keybox}

@@ -1,0 +1,456 @@
+% ch02-s3-training.tex  — §2.3 Training Infrastructure
+% Part of Chapter 2: Infrastructure Layer
+% Input from: ch02-infrastructure.tex (or main file)
+
+\section{训练基础设施}
+\label{sec:infra-training}
+
+Berkeley 黑帮：一个实验室如何批量制造独角兽。
+
+加州大学伯克利分校的 RISELab（及其前身 AMPLab）
+也许是人类历史上商业转化率最高的计算机科学实验室。
+从这里走出了 Apache Spark $\to$ Databricks（估值 \$620 亿），
+Ray $\to$ Anyscale（估值 \$10 亿），
+以及最新的 vLLM $\to$ Inferact（种子轮 \$1.5 亿，估值 \$8 亿）。
+同一套剧本反复上演：
+\textbf{先开源一个足够好的系统级项目，等它成为事实标准，
+然后以商业公司的形式提供企业版和托管服务}。
+这不是偶然——Berkeley 的文化把``Impact''定义为
+``被百万开发者使用''而非``被 ICML 接收''，
+而硅谷的风投生态恰好能将这种 Impact 货币化。
+
+训练基础设施赛道是这一模式的集中展演。
+从分布式计算框架到实验跟踪平台，
+从 GPU 编排到高效训练算法，
+这里的每一家公司都在试图回答同一个问题：
+\textbf{如何让训练一个大模型的过程变得更快、更便宜、更可重复？}
+而答案的结局，往往不是独立 IPO——而是被巨头收购。
+
+\begin{corebox}[Berkeley-to-Startup 流水线]
+Berkeley 计算机科学系在 AI 基础设施领域形成了一条独特的
+``开源→标准化→商业化''流水线：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{学术孵化}——在 RISELab / Sky Computing Lab 中
+        开发系统级开源项目，发表顶会论文建立学术声誉
+  \item \textbf{社区扩散}——以 Apache / Linux Foundation 等中立基金会
+        托管项目，吸引产业界贡献者，形成事实标准
+  \item \textbf{商业剥离}——创始团队成立公司，提供企业版、
+        托管云服务、SLA 支持等增值层
+  \item \textbf{生态锁定}——通过 API 兼容性和社区惯性
+        建立竞争壁垒，最终实现 IPO 或被战略收购
+\end{enumerate}
+
+\medskip
+\small
+\begin{tabularx}{\textwidth}{@{}l l l r l@{}}
+\toprule
+\rowcolor{figLightGray}
+\textbf{开源项目} & \textbf{商业公司} & \textbf{创始人} &
+  \textbf{估值} & \textbf{状态} \\
+\midrule
+Apache Spark  & Databricks   & Ion Stoica 等  & \$620B & 独立（待 IPO）\\
+Ray           & Anyscale     & Ion Stoica 等  & \$1B   & 独立 \\
+vLLM          & Inferact     & Simon Mo 等    & \$800M & 种子轮 \\
+Apache Kafka  & Confluent    & Jay Kreps 等   & 上市   & NASDAQ: CFLT \\
+\bottomrule
+\end{tabularx}
+\end{corebox}
+
+然而，训练基础设施赛道的另一面是\textbf{大规模整合}。
+在本节覆盖的八家公司中，五家已被收购：
+MosaicML $\to$ Databricks，
+Determined AI $\to$ HPE，
+Run:ai $\to$ NVIDIA，
+Weights \& Biases $\to$ CoreWeave，
+加上 MLOps 赛道外围的无数沉默者。
+这一整合浪潮的逻辑清晰：
+\textbf{当 AI 基础设施的买家只有少数几家超大规模平台公司时，
+``成为生态的一部分''比``独立上市''更现实}。
+
+\begin{keybox}[训练基础设施赛道收购汇总]
+\small
+\begin{tabularx}{\textwidth}{@{}l l r l l@{}}
+\toprule
+\rowcolor{figLightGray}
+\textbf{被收购方} & \textbf{收购方} & \textbf{价格} &
+  \textbf{时间} & \textbf{战略逻辑} \\
+\midrule
+MosaicML       & Databricks  & \$1.3B  & 2023/6  & 补全模型训练能力 \\
+Determined AI  & HPE         & 未披露   & 2021/6  & 集成 Cray HPC 生态 \\
+Run:ai         & NVIDIA      & \$700M  & 2024/12 & GPU 编排 + 软件栈 \\
+Weights \& Biases & CoreWeave & \$1.7B & 2025/5 & 构建端到端 AI 云 \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+以下逐一分析八家核心公司的技术路线、商业模式与命运走向。
+
+
+\subsection{Anyscale：Ray 背后的商业引擎}
+
+Ion Stoica 是那种让硅谷风投无法拒绝的连续创业者。
+作为 Apache Spark 的联合创始人，
+他在 2013 年将 Spark 的商业化公司 Databricks 带到了
+如今 \$620 亿估值的高度。
+2019 年，Stoica 再次出手，
+围绕 Berkeley RISELab 孵化的分布式计算框架 Ray 创立了 Anyscale。
+
+Ray 的设计哲学与 Spark 截然不同。
+Spark 面向批处理数据分析（MapReduce 的继承者），
+而 Ray 面向\textbf{通用分布式计算}——
+特别是 AI 训练和推理中需要的异构、动态、有状态的工作负载。
+一个 Ray 集群可以同时运行数据预处理（Ray Data）、
+分布式训练（Ray Train）、超参搜索（Ray Tune）、
+模型服务（Ray Serve）和强化学习（RLlib），
+所有任务共享同一个资源调度器。
+
+这种通用性让 Ray 成为了 AI 基础设施的``隐形冠军''。
+截至 2026 年初，Ray 的 PyPI 累计下载量达 2.37 亿次，
+GitHub 星标超过 3.6 万。
+更关键的是其用户名单：
+\textbf{OpenAI 使用 Ray 训练了 GPT-4 和后续模型}，
+Anthropic、ByteDance、Uber、Spotify 等公司都将 Ray 作为
+分布式 AI 工作负载的核心编排层。
+Ray 还是 PyTorch Foundation 的成员项目，
+与 PyTorch 的集成深度远超任何竞品。
+
+商业化方面，Anyscale 提供托管的 Ray 平台（Anyscale Platform），
+在 AWS 和 GCP 上提供一键部署、自动扩缩容和企业级监控。
+公司累计融资约 \$2.6 亿，估值 \$10 亿。
+相比 Databricks 的火箭式增长，
+Anyscale 的商业化步伐显得更为克制——
+这部分因为 Ray 的开源版本已经足够强大，
+用户自行部署的门槛并不高。
+如何在``开源足够好''和``企业版值得付费''之间找到平衡，
+是 Anyscale 面临的核心挑战
+（参见 \textit{Emergence} 第五章对分布式训练编排的技术讨论）。
+
+
+\subsection{Lightning AI：从 PyTorch 封装到全栈 AI 云}
+
+William Falcon 在 2019 年创立 Lightning AI 时，
+最初只是想解决一个让每个深度学习研究者头疼的问题：
+\textbf{PyTorch 代码的工程化太痛苦了}。
+PyTorch Lightning 的核心设计是将训练循环中的
+``科学逻辑''（模型、损失函数、优化器）
+与``工程逻辑''（分布式、混合精度、检查点、日志）彻底分离，
+让研究者只需写前者，框架自动处理后者。
+
+这个看似简单的抽象层一炮而红：
+PyTorch Lightning 在 GitHub 上获得超过 2.6 万颗星，
+PyPI 累计下载量超过 1.6 亿次，
+成为仅次于 PyTorch 本身的最流行深度学习训练框架。
+
+但真正的转折发生在 2026 年 1 月。
+Lightning AI 宣布与 GPU 云服务商 Voltage Park 完成合并，
+合并后估值达 \$25 亿，ARR 从 2024 年的 \$1800 万
+飙升至超过 \$5 亿——
+\textbf{不到两年增长近 28 倍}。
+合并后的公司拥有超过 40 万名开发者用户，
+提供从 GPU 集群到训练框架到模型部署的全栈 AI 云服务。
+
+这次合并揭示了训练基础设施赛道的一个深层趋势：
+\textbf{纯软件的训练工具正在向``软件 + 算力''一体化演进}。
+当用户在 Lightning 平台上编写训练代码时，
+平台可以自动分配 Voltage Park 的 GPU 资源，
+实现从代码到集群的无缝衔接。
+这种垂直整合策略让 Lightning AI 从一个开源框架公司，
+蜕变为 AWS / GCP 在 AI 训练领域的垂直竞争者。
+
+
+\subsection{MosaicML：被 Databricks \$13 亿收购的效率先锋}
+
+Naveen Rao 的创业履历本身就是 AI 基础设施赛道的缩影。
+2014 年创立神经形态芯片公司 Nervana Systems，
+2016 年被 Intel 以 \$3.34 亿收购；
+在 Intel 担任 AI 负责人后，
+2020 年再次创业成立 MosaicML。
+
+MosaicML 的核心竞争力是\textbf{训练效率}。
+其开源库 Composer 集成了数十种训练加速技术
+（MixUp、Label Smoothing、Sharpness-Aware Minimization 等），
+让用户可以像搭积木一样组合不同的``训练配方''，
+在不改变模型架构的前提下将训练速度提升数倍。
+更引人注目的是 MosaicML 自研的 MPT（MosaicML Pretrained Transformer）系列模型——
+这些模型证明了一个关键论点：
+\textbf{通过优化训练流程，中等规模的团队也能训练出
+与大厂模型质量相当的大语言模型}。
+
+2023 年 6 月，Databricks 以 \$13 亿收购 MosaicML。
+这笔交易的战略逻辑清晰：
+Databricks 拥有全球最大的企业数据平台，
+但缺乏模型训练能力；
+MosaicML 拥有最先进的训练技术，
+但缺乏数据和分发渠道。
+收购后，MosaicML 的技术被整合为 Databricks 的 Foundation Model Training 服务，
+让企业客户可以在自己的数据湖上直接训练定制化大模型。
+
+故事的后续同样精彩：
+Rao 在 2025 年 9 月离开 Databricks，
+创办了 Unconventional AI——
+一家瞄准类脑计算（neuromorphic computing）的新公司，
+\textbf{种子轮即融资 \$4.75 亿，估值 \$45 亿}。
+这个天文数字的种子轮
+不仅刷新了 AI 领域的融资纪录，
+更说明了一个残酷的事实：
+在 AI 基础设施赛道，
+\textbf{创始人的连续创业信用比任何技术路线都值钱}。
+
+
+\subsection{Determined AI：被 HPE 收入 HPC 版图}
+
+Determined AI 的故事相对低调但颇具代表性。
+公司由 Neil Conway、Evan Sparks 和 CMU 教授 Ameet Talwalkar
+于 2017 年在旧金山创立，
+开发了一套开源的分布式训练平台，
+核心功能包括自动分布式训练、超参搜索、实验管理和资源调度。
+
+2021 年 6 月，HPE 收购 Determined AI
+（价格未披露，估计在数千万美元级别），
+将其技术集成到 HPE 的 Cray 超算生态中。
+对于 HPE 而言，这是一笔典型的``补短板''收购：
+HPE 拥有世界顶级的 HPC 硬件（Cray 超算、Slingshot 互联），
+但缺乏面向 AI 训练的现代软件栈。
+Determined AI 的平台恰好填补了这一空白，
+让 HPC 客户（国家实验室、大学、国防机构）
+可以在 Cray 集群上运行 PyTorch 训练任务，
+而无需从零搭建分布式训练基础设施。
+
+Determined AI 的案例说明了一条被低估的退出路径：
+\textbf{不是每家 AI 基础设施创业公司都需要追逐十亿美元级别的结局。
+在正确的时间被正确的买家收购，
+同样可以让技术找到最大化应用的归宿}。
+
+
+\subsection{Run:ai：GPU 编排之王归于 NVIDIA}
+
+当企业开始大规模部署 GPU 集群时，
+一个隐藏的问题迅速浮出水面：
+\textbf{GPU 的平均利用率低得惊人——通常不到 30\%}。
+数据科学家提交训练任务后独占整组 GPU，
+即使在数据加载或评估阶段 GPU 大部分时间处于空闲，
+资源也无法被其他团队复用。
+
+Run:ai（2018 年，Tel Aviv）正是瞄准了这一痛点。
+其核心技术是\textbf{GPU 虚拟化与动态编排}：
+将物理 GPU 抽象为可分割、可共享的虚拟资源，
+并通过 Kubernetes 原生的调度器实现跨团队、跨项目的弹性分配。
+一块 A100 可以同时服务于两个不同的训练任务，
+或者在一个任务空闲时自动将算力释放给另一个任务。
+
+Run:ai 累计融资约 \$1.18 亿，客户涵盖金融、医疗、科研等行业。
+2024 年 4 月，NVIDIA 宣布收购 Run:ai；
+经过欧盟反垄断审查后，交易于 2024 年 12 月以约 \$7 亿完成。
+收购完成后，NVIDIA 做出了一个出人意料的决定：
+\textbf{将 Run:ai 的核心软件开源}。
+
+这一策略的逻辑耐人寻味。
+开源 Run:ai 意味着任何 GPU 集群（包括竞品芯片）
+都可以使用这套编排软件，
+但实际效果是进一步巩固了 NVIDIA 作为
+``AI 基础设施事实标准''的地位——
+正如 Android 之于 Google，
+免费的软件层反而加深了硬件生态的锁定。
+
+
+\subsection{Weights \& Biases：MLOps 标杆被 CoreWeave 收编}
+
+在所有训练基础设施公司中，
+Weights \& Biases（W\&B）也许是\textbf{开发者口碑最好的一家}。
+创始人 Lukas Biewald 在 2017 年将这家公司定位为
+``AI 团队的 GitHub''——
+一个用于实验跟踪、模型版本管理、数据可视化和协作的平台。
+
+W\&B 的成功在于产品的\textbf{极致简洁}。
+只需在训练脚本中加入两行代码（\texttt{import wandb; wandb.init()}），
+就可以自动记录所有超参数、指标、系统状态和输出文件。
+这种近乎零摩擦的集成体验让 W\&B 在 AI 研究社区迅速传播，
+积累了超过 10 万名客户，
+包括 OpenAI、NVIDIA、Microsoft、Toyota 等。
+公司累计融资约 \$2.5 亿，估值达 \$12.5 亿。
+
+2025 年 3 月，CoreWeave 宣布以约 \$17 亿收购 W\&B。
+CoreWeave 是 NVIDIA GPU 云的最大独立运营商，
+但其产品栈一直停留在``卖算力''层面。
+收购 W\&B 让 CoreWeave 一举获得了
+从实验管理到模型训练到部署监控的\textbf{完整软件层}，
+实现了从``GPU 云''到``AI 开发平台''的跃迁。
+
+对于 MLOps 赛道而言，这笔交易传递了一个清晰信号：
+\textbf{独立 MLOps 工具的天花板已经可见}。
+当算力提供商开始纵向整合软件栈时，
+纯工具层公司面临的选择只有两个：
+向上扩展成平台（如 Lightning AI + Voltage Park），
+或者被平台收购（如 W\&B $\to$ CoreWeave）。
+
+
+\subsection{ClearML：精益生存的开源 MLOps}
+
+并非每家 AI 基础设施公司都需要数亿美元的融资。
+ClearML（2016 年，Israel）证明了一条截然不同的路径：
+\textbf{用极低的资本消耗，服务足够多的用户}。
+
+ClearML 的产品是一套开源的端到端 MLOps 平台，
+覆盖实验管理、数据版本化、流水线编排和模型部署。
+与 W\&B 的 SaaS 优先策略不同，
+ClearML 坚持\textbf{开源优先 + 自托管为主}的路线：
+企业客户可以在自己的服务器上完整部署 ClearML，
+无需将任何数据发送到外部。
+这一策略在对数据主权敏感的行业（金融、国防、医疗）中尤具吸引力。
+
+公司累计融资仅约 \$1600 万——
+不到 W\&B 的十五分之一——
+但积累了超过 25 万名用户。
+截至 2026 年 3 月，ClearML 仍然保持独立运营，
+并在 GTC 2026 上发布了 Platform Management Center，
+为企业 IT 管理员提供 AI 基础设施的财务透明度和用量分析。
+
+ClearML 的生存策略提出了一个值得深思的问题：
+在 VC 驱动的 AI 创业生态中，
+\textbf{``精益''是否也是一种竞争优势？}
+当那些融资数亿的竞争对手纷纷被收购或关停时，
+ClearML 以极低的烧钱速率持续迭代，
+反而获得了独立生存的自由度。
+
+
+\subsection{Comet ML：数据驱动的 ML 生命周期管理}
+
+Comet ML（2017 年，纽约）定位为 ML 全生命周期管理平台，
+产品覆盖从实验跟踪到生产模型监控的完整链路。
+与 W\&B 正面竞争，
+Comet 的差异化在于更强的\textbf{生产环境监控}能力——
+不仅跟踪训练阶段的实验指标，
+还持续监控部署后模型的数据漂移、性能退化和公平性指标。
+
+公司累计融资约 \$6300 万，团队仅 88 人。
+2024 年营收达 \$1700 万，同比增长 66\%——
+在 MLOps 赛道普遍增长放缓的背景下，这是一个不俗的成绩。
+但 Comet 面临的挑战同样严峻：
+W\&B 被 CoreWeave 收购后获得了算力平台的加持，
+Databricks 通过收购 MosaicML 内建了 MLflow + 训练的一体化体验，
+MLflow 本身作为开源项目又在不断蚕食商业 MLOps 工具的市场空间。
+
+\textbf{夹在开源免费和巨头捆绑之间的独立 MLOps 公司，
+生存空间正在被双向挤压。}
+Comet 的 \$1700 万营收虽然在增长，
+但与 Lightning AI 合并后的 \$5 亿 ARR 相比，
+量级差距已经难以弥合。
+
+
+\begin{whybox}[为什么训练基础设施赛道被大规模整合？]
+在八家公司中，五家已被收购。这并非巧合，而是结构性必然：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{买家集中度极高}——
+        AI 训练基础设施的终端客户集中在少数超大规模平台
+        （云厂商、GPU 云、大模型公司），
+        这些平台有强烈动机通过纵向整合降低自身客户的迁移成本
+  \item \textbf{开源侵蚀商业护城河}——
+        训练基础设施的核心技术大多以开源形式存在
+        （Ray、PyTorch Lightning、MLflow、Determined AI），
+        商业化增值层的差异化空间有限
+  \item \textbf{``算力 + 软件''一体化趋势}——
+        客户不想分别采购 GPU 集群和训练工具，
+        而是希望获得一站式体验
+        （CoreWeave + W\&B，Lightning + Voltage Park）
+  \item \textbf{人才价值超过产品价值}——
+        收购 MosaicML 的 \$13 亿中，
+        很大一部分是为 Naveen Rao 团队的训练专家支付的``人才溢价''
+\end{enumerate}
+
+对于仍然独立的公司（Anyscale、ClearML、Comet），
+问题不是``是否会被整合''，而是``何时、被谁、以什么价格''。
+\end{whybox}
+
+\subsubsection{训练基础设施赛道全景对比}
+
+表~\ref{tab:training-infra-comparison} 汇总了本节覆盖的八家公司的关键指标。
+
+\begin{table}[htbp]
+\centering
+\caption{训练基础设施创业公司对比（截至 2026 年 3 月）}
+\label{tab:training-infra-comparison}
+\small
+\begin{tabularx}{\textwidth}{@{}l l l r l l@{}}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{成立} & \textbf{核心产品} &
+  \textbf{总融资} & \textbf{状态} & \textbf{收购方 / 价格} \\
+\midrule
+Anyscale        & 2019 & Ray 分布式计算        & \$260M  & 独立      & --- \\
+Lightning AI    & 2019 & PyTorch Lightning     & 合并    & 合并      & + Voltage Park / \$2.5B 估值 \\
+MosaicML        & 2020 & Composer + MPT        & ---     & 被收购    & Databricks / \$1.3B \\
+Determined AI   & 2017 & 分布式训练平台         & ---     & 被收购    & HPE / 未披露 \\
+Run:ai          & 2018 & GPU 编排虚拟化        & \$118M  & 被收购    & NVIDIA / \$700M \\
+W\&B            & 2017 & 实验跟踪 + MLOps      & \$250M  & 被收购    & CoreWeave / \$1.7B \\
+ClearML         & 2016 & 开源 MLOps 平台       & \$16M   & 独立      & --- \\
+Comet ML        & 2017 & ML 生命周期管理       & \$63M   & 独立      & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+训练基础设施赛道的终局图景正在变得清晰：
+\textbf{独立的纯软件工具层正在消融，
+取而代之的是``算力 + 框架 + 工具''的垂直整合平台}。
+CoreWeave 收购 W\&B、Lightning AI 与 Voltage Park 合并、
+NVIDIA 开源 Run:ai——
+每一个动作都指向同一个方向：
+AI 训练的用户体验将越来越像
+``打开浏览器，写代码，点击训练''，
+而底层的分布式调度、GPU 编排、实验管理将全部隐入平台。
+
+对于仍然独立的 Anyscale、ClearML 和 Comet 而言，
+窗口期不会太长。
+Berkeley 流水线的下一个产品 Inferact（vLLM 商业化）
+已经以 \$8 亿的种子轮估值入场，
+新一轮的开源→标准化→商业化循环即将开始。
+在这个赛道上，唯一不变的是变化本身——
+\textbf{而推动变化的引擎，
+仍然是 Berkeley Soda Hall 那几间不起眼的实验室}。
+
+% ===========================================================
+\subsection{更多训练工具与框架创业公司}
+\label{subsec:training-more}
+% ===========================================================
+
+除了上述八家核心公司，训练基础设施赛道还有一批
+聚焦特定技术层面的小型创业公司和开源项目，
+它们虽未达到独角兽规模，但在各自的技术缝隙中发挥着重要作用。
+
+\subsubsection{HPC-AI Tech（ColossalAI）}
+HPC-AI Tech（2021 年，Singapore）由新加坡国立大学教授
+杨优（Yang You）创立，旗下开源项目 ColossalAI
+（GitHub 41,000+ 星，190+ 贡献者）
+是\textbf{大模型高效训练}领域最活跃的开源框架之一。
+ColossalAI 提供数据并行、模型并行、流水线并行和异构训练的
+一站式解决方案，核心优势是让中小团队也能在有限 GPU 上
+训练和微调大模型。2024 年完成 \$5000 万 Series A 融资
+（累计 \$5600 万），同时推出 Open-Sora 开源视频生成平台。
+ColossalAI 对标的是 NVIDIA 的 Megatron-LM 和 Microsoft 的
+DeepSpeed——但作为独立创业公司而非大厂内部项目，
+它在商业化路径上面临更大挑战。
+
+\subsubsection{Predibase（Ludwig → LoRAX → Rubrik 收购）}
+Predibase（San Francisco）由 Apple 和 Uber 内部 AI 平台的
+核心工程师创立，最初基于开源框架 Ludwig（声明式 ML 训练工具）
+构建微调平台，后推出 LoRAX——
+\textbf{首个支持同时服务数千个 LoRA 适配器的推理引擎}。
+2025 年 6 月完成 \$2800 万 Series A 融资后，
+\textbf{同月即被数据安全公司 Rubrik 以 \$1--5 亿收购}。
+Predibase 的故事浓缩了一条典型路径：
+开源项目 → 商业化 → 被垂直行业巨头收购以增强 AI 能力。
+Rubrik 看中的是 Predibase 的微调技术——
+让企业在自有数据上定制模型，同时保持数据安全。
+
+\subsubsection{SkyPilot（Berkeley Sky Computing Lab）}
+SkyPilot 是 Berkeley Sky Computing Lab 孵化的开源项目
+（GitHub 7,000+ 星），由 UC Berkeley 教授 Ion Stoica
+（Databricks/Anyscale 创始人）参与指导。
+SkyPilot 的核心功能是\textbf{跨云 AI 工作负载编排}——
+用一个统一接口在 AWS、GCP、Azure、Lambda、RunPod 等
+任意云上启动训练或推理任务，自动选择最便宜或最快的可用 GPU。
+对于多云环境下的 AI 团队，SkyPilot 解决了一个现实问题：
+\textbf{GPU 在哪里便宜就去哪里跑}，无需手动管理多个云账号。
+虽然尚未正式成立商业公司，
+但 SkyPilot 是 Berkeley-to-Startup 流水线上的下一个潜在候选。

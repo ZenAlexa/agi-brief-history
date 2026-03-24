@@ -424,11 +424,11 @@ widest (3) & \texttt{w i d \underline{est\_}} \\
 \draw[arr] ($(r2d.south)!0.5!(r2e.south) + (0, -8mm)$) -- (r3d.north);
 
 \end{tikzpicture}
-\caption{BPE merge operations on “newest.” Each round merges the highest-frequency adjacent pair:
-\texttt{e\,+\,s} $\to$ \texttt{es} (round~1),
-\texttt{es\,+\,t} $\to$ \texttt{est} (round~2),
-\texttt{est\,+\,\_} $\to$ \texttt{est\_} (round~3).
-Orange tokens mark the merged pair; the green token shows the final compressed result.}
+\caption{BPE 对”newest”的逐轮合并过程。每轮选取频率最高的相邻 token 对进行合并：
+\texttt{e\,+\,s} $\to$ \texttt{es}（第~1 轮），
+\texttt{es\,+\,t} $\to$ \texttt{est}（第~2 轮），
+\texttt{est\,+\,\_} $\to$ \texttt{est\_}（第~3 轮）。
+橙色 token 标记待合并对，绿色 token 表示最终压缩结果。}
 \label{fig:bpe-merge}
 \end{figure}
 

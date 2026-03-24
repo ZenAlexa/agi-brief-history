@@ -1639,7 +1639,7 @@ XDNA 2 NPU，提供 50 TOPS，
 \begin{table}[H]
 \centering\small
 \renewcommand{\arraystretch}{1.3}
-\caption{主要端侧 AI 加速器对比（2026 年初）}
+\caption{主要端侧 AI 加速器对比（2026 年初）}\label{tab:edge-accelerators}
 \begin{tabularx}{\linewidth}{l l l >{\raggedright\arraybackslash}X}
 \toprule
 \rowcolor{figLightGray}
@@ -2010,6 +2010,12 @@ Anthropic CEO Dario Amodei 在
 \begin{tikzpicture}[
   every node/.style={font=\small},
   >={Stealth[length=2.5pt,width=2.5pt]},
+  grid line/.style={draw=figLightGray, line width=0.3pt},
+  spoke/.style={draw=figGray!30, line width=0.4pt},
+  polygon 2024/.style={draw=figGray, line width=0.7pt, dashed, fill=figGray!18, fill opacity=0.7},
+  polygon 2026/.style={draw=figBlue, line width=0.6pt, fill=figBlue!15, fill opacity=0.5},
+  axis label/.style={font=\scriptsize\bfseries, text=figGray},
+  pct label/.style={font=\tiny, text=figGray!60},
 ]
 
 % --- Constants ---
@@ -2017,37 +2023,29 @@ Anthropic CEO Dario Amodei 在
 
 % --- Concentric octagonal grid ---
 \foreach \frac/\pct in {0.25/25, 0.50/50, 0.75/75, 1.0/100} {
-  \draw[figLightGray, line width=0.4pt]
+  \draw[grid line]
     (90:{\frac*\R})  -- (45:{\frac*\R})  -- (0:{\frac*\R})
     -- (-45:{\frac*\R})  -- (-90:{\frac*\R})  -- (-135:{\frac*\R})
     -- (180:{\frac*\R})  -- (135:{\frac*\R})  -- cycle;
 }
 % Percentage labels along 90-degree axis (left of axis to avoid overlap with labels)
 \foreach \frac/\pct in {0.25/25, 0.50/50, 0.75/75, 1.0/100} {
-  \node[font=\tiny, figGray!60, anchor=south east] at ([xshift=-1pt]90:{\frac*\R}) {\pct\%};
+  \node[pct label, anchor=south east] at ([xshift=-1pt]90:{\frac*\R}) {\pct\%};
 }
 
 % --- Radial axes ---
 \foreach \ang in {90, 45, 0, -45, -90, -135, 180, 135} {
-  \draw[figGray!30, line width=0.3pt] (0,0) -- (\ang:\R);
+  \draw[spoke] (0,0) -- (\ang:\R);
 }
 
 % --- 2024 polygon (behind, dashed, gray — darker for visibility) ---
-\fill[figGray!18, fill opacity=0.7]
-  (90:{0.50*\R}) -- (45:{0.38*\R}) -- (0:{0.25*\R})
-  -- (-45:{0.63*\R}) -- (-90:{0.25*\R}) -- (-135:{0.13*\R})
-  -- (180:{0.38*\R}) -- (135:{0.50*\R}) -- cycle;
-\draw[figGray!80, line width=0.7pt, dashed]
+\draw[polygon 2024]
   (90:{0.50*\R}) -- (45:{0.38*\R}) -- (0:{0.25*\R})
   -- (-45:{0.63*\R}) -- (-90:{0.25*\R}) -- (-135:{0.13*\R})
   -- (180:{0.38*\R}) -- (135:{0.50*\R}) -- cycle;
 
 % --- 2026 polygon (front, solid, blue) ---
-\fill[figBlue!10, fill opacity=0.5]
-  (90:{0.95*\R}) -- (45:{0.88*\R}) -- (0:{0.80*\R})
-  -- (-45:{0.95*\R}) -- (-90:{0.63*\R}) -- (-135:{0.38*\R})
-  -- (180:{0.70*\R}) -- (135:{0.88*\R}) -- cycle;
-\draw[figBlue!70, line width=0.6pt]
+\draw[polygon 2026]
   (90:{0.95*\R}) -- (45:{0.88*\R}) -- (0:{0.80*\R})
   -- (-45:{0.95*\R}) -- (-90:{0.63*\R}) -- (-135:{0.38*\R})
   -- (180:{0.70*\R}) -- (135:{0.88*\R}) -- cycle;
@@ -2063,14 +2061,14 @@ Anthropic CEO Dario Amodei 在
 }
 
 % --- Axis labels (offset to avoid overlap) ---
-\node[font=\scriptsize\bfseries, figGray, above=4pt]       at (90:\R)   {推理};
-\node[font=\scriptsize\bfseries, figGray, above right=3pt]  at (45:\R)   {多模态};
-\node[font=\scriptsize\bfseries, figGray, right=4pt]        at (0:\R)    {Agent};
-\node[font=\scriptsize\bfseries, figGray, below right=3pt]  at (-45:\R)  {代码};
-\node[font=\scriptsize\bfseries, figGray, below=4pt]        at (-90:\R)  {科学};
-\node[font=\scriptsize\bfseries, figGray, below left=3pt]   at (-135:\R) {具身AI};
-\node[font=\scriptsize\bfseries, figGray, left=4pt]         at (180:\R)  {端侧};
-\node[font=\scriptsize\bfseries, figGray, above left=3pt]   at (135:\R)  {长上下文};
+\node[axis label, above=4pt]       at (90:\R)   {推理};
+\node[axis label, above right=3pt]  at (45:\R)   {多模态};
+\node[axis label, right=4pt]        at (0:\R)    {Agent};
+\node[axis label, below right=3pt]  at (-45:\R)  {代码};
+\node[axis label, below=4pt]        at (-90:\R)  {科学};
+\node[axis label, below left=3pt]   at (-135:\R) {具身AI};
+\node[axis label, left=4pt]         at (180:\R)  {端侧};
+\node[axis label, above left=3pt]   at (135:\R)  {长上下文};
 
 % --- Legend ---
 \draw[figGray!60, line width=0.6pt, dashed] (-1.2, -4.2) -- (-0.5, -4.2);

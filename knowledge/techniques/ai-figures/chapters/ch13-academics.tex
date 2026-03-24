@@ -1,0 +1,1215 @@
+% =============================================================
+% Chapter 13: Academic Researchers & Paper Authors
+% Book: AI Figures — Who's Who in the Age of AI
+% =============================================================
+
+\chapter{学院派：塑造AI领域的学术研究者}
+\label{ch:academics}
+
+在AI的叙事中，学术界扮演着一个独特而矛盾的角色。
+一方面，几乎所有改变世界的AI突破——从ImageNet到Transformer，
+从FlashAttention到扩散模型——都源于大学实验室。
+另一方面，2020年代的``人才大出走''让顶级教授纷纷创办公司或加入工业实验室，
+模糊了学术与产业的边界。本章聚焦那些依然以大学为根基、
+但影响力远超象牙塔的学术研究者：他们发表改变范式的论文，
+培养下一代AI领袖，同时以顾问、联合创始人或兼职研究员的身份
+深度参与产业变革。
+
+这些学者的共同特征是\textbf{双重身份}：
+他们既是追求知识前沿的科学家，也是技术转化的推动者。
+Stanford的教授创办了SambaNova和Together AI，
+Berkeley的教授孵化了Covariant和Physical Intelligence，
+CMU的教授推出了Skild AI，Princeton的教授设计了SWE-bench。
+学术界不再只是人才的``上游供应商''，而是整个AI生态的核心引擎。
+
+\begin{corebox}[学术界的三重角色]
+在2024--2026年的AI生态中，顶级学术机构同时扮演三个不可替代的角色：
+\begin{itemize}
+  \item \textbf{基础研究引擎}：FlashAttention、Mamba、DPO等关键技术
+        皆源于大学实验室，工业界的模型训练直接受益于这些开源成果；
+  \item \textbf{人才培育基地}：OpenAI、Anthropic、DeepMind的核心工程师
+        绝大多数拥有Stanford/Berkeley/CMU/MIT的博士学位；
+  \item \textbf{评估与治理中枢}：HELM、MMLU、SWE-bench等标准化评测
+        由学术团队主导，为整个行业提供可信的能力度量。
+\end{itemize}
+\end{corebox}
+
+
+% =============================================================
+\section{Stanford：AI创始人的工厂}
+\label{sec:stanford}
+% =============================================================
+
+Stanford在AI领域的统治地位无需多言。
+Stanford AI Lab（SAIL）和Stanford Institute for Human-Centered AI（HAI）
+构成了全球最密集的AI研究集群之一。
+更令人瞩目的是，Stanford教授创办或深度参与的公司
+覆盖了从基础模型到机器人、从AI评估到AI基础设施的全部赛道。
+
+% ----- Fei-Fei Li -----
+\subsection{李飞飞（Fei-Fei Li）：AI教母与空间智能的探索者}
+
+李飞飞是AI领域最具全球影响力的学术人物之一，
+被广泛称为``AI教母''（Godmother of AI）。
+她1976年生于北京，15岁随家人移民美国，
+在新泽西州的干洗店打工求学，最终取得Caltech物理学学士
+和Princeton计算机科学博士学位。
+
+她的学术贡献集中在计算机视觉领域。
+2009年发起的\textbf{ImageNet}项目
+包含超过1400万张标注图片和2万多个类别，
+彻底改变了视觉识别研究的范式。
+2012年ImageNet Large Scale Visual Recognition Challenge（ILSVRC）上，
+AlexNet利用深度学习在ImageNet上取得突破性成绩，
+引爆了整个深度学习革命——而这一切的基础正是李飞飞团队
+花费数年构建的数据集。
+
+\begin{whybox}[为什么ImageNet如此重要？]
+在ImageNet之前，计算机视觉的标准数据集只有几万张图片和几十个类别。
+李飞飞的核心洞察是：\textbf{人类视觉的学习依赖于海量的视觉经验，
+机器也应该如此}。这个``数据先于算法''的理念比``data-centric AI''的概念
+早了十年，也预示了后来大语言模型``scaling law''的核心思想——
+更多、更好的数据才是性能提升的关键驱动力。
+\end{whybox}
+
+2017--2018年，李飞飞曾短暂担任Google Cloud AI/ML首席科学家。
+回到Stanford后，她于2019年联合创立了Stanford HAI，
+致力于以人为本的AI研究和政策建议。
+2024年9月，她与三位同事联合创办了\textbf{World Labs}，
+获得了由Geoffrey Hinton等投资者支持的2.3亿美元融资。
+2026年2月，World Labs宣布完成\textbf{10亿美元}融资，
+专注于``空间智能''（Spatial Intelligence）——
+让AI理解和操作三维世界的能力，为机器人赋予物理常识。
+
+荣誉方面，李飞飞2025年获得了Queen Elizabeth Prize for Engineering
+（由英国国王查尔斯三世亲自颁发），入选TIME100 AI 2025，
+并被USA TODAY评为2026 Women of the Year。
+在加州SB 1047法案被否决后，州长纽森邀请她共同撰写AI治理报告，
+其政策建议正在转化为加州的立法。
+
+% ----- Christopher Manning -----
+\subsection{Christopher Manning：NLP的基石}
+
+Christopher Manning是Stanford SAIL的现任主任、
+HAI副主任，同时在语言学系和计算机科学系任职——
+这一独特的双重任命反映了他横跨语言学和计算机科学的研究视野。
+他是Stanford Thomas M.\ Siebel机器学习讲席教授。
+
+Manning对NLP的贡献贯穿了统计方法到深度学习的全部时代：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{GloVe}（Global Vectors for Word Representation，2014）：
+        与Jeffrey Pennington和Richard Socher合作开发的词向量模型，
+        与word2vec一起定义了现代词嵌入的标准；
+  \item \textbf{Stanford NLP Group}：培养了数十位NLP领域的顶级研究者，
+        开发了Stanford CoreNLP、Stanford Parser等被广泛使用的工具包；
+  \item \textbf{注意力机制的早期探索}：2015年与Thang Luong合作的
+        ``Effective Approaches to Attention-based Neural Machine Translation''
+        连续三年获得ACL Test of Time Award。
+\end{itemize}
+
+2024年，Manning获得了\textbf{IEEE John von Neumann Medal}——
+IEEE在计算领域的最高荣誉之一——表彰他在``自然语言的计算表示与分析''
+方面的突出贡献。2025年他当选美国国家工程院院士（NAE）
+和美国艺术与科学院院士。
+
+% ----- Percy Liang -----
+\subsection{Percy Liang：AI评估的标准制定者}
+
+Percy Liang是Stanford计算机科学副教授，
+Center for Research on Foundation Models（CRFM）主任。
+他的学术道路从MIT本科到Berkeley博士（导师为Dan Klein），
+最终在Stanford建立了AI评估的``黄金标准''。
+
+Liang的核心贡献是\textbf{HELM}（Holistic Evaluation of Language Models）——
+一个系统性评估语言模型的框架。在HELM之前，
+各个模型的评测标准五花八门，缺乏可比性和透明度。
+HELM通过统一的评测协议、完整的prompt级透明度和可复现的结果，
+成为业界衡量大语言模型能力的标准参考。
+2025年3月发布的\textbf{HELM Capabilities}是最新版本，
+从能力维度系统评估模型的强弱项。
+
+除了评估，Liang还是\textbf{Together AI}的联合创始人——
+一家专注于开源AI基础设施的公司。2025年，他公开呼吁建立
+``Linux式的AI联盟''，推动开源模型的协作开发。
+他的学术和产业双重身份完美体现了Stanford教授的典型路径：
+先在学术界定义问题和标准，再通过创业将解决方案规模化。
+
+当前PhD学生和博士后包括Marina Zhang（与Carlos Guestrin合作指导）、
+Kaiyue Wen（与Tengyu Ma合作指导）等。
+
+% ----- Chelsea Finn -----
+\subsection{Chelsea Finn：从MAML到Physical Intelligence}
+
+Chelsea Finn是Stanford电气工程和计算机科学助理教授，
+也是机器人基础模型公司\textbf{Physical Intelligence}（$\pi$）的联合创始人。
+她的学术轨迹可以用``快速而深刻''来形容：
+MIT本科、Berkeley博士（导师Pieter Abbeel和Sergey Levine）、
+Google Brain研究科学家，然后在29岁时加入Stanford。
+
+她的代表性学术贡献是\textbf{MAML}（Model-Agnostic Meta-Learning，2017）——
+一种让模型``学会如何学习''的元学习算法。
+MAML的核心思想简洁而深刻：找到一组初始参数，
+使得模型只需几步梯度下降就能适应新任务。
+这对于数据稀缺的机器人学习场景尤为关键。
+
+在Stanford，她的团队开发了\textbf{OpenVLA}
+（Vision-Language-Action）系统，
+让机器人通过观看示范来学习执行任务——
+不需要手写代码，只需展示给它看。
+这一``show, don't program''的理念正在Physical Intelligence中
+被推向商业化。
+
+Physical Intelligence于2024年推出了\textbf{$\pi$0}（pi-zero）——
+一个通用机器人基础模型，
+将视觉语言模型（VLM）与基于扩散的动作专家相结合。
+2025年，公司完成由CapitalG领投的Series B融资，
+投资者包括Jeff Bezos和NVIDIA。联合创始人团队堪称梦之队：
+Karol Hausman、Sergey Levine、Brian Ichter和Lachy Groom。
+
+\begin{keybox}[Pieter Abbeel的学生网络]
+Pieter Abbeel堪称``AI创业教父''：
+他的学生创办了OpenAI（John Schulman）、
+Perplexity（Aravind Srinivas）、Skild AI（Deepak Pathak）、
+Physical Intelligence（Chelsea Finn和Sergey Levine）、
+Reflection（Misha Laskin）、Evolutionary Scale（Roshan Rao）、
+Ideogram（Jonathan Ho）、Genmo（Ajay Jain）等十多家公司。
+这个现象反映了Berkeley机器人实验室的独特文化：
+鼓励学生将前沿研究直接转化为创业项目。
+\end{keybox}
+
+% ----- Chris Ré -----
+\subsection{Chris R\'{e}：从Data-Centric AI到Hazy Research}
+
+Chris R\'{e}是Stanford计算机科学副教授，
+\textbf{Hazy Research}实验室的负责人，
+也是SambaNova Systems和Together AI的联合创始人。
+他的研究在机器学习与数据管理的交叉点上开辟了独特的领域。
+
+R\'{e}的学术贡献跨度极大：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Snorkel}（2017）：开创性的弱监督学习框架，
+        让用户通过编写标注函数（labeling functions）
+        而非手动标注来创建训练数据。
+        这一项目后来独立为公司Snorkel AI；
+  \item \textbf{FlashAttention}的指导者：
+        他与Stefano Ermon共同指导了Tri Dao的博士研究，
+        后者开发了彻底改变Transformer训练效率的FlashAttention；
+  \item \textbf{结构化状态空间模型}：
+        他与Albert Gu合作的S4和后续工作
+        为Mamba等非Transformer架构奠定了基础；
+  \item \textbf{Data-Centric AI}的早期倡导者：
+        早在2016年，R\'{e}就开始宣讲
+        ``AI is driven by data — not code''的理念，
+        预见了后来整个行业对数据质量的重视。
+\end{itemize}
+
+2025年3月，R\'{e}发表文章《The Great American AI Race》，
+主张美国AI竞争力的关键不在于集中化的GPU算力竞赛，
+而在于通过开源和创新将智能融入每一个产品。
+他的实验室最新成果包括\textbf{ThunderKittens 2.0}（2026年2月）——
+为GPU设计的更快内核，以及关于混合推理和本地智能效率的系列研究。
+
+% ----- Tri Dao -----
+\subsection{Tri Dao：FlashAttention的创造者}
+
+Tri Dao是AI系统优化领域最具影响力的年轻研究者之一。
+他在Stanford完成博士学位（导师为Chris R\'{e}和Stefano Ermon），
+随后加入Princeton担任助理教授，
+同时担任Together AI的首席科学家。
+
+\textbf{FlashAttention}（2022）是他最著名的贡献。
+传统的self-attention计算在序列长度上呈二次复杂度，
+FlashAttention通过IO-aware的精确注意力算法——
+利用tiling技术减少GPU高带宽内存（HBM）和片上SRAM之间的读写次数——
+在不做任何近似的情况下实现了显著加速。
+FlashAttention 2进一步将长序列训练速度提升了2.7倍。
+
+\begin{whybox}[为什么FlashAttention改变了一切？]
+FlashAttention的影响远超一个优化技巧。
+它证明了\textbf{算法-硬件协同设计}（algorithm-hardware co-design）
+的巨大潜力：同样的数学运算，通过考虑内存层次结构，
+可以快数倍。这一思想影响了后续所有大模型训练框架的设计，
+从Megatron-LM到DeepSpeed再到各大实验室的内部系统。
+几乎所有主要AI实验室（OpenAI、Anthropic、Meta、Google）
+都在生产中使用FlashAttention。
+\end{whybox}
+
+Dao还与Albert Gu合作开发了\textbf{Mamba}架构（见下文），
+探索Transformer之外的序列建模方案。
+他同时在Princeton任教和在Together AI做工业研究的双重身份，
+使他成为学术-工业桥梁的典型代表。
+
+% ----- Stefano Ermon -----
+\subsection{Stefano Ermon：扩散模型的理论架构师}
+
+Stefano Ermon是Stanford计算机科学副教授，
+也是\textbf{Inception AI}的联合创始人和CEO。
+他的研究横跨生成模型、概率推理和AI for social good。
+
+Ermon的理论贡献定义了现代生成模型的数学基础：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{DDIM}（Denoising Diffusion Implicit Models）：
+        大幅加速了扩散模型的采样过程；
+  \item \textbf{Score-based generative models}：
+        与Yang Song合作的基于分数的生成模型框架，
+        为扩散模型提供了统一的理论解释；
+  \item \textbf{DPO}的合作者：Direct Preference Optimization
+        这一对RLHF的简化替代方案也有他的贡献；
+  \item \textbf{FlashAttention的合作指导者}：
+        Tri Dao的两位博士导师之一。
+\end{itemize}
+
+2024年，他与Aaron Lou和Chenlin Meng的论文
+``Discrete Diffusion Modeling by Estimating the Ratios of the Data Distribution''
+获得ICML 2024 Best Paper Award。
+2025年他出版了一部470页的扩散模型专著，从第一原理出发
+系统讲解了扩散生成模型的所有关键技术。
+2026年3月，他在访谈中阐述了``扩散LLM''的愿景——
+基于扩散的语言模型可能超越自回归范式。
+
+% ----- Other Stanford -----
+\subsection{Stanford的其他关键研究者}
+
+\paragraph{Tengyu Ma（马腾宇）}
+Stanford计算机科学助理教授，Princeton博士（导师Sanjeev Arora）。
+他的研究聚焦深度学习理论，特别是非凸优化的收敛性分析、
+泛化理论和Scaling Law的理论基础。
+2026年2月与学生合作的``Configuration-to-Performance Scaling Law''
+探索了将Scaling Law从模型大小和数据量推广到完整训练配置空间的可能性。
+
+\paragraph{Tatsunori Hashimoto}
+Stanford计算机科学助理教授，专注于数据高效的语言建模。
+他的研究回答一个关键问题：当预训练数据成为瓶颈时，
+如何通过合成数据和算法方法提升数据效率？
+他指导的博士生Zitong Yang的2026年博士论文
+``Continually Self-Improving AI''探索了让AI系统持续自我提升的路径。
+
+\paragraph{Jure Leskovec}
+Stanford计算机科学教授，图神经网络领域的开创者。
+他开发的GraphSAGE和PyTorch Geometric框架被广泛应用于推荐系统和社交网络分析。
+曾任Pinterest首席科学家，
+目前是Kumo AI的首席科学家，专注于关系型基础模型（Relational Foundation Model）——
+直接在数据仓库的关系型数据上进行预测建模。
+2025年推出的关系图Transformer实现了30--50\%的预测精度提升。
+
+\paragraph{Dorsa Sadigh}
+Stanford计算机科学和电气工程助理教授，
+研究人机交互中的机器人学习，特别是如何通过人类反馈
+（不仅仅是奖励信号，而是包括自然语言指令、偏好和物理示范）
+来训练机器人系统。她是RLHF在机器人领域应用的重要推动者。
+
+
+% =============================================================
+\section{Berkeley--CMU轴心：系统与机器人的双子星}
+\label{sec:berkeley-cmu}
+% =============================================================
+
+如果说Stanford是AI创始人的``工厂''，
+那么UC Berkeley和CMU则构成了AI系统与机器人领域的``双子星''。
+Berkeley在AI系统（Ray、vLLM、Spark）和机器人
+（Covariant、Physical Intelligence）方面的影响力无与伦比；
+CMU则以机器人学院（Robotics Institute）和机器学习系
+（Machine Learning Department）的深厚底蕴著称。
+
+% ----- Berkeley -----
+\subsection{UC Berkeley：系统、安全与机器人}
+
+\paragraph{Pieter Abbeel}
+UC Berkeley电气工程和计算机科学教授，
+Berkeley Robot Learning Lab主任，BAIR Lab联合主任。
+1977年生于比利时，在KU Leuven完成本科，Stanford获得博士学位。
+他的学术贡献涵盖深度强化学习、模仿学习和迁移学习——
+TRPO、SAC、Domain Randomization等算法均出自他的实验室。
+
+Abbeel于2017年联合创办了\textbf{Covariant}，
+开发用于仓库自动化的机器人基础模型。
+2024年，Covariant的技术被Amazon授权使用，
+Abbeel本人也加入Amazon担任AGI SF Lab的Amazon Scholar。
+他之前还创办了Gradescope（2014年，2018年被Turnitin收购）。
+如前所述，他的学生创办了十多家AI公司，
+使他成为AI创业生态中``学术教父''式的存在。
+
+\paragraph{Stuart Russell}
+Berkeley EECS教授、Smith-Zadeh工程讲席教授，
+Center for Human-Compatible AI（CHAI）的创始人和领导者。
+他与Peter Norvig合著的《Artificial Intelligence: A Modern Approach》
+是全球最广泛使用的AI教科书，被127个国家的大学采用。
+
+Russell是AI安全领域最重要的学术声音之一。
+他的著作《Human Compatible》（2019）提出了一个根本性的论点：
+AI系统不应该优化人类给定的固定目标，
+而应该对人类偏好保持根本性的不确定性，
+通过观察人类行为来持续学习。
+2025年1月，他获得了\textbf{AAAI Award for AI for the Benefit of Humanity}，
+表彰他在``可证明有益AI的概念和理论基础''方面的工作。
+
+\paragraph{Sergey Levine}
+Berkeley EECS副教授，
+Physical Intelligence的联合创始人。
+他在Stanford获得学士和硕士，Berkeley获得博士。
+他的研究聚焦于通过学习让自主代理获得复杂行为的算法，
+尤其是通用方法在机器人领域的应用。
+2024年，他与团队推出了$\pi$0（pi-zero）机器人基础模型，
+将VLM与扩散动作专家结合，实现了跨任务泛化。
+
+\paragraph{Ion Stoica}
+Berkeley EECS教授、SkyLab主任，
+同时是\textbf{Databricks}和\textbf{Anyscale}的联合创始人——
+两家公司分别基于他实验室的Apache Spark和Ray框架。
+Stoica在罗马尼亚长大，来到美国后在CMU获得博士学位。
+他的独特能力在于将非共识的学术想法转化为持久的商业公司：
+Conviva（视频优化）、Databricks（数据+AI平台，估值超过620亿美元）、
+Anyscale（分布式计算）。
+他的AMP Lab、RISE Lab和Sky Computing Lab
+培养了一代AI基础设施的核心工程师。
+
+\paragraph{Dawn Song}
+Berkeley EECS教授，AI安全和去中心化技术研究者。
+她是MacArthur Fellow和Guggenheim Fellow，
+被AMiner评为计算机安全领域引用最多的学者。
+2018年创办了\textbf{Oasis Labs}和Oasis Network（去中心化隐私计算平台），
+目前聚焦于AI安全、Agentic AI的可信性和机密计算。
+2025年获得Schmidt Sciences AI2050 Senior Fellowship。
+
+\paragraph{Trevor Darrell}
+Berkeley EECS教授，计算机视觉领域的领军人物。
+他的学生和合作者包括Yangqing Jia（Caffe框架创造者）、
+Ross Girshick（Faster R-CNN）、Jeff Donahue（DeCAF/BiGAN）等，
+这些工作奠定了深度学习在视觉领域的工程基础。
+
+\paragraph{Jitendra Malik}
+Berkeley Arthur J.\ Chick EECS讲席教授，
+计算机视觉领域的``活传奇''。
+他在图像分割、形状表示、物体检测等方面的工作
+获得了2016年ACM/AAAI Allen Newell Award。
+他的学术家族树（academic family tree）堪称计算机视觉的``族谱''：
+学生包括Ross Girshick、Kaiming He、
+Jianbo Shi、Thomas Brox、Katerina Fragkiadaki等，
+几乎构成了现代目标检测和图像分割研究的半壁江山。
+2025--2026年，他的最新研究方向转向``会学习的机器人''
+（Robots That Learn）。
+
+\paragraph{Joseph Gonzalez}
+Berkeley EECS副教授，
+曾参与GraphLab和PowerGraph等图计算系统的开发，
+现聚焦大模型推理系统。
+他的团队与vLLM项目有密切联系——
+vLLM的核心开发者Lianmin Zheng和Woosuk Kwon
+都是Berkeley的博士生。
+
+\paragraph{Lianmin Zheng与Woosuk Kwon：vLLM的缔造者}
+Lianmin Zheng和Woosuk Kwon是UC Berkeley的博士生
+（导师分别为Ion Stoica和Joseph Gonzalez），
+他们共同创造了\textbf{vLLM}——
+目前最被广泛采用的开源LLM推理引擎。
+vLLM的核心创新是\textbf{PagedAttention}，
+借鉴操作系统虚拟内存管理的思想来高效管理KV cache，
+显著提升了LLM服务的吞吐量。
+Kwon在2025年12月从Berkeley博士毕业后，
+联合创办了推理优化公司\textbf{Inferact}，担任CTO。
+他曾在Google DeepMind担任研究科学家（2024--2025），
+2024年获得Sequoia Open Source Fellow荣誉。
+
+% ----- CMU -----
+\subsection{CMU：机器学习的殿堂与机器人的摇篮}
+
+\paragraph{Ruslan Salakhutdinov}
+CMU UPMC讲席教授，Geoffrey Hinton的博士学生。
+他的研究涵盖深度学习、概率图模型和大规模优化。
+他曾担任Apple AI研究总监（2016--2020），
+2024年6月加入\textbf{Meta}担任研究VP，
+负责多模态LLM和AI Agent方向。
+2025年当选ICML Board主席。
+他的双重身份——CMU全职教授+Meta研究VP——
+反映了当代学术-工业关系的新常态。
+
+\paragraph{Graham Neubig}
+CMU计算机科学副教授，NLP和代码生成领域的重要研究者。
+他最引人注目的近期贡献是\textbf{OpenHands}
+（原名OpenDevin）——一个开源的AI编程代理平台，
+在8个月内从一个README发展为GitHub上第90位星标最多的Python项目。
+OpenHands的背后公司\textbf{All Hands AI}
+展示了一种学术项目快速产业化的新路径。
+他的CMU Advanced NLP课程是全球NLP教育的标杆资源。
+
+\paragraph{Deepak Pathak}
+CMU Raj Reddy机器人助理教授，IIT Kanpur金牌毕业生，
+Berkeley博士（导师Alexei Efros和Trevor Darrell）。
+他与Abhinav Gupta共同创办了\textbf{Skild AI}（2023年），
+开发通用机器人智能。Skild AI的``Skild Brain''
+号称是第一个可扩展的机器人基础模型，
+能够跨硬件平台和任务类型进行泛化——
+同一个模型可以控制人形机器人或四足机器人，
+甚至在肢体被移除后实时适应。
+
+Skild AI的融资历程堪称火箭式上升：
+2024年7月以15亿美元估值完成3亿美元A轮，
+2025年1月SoftBank追投5亿美元，
+2026年2月以超过140亿美元估值完成14亿美元融资
+（投资者包括SoftBank、NVIDIA、Jeff Bezos）。
+这使Skild AI成为全球估值最高的机器人AI公司之一。
+
+\paragraph{Abhinav Gupta}
+CMU机器人研究所教授，马里兰大学博士。
+与Deepak Pathak共同创办Skild AI，担任总裁。
+他在CMU的研究聚焦视觉学习和具身智能，
+获得2024年ICRA Best Paper Award。
+
+\paragraph{Yonatan Bisk}
+CMU计算机科学助理教授，
+研究语言的具身理解（grounded language understanding）——
+让AI通过与物理世界的交互来理解语言的含义，
+而非仅仅从文本中学习。
+
+
+% =============================================================
+\section{MIT：AI与科学的交汇点}
+\label{sec:mit}
+% =============================================================
+
+MIT CSAIL（Computer Science and Artificial Intelligence Laboratory）
+是世界上最大的大学研究实验室之一。
+在AI时代，MIT的独特优势在于将AI与其他科学领域深度结合——
+从癌症研究到机器人学，从语言理解到安全系统。
+
+\paragraph{Regina Barzilay}
+MIT工程学院``AI与健康''杰出教授、
+CSAIL首席研究员、Jameel Clinic AI Faculty Lead、MacArthur Fellow。
+她的研究轨迹体现了AI最令人振奋的应用方向之一：
+\textbf{用机器学习预测和对抗癌症}。
+
+2014年被诊断出乳腺癌后，Barzilay将她在NLP领域的专业知识
+转向医疗AI。作为患者，她亲身体验了临床预后中的挫败性不确定性——
+``临床试验的群体数据告诉我关于我个人状况的信息太少了。''
+作为AI研究者，她意识到这正是机器学习擅长解决的问题。
+
+十年后，她和团队开发的AI模型能够比传统方法更早、更准确地
+预测乳腺癌风险，这项工具已经开始进入实际临床应用。
+2025年，她入选TIME100 AI。
+
+\paragraph{Daniela Rus}
+MIT CSAIL主任、MIT Panasonic计算机科学教授、
+Schwarzman College of Computing研究副院长。
+她是2002年MacArthur Fellow、ACM/AAAI/IEEE Fellow，
+美国国家工程院院士。
+她的研究重新定义了传统机器人系统——
+为机器人赋予能够理解物理世界的机器智能，
+包括可解释的算法和软体机器人。
+2024年获得\textbf{IEEE Edison Medal}（2025年颁发）——
+自1909年以来授予杰出电气工程师的最高荣誉。
+她还创办了自动驾驶公司Venti Technologies和AI安全公司Themis AI。
+
+\paragraph{Jacob Andreas}
+MIT EECS助理教授，研究语言的``接地''
+（language grounding）——让语言模型不仅仅处理文本，
+而是将语言与视觉、交互和世界知识连接起来。
+
+\paragraph{Yoon Kim}
+MIT EECS助理教授，研究高效NLP方法，
+特别是如何在保持性能的同时大幅减小模型规模。
+
+\paragraph{Jonathan Frankle}
+MIT博士（2023年），``彩票假说''（Lottery Ticket Hypothesis）的提出者。
+他发现大型神经网络中存在更小、更高效的子网络——
+在不牺牲性能的情况下，可以显著降低计算成本。
+这一发现挑战了``模型越大越好''的传统信念。
+博士毕业后，他联合创办了\textbf{MosaicML}，
+该公司在2023年被Databricks以13亿美元收购。
+他现任Databricks首席AI科学家，
+领导团队发布了DBRX和MPT等开源模型。
+2025年获得AAAI/ACM SIGAI Doctoral Dissertation Award。
+
+% =============================================================
+\section{Princeton：理论的殿堂与Agent的诞生地}
+\label{sec:princeton}
+% =============================================================
+
+Princeton在AI领域的定位独特：
+它以深度学习的理论分析和语言代理（language agents）研究见长。
+Princeton Language and Intelligence（PLI）
+是该校AI研究的核心平台。
+
+\paragraph{Sanjeev Arora}
+Princeton Charles C.\ Fitzmorris计算机科学讲席教授、
+PLI主任。他是理论计算机科学背景的AI研究者，
+聚焦于为深度学习建立严格的数学理论。
+他与合作者的《Theory of Deep Learning》讲义
+是该领域最权威的理论参考之一。
+
+2025年5月，他在Markus' Academy发表演讲
+``Parrots No More: How AI Models Learn, Reason, and Self-Improve''，
+论证了大语言模型的能力远超简单的``统计鹦鹉''——
+它们展现出了真正的学习、推理和自我提升能力。
+这一立场与``LLM只是随机鹦鹉''的批评形成了有理有据的学术反驳。
+
+他的PhD学生Tengyu Ma（现Stanford教授）和
+其他毕业生遍布顶级大学和实验室。
+
+\paragraph{Danqi Chen（陈丹琦）}
+Princeton计算机科学助理教授，Stanford博士（导师Christopher Manning）。
+她是开放域问答（Open-Domain QA）领域的开拓者，
+证明了通过将信息检索与神经网络阅读理解相结合，
+可以让模型回答几乎任何事实性问题。
+
+她的近期工作聚焦于长上下文语言模型的训练方法。
+2025年ACL论文``How to Train Long-Context Language Models (Effectively)''
+系统研究了如何通过持续训练和微调使模型有效利用长上下文信息，
+发现代码仓库和书籍是优秀的长文本数据来源，
+但必须与高质量短文本数据混合使用。
+
+她的研究从RAG（检索增强生成）到长上下文模型的演进路线，
+反映了整个领域在``外部知识注入''策略上的范式转移。
+
+\paragraph{Karthik Narasimhan}
+Princeton计算机科学助理教授，
+\textbf{SWE-bench}的共同创造者。
+SWE-bench是评估语言模型解决真实软件工程问题能力的标准基准：
+给定一个代码仓库和GitHub issue描述，
+模型需要编辑代码来解决问题。
+这一基准在2024年ICLR上获得Oral论文，
+后来成为衡量AI编程代理能力的黄金标准。
+
+他的团队还开发了\textbf{SWE-agent}——
+一个让语言模型自主使用计算机解决软件工程任务的系统，
+强调\textbf{Agent-Computer Interface}（ACI）的设计
+对代理性能的关键影响。
+
+\paragraph{Elad Hazan}
+Princeton计算机科学教授，Google AI Princeton的联合创始人和主任。
+他是在线学习和凸优化理论的世界级专家（D-Index 60）。
+近年来，他的研究转向了受动力系统启发的新型神经网络架构——
+不同于Transformer的注意力机制，
+这些架构基于线性动力系统理论设计，
+可能为更高效的序列建模提供替代方案。
+
+
+% =============================================================
+\section{华盛顿大学与AI2：开放科学的旗帜}
+\label{sec:uw-ai2}
+% =============================================================
+
+University of Washington（UW）与Allen Institute for AI（AI2）
+形成了一个独特的学术-非营利研究组合。
+AI2由微软联合创始人Paul Allen于2014年创立，
+其使命是``服务公共利益的高影响力AI研究''。
+UW的多位教授同时在AI2担任要职，
+两个机构的人才和资源高度重叠。
+
+\paragraph{Yejin Choi（崔艺真）}
+UW Wissner-Slivka教授、MacArthur Fellow，
+AI2 Mosaic项目负责人，牛津大学AI伦理研究所杰出研究员。
+2026年，她被任命为Stanford HAI的Dieter Schwarz基金会教授和高级研究员。
+
+Choi的研究核心是一个看似简单却极其深刻的问题：
+\textbf{如何让AI系统获得常识推理能力？}
+她的团队开发了一系列常识知识图谱和推理基准
+（COMET、Social IQa、Moral Machines），
+证明了大语言模型虽然在语言流畅性上令人惊叹，
+但在基本的物理和社会常识推理上仍有显著缺陷。
+
+她的荣誉清单令人瞩目：MacArthur Fellow（2022），
+TIME100 AI，2个Test of Time Award（ACL 2021、ICCV 2021），
+8个Best/Outstanding Paper Award
+（ACL 2023、EMNLP 2023、NAACL 2022、ICML 2022、
+NeurIPS 2021、AAAI 2019、ICCV 2013）。
+她也是NVIDIA高级总监，反映了学术界向工业界渗透的趋势。
+
+\paragraph{Hannaneh Hajishirzi}
+UW计算机科学副教授，
+\textbf{OLMo}和\textbf{T\"{u}lu}项目的联合负责人。
+OLMo（Open Language Model）是AI2推出的
+完全开源的语言模型系列——不仅开源权重，
+还开源训练代码、数据集和评估工具，
+代表了``开放科学AI''的最高标准。
+
+2025年OLMo 2发布，2026年2月OLMo 3发布，
+引入``Model Flows''概念，
+展示了用正确的科学和工程方法可以构建
+媲美闭源系统的开源模型。
+T\"{u}lu则是对应的指令微调框架。
+她同时在Apple Workshop上展示了OLMo的全流程开放。
+
+\paragraph{Luke Zettlemoyer}
+UW Allen School教授、Meta FAIR高级研究总监、
+2024年ACL主席、ACL Fellow。
+他的研究聚焦计算语义学——
+构建能够恢复自然语言文本含义表示的模型。
+他是语言模型预训练和多语言NLP的重要贡献者，
+同时在Meta领导FAIR Seattle团队。
+2025年获得Schmidt Sciences AI2050 Senior Fellowship。
+
+\paragraph{Ali Farhadi}
+UW Allen School教授，AI2 CEO（2023年7月至2026年3月）。
+2025年是AI2历史上最具生产力的一年之一，
+推出了OLMo系列、Molmo系列（多模态模型）等。
+2025年底发布的\textbf{Molmo 2}实现了
+视频指向、多帧推理和物体追踪等突破性能力。
+2026年3月，Farhadi卸任CEO，
+但他在任期间显著提升了AI2在全球AI社区中的影响力。
+
+\paragraph{Oren Etzioni}
+AI2首任CEO（2014--2022），
+在他领导下AI2从一个新成立的研究机构
+成长为全球最有影响力的非营利AI实验室之一。
+他推动了Semantic Scholar的开发——
+一个利用AI理解和组织学术论文的搜索引擎。
+卸任后转向AI安全倡导。
+
+
+% =============================================================
+\section{加拿大学派：多伦多与蒙特利尔}
+\label{sec:canada}
+% =============================================================
+
+加拿大在AI领域的影响力与其国家体量完全不成比例。
+多伦多大学（Geoffrey Hinton的大本营）和
+蒙特利尔大学/Mila（Yoshua Bengio的基地）
+构成了深度学习革命的两个``发源地''。
+虽然三位``教父''（Hinton、Bengio、LeCun）
+在本书第二章已详细介绍，
+这里聚焦他们之后的下一代加拿大AI领袖。
+
+\paragraph{Roger Grosse}
+多伦多大学计算机科学副教授、
+Schwartz Reisman Technology and Society讲席、
+Vector Institute创始成员。
+他同时是\textbf{Anthropic}对齐科学团队的成员，
+专注于\textbf{训练数据归因}（training data attribution）。
+他持有Schmidt Sciences AI2050 Senior Fellowship、
+Sloan Fellowship和Canada CIFAR AI Chair。
+
+Grosse的研究轨迹体现了``理解→对齐''的演进：
+他早期致力于理解神经网络训练动态，
+利用这些理解改进训练速度、泛化和不确定性估计；
+现在他将这些知识应用于AI对齐——
+如何高效地从训练好的模型中移除危险信息？
+如何从不完全可信的模型中获取可靠信息？
+如何确保AI系统的安全性？
+
+\paragraph{Jimmy Ba}
+多伦多大学计算机科学副教授，xAI联合创始人。
+他最著名的学术贡献是\textbf{Layer Normalization}（2016）
+和作为\textbf{Adam优化器}论文的共同作者（与Diederik Kingma合作，2015）——
+这两项工作几乎被所有现代深度学习模型使用。
+他的Google Scholar引用量排名极高。
+
+他是xAI的创始团队成员之一，
+但2026年2月离开了该公司——
+这被报道为xAI创始人团队的进一步瓦解。
+他的离开引发了关于Elon Musk AI野心稳定性的质疑。
+
+\paragraph{Aaron Courville}
+蒙特利尔大学DIRO教授、Mila核心学术成员、
+Canada CIFAR AI Chair。
+他是深度学习的早期贡献者之一，
+Mila的创始成员，
+与Ian Goodfellow和Yoshua Bengio共同撰写了
+深度学习领域最重要的教科书《Deep Learning》（2016）。
+2025年4月被任命为\textbf{IVADO}科学主任
+（接替Yoshua Bengio），
+领导该组织的R3AI（Responsible, Reproducible, Robust AI）倡议。
+
+\paragraph{David Duvenaud}
+多伦多大学计算机科学副教授、
+Schwartz Reisman讲席、Vector Institute创始成员。
+他最著名的贡献是\textbf{Neural ODE}（神经常微分方程，NeurIPS 2018 Best Paper）——
+用神经网络参数化隐藏状态的导数，
+而非指定离散的隐藏层序列。
+这允许连续深度模型以恒定内存成本运行，
+并可显式地在精度和速度之间权衡。
+
+2023--2024年，他在\textbf{Anthropic}担任团队负责人，
+领导一个5人团队设计和构建评估体系，
+以履行Anthropic的Responsible Scaling Policy承诺。
+2024年10月返回多伦多大学，
+现在聚焦于评估前沿AI模型的危险能力。
+他获得了2024年CS-Can Outstanding Early Career Researcher Award。
+
+\paragraph{Richard Zemel}
+从多伦多大学转至Columbia大学，
+是变分推理和图神经网络的早期贡献者，
+也是Vector Institute的联合创始人之一。
+
+
+% =============================================================
+\section{NYU与其他美国大学}
+\label{sec:nyu-others}
+% =============================================================
+
+\subsection{NYU：序列模型与基准的先驱}
+
+\paragraph{Kyunghyun Cho}
+NYU计算机科学和数据科学教授。
+他最重要的学术贡献是\textbf{GRU}（Gated Recurrent Unit，2014）
+和注意力机制在神经机器翻译中的应用。
+他与Dzmitry Bahdanau和Yoshua Bengio合作的
+``Neural Machine Translation by Jointly Learning to Align and Translate''
+获得ICLR 2025 Test of Time Runner-Up——
+这篇论文引入的注意力机制
+后来成为Transformer架构的核心组件。
+
+Cho出生于韩国（1987年），KAIST本科毕业，
+随后赴赫尔辛基大学攻读博士。
+他的荣誉包括Samsung-Ho-Am Prize（2021）、
+韩国工程院副院士（2023）等。
+
+\paragraph{Sam Bowman}
+NYU语言学和计算机科学副教授
+（2025年转至Anthropic担任对齐精细化团队负责人）。
+他创建了\textbf{SNLI}
+（Stanford Natural Language Inference corpus）
+和\textbf{MultiNLI}——
+两个定义了自然语言推理研究标准的基准数据集。
+他的工作为后来的BERT等预训练模型的评估
+提供了关键的测试平台。
+
+\paragraph{He He}
+NYU计算机科学助理教授，
+研究对话系统和语言模型的可靠性。
+
+\paragraph{Lerrel Pinto}
+NYU计算机科学助理教授，
+研究机器人操作学习——
+让机器人通过少量示范学会复杂的物体操作任务。
+
+\subsection{Andrew Ng：AI教育的全球化推手}
+
+Andrew Ng（吴恩达）虽然以Stanford兼任教授的身份
+维持学术联系，但他的主要影响力在于AI教育的民主化。
+他是Google Brain的创始负责人（2011年），
+Coursera的联合创始人（2012年），
+百度首席科学家（2014--2017），
+DeepLearning.AI创始人（2017年），
+AI Fund管理合伙人，以及LandingAI执行董事长。
+
+他在Coursera上的\textbf{Deep Learning Specialization}
+已有超过97万人注册，
+是世界上最受欢迎的AI在线课程。
+他的名言``AI is the new electricity''
+成为了整个行业的口号。
+
+2024年，AI Fund计划为其第二期基金筹集1.2亿美元。
+Ng还被任命为Amazon董事会成员。
+他的独特定位不在于发表最前沿的论文，
+而在于让AI技术和知识触达最广泛的受众——
+用他的话说，``我们需要为每个人建造电梯，
+而不仅仅是为少数人建造电梯。''
+
+
+% =============================================================
+\section{欧洲学者：从VAE到不确定性}
+\label{sec:europe}
+% =============================================================
+
+虽然AI研究的``引力中心''在北美，
+但欧洲学者在关键领域——概率模型、可解释性、AI伦理——
+做出了不成比例的贡献。
+
+\paragraph{Max Welling}
+阿姆斯特丹大学全职教授，CuspAI联合创始人。
+他与Diederik Kingma共同发明了
+\textbf{VAE}（Variational Autoencoder，2013/2014）——
+将深度学习与可扩展概率推理相结合的里程碑式工作。
+VAE中的``重参数化技巧''（reparameterization trick）
+成为后续所有变分推理方法的标准工具。
+2024年，这篇论文获得\textbf{ICLR首届Test of Time Award}。
+
+Welling的学术谱系横跨北美和欧洲：
+Caltech博士后、UCI全职教授、多伦多大学博士后，
+最后回到阿姆斯特丹。
+他现在的研究聚焦于AI在科学发现中的应用——
+特别是不确定性量化在自动化科学过程中的关键角色。
+CuspAI利用这些方法加速材料科学的发现。
+
+\paragraph{Yarin Gal}
+牛津大学计算机科学副教授，
+深度学习中不确定性量化的世界级专家。
+他的博士论文将dropout重新解释为贝叶斯近似，
+为深度学习模型的不确定性估计
+提供了实用而优雅的理论框架。
+他的``Uncertainty in Deep Learning''课程
+是牛津的高级机器学习旗舰课程。
+应用领域涵盖自动驾驶、天文学和医疗。
+
+\paragraph{Been Kim}
+Google DeepMind高级研究科学家。
+她虽然在工业界工作，但学术影响力显著。
+她发明的\textbf{TCAV}
+（Testing with Concept Activation Vectors）
+提供了一种用人类友好的概念
+解释神经网络内部状态的方法——
+例如，定量衡量``条纹''这个概念
+对斑马分类的重要程度。
+2024年在芝加哥大学的讲座中，
+她提出可解释性的目标不应仅仅是让人类理解机器，
+更应该是让人类从机器中学到新知识，
+从而构建更好对齐的系统。
+
+\paragraph{Shakir Mohamed}
+Google DeepMind研究总监，出生于津巴布韦。
+他是生成模型和变分推理的重要贡献者，
+但同样以其对``AI for Social Good''的倡导著称。
+2026年，他获得\textbf{AAAI Award for AI for the Benefit of Humanity}，
+表彰他``通过赋能全球社区学习、贡献、辩论和塑造AI使用方式，
+最大化AI社会效益的重大贡献''。
+他的研究视野跨越学科边界，
+将AI方法与全球健康、气候变化和社会公平问题连接。
+
+
+% =============================================================
+\section{改变一切的论文作者}
+\label{sec:paper-authors}
+% =============================================================
+
+有些研究者可能不是知名教授，
+也不是大型实验室的负责人，
+但他们的一两篇论文足以改变整个领域的走向。
+
+% ----- Jason Wei -----
+\subsection{Jason Wei：Chain-of-Thought的推广者}
+
+Jason Wei是一位美国AI研究者，
+目前在\textbf{Meta Superintelligence Labs}工作。
+2023--2025年在OpenAI工作（负责推理和Agent），
+之前是Google Brain的研究科学家。
+
+他的三篇关键论文定义了大模型能力的认知框架：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Chain-of-Thought Prompting Elicits Reasoning in Language Models}
+        （2022年1月）：证明了通过在prompt中提供逐步推理示例，
+        可以显著提升大语言模型的数学和逻辑推理能力。
+        这篇论文直接启发了后来所有``reasoning model''的设计思路，
+        从OpenAI的o1/o3到DeepSeek R1；
+  \item \textbf{Emergent Abilities of Large Language Models}
+        （2022年6月）：提出大模型在规模增长过程中
+        会涌现出小模型不具备的能力，
+        推动了学界对Scaling Law的深入研究；
+  \item \textbf{Finetuned Language Models Are Zero-Shot Learners}
+        （2021年9月，FLAN）：
+        instruction tuning的开创性工作。
+\end{enumerate}
+
+\begin{whybox}[Chain-of-Thought为什么如此影响深远？]
+CoT的核心洞察是：大语言模型的推理能力
+不需要额外的训练或架构修改来``解锁''——
+它已经存在于模型参数中，
+只需要通过适当的提示格式``引出''。
+这一发现从根本上改变了人们对LLM能力边界的认知，
+也催生了o1/o3、DeepSeek R1等``思考型模型''的整个技术路线。
+从某种意义上说，2024--2025年的reasoning model竞赛
+都可以追溯到Wei 2022年的这篇论文。
+\end{whybox}
+
+% ----- Albert Gu -----
+\subsection{Albert Gu：Transformer的挑战者}
+
+Albert Gu是CMU助理教授、
+\textbf{Cartesia AI}的联合创始人。
+他开发的\textbf{S4}（Structured State Space for Sequence Modeling，2021）
+和\textbf{Mamba}（2023，与Tri Dao合作）
+代表了对Transformer架构最严肃的替代挑战。
+
+S4和Mamba基于结构化状态空间模型（SSM），
+通过结合连续时间模型、递归模型和卷积模型的优势，
+在处理长序列时同时实现了高效训练和高效推理。
+Mamba的核心创新是一种输入依赖的选择机制，
+使SSM参数可以根据输入动态调整——
+这类似于注意力机制的功能，但计算复杂度更低。
+
+2025年，Gu被TIME评为100 Most Influential People in AI之一。
+他的研究提出了一个根本性问题：
+Transformer是否是序列建模的终极架构？
+SSM展示的线性复杂度推理和在长序列上的优势
+暗示答案可能是否定的——
+至少对于某些应用场景，混合架构或纯SSM架构
+可能是更优的选择。
+
+% ----- EleutherAI -----
+\subsection{EleutherAI：草根开源运动}
+
+\textbf{EleutherAI}是一个非营利AI研究实验室，
+代表了``去中心化AI研究''的理念——
+证明不需要数十亿美元的资金和数千块GPU，
+一群分散在全球的志愿研究者也能做出重要贡献。
+
+\paragraph{Stella Biderman}
+EleutherAI的核心领导者之一，
+研究聚焦NLP、语言建模和可解释性。
+她的主要贡献包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{The Pile}（2020）：
+        一个800GB的多样化文本数据集，
+        被广泛用于语言模型训练，
+        是当时最大的公开预训练语料库之一；
+  \item \textbf{GPT-NeoX}：
+        高效训练数百亿参数大模型的开源库；
+  \item \textbf{Tuned Lens}：
+        一种``窥视''Transformer内部中间预测的方法，
+        为可解释性研究提供了新工具。
+\end{itemize}
+
+EleutherAI在2025年的研究方向扩展到
+机械可解释性（mechanistic interpretability）和对齐，
+并参与了关于开源安全性的重要讨论——
+如何通过训练数据过滤
+为开源模型构建防篡改的安全护栏。
+
+
+% =============================================================
+\section{教授创业：学术到产业的管道}
+\label{sec:pipeline}
+% =============================================================
+
+2020年代AI领域最显著的社会学现象之一
+是教授创业的``管道化''——
+从一篇有影响力的论文到一家估值数十亿美元的公司，
+这条路径变得越来越短、越来越常见。
+
+\begin{corebox}[教授-创业管道的典型路径]
+观察过去三年的模式，学术到创业的典型路径包含以下步骤：
+\begin{enumerate}[noitemsep]
+  \item \textbf{基础研究突破}：在顶级会议上发表开创性论文
+        （如FlashAttention、Mamba、MAML）；
+  \item \textbf{开源化和社区验证}：将研究成果开源，
+        让工业界验证其实用价值（如vLLM、OpenHands）；
+  \item \textbf{人才积累}：通过PhD学生和博士后建立核心技术团队；
+  \item \textbf{公司创立}：保留学术职位的同时创办公司，
+        通常获得顶级VC的种子轮或A轮投资
+        （估值起步即数亿美元）；
+  \item \textbf{快速规模化}：利用学术声誉吸引人才，
+        利用研究积累加速产品开发。
+\end{enumerate}
+这一管道的效率在提高，但也引发了对学术独立性的担忧：
+当教授同时是公司创始人时，
+他们的公开研究是否还能保持客观中立？
+\end{corebox}
+
+% ----- Figure: Professor-Startup Network -----
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily\scriptsize},
+  uni/.style={draw=figBlue, thick, fill=figBlue!8, rounded corners=3pt,
+              inner sep=4pt, font=\sffamily\footnotesize\bfseries,
+              minimum width=2.2cm, minimum height=0.7cm},
+  prof/.style={draw=figGray, thick, fill=figLightGray, rounded corners=2pt,
+               inner sep=3pt, font=\sffamily\tiny},
+  co/.style={draw=figOrange, thick, fill=figOrange!8, rounded corners=2pt,
+             inner sep=3pt, font=\sffamily\tiny\bfseries},
+  arr/.style={-{Stealth[length=2mm]}, thick, figGray!60},
+]
+
+% Universities
+\node[uni] (stan) at (0, 8) {Stanford};
+\node[uni] (berk) at (0, 5.5) {UC Berkeley};
+\node[uni] (cmu) at (0, 3) {CMU};
+\node[uni] (mit) at (0, 0.5) {MIT / Princeton};
+
+% Stanford professors
+\node[prof] (ffl) at (-3, 9) {Fei-Fei Li};
+\node[prof] (cre) at (-3, 8) {Chris R\'{e}};
+\node[prof] (cf) at (-3, 7) {Chelsea Finn};
+\node[prof] (se) at (3, 8.5) {Stefano Ermon};
+\node[prof] (jl) at (3, 7.5) {Jure Leskovec};
+
+% Berkeley professors
+\node[prof] (pa) at (-3, 6) {Pieter Abbeel};
+\node[prof] (sl) at (-3, 5) {Sergey Levine};
+\node[prof] (is) at (3, 6) {Ion Stoica};
+
+% CMU professors
+\node[prof] (dp) at (-3, 3.5) {Deepak Pathak};
+\node[prof] (ag) at (-3, 2.5) {Abhinav Gupta};
+\node[prof] (gn) at (3, 3) {Graham Neubig};
+
+% MIT/Princeton
+\node[prof] (jf) at (-3, 1) {Jonathan Frankle};
+\node[prof] (td) at (3, 1) {Tri Dao};
+\node[prof] (agu) at (3, 0) {Albert Gu};
+
+% Companies
+\node[co] (wl) at (-7, 9) {World Labs};
+\node[co] (sb) at (-7, 8) {SambaNova};
+\node[co] (pi) at (-7, 5.5) {Physical Intelligence};
+\node[co] (cov) at (-7, 6.5) {Covariant};
+\node[co] (db) at (7, 6) {Databricks};
+\node[co] (ski) at (-7, 3) {Skild AI};
+\node[co] (oh) at (7, 3) {OpenHands};
+\node[co] (mos) at (-7, 1) {MosaicML};
+\node[co] (tog) at (7, 1) {Together AI};
+\node[co] (car) at (7, 0) {Cartesia AI};
+\node[co] (inc) at (7, 8.5) {Inception AI};
+\node[co] (kum) at (7, 7.5) {Kumo AI};
+
+% Arrows: prof -> university (abbreviated via positioning)
+% Arrows: prof -> company
+\draw[arr] (ffl) -- (wl);
+\draw[arr] (cre) -- (sb);
+\draw[arr] (cf) -- (pi);
+\draw[arr] (sl) -- (pi);
+\draw[arr] (pa) -- (cov);
+\draw[arr] (is) -- (db);
+\draw[arr] (dp) -- (ski);
+\draw[arr] (ag) -- (ski);
+\draw[arr] (gn) -- (oh);
+\draw[arr] (jf) -- (mos);
+\draw[arr] (td) -- (tog);
+\draw[arr] (agu) -- (car);
+\draw[arr] (se) -- (inc);
+\draw[arr] (jl) -- (kum);
+
+% University connections (dashed)
+\draw[dashed, figBlue!40] (stan) -- (ffl);
+\draw[dashed, figBlue!40] (stan) -- (cre);
+\draw[dashed, figBlue!40] (stan) -- (cf);
+\draw[dashed, figBlue!40] (stan) -- (se);
+\draw[dashed, figBlue!40] (stan) -- (jl);
+\draw[dashed, figBlue!40] (berk) -- (pa);
+\draw[dashed, figBlue!40] (berk) -- (sl);
+\draw[dashed, figBlue!40] (berk) -- (is);
+\draw[dashed, figBlue!40] (cmu) -- (dp);
+\draw[dashed, figBlue!40] (cmu) -- (ag);
+\draw[dashed, figBlue!40] (cmu) -- (gn);
+\draw[dashed, figBlue!40] (mit) -- (jf);
+\draw[dashed, figBlue!40] (mit) -- (td);
+\draw[dashed, figBlue!40] (mit) -- (agu);
+
+\end{tikzpicture}
+\caption{教授-创业管道：顶级大学的AI教授与他们创办的公司。
+实线箭头表示创始人/联合创始人关系，
+虚线表示所属大学。}
+\label{fig:prof-startup}
+\end{figure}
+
+本章中呈现的研究者有一些值得注意的共同模式：
+
+\begin{keybox}[五个关键观察]
+\begin{enumerate}[noitemsep]
+  \item \textbf{双重身份成为常态}：
+        几乎所有顶级AI教授都同时在工业界担任顾问、
+        研究VP或联合创始人。
+        纯粹的``象牙塔''学术生涯在AI领域已经极为罕见。
+  \item \textbf{开源是加速器}：
+        FlashAttention、vLLM、OpenHands等项目
+        都是先在学术界开源获得验证，
+        再转化为商业产品。
+        开源不仅是理想主义，更是高效的市场验证策略。
+  \item \textbf{学生网络即竞争壁垒}：
+        Pieter Abbeel、Jitendra Malik、Yoshua Bengio等
+        ``学术教父''的真正资产是他们培养的学生网络。
+        这些学生在OpenAI、Anthropic、Google DeepMind
+        和数十家创业公司中担任关键角色。
+  \item \textbf{评估是权力}：
+        制定评估标准（HELM、SWE-bench、MMLU）
+        的学术团队对整个行业有巨大的隐性影响力——
+        他们定义了``什么算好''，
+        从而塑造了所有实验室的研发方向。
+  \item \textbf{理论最终会变现}：
+        Sanjeev Arora的理论学生Tengyu Ma成了Stanford教授，
+        Chris R\'{e}的systems思维孵化了SambaNova，
+        Elad Hazan的优化理论催生了Google AI Princeton——
+        基础理论研究的商业价值通常滞后5--10年，
+        但一旦时机成熟，回报是指数级的。
+\end{enumerate}
+\end{keybox}
+
+% ----- Summary Table -----
+\begin{table}[htbp]
+\centering
+\caption{本章主要学术研究者总览（按机构分组）}
+\label{tab:academics-summary}
+\footnotesize
+\begin{tabularx}{\textwidth}{l l X l}
+\toprule
+\textbf{姓名} & \textbf{机构} & \textbf{核心贡献} & \textbf{产业联系} \\
+\midrule
+% Stanford
+Fei-Fei Li & Stanford & ImageNet、空间智能 & World Labs CEO \\
+C.\ Manning & Stanford & GloVe、SAIL主任 & — \\
+Percy Liang & Stanford & HELM、CRFM & Together AI \\
+Chelsea Finn & Stanford & MAML、OpenVLA & Physical Intelligence \\
+Chris R\'{e} & Stanford & Snorkel、Data-Centric AI & SambaNova, Together \\
+Tri Dao & Princeton & FlashAttention、Mamba & Together AI CTO \\
+Stefano Ermon & Stanford & DDIM、Score-based models & Inception AI CEO \\
+Tengyu Ma & Stanford & 深度学习理论 & — \\
+T.\ Hashimoto & Stanford & 数据高效LM & — \\
+Jure Leskovec & Stanford & GraphSAGE & Kumo AI \\
+Dorsa Sadigh & Stanford & 人机交互机器人学习 & — \\
+\midrule
+% Berkeley
+Pieter Abbeel & Berkeley & 深度RL、TRPO、SAC & Amazon, Covariant \\
+Stuart Russell & Berkeley & AI安全、CHAI & — \\
+Sergey Levine & Berkeley & $\pi$0机器人基础模型 & Physical Intelligence \\
+Ion Stoica & Berkeley & Spark、Ray & Databricks, Anyscale \\
+Dawn Song & Berkeley & AI安全+去中心化 & Oasis Labs \\
+Trevor Darrell & Berkeley & 深度视觉 & — \\
+Jitendra Malik & Berkeley & 计算机视觉 & — \\
+L.\ Zheng, W.\ Kwon & Berkeley & vLLM/PagedAttention & Inferact \\
+\midrule
+% CMU
+R.\ Salakhutdinov & CMU & 深度学习+概率模型 & Meta VP \\
+Graham Neubig & CMU & 代码生成、NLP & All Hands AI \\
+Deepak Pathak & CMU & 机器人基础模型 & Skild AI CEO \\
+Abhinav Gupta & CMU & 视觉学习+具身智能 & Skild AI 总裁 \\
+\midrule
+% MIT
+Regina Barzilay & MIT & AI for Cancer & Jameel Clinic \\
+Daniela Rus & MIT & CSAIL主任、机器人 & Venti, Themis AI \\
+J.\ Frankle & MIT(PhD) & 彩票假说 & Databricks CAS \\
+\midrule
+% Princeton
+Sanjeev Arora & Princeton & 深度学习理论 & PLI主任 \\
+Danqi Chen & Princeton & Open-domain QA & — \\
+K.\ Narasimhan & Princeton & SWE-bench & — \\
+Elad Hazan & Princeton & 在线学习/优化 & Google AI Princeton \\
+\midrule
+% UW / AI2
+Yejin Choi & UW→Stanford & 常识AI & NVIDIA, AI2 \\
+H.\ Hajishirzi & UW & OLMo、T\"{u}lu & AI2 \\
+Luke Zettlemoyer & UW & NLP预训练 & Meta FAIR \\
+Ali Farhadi & UW & 计算机视觉 & AI2 CEO(2023--26) \\
+\midrule
+% Canada
+Roger Grosse & UofT & 训练数据归因 & Anthropic \\
+Jimmy Ba & UofT & Adam、LayerNorm & xAI(2023--26) \\
+Aaron Courville & Mila & DL教科书、生成模型 & IVADO SD \\
+David Duvenaud & UofT & Neural ODE & Anthropic(2023--24) \\
+\midrule
+% Other
+Andrew Ng & Stanford & DL教育民主化 & AI Fund, Coursera \\
+Jason Wei & — & CoT、Emergence & Meta SIL \\
+Albert Gu & CMU & S4、Mamba & Cartesia AI \\
+Stella Biderman & — & The Pile、GPT-NeoX & EleutherAI \\
+Max Welling & Amsterdam & VAE & CuspAI \\
+Yarin Gal & Oxford & 不确定性量化 & — \\
+Been Kim & DeepMind & TCAV、可解释性 & Google DeepMind \\
+Shakir Mohamed & DeepMind & AI for Social Good & Google DeepMind \\
+Kyunghyun Cho & NYU & GRU、注意力机制 & — \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\bigskip
+
+学术界在AI领域的角色正在经历根本性的重塑。
+传统的``大学研究→论文发表→毕业生进入工业界''
+的线性路径已经被一个更加复杂、更加动态的网络所取代：
+教授同时是创始人，博士生同时是CTO，
+学术论文同时是产品路线图，
+开源项目同时是商业原型。
+
+这种模式的好处是显而易见的：
+知识转化的速度大幅提升，
+社会能够更快地从基础研究中获益。
+但风险同样存在：
+当评估标准的制定者同时是被评估公司的利益相关者，
+当公开发表的研究背后有未披露的商业利益，
+学术界作为``独立裁判''的角色就会受到侵蚀。
+
+这是一个值得整个AI社区认真思考的治理挑战——
+而解决方案，很可能也将来自学术界本身。

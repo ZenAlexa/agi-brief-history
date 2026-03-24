@@ -1,0 +1,490 @@
+\documentclass[
+  customlatinfont = macos,
+]{hkustthesis}
+
+\usepackage[sc]{hkust-cjk}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{caption}
+
+\addbibresource{refs.bib}
+
+% ── 1.5 line spacing ──
+\onehalfspacing
+
+% ── Color definitions for visual elements ──
+\definecolor{coreblue}{HTML}{2563EB}
+\definecolor{compgreen}{HTML}{059669}
+\definecolor{lightgray}{HTML}{F3F4F6}
+\definecolor{accentred}{HTML}{DC2626}
+\definecolor{warnorg}{HTML}{D97706}
+
+% ── Footnote style: reset per page ──
+\usepackage[perpage,bottom]{footmisc}
+
+\begin{document}
+\mainmatter
+
+% ══════════════════════════════════════════════════════════════
+% Title Page
+% ══════════════════════════════════════════════════════════════
+
+\thispagestyle{empty}
+\begin{center}
+\vspace*{3cm}
+
+{\fontsize{28}{34}\selectfont\bfseries OpenClaw 生态系统研究报告}
+
+\vspace{1.5cm}
+
+{\Large\itshape AI Agent 框架生态、市场分析与商业机遇}
+
+\vspace{3cm}
+
+{\large
+\begin{tabular}{rl}
+  \textbf{作者：}  & Ziming Wang \\[6pt]
+  \textbf{日期：}  & 2026 年 3 月 9 日 \\[6pt]
+  \textbf{机构：}  & 香港科技大学 \\
+                   & 跨学科学域学部 $\cdot$ 综合系统与设计学部
+\end{tabular}
+}
+
+\vspace{2cm}
+
+{\small\textcolor{gray}{LLM Observatory $\cdot$ 研究笔记整合报告}}
+
+\vfill
+\end{center}
+\clearpage
+
+% ══════════════════════════════════════════════════════════════
+\chapter{OpenClaw 生态系统研究报告}
+% ══════════════════════════════════════════════════════════════
+
+% ── 1. Executive Summary ──────────────────────────────────────
+\section{研究摘要}
+
+本报告对 OpenClaw AI Agent 生态系统进行了全面调研，涵盖核心框架、商业竞品、
+轻量衍生品、中国市场本地化、安全防护、前端工具、硬件集成、基础设施以及技能插件
+市场等十个维度。%
+\footnote{调研时间为 2026 年 3 月，数据来源包括各项目官方文档、GitHub 仓库及行业分析报告。}
+
+\paragraph{核心发现}
+
+\begin{itemize}[nosep]
+  \item 核心框架层包含 6 个官方项目（OpenClaw、LangChain、LangGraph、LangSmith、
+        Toolkits、Templates），构成完整的开发——部署——监控闭环。
+  \item 商业竞品 4 家（LobsterAI、QClaw、Einclaw、EasyClaw），分别定位于企业级、
+        高性能计算、深度学习优化和低代码场景。
+  \item ZeroClaw 轻量衍生生态（Core / Lite / Plus）覆盖边缘计算与入门级需求。
+  \item 中国市场生态围绕四大 IM 平台（微信、钉钉、飞书、QQ）构建，
+        增长率全球最高（50--60\% CAGR）。%
+        \footnote{CAGR = Compound Annual Growth Rate，复合年均增长率。}
+  \item 支撑层涵盖安全、前端、硬件、DevOps 与插件五大模块，生态完整度高。
+\end{itemize}
+
+\paragraph{市场概览}
+
+\begin{itemize}[nosep]
+  \item 2024 年全球 AI Agent 市场规模：50--100 亿美元
+  \item 2030 年预测：500--1000 亿美元
+  \item 复合增长率：30--40\% CAGR
+  \item 中国市场 2030 年预测：100 亿美元以上（增速全球第一）
+\end{itemize}
+
+
+% ── 2. Core Framework ────────────────────────────────────────
+\section{核心框架体系}
+
+OpenClaw 生态的核心由六个官方项目组成，形成从开发到运维的完整链路。
+
+\begin{table}[htbp]
+\centering
+\caption{OpenClaw 核心官方项目一览}
+\label{tab:core-projects}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{项目} & \textbf{定位} & \textbf{技术栈} & \textbf{市场} \\
+\midrule
+OpenClaw       & AI Agent 框架           & Python / TypeScript & 2B / 2C \\
+LangChain      & LLM 应用框架            & Python / JavaScript & 2B / 2C \\
+LangGraph      & 工作流图引擎            & Python / JavaScript & 2B      \\
+LangSmith      & 开发监控平台            & Python / TypeScript & 2B      \\
+Toolkits       & 预构建工具集成          & Python              & 2B / 2C \\
+Templates      & 快速启动模板            & Python / JavaScript & 2C      \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{架构关系}
+OpenClaw 作为核心 Agent 框架，LangChain 提供 LLM 调用与链式编排能力，
+LangGraph 负责复杂多步骤工作流的有向图建模~\cite{langgraph2024}，
+LangSmith~\cite{langsmith2024} 承担开发调试与生产监控，
+Toolkits 提供即插即用的工具包（搜索、数据库、API 调用等），
+Templates 降低新项目启动成本。六者协同构成完整的开发——部署——监控闭环。
+
+
+% ── 3. Commercial Competitors ────────────────────────────────
+\section{商业竞品分析}
+
+\subsection{产品分层}
+
+商业竞品按目标市场和技术路径分为三个梯队。
+
+\paragraph{第一梯队：企业级平台}
+
+\textbf{LobsterAI} 面向金融、医疗、制造业大型企业，提供行业专属模板、
+合规审计与 24/7 技术支持。定价采用企业许可模式，年费 10 万至 100 万美元以上。%
+\footnote{定价区间来自公开市场信息，实际价格因合同条款而异。}
+获客路径以直销和咨询合作伙伴为主。
+
+\paragraph{第二梯队：专业化方案}
+
+\begin{itemize}[nosep]
+  \item \textbf{QClaw}（量子加速）：面向金融机构与科研实验室，
+        按查询计价（0.01--1 美元/次），擅长高吞吐优化场景。
+        技术栈为 Rust / Python。
+  \item \textbf{Einclaw}（深度学习优化）：面向 AI 研究团队，
+        学术许可免费、商业许可 5--50 万美元/年，
+        提供 GPU 优化与模型集成工具。
+\end{itemize}
+
+\paragraph{第三梯队：低代码 / 无代码}
+
+\textbf{EasyClaw} 面向非技术用户和中小企业，提供拖拽式构建器和预置模板。
+采用 Freemium 模式，付费版 99--999 美元/月/用户。
+获客渠道包括直销、应用商店和渠道合作伙伴。
+
+\subsection{竞争力矩阵}
+
+\begin{table}[htbp]
+\centering
+\caption{主要产品竞争力对比}
+\label{tab:competition}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{产品} & \textbf{易用性} & \textbf{性能} & \textbf{可扩展性}
+              & \textbf{生态} & \textbf{目标市场} \\
+\midrule
+OpenClaw  & 4/5 & 4/5 & 5/5 & 5/5 & 企业 + 开发者 \\
+LobsterAI & 5/5 & 4/5 & 3/5 & 4/5 & 企业          \\
+QClaw     & 2/5 & 5/5 & 3/5 & 2/5 & HPC 专家      \\
+Einclaw   & 3/5 & 5/5 & 4/5 & 3/5 & ML 研究者     \\
+EasyClaw  & 5/5 & 3/5 & 3/5 & 4/5 & 非技术用户    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{定价策略对比}
+
+\begin{table}[htbp]
+\centering
+\caption{商业产品定价策略}
+\label{tab:pricing}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{产品} & \textbf{模式} & \textbf{入门价} & \textbf{中端} & \textbf{企业级} \\
+\midrule
+EasyClaw  & Freemium + 订阅 & 免费 -- 99/月  & 299--999/月 & 定制   \\
+LobsterAI & 企业许可        & N/A            & 5 万/年     & 50 万+/年 \\
+QClaw     & 按量计费        & 0.01/次        & 0.1/次      & 1+/次  \\
+Einclaw   & 许可证          & 学术免费       & 5 万/年     & 50 万/年 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ── 4. ZeroClaw Derivatives ──────────────────────────────────
+\section{轻量衍生品：ZeroClaw 生态}
+
+ZeroClaw 系列面向资源受限场景，提供三个层级的解决方案。
+
+\begin{table}[htbp]
+\centering
+\caption{ZeroClaw 系列产品对比}
+\label{tab:zeroclaw}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{版本} & \textbf{定位} & \textbf{目标场景} \\
+\midrule
+ZeroClaw Core & 最小依赖 & 边缘计算、IoT 设备 \\
+ZeroClaw-Lite & 简化 API  & 入门开发者、初创团队 \\
+ZeroClaw-Plus & 模块化设计 & 性能优化、可扩展部署 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ── 5. China Market ──────────────────────────────────────────
+\section{中国市场生态}
+
+\subsection{IM 平台集成}
+
+中国市场的 AI Agent 生态高度依赖即时通讯平台。OpenClaw 已覆盖四大主流 IM。
+
+\begin{table}[htbp]
+\centering
+\caption{中国 IM 平台集成方案}
+\label{tab:im-integration}
+\begin{tabular}{@{}llrl@{}}
+\toprule
+\textbf{项目} & \textbf{平台} & \textbf{用户规模} & \textbf{集成方式} \\
+\midrule
+OpenClaw-WeChat   & 微信   & 13 亿  & 公众号 + 小程序  \\
+OpenClaw-DingTalk & 钉钉   & 3 亿+  & 工作流 + Bot     \\
+OpenClaw-Feishu   & 飞书   & 500 万+ & 文档 + 任务集成  \\
+OpenClaw-QQ       & QQ     & 7 亿   & 群组 + 频道 Bot  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{商业产品与服务}
+
+\paragraph{微信 Bot 服务}
+覆盖 13 亿微信用户和 3 亿+企业账户，采用 Freemium + Premium 模式
+（999--9999 元/月），主要用于电商客服、获客和内容分发。
+
+\paragraph{钉钉企业套件}
+覆盖 3 亿+用户和 1000 万+组织，SaaS 订阅模式（5000--50000 元/年/组织），
+用于工作流自动化、审批流程和 HR 自动化。
+
+\paragraph{云服务商方案}
+
+\begin{itemize}[nosep]
+  \item \textbf{阿里云}：Agent-as-a-Service (AaaS)，按量付费
+  \item \textbf{腾讯云}：集成 AI Agent 服务，提供托管运维
+  \item \textbf{百度云}：基于文心一言的 Agent 定制服务
+\end{itemize}
+
+\subsection{市场特征}
+
+\begin{itemize}[nosep]
+  \item 用户基数庞大：10 亿+互联网用户
+  \item IM 生态发达：微信（13 亿）、钉钉（3 亿）、QQ（7 亿）、飞书（500 万+）
+  \item 监管环境趋严：AI 治理与数据隐私法规不断完善
+  \item 技术人才充足：大量软件工程师和 AI 研究人员
+  \item 增速全球第一：50--60\% CAGR，2030 年市场规模预计超 100 亿美元
+\end{itemize}
+
+
+% ── 6. Security ──────────────────────────────────────────────
+\section{安全防护体系}
+
+Agent 系统的安全性至关重要。OpenClaw 生态提供四层安全防护。
+
+\begin{table}[htbp]
+\centering
+\caption{安全防护项目矩阵}
+\label{tab:security}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{项目} & \textbf{功能} \\
+\midrule
+OpenClaw-Security  & Agent 安全加固框架，覆盖输入验证、输出过滤与权限控制 \\
+OpenClaw-Guardian  & 行为监控与异常检测，实时告警与自动响应 \\
+OpenClaw-Vault     & 密钥与凭证管理，支持密钥轮换与访问审计 \\
+OpenClaw-Sandbox   & 代码沙箱执行环境，隔离不可信代码运行 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ── 7. Frontend & Dashboard ──────────────────────────────────
+\section{前端与可视化工具}
+
+\begin{table}[htbp]
+\centering
+\caption{前端与可视化工具}
+\label{tab:frontend}
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{项目} & \textbf{技术栈} & \textbf{功能} \\
+\midrule
+OpenClaw Console   & React    & 官方控制台，Agent 管理与配置    \\
+OpenClaw Dashboard & Vue 3    & 数据分析与性能监控仪表板        \\
+OpenClaw Studio    & Electron & 桌面 IDE，支持离线开发与调试    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ── 8. Hardware & Robotics ───────────────────────────────────
+\section{硬件与机器人集成}
+
+OpenClaw 生态正向物理世界延伸，覆盖机器人、机械臂、IoT 和无人机四大方向。
+
+\begin{table}[htbp]
+\centering
+\caption{硬件集成项目}
+\label{tab:hardware}
+\begin{tabular}{@{}lp{5cm}p{5cm}@{}}
+\toprule
+\textbf{项目} & \textbf{定位} & \textbf{支持平台} \\
+\midrule
+OpenClaw-Robotics & 物理机器人控制框架       & ROS / ROS2          \\
+OpenClaw-ARM      & 机械臂编程接口           & ABB, KUKA, Universal Robots \\
+OpenClaw-IoT      & IoT 设备控制管理         & MQTT, CoAP, BLE     \\
+OpenClaw-Drone    & 自主无人机编程           & DJI, Auterion, PX4  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ── 9. Infrastructure & DevOps ───────────────────────────────
+\section{基础设施与 DevOps}
+
+\begin{table}[htbp]
+\centering
+\caption{DevOps 工具链}
+\label{tab:devops}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{项目} & \textbf{功能} \\
+\midrule
+OpenClaw-Kubernetes    & Kubernetes 原生 Agent 部署框架         \\
+OpenClaw-Docker        & 容器化部署工具链，支持多架构           \\
+OpenClaw-CI-CD         & GitHub Actions / GitLab CI 集成        \\
+OpenClaw-Observability & 可观测性栈（Prometheus, ELK, Jaeger）  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ── 10. Skills & Plugins ─────────────────────────────────────
+\section{技能库与插件市场}
+
+\begin{table}[htbp]
+\centering
+\caption{技能与插件生态}
+\label{tab:skills}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{项目} & \textbf{说明} \\
+\midrule
+Skills Hub         & 官方预构建技能库，100+ 工具                  \\
+Plugin Marketplace & 社区贡献插件市场，带评分与审核机制            \\
+Private Skills     & 企业级私有技能管理，支持权限控制              \\
+Academic Extensions & Papers-with-Code 集成，面向学术研究          \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ── 11. Market Analysis ──────────────────────────────────────
+\section{市场分析与商业机遇}
+
+\subsection{全球市场规模与增长}
+
+\begin{itemize}[nosep]
+  \item 2024 年全球市场：50--100 亿美元
+  \item 2030 年预测：500--1000 亿美元
+  \item 复合增长率：30--40\% CAGR
+\end{itemize}
+
+\subsection{区域市场分布}
+
+\begin{table}[htbp]
+\centering
+\caption{区域市场分布与特征}
+\label{tab:regional}
+\begin{tabular}{@{}lcll@{}}
+\toprule
+\textbf{区域} & \textbf{份额} & \textbf{特征} & \textbf{增速} \\
+\midrule
+北美       & 40\% & 技术领先，生态成熟   & 15--20\%（温和） \\
+欧洲       & 25\% & 监管导向，合规优先   & 10--15\%（较慢） \\
+亚太       & 30\% & 增长最快，应用驱动   & 35--45\%（快速） \\
+中国       & 15\% & 新兴市场，本地生态   & 50--60\%（极快） \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{垂直行业机遇}
+
+\begin{table}[htbp]
+\centering
+\caption{垂直行业应用场景}
+\label{tab:verticals}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{行业} & \textbf{典型应用} \\
+\midrule
+金融   & 量化交易、风险管控、欺诈检测、智能投顾 \\
+医疗   & 诊断辅助、药物发现、患者咨询、临床决策支持 \\
+教育   & 个性化学习、自动评估、智能辅导、自适应教学 \\
+制造   & 生产优化、质量控制、预测性维护、供应链管理 \\
+电商   & 推荐系统、客服自动化、供应链优化、内容生成 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{商业模式}
+
+OpenClaw 生态中主要存在四类商业模式：
+
+\begin{enumerate}[nosep]
+  \item \textbf{SaaS 订阅}：EasyClaw（99--999 美元/月）、
+        OpenClaw 微信服务（999--9999 元/月），
+        云端交付，按用户或组织收费。
+  \item \textbf{企业许可}：LobsterAI（10--100 万+美元/年），
+        面向大型企业，包含定制化部署与专属支持。
+  \item \textbf{按量计费}：QClaw（按查询计价），
+        适合使用量波动较大的场景。
+  \item \textbf{Freemium + Premium}：所有平台均提供免费层，
+        通过功能门控与用量限制引导付费转化。
+\end{enumerate}
+
+\subsection{企业服务机遇}
+
+\begin{itemize}[nosep]
+  \item \textbf{Agent-as-a-Service}：预配置的行业专属 Agent，即开即用
+  \item \textbf{定制开发}：针对企业特定场景的 Agent 解决方案
+  \item \textbf{托管运维}：7$\times$24 小时运维与技术支持
+  \item \textbf{技术咨询}：架构设计、性能优化与安全评估
+\end{itemize}
+
+\subsection{开发者生态机遇}
+
+\begin{itemize}[nosep]
+  \item 开发工具：IDE、调试器、性能分析器
+  \item 教育培训：课程体系、认证考试、编程竞赛
+  \item 社区建设：论坛、会议、工作坊
+  \item 变现渠道：技能库销售、模板市场、咨询服务
+\end{itemize}
+
+
+% ── 12. Conclusions ──────────────────────────────────────────
+\section{总结与展望}
+
+OpenClaw 生态正在形成一个多层次、多维度的市场格局：
+
+\begin{enumerate}[nosep]
+  \item \textbf{核心框架层}：LangChain / OpenClaw 提供底层能力，
+        是整个生态的技术基石。
+  \item \textbf{商业竞品层}：面向垂直领域的专业化产品，
+        通过差异化定位实现市场细分。
+  \item \textbf{工具生态层}：安全、前端、DevOps 等外围工具，
+        提升开发者体验和系统可靠性。
+  \item \textbf{行业解决方案层}：金融、医疗、教育等垂直行业的定制化实施。
+  \item \textbf{区域本地化层}：中国市场的 IM 集成与云服务适配，
+        是全球增速最快的区域。
+\end{enumerate}
+
+AI Agent 市场仍处于早期快速增长阶段。
+随着大语言模型能力的持续提升和企业数字化转型的深入，
+Agent 框架生态将迎来更大的发展空间。
+中国市场凭借庞大的用户基数和活跃的 IM 生态，
+有望成为全球 AI Agent 应用创新的重要引擎。%
+\footnote{本报告基于公开信息整理，市场数据仅供参考，不构成投资建议。}
+
+
+% ── References ───────────────────────────────────────────────
+\printbibliography[heading=bibintoc, title={参考文献}]
+
+\end{document}

@@ -1,0 +1,391 @@
+% ch02-s2a-chips-west.tex  — §2.2 Western AI Chip Startups
+% Part of Chapter 2: Infrastructure Layer
+% Input from: ch02-infrastructure.tex (or main file)
+
+\subsection{挑战 NVIDIA：西方 AI 芯片创业浪潮}
+\label{subsec:chips-west}
+
+2024 年，NVIDIA 数据中心 GPU 营收突破 \$470 亿，
+占全球 AI 训练芯片市场份额超过 90\%。
+CUDA 生态经过十余年积累，已成为深度学习事实标准——
+从 PyTorch 到 TensorRT，从 cuDNN 到 NCCL，
+整个软件栈深度绑定 NVIDIA 硬件。
+在这个看似铁板一块的市场里，
+一个问题自然浮现：\textbf{为什么还有人前赴后继地造芯片？}
+
+答案藏在三个结构性裂缝中。
+其一，训练与推理的\textbf{架构需求正在分化}。
+训练需要极致的浮点算力和跨节点通信带宽，
+而推理——尤其是大规模部署的 LLM 推理——
+瓶颈在于内存带宽和延迟确定性
+（参见 \textit{Emergence} 第九章对推理瓶颈的分析）。
+通用 GPU 为训练优化的架构在推理场景中存在大量浪费。
+其二，\textbf{成本压力倒逼替代方案}。
+当 AI 公司年花费数十亿美元购买 H100/B200 集群时，
+哪怕 10\% 的性能功耗比提升都意味着数亿美元的节省。
+其三，\textbf{供应链风险}催生多元化需求。
+单一供应商的地缘政治风险（美国对华出口管制）
+和产能瓶颈（CoWoS 封装排队）
+让超大规模云厂商（Google TPU、AWS Trainium、Microsoft Maia）
+和创业公司同时寻求替代路径。
+
+以下按技术路线梳理西方主要 AI 芯片创业公司。
+
+\begin{corebox}[AI 芯片技术路线全景]
+\begin{itemize}[noitemsep]
+  \item \textbf{晶圆级计算}——将整片晶圆做成一颗芯片，
+        突破 reticle 面积限制（Cerebras）
+  \item \textbf{确定性推理}——时序可预测的数据流架构，
+        消除 GPU 调度不确定性（Groq）
+  \item \textbf{可重构数据流}——编译器驱动的空间架构，
+        针对大模型数据流优化（SambaNova）
+  \item \textbf{RISC-V + AI}——开源指令集与 AI 加速融合，
+        芯片设计 + IP 授权双线策略（Tenstorrent）
+  \item \textbf{存内计算}——将计算搬到存储旁边，
+        突破``内存墙''瓶颈（d-Matrix）
+  \item \textbf{Transformer 专用 ASIC}——
+        烧死一切非 Transformer 架构灵活性，
+        押注单一模型族（Etched、MatX）
+  \item \textbf{边缘 AI 处理器}——
+        低功耗、低延迟的端侧推理芯片（Hailo）
+\end{itemize}
+\end{corebox}
+
+\subsubsection{Cerebras：一整片晶圆就是一颗芯片}
+
+Andrew Feldman 在 2015 年创立 Cerebras 时，
+提出了一个大胆到近乎荒谬的想法：
+\textbf{为什么要把晶圆切成几百颗小芯片？直接用整片晶圆做计算。}
+传统芯片受限于光刻机的 reticle 尺寸（约 $26 \times 33$\,mm），
+单颗芯片面积不超过 $\sim$850\,mm$^2$。
+Cerebras 的 Wafer-Scale Engine（WSE）则占据整片 300mm 晶圆，
+面积达 46,225\,mm$^2$——是 NVIDIA B200 的 50 倍以上。
+
+第三代 WSE-3 采用 TSMC 5nm 工艺，
+集成 4 万亿晶体管、90 万个 AI 优化核心，
+片上 SRAM 达 44\,GB。
+关键在于，WSE 将\textbf{计算和存储放在同一片硅上}，
+省去了传统 GPU 集群中最昂贵的跨芯片通信开销。
+对于稀疏模型和大规模科学计算，
+这种架构的效率优势尤为显著
+（参见 \textit{Emergence} 第五章对训练通信瓶颈的讨论）。
+
+商业化方面，Cerebras 走了一条独特路径：
+与 AWS 合作提供云端推理服务，
+同时面向国家实验室和主权 AI 项目销售整机系统。
+2023 年营收 \$78.7M，虽然远不及 NVIDIA，
+但在 AI 芯片创业公司中已属领先。
+2024 年底，Cerebras 首次递交 IPO 申请，
+但因中东客户（Group 42）的地缘政治审查而搁置。
+2026 年 2 月，公司完成 Series H 融资 \$10 亿，
+估值达 \$231 亿，随后聘请 Morgan Stanley 牵头，
+\textbf{目标 2026 年 4 月重启 IPO，计划融资 \$20 亿}。
+若成功上市，Cerebras 将成为 AI 芯片创业公司中的首个 IPO 标杆。
+
+\subsubsection{Groq：从独立创业到 NVIDIA 旗下}
+
+Jonathan Ross 是 Google TPU 的发明者之一，
+2016 年离开 Google 创立 Groq，
+带着一个清晰的技术判断：
+\textbf{GPU 的调度不确定性是推理的天敌}。
+GPU 的 warp scheduler 和缓存层级虽然灵活，
+但在实时推理中引入了不可预测的延迟抖动。
+Groq 的 Language Processing Unit（LPU）采用
+\textbf{时序确定性（time-deterministic）}数据流架构：
+每条指令在编译时就确定了执行时间，
+运行时不存在缓存未命中或调度冲突。
+
+这种确定性带来了惊人的推理速度：
+Groq 的 LPU 系统在 Llama 2 70B 上实现了超过 500 tok/s 的单用户吞吐，
+延迟几乎为零抖动。
+GroqCloud API 上线后迅速吸引了超过 250 万开发者，
+``Groq fast'' 一度成为 AI 社区的流行语。
+
+然而，Groq 的故事在 2025 年 12 月迎来了戏剧性转折：
+\textbf{NVIDIA 以 \$200 亿完成对 Groq 的收购}。
+这并非一次简单的消灭竞争对手——
+在 2026 年 3 月的 GTC 大会上，Jensen Huang 亲自解释了战略逻辑：
+LPU 不是取代 GPU，而是\textbf{补全}GPU。
+NVIDIA 随即发布了 LPX 机架系统，
+将 Groq 的 LPU 与自家 Vera Rubin GPU 协同部署：
+GPU 处理训练和 prefill，LPU 负责 decode 推理。
+更值得关注的是，NVIDIA 正在为中国市场准备合规版 Groq 芯片，
+将确定性推理架构的影响力进一步扩展。
+
+Groq 的被收购验证了一个产业规律：
+在 AI 芯片领域，技术差异化可以创造真实价值，
+但\textbf{独立生存}需要的不仅是好架构——
+还需要与 CUDA 抗衡的软件生态。
+
+\subsubsection{Tenstorrent：Jim Keller 的开源芯片野心}
+
+如果说 AI 芯片行业有一位``传奇设计师''，
+那就是 Jim Keller——
+AMD Zen 架构、Apple A4/A5 处理器、
+Tesla 自动驾驶芯片 FSD 的核心设计者。
+2020 年，Keller 加入多伦多创业公司 Tenstorrent 担任 CEO，
+带来了一个与众不同的战略：
+\textbf{不仅造芯片，还做开源 AI 计算平台}。
+
+Tenstorrent 的独特之处在于双模架构：
+RISC-V 通用处理器核心 + Tensix AI 加速核心共存于同一芯片。
+这意味着芯片既可以运行操作系统和通用代码，
+也可以执行高效的 AI 推理——
+而整个软件栈基于开源 RISC-V ISA 和开源编译器。
+这直接对标 NVIDIA 的 CUDA 锁定策略，
+试图为 AI 计算建立一个``Linux 式''的开放生态。
+
+2025 年底，Tenstorrent 完成 Series D 融资 \$6.93 亿，
+估值达 \$20 亿。
+公司同时推行\textbf{芯片 + IP 授权}双线策略：
+一方面出售自研的 Wormhole 和 Blackhole 系列芯片，
+另一方面将 RISC-V + AI 的 IP 模块授权给第三方厂商。
+2026 年 3 月，Tenstorrent 发布了 TT-QuietBox 2（Blackhole），
+这是首款基于 RISC-V 的液冷 AI 工作站，
+能在桌面端本地运行 1200 亿参数的模型，
+全部基于开源软件栈，起价 \$9,999。
+
+Keller 的赌注清晰：
+\textbf{AI 芯片的终局不是谁的硬件更快，
+而是谁的生态更开放}。
+如果 RISC-V 在 AI 领域复制 Linux 在服务器市场的成功，
+Tenstorrent 将成为这个生态的 Red Hat。
+
+\subsubsection{SambaNova：数据流架构的坚守者}
+
+SambaNova 由斯坦福大学教授 Kunle Olukotun 和 Chris R\'{e}
+（Flash\-Attention 的学术推动者之一）
+联合 Rodrigo Liang 于 2017 年创立，
+是学术创业在 AI 芯片领域的典型代表。
+其 Reconfigurable Dataflow Unit（RDU）采用编译器驱动的空间架构，
+在编译阶段将模型计算图直接映射到硬件数据流管线上，
+实现了接近理论峰值的硬件利用率。
+
+2026 年 2 月，SambaNova 发布了 SN50 推理芯片，
+号称在 agentic AI 场景下比 NVIDIA B200 快 5 倍、能效高 8 倍，
+并宣布与 Intel（代工合作）和 SoftBank（部署合作）达成战略伙伴关系。
+同期完成 Series E 融资 \$3.5 亿，累计融资约 \$14.8 亿。
+
+然而，SambaNova 的估值轨迹揭示了 AI 芯片创业的残酷现实：
+2021 年巅峰期估值达 \$51 亿，
+2026 年的 Series E 估值却回落至约 \$21 亿——
+\textbf{缩水超过 58\%}。
+这并非技术失败，而是市场给出的信号：
+在 NVIDIA 主导的格局下，
+即使拥有顶尖的架构创新，
+商业化爬坡的难度远超学术论文的预期。
+
+\subsubsection{d-Matrix：在存储旁边做计算}
+
+d-Matrix（2019 年成立于 Santa Clara）瞄准了 AI 推理的核心瓶颈：
+\textbf{内存墙}。
+正如 \textit{Emergence} 第九章所分析的，
+LLM decode 阶段 99\% 以上的时间花在等待数据从显存搬运到计算单元。
+d-Matrix 的解决方案是\textbf{数字存内计算}（Digital In-Memory Compute, DIMC）：
+将计算逻辑直接嵌入 SRAM 阵列中，
+让数据``就地''完成矩阵乘法，
+从根本上消除数据搬运开销。
+
+其 Corsair 平台基于 chiplet 架构，
+将多个 DIMC 计算核心通过高速互联组合。
+2024 年底完成 Series C 融资 \$2.75 亿，估值达 \$20 亿。
+2025--2026 年间，d-Matrix 进一步推出 3D DRAM 堆叠方案（3DIMC），
+与 Alchip 合作开发全球首个 3D DRAM 存内计算芯片，
+目标是将存内计算的容量从 SRAM 级别扩展到 DRAM 级别，
+以适配百亿甚至万亿参数模型的推理需求。
+
+\subsubsection{Etched 与 MatX：押注 Transformer 的极端赌徒}
+
+如果说上述公司还在``通用''与``专用''之间寻找平衡，
+Etched 和 MatX 则走到了专用化的极端：
+\textbf{只为 Transformer 而生，别的架构一律不支持。}
+
+\textbf{Etched}（2022 年，两位 Harvard 辍学生创立于 San Jose）
+开发的 Sohu 芯片是一颗纯粹的 Transformer ASIC。
+它将 Attention 计算、KV Cache 管理等
+Transformer 特有操作直接烧入硅片，
+号称比 NVIDIA H100 快 10--20 倍。
+Sohu 采用 reticle-limit 级芯片面积，配备 144\,GB HBM3E。
+2026 年 1 月，Etched 完成 \$5 亿融资（Peter Thiel 参投），
+估值达 \$50 亿——
+但截至 2026 年 3 月，\textbf{芯片尚未出货，
+没有任何独立基准测试}。
+
+\textbf{MatX}（2022 年，ex-Google TPU 团队创立于 Mountain View）
+走的是类似路线：为 LLM 推理设计专用芯片 MatX One，
+核心创新是``可拆分 systolic array''——
+既保持大规模矩阵运算的面积与能效优势，
+又能灵活适配不同形状的小矩阵。
+2026 年 2 月完成 Series B \$5 亿融资，
+由 Jane Street 和 Leopold Aschenbrenner 的
+Situational Awareness 基金领投。
+MatX 计划 2026 年完成芯片设计、
+2027 年通过 TSMC 量产出货。
+
+两家公司的共同赌注是：
+Transformer 架构将在未来 5--10 年继续主导 AI，
+因此牺牲通用性换取 10 倍以上的专用加速是值得的。
+但风险同样巨大——
+如果 State Space Model（如 Mamba）或其他新架构崛起，
+这些芯片将变成昂贵的废硅。
+
+\subsubsection{Hailo：边缘 AI 的隐形冠军}
+
+并非所有 AI 芯片都瞄准数据中心。
+以色列公司 Hailo（2017 年，Tel Aviv）专注于\textbf{边缘 AI 推理}：
+自动驾驶、安防摄像、工业检测等需要低功耗实时推理的场景。
+累计融资 \$3.4 亿，估值约 \$12 亿。
+
+Hailo 的芯片架构核心是``Structure-Defined Dataflow''——
+一种面向神经网络拓扑自动优化数据路径的空间架构，
+在 10W 以下功耗实现 26\,TOPS 的算力。
+2026 年 1 月，Hailo 发布 Hailo-10H 处理器，
+支持边缘端的\textbf{生成式 AI 推理}（LLM/VLM），
+并与 Raspberry Pi 合作推出 AI HAT+ 2 模组，
+首次将生成式 AI 能力带入 \$70 价位的开发板。
+
+在数据中心巨头混战的喧嚣之外，
+Hailo 代表了 AI 芯片另一条可行的创业路径：
+\textbf{避开 NVIDIA 的主战场，在边缘场景建立垂直壁垒}。
+
+\begin{warnbox}[高估值陷阱：Graphcore 的教训]
+在讨论 AI 芯片创业的光明前景时，
+不能回避一个沉痛的案例：\textbf{Graphcore}。
+
+这家 2016 年成立于英国 Bristol 的公司
+曾是欧洲 AI 芯片的旗帜，
+其 Intelligence Processing Unit（IPU）采用独特的``Bulk Synchronous Parallel''
+执行模型，针对图神经网络和稀疏计算做了深度优化。
+巅峰时期估值达 \$28 亿，累计融资 \$7.67 亿，
+投资者包括微软、三星、红杉等顶级机构。
+
+然而，当 LLM 浪潮席卷一切时，
+IPU 架构在 Transformer 密集计算上的优势不再明显，
+客户增长停滞，现金流告急。
+2024 年 7 月，SoftBank 以约 \$4 亿收购 Graphcore——
+\textbf{较峰值估值暴跌 86\%}，
+投资者损失惨重。
+
+Graphcore 的教训直指 AI 芯片创业的核心风险：
+\textbf{技术押注与架构范式的错配}。
+IPU 为前 LLM 时代的多样化模型架构而设计，
+却在 Transformer 一统天下的新格局中失去了差异化价值。
+今天押注 Transformer ASIC 的 Etched 和 MatX，
+是否会在下一次架构变革中重蹈覆辙？
+这个问题值得每一位投资者深思。
+\end{warnbox}
+
+\subsubsection{西方 AI 芯片创业全景对比}
+
+表~\ref{tab:west-chips-comparison} 汇总了主要西方 AI 芯片创业公司的关键指标。
+
+\begin{table}[htbp]
+\centering
+\caption{西方 AI 芯片创业公司对比（截至 2026 年 3 月）}
+\label{tab:west-chips-comparison}
+\small
+\begin{tabularx}{\textwidth}{@{}l l l l r r l@{}}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{成立} & \textbf{核心架构} & \textbf{目标场景} &
+  \textbf{总融资} & \textbf{估值} & \textbf{状态} \\
+\midrule
+Cerebras     & 2015 & 晶圆级 WSE         & 训练 + 推理   & \$1B+  & \$23.1B & 待 IPO \\
+Groq         & 2016 & 确定性 LPU         & 推理          & ---    & \$20B 收购 & NVIDIA 旗下 \\
+Tenstorrent  & 2016 & RISC-V + Tensix    & 推理 + 边缘   & \$693M & \$2B    & 产品出货 \\
+SambaNova    & 2017 & 数据流 RDU         & 训练 + 推理   & \$1.48B & $\sim$\$2.1B & 估值缩水 \\
+d-Matrix     & 2019 & 存内计算 DIMC      & 推理          & \$275M & \$2B    & 研发中 \\
+Etched       & 2022 & Transformer ASIC   & 推理          & \$625M & \$5B    & 未出货 \\
+MatX         & 2022 & LLM 专用 systolic  & 推理          & \$500M+ & ---    & 未出货 \\
+Hailo        & 2017 & 边缘数据流         & 边缘推理      & \$340M & \$1.2B  & 产品出货 \\
+Graphcore    & 2016 & IPU (BSP)          & 训练          & \$767M & $\sim$\$0.4B 收购 & SoftBank 旗下 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+从表中可以看出几个清晰的趋势：
+\textbf{第一}，推理正在取代训练成为芯片创业的主赛道——
+九家公司中有七家将推理作为核心场景或主要场景，
+这与 LLM 部署成本日益超过训练成本的产业趋势一致。
+\textbf{第二}，收购整合正在加速——
+Groq 被 NVIDIA 以 \$200 亿收购，Graphcore 被 SoftBank 低价收入，
+这说明 AI 芯片市场正在从``百花齐放''走向``赢者通吃''与``被收编''的分化格局。
+\textbf{第三}，高估值与未出货之间的张力令人警惕——
+Etched（\$50 亿）和 MatX 都在芯片未量产的情况下获得巨额融资，
+这既反映了资本对 NVIDIA 替代方案的渴望，
+也埋下了 Graphcore 式泡沫破裂的隐患。
+
+对于 AI 创业生态而言，芯片层的竞争格局直接决定了上层的可能性：
+更多元的芯片供给意味着更低的推理成本，
+更低的推理成本意味着更多的 AI 应用可以在经济上成立。
+这正是为什么在 NVIDIA 看似不可战胜的今天，
+资本仍然源源不断地涌入 AI 芯片创业——
+\textbf{它们押注的不是打败 NVIDIA，
+而是把 AI 计算这块蛋糕做得足够大，
+大到连 10\% 的份额也值得万亿美元}。
+
+% ===========================================================
+\subsubsection{更多西方与亚洲 AI 芯片创业公司}
+% ===========================================================
+
+上述公司之外，还有一批值得关注的 AI 芯片创业力量——
+它们或聚焦边缘场景，或来自韩国的半导体创业浪潮，
+或在特定技术缝隙中寻找生存空间。
+
+\paragraph{韩国``K-NVIDIA''军团。}
+韩国政府在 2026 年宣布每年投入 10 万亿韩元（约 \$75 亿）
+扶持本土 AI 芯片产业，并推出 K-Perf 统一性能基准。
+三家核心创业公司正在崛起：
+
+\textbf{Rebellions}（2020 年，首尔）
+在 2024 年 12 月与 SK Telecom 旗下的 SAPEON Korea 完成合并，
+成为\textbf{韩国首个 AI 芯片独角兽}。
+合并后累计融资约 \$3.49 亿（Series C，2025 年 10 月），
+员工增至 167 人，年营收约 \$7300 万。
+其 REBEL-Quad 是一颗基于 4nm 的 peta-scale AI ASIC，
+采用数据流架构 + HBM3E + chiplet 设计，
+面向数据中心推理，已签下沙特、日本、法国等海外客户。
+Rebellions 正积极考虑赴美 IPO。
+
+\textbf{FuriosaAI}（首尔）
+专注数据中心 AI 推理，旗舰芯片 RNGD（读作``Renegade''）
+采用 Tensor Contraction Processor 架构，
+在 LG AI Research 的 EXAONE 平台上实现了
+比 GPU 高 2.25 倍的推理能效。
+2025 年 7 月完成 \$1.25 亿 Series C bridge 融资
+（累计 \$2.46 亿，估值 \$7.35 亿），
+2026 年 1 月据报道正在融资 \$3--5 亿 Series D。
+FuriosaAI 是韩国 AI 芯片创业中
+\textbf{最接近规模化商业出货}的公司。
+
+\textbf{DEEPX}（2018 年，韩国）
+聚焦\textbf{端侧/边缘 AI 芯片}（NPU），
+提供四款商用芯片产品线，覆盖机器人、智慧城市、安防等场景。
+累计融资 \$1.04 亿（Series C），员工 65 人，营收约 \$840 万。
+2025 年 DEEPX 在中国和东南亚签下重要订单，
+成为韩国 AI 芯片跨境扩张的先行者。
+
+\paragraph{Blaize：边缘 AI 芯片的 SPAC 上市先驱。}
+Blaize（2011 年，El Dorado Hills，前身 ThinCI）是
+\textbf{第一家通过 SPAC 在纳斯达克上市的 AI 芯片创业公司}
+（2025 年 1 月，NASDAQ: BZAI）。
+由前 Intel 工程师创立，累计融资 \$3.35 亿，
+投资者包括 Samsung 和 Mercedes-Benz。
+Blaize 的可编程图计算架构（Graph Streaming Processor）
+面向边缘场景——智能零售、国防、工业视觉，
+年营收约 \$4670 万。
+上市的象征意义大于财务意义：
+它证明了 AI 芯片创业公司可以走通资本市场退出路径，
+尽管道路漫长（从成立到上市历时 14 年）。
+
+\paragraph{Kneron（耐能）：从圣地亚哥到全球边缘。}
+Kneron（2015 年，San Diego）由刘峻诚（Albert Liu）创立，
+累计融资 \$2.12 亿，专注\textbf{全栈边缘 AI}——
+从 NPU 芯片到编译器到应用 SDK 的垂直整合。
+2025 年 11 月发布的 KL1140 芯片是\textbf{首款能在设备端
+运行完整 Mamba 网络的 NPU}，
+号称比云端方案成本降低 10 倍、能效提升 3 倍。
+Kneron 与 Qualcomm、MediaTek 等平台合作，
+客户遍及台湾、中国、韩国的消费电子和安防领域——
+与 Hailo 类似，Kneron 选择了\textbf{避开数据中心主战场，
+在端侧 AI 建立差异化壁垒}。

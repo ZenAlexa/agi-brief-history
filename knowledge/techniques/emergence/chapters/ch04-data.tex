@@ -491,10 +491,9 @@ SlimPajama 通过更激进的 MinHash 去重
 \node[vol, right=1mm of $(tokenize.south)!0.5!(output.north)$] {10--15\%};
 
 \end{tikzpicture}
-\caption{LLM pretraining data pipeline. Raw Common Crawl HTML passes through
-text extraction, language identification, quality filtering (${\sim}60\%$ removed),
-multi-level deduplication (${\sim}35\%$ removed), domain classification, ratio-based mixing,
-and tokenization. The final high-quality token stream is typically 10--15\% of the original volume.}
+\caption{LLM 预训练数据流水线。原始 Common Crawl HTML 依次经过文本抽取、语言识别、
+质量过滤（约去除 $60\%$）、多级去重（约去除 $35\%$）、领域分类、比例混合与
+tokenization。最终高质量 token 流通常仅占原始数据量的 10--15\%。}
 \label{fig:data-pipeline}
 \end{figure}
 

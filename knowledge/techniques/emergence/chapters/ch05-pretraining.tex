@@ -898,7 +898,7 @@ Ulysses 对 Grouped-Query Attention（GQA）友好，
     inner sep=0.5pt, line width=0.5pt,
     font=\tiny\ttfamily
   },
-  pparr/.style={-{Stealth[length=1.8pt,width=1.8pt]}, figOrange!70, line width=0.5pt},
+  pparr/.style={-{Stealth[length=2.5pt,width=2.5pt]}, figOrange!70, line width=0.6pt},
   tpline/.style={figGreen!60, line width=0.6pt, densely dashed},
   dpline/.style={figBlue!40, line width=0.5pt, densely dotted},
 ]
@@ -974,12 +974,12 @@ Ulysses 对 Grouped-Query Attention（GQA）友好，
   };
 
 \end{tikzpicture}
-\caption{3D parallelism layout: $\mathrm{DP} \times \mathrm{PP} \times \mathrm{TP} = 4 \times 4 \times 2 = 32$ GPUs.
-Each cell is one GPU labeled $(d, p, t)$.
-\textcolor{figGreen}{Green dashed lines}: TP communication (NVLink, highest bandwidth).
-\textcolor{figOrange}{Orange arrows}: PP communication (activations/gradients across pipeline stages).
-DP AllReduce occurs along the horizontal axis among identically-positioned GPUs.
-Bandwidth requirement: TP $>$ PP $>$ DP.}
+\caption{3D 并行布局：$\mathrm{DP} \times \mathrm{PP} \times \mathrm{TP} = 4 \times 4 \times 2 = 32$ 块 GPU。
+每个方格代表一块 GPU，标签为 $(d, p, t)$。
+\textcolor{figGreen}{绿色虚线}：TP 通信（NVLink，带宽最高）。
+\textcolor{figOrange}{橙色箭头}：PP 通信（流水线阶段间传递激活/梯度）。
+DP AllReduce 沿垂直方向在相同位置的 GPU 间进行。
+带宽需求：TP $>$ PP $>$ DP。}
 \label{fig:3d-parallelism}
 \end{figure}
 

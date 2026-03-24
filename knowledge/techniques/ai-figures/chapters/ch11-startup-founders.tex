@@ -1,0 +1,1271 @@
+% =============================================================
+% Chapter 11  The Builder Generation: AI Startup Founders
+%             Consumer, Creative & Coding AI
+% Book: AI Figures — Who's Who in the Age of AI
+% =============================================================
+
+\chapter{建造者世代：AI 创业公司创始人}
+\label{ch:founders}
+
+% The explosion of AI-native startups 2022-2026 and their founders.
+
+2025年11月13日，25岁的Michael Truell走进CNBC的演播厅，宣布了一个令
+整个硅谷震颤的数字：他联合创立的AI代码编辑器Cursor完成了23亿美元的
+融资，估值达到293亿美元。在同一年，Perplexity AI以200亿美元估值挑战
+Google的搜索霸权；ElevenLabs以110亿美元估值重塑人类语音；Suno以
+24.5亿美元估值让每个人都能创作音乐；而Cognition AI的"AI程序员"Devin
+在收购Windsurf后估值突破102亿美元。
+
+这些数字描绘的是同一幅图景：\textbf{AI创业的黄金时代已经到来}。与前几
+章讨论的大型实验室（OpenAI、Anthropic、DeepMind）不同，本章的主角是
+一群更年轻、更聚焦、更贴近用户的创业者。他们不追求AGI的终极目标，
+而是将基础模型的能力转化为改变日常生活的产品——编写代码的IDE、回答
+问题的搜索引擎、生成视频的创意工具、陪伴孤独者的AI伴侣。如果说大型
+实验室是"锻造原力"的人，那么这些创业者就是"将原力铸成光剑"的人。
+
+\begin{corebox}[AI 创业公司估值速览（截至2026年3月）]
+\small
+\begin{tabularx}{\textwidth}{l l r r}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{创始人} & \textbf{估值} & \textbf{ARR} \\
+\midrule
+Cursor (Anysphere)  & Truell, Sanger, Asif, Lunnemark  & \$50B   & \$2B+ \\
+Perplexity AI       & Srinivas, Yarats, Ho, Konwinski  & \$20B   & 未披露 \\
+ElevenLabs          & Staniszewski, Dabkowski          & \$11B   & \$330M \\
+Cognition (Devin)   & Wu, Hao, Yan                     & \$10.2B & \$73M \\
+Sierra AI           & Taylor, Bavor                    & \$10B   & \$150M \\
+Runway              & Valenzuela, Matamala, Germanidis & \$5.3B  & 未披露 \\
+Black Forest Labs   & Rombach, Blattmann, Esser        & \$3.25B & 未披露 \\
+Replit               & Masad                            & \$9B    & 未披露 \\
+Suno                & Shulman, Camacho, Kucsko, Freyberg & \$2.5B & \$200M \\
+Luma AI             & Jain                             & 未披露   & 未披露 \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent 数据来源：Bloomberg, TechCrunch, Crunchbase, 公司公告。部分ARR为
+估算值。Cursor估值为2026年3月报道的融资谈判目标。
+\end{corebox}
+
+从这张表中可以观察到几个显著的模式：
+
+\begin{itemize}
+  \item \textbf{年龄极度年轻化}：Cursor四位创始人创业时平均年龄22岁，
+    Scott Wu（Cognition）27岁，Demi Guo（Pika）23岁。这一代创业者
+    在大学期间就已深度接触了Transformer和大语言模型，他们的直觉是
+    原生的。
+  \item \textbf{技术背景高度集中}：几乎所有创始人都来自MIT、Stanford、
+    Harvard、UC Berkeley等顶尖院校的CS/AI项目，或来自Google、
+    OpenAI、Meta等大厂的研究团队。\textbf{学术到创业的转化周期}
+    前所未有地短——从发表论文到创办公司，有时只需几个月。
+  \item \textbf{从零到十亿的速度惊人}：Cursor用16个月达到26亿美元
+    估值，ElevenLabs用不到两年成为独角兽，这些速度在SaaS历史上
+    前所未有。
+  \item \textbf{地域分布意外分散}：虽然硅谷仍是中心，但ElevenLabs
+    在伦敦，Black Forest Labs在弗赖堡，Mistral在巴黎，Ideogram在
+    多伦多——AI创业的全球化程度超过了前几波技术浪潮。
+\end{itemize}
+
+本章将按赛道系统地梳理这些创业者的背景、技术路径和创业故事。我们从
+最热的赛道——AI编程工具——开始。
+
+
+% =============================================================
+\section{AI 编程工具：\$100B 赛道的缔造者}
+\label{sec:founders-coding}
+% =============================================================
+
+AI编程工具是本轮AI创业浪潮中增速最快、变现最直接的垂直领域。根据
+MarketsandMarkets的预测，这个市场将从2025年的81.4亿美元增长到2032年
+的1270亿美元（CAGR 48.1\%）。在这个赛道上，涌现出了一批极具辨识度
+的创始人。
+
+% -----------------------------------------------------------
+\subsection{Cursor：四位MIT少年与史上最快的SaaS公司}
+\label{subsec:founders-cursor}
+% -----------------------------------------------------------
+
+\textbf{Michael Truell}（CEO）、\textbf{Aman Sanger}（COO）、
+\textbf{Sualeh Asif}（CPO）和\textbf{Arvid Lunnemark}是Anysphere的
+四位联合创始人——也就是Cursor背后的公司。他们的故事是AI创业时代最
+惊人的增长叙事。
+
+四人均毕业于MIT，在校期间已展现出非凡的技术天赋。Arvid Lunnemark
+曾在Jane Street做量化交易，在Stripe做软件工程；Aman Sanger 14岁就
+开始编程，在MIT期间痴迷于AI辅助开发的可能性。2022年夏天，四人
+联合创立Anysphere，目标是构建"AI原生"的代码编辑器。
+
+\begin{whybox}[为什么Fork VS Code而不是做插件？]
+Cursor团队做出的最关键的早期决策是Fork微软的开源编辑器VS Code，而
+不是为其开发插件。这个决策的逻辑：
+\begin{enumerate}
+  \item VS Code的扩展API无法修改编辑器核心UI（如内联diff视图）；
+  \item 插件无法拦截和重定义基本的编辑操作（如Tab键行为）；
+  \item 性能关键路径需要在编辑器进程内运行，插件的IPC开销不可接受。
+\end{enumerate}
+通过Fork，Cursor获得了VS Code 7300万月活用户的全部兼容性，同时
+拥有了修改编辑器核心行为的自由度。这是一个"standing on the shoulders
+of giants"（站在巨人肩膀上）的经典案例。
+\end{whybox}
+
+Cursor的增长轨迹堪称SaaS历史之最：
+
+\begin{itemize}
+  \item 2023年：产品发布，开始获得开发者关注
+  \item 2024年6月：A轮融资，估值4亿美元
+  \item 2024年12月：ARR突破1亿美元
+  \item 2025年6月：B轮融资99亿美元估值
+  \item 2025年11月：23亿美元融资，293亿美元估值，ARR达10亿美元
+  \item 2026年3月：ARR突破20亿美元，正在谈判500亿美元估值
+\end{itemize}
+
+这意味着从产品发布到ARR 10亿美元，Cursor只用了大约两年——打破了
+Slack、Zoom、Snowflake等前代SaaS明星的所有记录。而团队规模在2025
+年底仍只有约150人，人均ARR超过600万美元。
+
+\begin{keybox}[Michael Truell 语录]
+\textit{"We're not looking to IPO anytime soon."} ——2025年11月，当CNBC
+主播问及IPO时间表时，25岁的Truell微笑着给出了这个让硅谷震动的
+回答。在一个大多数创业者梦想上市的世界里，Cursor的创始人们选择了
+继续低调构建。
+\end{keybox}
+
+Cursor的成功引发了一个深层问题："vibe coding"（氛围编程）——用
+自然语言描述意图让AI生成代码——是否会成为软件开发的主流模式？
+Collins Dictionary甚至将"vibe coding"选为2025年度词汇。四位创始人
+在2025年底的净资产已进入亿万富翁行列，成为AI时代最年轻的科技
+亿万富翁群体之一。
+
+% -----------------------------------------------------------
+\subsection{Cognition AI：竞赛冠军打造的"AI程序员"Devin}
+\label{subsec:founders-cognition}
+% -----------------------------------------------------------
+
+如果Cursor代表的是"AI增强人类编程"的路线，那么Cognition AI代表的
+则是更激进的"AI自主编程"路线。
+
+\textbf{Scott Wu}（CEO），1997年出生于路易斯安那州，父母为中国移民。
+Wu的传奇始于竞赛编程：他在国际信息学奥林匹克竞赛（IOI）上获得三枚
+金牌，其中2014年更是夺得全球第一名；在Codeforces上的巅峰rating达到
+3350分——全球顶尖水平。他就读于Harvard，此前曾联合创立社交平台
+Lunchclub（获得Lightspeed、Coatue和a16z投资）。
+
+Wu的哥哥Neal Wu同样是顶级竞赛选手。这个家庭对算法和数学的极致追求
+为Scott提供了独特的成长环境。
+
+2023年11月，Scott Wu与两位同样来自竞赛编程圈的伙伴——\textbf{Steven
+Hao}（CTO）和\textbf{Walden Yan}（CPO）——联合创立了Cognition AI。
+三人的共同特点是：都是竞赛编程的顶级选手，对"如何让机器像人一样
+解决复杂编程问题"有深刻的直觉。
+
+2024年3月，Cognition发布了Devin的演示视频，宣称它是"世界上第一个
+AI软件工程师"。视频展示了Devin独立完成多步骤软件工程任务的能力——
+从阅读GitHub Issue、规划方案、编写代码到调试部署。这段演示在技术圈
+引起了巨大震动，也引发了激烈争议。
+
+\begin{whybox}[Devin的争议：Marketing vs.\ Reality]
+Devin的发布引发了技术社区的两极反应：
+\begin{itemize}
+  \item \textbf{乐观派}认为Devin代表了AI编程的未来——自主Agent将
+    逐步取代大量重复性编码工作
+  \item \textbf{怀疑派}指出演示视频经过精心挑选，Devin在SWE-bench
+    上的真实表现远不如宣传，大量实际用户反馈其输出质量不稳定
+\end{itemize}
+无论如何，Devin确实推动了整个行业对"AI编程Agent"范式的关注，
+并为后续的Claude Code、OpenAI Codex等产品铺平了道路。
+\end{whybox}
+
+Cognition的商业增长同样引人注目：从2024年9月的100万美元ARR增长到
+2025年6月的7300万美元ARR——9个月增长73倍。2025年7月，Cognition
+完成了对Windsurf的收购（详见下一小节），随后以102亿美元估值融资
+超过4亿美元。Cognition还以招聘竞赛编程冠军闻名——包括传奇选手
+Gennady Korotkevich和Andrew He。
+
+% -----------------------------------------------------------
+\subsection{Windsurf与Codeium：被大厂争抢的AI编辑器}
+\label{subsec:founders-windsurf}
+% -----------------------------------------------------------
+
+Windsurf的故事是AI创业时代最戏剧性的并购案之一。
+
+Codeium最初由\textbf{Varun Mohan}（CEO）和\textbf{Douglas Chen}
+联合创立，定位为免费的AI代码补全工具。2024年，公司推出了独立的
+AI代码编辑器Windsurf，直接与Cursor竞争。Windsurf迅速获得了大量
+开发者用户，引起了科技巨头的注意。
+
+2025年的剧情堪比硅谷大戏：
+
+\begin{enumerate}
+  \item OpenAI提出以30亿美元收购Windsurf——这将是OpenAI史上最大
+    的收购案
+  \item 交易在最后关头破裂
+  \item Google迅速介入，以24亿美元的"反向收购"（acqui-hire）协议
+    挖走了Varun Mohan、Douglas Chen及核心研究团队加入DeepMind
+  \item Windsurf剩余的250人团队和产品被Cognition AI收购，与Devin
+    合并
+\end{enumerate}
+
+这场三方博弈完美诠释了AI编程赛道的白热化竞争：一家创业公司的创始人
+去了Google，产品去了另一家创业公司，而OpenAI的30亿美元出价未能成交。
+对Cognition来说，收购Windsurf意味着同时拥有了"AI自主编程Agent"
+（Devin）和"AI辅助编程IDE"（Windsurf）——覆盖了整个自主性光谱。
+
+% -----------------------------------------------------------
+\subsection{AI编程赛道的其他关键人物}
+\label{subsec:founders-coding-others}
+% -----------------------------------------------------------
+
+\subsubsection{Amjad Masad与Replit} \textbf{Amjad Masad}的故事始于
+约旦安曼——一个远离硅谷的地方。作为一个没有电脑的孩子，Masad对编程
+的渴望驱动他自学成才，最终移居美国，先后在Yahoo和Facebook工作。2012年，
+他创立了Replit，一个基于云的IDE平台。
+
+在AI浪潮中，Masad做出了一个大胆的转型：2025年1月，他公开宣布
+"我们不再关心专业程序员了"，将Replit重新定位为面向非程序员的AI应用
+构建平台（Replit Agent）。这个宣言震动了行业——一个服务4000万开发者
+的平台，主动放弃了自己的核心用户群。到2026年3月，Replit估值达到90亿
+美元，三倍于此前的估值，证明这个赌注正在回报。
+
+\subsubsection{Guy Gur-Ari与Augment Code} \textbf{Guy Gur-Ari}是
+Augment Code的创始人，此前在Google从事AI研究。Augment Code的差异化
+在于\textbf{企业级场景}：它专注于帮助大型开发团队在拥有10万+文件的
+巨型代码库中工作，而不是个人开发者的效率提升。公司CEO \textbf{Scott
+Dietzen}（前Sun Microsystems）带来了丰富的企业销售经验。截至2024年，
+Augment已融资2.52亿美元，估值近10亿美元。
+
+\subsubsection{Jason Warner、Eiso Kant与Poolside AI}
+\textbf{Jason Warner}（前GitHub CTO）和\textbf{Eiso Kant}（连续
+创业者，曾创立source\{d\}和Athenian）于2023年4月在巴黎联合创立了
+Poolside AI。与其他编程工具公司不同，Poolside的目标更加宏大——
+构建专门用于软件开发的基础模型（而非调用OpenAI或Anthropic的API）。
+他们的愿景是"软件开发将是AI最早达到并超越人类水平的广泛能力"。
+Poolside已融资超过5亿美元，估值约30亿美元，与Amazon建立了战略合作。
+
+\subsubsection{Beyang Liu与Sourcegraph} \textbf{Beyang Liu}是
+Sourcegraph的联合创始人兼CTO。Sourcegraph最初是一个代码搜索和导航
+平台，在AI浪潮中推出了Cody——一个深度理解代码上下文的AI编程助手。
+Liu坚持"context is king"（上下文为王）的理念，认为AI编程工具的
+核心竞争力不在模型本身，而在于为模型提供最相关、最完整的代码上下文。
+
+\subsubsection{Itamar Friedman与Qodo} \textbf{Itamar Friedman}创立的
+CodiumAI（2024年更名为Qodo）聚焦于AI编程中一个被忽视但至关重要的
+领域——\textbf{代码质量和测试}。Friedman的背景跨越了电气工程和机器
+学习（曾在Mellanox/NVIDIA工作），他认为AI不应只帮人写代码，还应该
+帮人验证代码。Qodo在2024年完成4000万美元A轮融资，总融资额达5000万
+美元。Friedman提出了一个重要洞察："\textbf{代码生成和代码审查不应由
+同一个Agent完成}"——因为Agent倾向于同意自己的判断，生成和审查中会
+出现相同的盲点。
+
+\subsubsection{Harrison Chase与LangChain} \textbf{Harrison Chase}是
+LangChain的联合创始人兼CEO——这个名字在AI开发者社区中几乎无人不知。
+2022年10月，27岁的Harvard毕业生Chase用9天时间写出了LangChain的
+第一个版本。三年后，这个开源框架积累了99000颗GitHub star、1.3亿次
+下载和12.5亿美元的估值。Fortune 500中三分之一的企业使用LangChain的
+产品，包括Harvey（50亿美元法律AI平台）、Rippling和Cloudflare。
+
+Chase此前在Robust Intelligence担任机器学习工程师，在Kensho
+Technologies领导实体链接团队。他的洞察是：AI应用开发需要一个标准化
+的\textbf{编排层}（orchestration layer），将模型调用、工具使用、记忆
+管理等能力组合成可复用的流水线。LangChain从一个简单的Python库进化为
+包含LangGraph（Agent框架）、LangSmith（监控平台）和LangServe
+（部署工具）在内的完整平台。
+
+\subsubsection{Jerry Liu与LlamaIndex} \textbf{Jerry Liu}是LlamaIndex
+的联合创始人兼CEO。Liu毕业于Princeton University，此前在Robust
+Intelligence担任机器学习工程经理（有趣的是，Harrison Chase也曾在同一
+家公司工作），在Uber担任研究科学家。2023年3月，Liu创立了LlamaIndex，
+最初定位为RAG（Retrieval-Augmented Generation）框架。到2025年底，
+LlamaIndex已经从"一个RAG框架"进化为围绕\textbf{文档OCR和工作流}
+构建的平台，为任何AI Agent应用提供高质量的上下文。
+
+
+% =============================================================
+\section{AI 搜索：重新定义信息获取方式}
+\label{sec:founders-search}
+% =============================================================
+
+如果说编程工具是AI创业中"离钱最近"的赛道，那么AI搜索就是"离用户
+最近"的赛道。Google每年超过1700亿美元的搜索广告收入是AI搜索创业者
+的终极猎物。
+
+% -----------------------------------------------------------
+\subsection{Aravind Srinivas与Perplexity：挑战Google的印度少年}
+\label{subsec:founders-perplexity}
+% -----------------------------------------------------------
+
+\textbf{Aravind Srinivas}的故事是经典的"印度理工男改变世界"叙事的
+AI时代版本。
+
+Srinivas出生于印度金奈（Chennai），就读于印度理工学院马德拉斯分校
+（IIT Madras）——印度最负盛名的工程院校之一。在IIT期间，他展现了
+对AI研究的浓厚兴趣。随后，他前往UC Berkeley攻读计算机科学博士学位，
+师从AI领域的顶尖学者。
+
+在攻读博士期间及之后，Srinivas积累了令人印象深刻的行业经历：
+
+\begin{itemize}
+  \item 在\textbf{OpenAI}担任研究科学家（2021--2022年），参与了
+    DALL-E 2等项目的研发
+  \item 在\textbf{Google DeepMind}实习，接触了最前沿的AI研究
+  \item 作为天使投资人，他的投资组合读起来像AI创业的名人堂——Cursor、
+    ElevenLabs、Suno、Mistral、Cognition、Pika、Fal AI
+\end{itemize}
+
+\begin{corebox}[Perplexity AI 四位创始人]
+\begin{itemize}
+  \item \textbf{Aravind Srinivas}（CEO）：IIT Madras $\to$ UC Berkeley
+    PhD $\to$ OpenAI研究科学家
+  \item \textbf{Denis Yarats}（CTO）：前Meta AI研究员，专注于强化
+    学习和机器人学
+  \item \textbf{Johnny Ho}：负责产品和工程
+  \item \textbf{Andy Konwinski}：UC Berkeley背景，曾参与Apache Spark
+    的早期开发
+\end{itemize}
+四人于2022年8月联合创立Perplexity，目标是构建"答案引擎"（answer
+engine）而非传统搜索引擎。
+\end{corebox}
+
+Perplexity的核心创新在于将搜索重新定义为\textbf{对话式问答}：用户
+提出问题，Perplexity不是返回一个链接列表，而是直接给出有来源引用的
+结构化回答。这个看似简单的交互变革背后是一个复杂的技术栈——实时网页
+抓取、多源信息综合、LLM推理和引用验证。
+
+到2025年9月，Perplexity估值达到200亿美元。早期投资者包括NVIDIA和
+Jeff Bezos。Srinivas本人在2025年成为印度最年轻的亿万富翁（31岁，
+净资产约25亿美元）。
+
+然而，Perplexity也面临显著的法律风险。BBC、道琼斯和纽约时报等多家
+主要媒体机构指控Perplexity侵犯版权、未经授权使用内容。这些诉讼的
+结果将对整个AI搜索赛道产生深远影响。
+
+\begin{whybox}[AI搜索的版权困境]
+AI搜索引擎面临一个根本性的悖论：它们的价值在于\textbf{综合}多个来源
+的信息并直接回答用户问题——但这恰恰可能\textbf{减少}用户对原始内容
+来源的访问。传统搜索引擎通过链接将流量导向内容创作者，AI搜索却可能
+截留这些流量。Perplexity试图通过引用来源和"Side Panel"功能来缓解这个
+问题，但这是否足够仍在法律和伦理层面激烈争论中。
+\end{whybox}
+
+% -----------------------------------------------------------
+\subsection{Richard Socher与You.com：从GloVe到AI搜索}
+\label{subsec:founders-youcom}
+% -----------------------------------------------------------
+
+\textbf{Richard Socher}可能是本章中学术背景最深厚的创始人之一。
+
+Socher于2014年在Stanford获得计算机科学博士学位。他的研究工作直接推动了
+深度学习在NLP领域的应用，他是GloVe（Global Vectors for Word
+Representation）词向量方法的共同发明者——这是NLP历史上最重要的
+技术贡献之一，引用量超过22万次。他还被广泛认为是"prompt engineering"
+（提示工程）概念的早期提出者之一。
+
+博士毕业后，Socher创立了AI初创公司MetaMind，2016年被Salesforce收购。
+他随后担任Salesforce首席科学家兼执行副总裁，领导横跨基础研究、应用
+研究、搜索和客户服务自动化的团队。
+
+2020年，Socher与\textbf{Bryan McCann}（前Salesforce NLP首席研究科学家）
+联合创立了You.com。You.com最初定位为注重隐私的AI搜索引擎，是最早将
+生成式AI整合到搜索中的产品之一——Socher声称You.com在2021年就拥有了
+"第一个完全连接到网络的LLM"和"第一个将GenAI纳入搜索的产品"。
+
+You.com在2024年完成了一轮融资后估值达到15亿美元，进入独角兽行列。
+但面对ChatGPT和Perplexity的强大竞争，You.com在2025年逐步从消费者
+搜索引擎转型为面向企业的AI工具和API平台。Socher同时还是AIX Ventures
+的创始人和管理合伙人，投资和辅导其他AI创业公司。
+
+
+% =============================================================
+\section{创意AI：图像、视频与音乐的革命}
+\label{sec:founders-creative}
+% =============================================================
+
+如果AI编程工具改变的是"如何构建"，AI搜索改变的是"如何获取信息"，
+那么创意AI改变的则是"如何创造"——这是与人类情感、审美和文化产业
+最直接碰撞的前沿阵地。
+
+% -----------------------------------------------------------
+\subsection{David Holz与Midjourney：没有VC的AI独角兽}
+\label{subsec:founders-midjourney}
+% -----------------------------------------------------------
+
+\textbf{David Holz}是AI创业世界中的一个独特存在——Midjourney是极少数
+\textbf{从未接受风投融资}却实现了巨大商业成功的AI公司。
+
+Holz成长于佛罗里达州劳德代尔堡（Fort Lauderdale）。他的父亲是一名
+牙医，拥有一艘帆船，会在加勒比海航行为病人看诊——这种非传统的家庭
+背景或许塑造了Holz独立思考的性格。Holz在UNC读博士期间开始了创业
+生涯，曾在NASA和马克斯·普朗克研究所担任学生研究员。
+
+2008年，Holz联合创立了Leap Motion——一家开创性的手势识别公司，
+通过手部动作和视频捕捉创造了全新的用户界面范式。经过十多年的发展，
+Leap Motion在2019年被Ultrahaptics以约3000万美元收购——这是一个远低于
+预期的结局。
+
+\begin{keybox}[从Leap Motion到Midjourney：同一个人的两次创业]
+Leap Motion和Midjourney看似风马牛不相及——一个是硬件手势识别，
+一个是AI图像生成——但它们共享一个底层主题：\textbf{扩展人类与计算机
+交互的方式}。Leap Motion试图让人用手势"说话"，Midjourney试图让人用
+文字"画画"。Holz始终关注的是人机交互的新范式。
+\end{keybox}
+
+2021年8月，Holz创立了Midjourney。2022年7月，Midjourney进入公开Beta
+测试。他做出了几个非常规的决策：
+
+\begin{itemize}
+  \item \textbf{不融资}：完全依靠用户付费收入自我造血。到2023年底，
+    Midjourney的年收入已达2亿美元，利润丰厚。
+  \item \textbf{基于Discord}：没有独立App或网站，而是通过Discord
+    bot命令生成图像——这在传统产品思维中是"反常识"的。
+  \item \textbf{极小团队}：只有约11名员工，却服务超过1000万用户。
+\end{itemize}
+
+到2025年，Midjourney发布了V7版本，被TIME评选为"2025年AI领域100位
+最具影响力人物"之一。Holz被Forbes评为30 Under 30（2014年），
+也被Fast Company评为最具创意人物。2025年7月，Midjourney推出了
+Midjourney TV——一个24/7全天候播放AI生成视频的流媒体——展示了公司
+从图像向视频领域的扩展。
+
+% -----------------------------------------------------------
+\subsection{Cristóbal Valenzuela与Runway：从NYU艺术学院到AI视频领军者}
+\label{subsec:founders-runway}
+% -----------------------------------------------------------
+
+\textbf{Cristóbal Valenzuela}（1993年生于智利圣地亚哥）是AI视频生成
+领域最重要的创始人之一。他与\textbf{Alejandro Matamala}和
+\textbf{Anastasis Germanidis}共同创立了Runway——三人均来自NYU Tisch
+School of the Arts，拥有互动设计背景。
+
+\begin{corebox}[Runway的三位创始人]
+\begin{itemize}
+  \item \textbf{Cristóbal Valenzuela}（CEO）：智利裔美国人，NYU
+    互动设计背景，创意技术专家
+  \item \textbf{Alejandro Matamala}：同为智利裔，NYU Tisch校友
+  \item \textbf{Anastasis Germanidis}：希腊裔，NYU Tisch校友
+\end{itemize}
+三人从2015年开始研究机器学习如何应用于创意和艺术实践，2018年正式
+创立Runway。
+\end{corebox}
+
+Runway的成长轨迹展现了"艺术家创业"的独特路径：
+
+\begin{itemize}
+  \item \textbf{2018年}：创立于NYU，最初是一个让创意工作者使用机器
+    学习工具的平台
+  \item \textbf{2022年}：推出Gen-1，开始进入AI视频生成领域
+  \item \textbf{2023年6月}：推出Gen-2，显著提升视频生成质量
+  \item \textbf{2024年}：Gen-3 Alpha发布，视频质量跃升到新高度
+  \item \textbf{2025年12月}：发布Gen 4.5，在Video Arena排行榜上
+    超越Google和OpenAI，夺得第一名
+  \item \textbf{2026年2月}：以53亿美元估值完成新一轮融资
+\end{itemize}
+
+一个值得注意的事实：A24出品的奥斯卡最佳影片《瞬息全宇宙》
+（\textit{Everything Everywhere All at Once}）使用了Runway的工具进行
+视觉特效制作。这不仅仅是技术演示，而是AI创意工具在最高水平电影制作
+中的实际应用。
+
+Valenzuela在2025年被TIME评选为"TIME100 Next"，他的愿景是让AI成为
+创意工作的\textbf{基础设施}，而非替代品——"AI isn't the destination,
+but the fundamental infrastructure powering new forms of creativity."
+（AI不是目的地，而是驱动新创造形式的基础设施。）Runway还设立了
+Hundred Film Fund，为使用Runway工具的电影创作者提供资金支持。
+
+% -----------------------------------------------------------
+\subsection{Pika Labs：两位Stanford女博士的AI视频帝国}
+\label{subsec:founders-pika}
+% -----------------------------------------------------------
+
+\textbf{Demi Guo}（CEO）和\textbf{Chenlin Meng}（CTO）的创业故事
+始于一次"体验太差"的参赛经历。
+
+2023年，两人还是Stanford AI PhD学生，参加了Runway举办的一个AI电影
+节。她们发现现有的AI视频工具"笨重、缓慢，完全达不到技术可能实现的
+水平"。于是，两人做了AI时代许多最成功创业者都做过的事——\textbf{从
+博士项目退学，自己做一个更好的}。
+
+Demi Guo（23岁创业时）的学术背景横跨Harvard和Stanford，Chenlin Meng
+同样来自Stanford AI Lab。2023年4月，两人创立了Pika Labs。
+
+Pika的增长同样令人瞩目：
+
+\begin{itemize}
+  \item 创立半年内就获得了50万+用户，估值从零飙升到2--3亿美元
+  \item 前两轮融资由GitHub CEO Nat Friedman领投
+  \item Series A由Lightspeed Venture Partners领投，估值近4.7亿美元
+  \item 总融资额达到1.35亿美元
+  \item 免费App用户突破500万
+\end{itemize}
+
+Pika的差异化在于\textbf{极度的用户友好性}：用户只需上传一张自拍
+和一段文字提示，就能生成配有音乐、灯光和镜头运动的短片级视频。
+这种"democratize video creation"（视频创作民主化）的理念让Pika
+成功打入了非专业用户市场——从时尚品牌到普通青少年都在使用它。
+
+% -----------------------------------------------------------
+\subsection{Stability AI的兴衰与Black Forest Labs的崛起}
+\label{subsec:founders-stability-bfl}
+% -----------------------------------------------------------
+
+\textbf{Emad Mostaque}是AI创业世界中最具争议性的人物之一。
+
+这位英国-约旦裔企业家于2019年联合创立了Stability AI，并成功将
+Stable Diffusion——由德国学术研究者开发的开源文生图模型——推向
+了全球舞台。在巅峰时期，Stability AI估值超过10亿美元，Stable
+Diffusion被下载了数亿次。
+
+然而，Mostaque的管理风格和公司治理引发了越来越多的质疑：
+
+\begin{itemize}
+  \item 关键研究人员陆续离职，包括Stable Diffusion的核心创建者
+  \item 投资者发起了"投资者叛变"（investor mutiny）
+  \item 版权诉讼不断——Getty Images等机构指控Stability AI使用
+    受版权保护的图像训练模型
+\end{itemize}
+
+2024年3月23日，Mostaque辞去了CEO和董事会职务。他在声明中表示要
+"追求去中心化AI"（pursue decentralized AI）。Stability AI随后由
+COO Shan Shan Wong和CTO Christian Laforte担任临时联席CEO。
+
+\begin{keybox}[从Stability AI出走的关键人物]
+Stability AI的人才流失催生了AI图像生成领域最重要的新公司——
+Black Forest Labs。核心出走者包括：
+\begin{itemize}
+  \item \textbf{Robin Rombach}：Latent Diffusion（潜在扩散模型）和
+    Stable Diffusion的核心发明者之一
+  \item \textbf{Andreas Blattmann}：Stable Diffusion核心贡献者
+  \item \textbf{Patrick Esser}：Stable Diffusion核心贡献者
+\end{itemize}
+这三人于2024年8月创立了Black Forest Labs（位于德国弗赖堡），
+将"Stable Diffusion的灵魂"带到了新公司。
+\end{keybox}
+
+\textbf{Robin Rombach}和他的同事们在Black Forest Labs创立了FLUX模型
+系列。FLUX在2024年发布后迅速成为AI图像生成的新标杆，被广泛整合到
+Fal.ai、Replicate和TogetherAI等平台。2025年12月，Black Forest Labs
+完成了3亿美元的B轮融资，由Salesforce Ventures和AMP联合领投，估值达到
+32.5亿美元。投资者阵容豪华：a16z、NVIDIA、General Catalyst、Temasek、
+Canva和Figma Ventures。2025年底，FLUX.2（第二代模型）发布。
+
+Mostaque和Rombach的故事形成了一个鲜明的对比：\textbf{商业推广者
+vs.\ 技术创造者}。Mostaque擅长叙事和融资，但最终因管理和诚信问题
+黯然离场；Rombach低调沉稳，专注于技术，最终带走了最核心的知识产权
+并建立了更成功的公司。
+
+% -----------------------------------------------------------
+\subsection{Ideogram：Google Brain校友的文字渲染突破}
+\label{subsec:founders-ideogram}
+% -----------------------------------------------------------
+
+\textbf{Mohammad Norouzi}是Ideogram的创始人，此前在Google Brain担任
+研究科学家。Ideogram成立于2022年，总部位于多伦多，联合创始人还包括
+\textbf{William Chan}等Google校友。
+
+Ideogram的独特优势在于\textbf{文字渲染能力}：在其他文生图模型还在
+生成乱码文字时，Ideogram就能在图像中生成清晰可读的文本——这对设计师
+和营销人员来说是一个杀手级功能。
+
+2023年8月发布初代模型后，Ideogram迅速获得市场关注：
+
+\begin{itemize}
+  \item 2023年底：完成2230万美元种子轮
+  \item 2024年2月：完成8000万美元A轮（a16z领投，距种子轮仅6个月）
+  \item 2025年3月：发布Ideogram 3.0
+\end{itemize}
+
+% -----------------------------------------------------------
+\subsection{可灵（Kling）：快手的AI视频黑马}
+\label{subsec:founders-kling}
+% -----------------------------------------------------------
+
+在AI视频生成领域，中国的\textbf{可灵}（Kling AI）是一个不容忽视的
+存在。可灵由快手（Kuaishou）的Visual Generation Group开发，虽然没有
+独立创业公司那样的创始人叙事，但其商业成果令人瞩目：
+
+\begin{itemize}
+  \item 2024年6月发布Kling 1.0
+  \item 2025年12月月流水突破2000万美元，ARR达到2.4亿美元
+  \item 距离发布仅19个月即达到这一里程碑
+\end{itemize}
+
+可灵团队的研究人员来自多个顶尖机构，包括从香港中文大学、腾讯ARC
+实验室和上海AI实验室加入的资深研究者。可灵的成功证明了一个重要
+论点：\textbf{在AI应用层，中国公司不仅能与西方竞争，在某些垂直
+领域甚至能够领先}。
+
+% -----------------------------------------------------------
+\subsection{Luma AI：从3D重建到视频生成}
+\label{subsec:founders-luma}
+% -----------------------------------------------------------
+
+\textbf{Amit Jain}是Luma AI的联合创始人兼CEO。Luma AI最初专注于
+3D场景重建（NeRF技术），后来以Dream Machine视频生成模型闻名。
+
+2024年6月，Luma发布Dream Machine，凭借高质量的视频生成能力迅速
+获得开发者和创作者的关注。Jain在技术演讲中强调了"scaling的bitter
+lesson"（苦涩教训）在视频模型中的适用性：简单的技术在足够大的规模
+下总是最有效的。
+
+2025年11月，Luma AI完成了一轮高达9亿美元的融资（投资者包括沙特阿拉伯
+的公共投资基金），标志着其从创业公司向成熟AI企业的跨越。Jain的愿景是
+构建"统一的创意智能"——解决当前AI创意工具过度碎片化的问题。
+
+
+% =============================================================
+\section{AI 音乐与语音：声音的民主化}
+\label{sec:founders-audio}
+% =============================================================
+
+% -----------------------------------------------------------
+\subsection{Mikey Shulman与Suno：让每个人都能创作音乐}
+\label{subsec:founders-suno}
+% -----------------------------------------------------------
+
+\textbf{Mikey Shulman}的人生轨迹不太像一个典型的AI创业者——更像
+一个在科学和音乐之间反复横跳的文艺复兴人。
+
+Shulman从4岁开始学钢琴，高中和大学期间在乐队弹贝斯吉他。他在
+Columbia University获得应用物理学学士学位后，进入Harvard攻读物理学
+博士，研究方向是\textbf{固态自旋的量子计算实验实现}——这是一个与
+音乐完全无关的硬核物理领域。
+
+博士毕业后，Shulman没有走学术道路，而是加入了Kensho Technologies
+——一家金融科技AI公司——担任机器学习团队负责人长达七年（2015--2022），
+领导NLP系统和时间序列预测模型的开发。他同时还是MIT Sloan管理学院的
+讲师（2018年起）。
+
+关键转折发生在Kensho时期。Shulman和同事\textbf{Martin Camacho}、
+\textbf{Georg Kucsko}和\textbf{Keenan Freyberg}——四人都在Kensho
+共事——开始讨论一个问题：为什么音乐创作仍然是少数"专业音乐人"
+的专利？
+
+\begin{whybox}[Suno的起源洞察]
+Shulman在Suno的博客中写道：
+
+\textit{"如果你有孩子，你可能注意到他们在入睡前或玩耍时经常自己哼歌。
+他们把勺子、鞋子、空水瓶都当作乐器。但成年后，我们不再这样做了。
+我们中的一些人成为了'真正的音乐人'，而其余的人明白了自己的位置是
+安静地坐在观众席上。"}
+
+Suno的使命就是打破这个二分法——让\textbf{每个人}都能创作音乐。
+\end{whybox}
+
+2022年3月，四人联合创立了Suno。到2025年，Suno已完成多轮融资：
+
+\begin{itemize}
+  \item 2024年5月：1.25亿美元融资（Lightspeed Venture Partners领投）
+  \item 2025年11月：Series C轮融资（Menlo Ventures领投），估值达到
+    24.5亿美元
+  \item 年化收入约2亿美元
+\end{itemize}
+
+Suno面临来自音乐产业的重大法律挑战——RIAA（美国唱片业协会）等机构
+对其训练数据的版权问题提起了诉讼。但Shulman始终坚持Suno的愿景是
+"参与式音乐"（participatory music），而非替代专业音乐人。
+
+% -----------------------------------------------------------
+\subsection{ElevenLabs：两位波兰校友与AI语音帝国}
+\label{subsec:founders-elevenlabs}
+% -----------------------------------------------------------
+
+\textbf{Mati Staniszewski}（CEO）和\textbf{Piotr Dabkowski}（CTO）
+的故事始于一个简单的生活烦恼：作为在波兰长大的年轻人，他们厌倦了
+观看配音质量低劣的好莱坞电影。
+
+两人是校友和好友，在AI和机器学习领域积累了深厚的技术功底后，于2023年
+初创立了ElevenLabs——一家专注于AI语音生成和克隆的公司。他们的愿景
+很明确：让任何内容都能以任何声音、任何语言被表达。
+
+ElevenLabs的增长速度堪称"欧洲最快的AI独角兽"：
+
+\begin{itemize}
+  \item \textbf{2023年1月}：Beta版本发布，立即引爆社交媒体——
+    200万美元Pre-Seed轮
+  \item \textbf{2023年6月}：Series A，1亿美元估值
+  \item \textbf{2024年1月}：独角兽（11亿美元估值）——创下AI初创公司
+    最快达到独角兽的纪录之一
+  \item \textbf{2024年11月}：ARR达9000万美元
+  \item \textbf{2025年10月}：ARR达2亿美元，估值66亿美元
+  \item \textbf{2025年12月}：Forbes报道两位创始人身价均超过10亿美元
+  \item \textbf{2026年2月}：Series D，Sequoia领投5亿美元，估值110亿
+    美元——一年内估值翻了三倍
+\end{itemize}
+
+到2026年，ElevenLabs的技术已被广泛应用：Matthew McConaughey用它制作
+西班牙语版个人通讯；MasterClass用它为AI版讲师配音；乌克兰政府用它
+为公共服务添加语音界面。公司年化收入达到3.3亿美元。
+
+两位30岁的创始人总部设在伦敦，使ElevenLabs成为\textbf{欧洲第三大
+AI独角兽}。Staniszewski和Dabkowski的故事也是AI创业全球化的一个典型
+案例——核心技术不需要诞生在硅谷。
+
+% -----------------------------------------------------------
+\subsection{Udio：DeepMind校友的音乐AI}
+\label{subsec:founders-udio}
+% -----------------------------------------------------------
+
+\textbf{Udio}是Suno在AI音乐领域的主要竞争对手，由一群前Google
+DeepMind研究人员创立。CEO \textbf{David Ding}和核心团队在DeepMind
+期间积累了深厚的音频生成研究经验。
+
+Udio于2024年4月正式发布，获得了一份星光熠熠的投资者和支持者名单：
+
+\begin{itemize}
+  \item \textbf{a16z}领投种子轮（1000万美元）
+  \item 天使投资人包括：will.i.am（黑眼豆豆）、Common（说唱歌手）、
+    Kevin Wall（音乐制作人）、Tay Keith（嘻哈制作人）
+  \item \textbf{Mike Krieger}（Instagram联合创始人兼CTO）
+  \item \textbf{Oriol Vinyals}（Google Gemini负责人）
+\end{itemize}
+
+Udio的差异化在于更高的音乐保真度和专业音乐人之间的口碑。与Suno的
+"人人可用"定位不同，Udio更强调成为专业创作流程中的辅助工具。
+
+
+% =============================================================
+\section{AI Agent 与基础设施：下一代交互界面}
+\label{sec:founders-agents}
+% =============================================================
+
+% -----------------------------------------------------------
+\subsection{Bret Taylor、Clay Bavor与Sierra AI：企业AI Agent的标杆}
+\label{subsec:founders-sierra}
+% -----------------------------------------------------------
+
+如果要选择一位\textbf{履历最耀眼}的AI创业者，\textbf{Bret Taylor}
+几乎是无可争议的第一名。
+
+Taylor（1980年生于加州奥克兰）的职业生涯读起来像硅谷名人堂的
+浓缩版：
+
+\begin{itemize}
+  \item Stanford大学本科和硕士
+  \item 在Google领导团队\textbf{共同创建了Google Maps}
+  \item 创立FriendFeed（后被Facebook收购）
+  \item 担任\textbf{Facebook/Meta CTO}
+  \item 创建协作生产力软件Quip（被Salesforce收购）
+  \item 担任\textbf{Salesforce联席CEO}（与创始人Marc Benioff并列）
+  \item Elon Musk收购Twitter前，Taylor担任\textbf{Twitter董事会主席}
+  \item 目前担任\textbf{OpenAI董事会主席}
+  \item Shopify董事会成员
+\end{itemize}
+
+2024年初，Taylor与\textbf{Clay Bavor}（前Google VP，曾领导Google的
+AR/VR、Project Starline和Google Lens项目）联合创立了Sierra AI。
+Sierra的定位非常精准：\textbf{企业客服AI Agent}——帮助企业构建能够
+自主处理客户服务和支持交互的AI代理。
+
+\begin{corebox}[Sierra AI 的关键数据]
+\begin{itemize}
+  \item 创立时间：2024年初
+  \item 总部：旧金山
+  \item 2025年收入：1.5亿美元
+  \item 2025年9月融资：3.5亿美元（Greenoaks Capital领投），100亿美元
+    估值
+  \item 客户：数百家企业
+  \item 团队规模：201--500人
+\end{itemize}
+Taylor的声望和关系网络使Sierra能够在创立后不到两年内就达到百亿估值。
+\end{corebox}
+
+% -----------------------------------------------------------
+\subsection{Flo Crivello与Lindy AI：个人AI助手}
+\label{subsec:founders-lindy}
+% -----------------------------------------------------------
+
+\textbf{Flo Crivello}是Lindy AI的创始人兼CEO——一个试图成为"终极个人
+AI助手"的产品。Crivello此前曾在Cruise（自动驾驶）工作，并经历过YC加速器。
+
+Lindy的独特之处在于它试图覆盖用户工作日的\textbf{全部}场景：邮件
+分类、日历管理、会议总结、日程安排、后续跟进——甚至订餐。用户可以
+通过iMessage与Lindy交互，无需打开额外的App。
+
+Crivello的产品哲学是"agent不应该是demo，而应该是真实可用的工作流"。
+Lindy强调\textbf{可定制性}和\textbf{no-code}：任何用户都可以在不
+写代码的情况下构建自己的AI工作流。到2024年底，Lindy声称已经"finally
+made agents work"，实现了数十个集成和持续的收入增长。
+
+% -----------------------------------------------------------
+\subsection{Stanislas Polu与Dust：企业知识的AI化}
+\label{subsec:founders-dust}
+% -----------------------------------------------------------
+
+\textbf{Stanislas Polu}是Dust的创始人，此前在\textbf{OpenAI}担任研究
+工程师，曾与Greg Brockman、Ilya Sutskever和Sam Altman等人共事。
+他选择离开OpenAI回到巴黎创业，创立了Dust——一个帮助企业团队构建
+定制化AI助手的平台。
+
+Dust的核心理念是将企业的内部知识（分散在Slack、Gmail、Notion、
+Google Drive等工具中）连接起来，让AI助手能够真正"理解"一个组织
+的上下文。Polu在2024年完成了1500万欧元的融资。Dust声称在客户组织
+中实现了85\%的日活跃用户率——这在企业AI工具中是极高的留存指标。
+
+% -----------------------------------------------------------
+\subsection{Div Garg与MultiOn：浏览器中的AI Agent}
+\label{subsec:founders-multion}
+% -----------------------------------------------------------
+
+\textbf{Div Garg}是MultiOn的创始人兼CEO，专注于构建能在浏览器中
+自主执行任务的AI Agent——从预订航班到填写表格到在线购物。Garg的
+愿景是让AI代理能够替代人类完成互联网上所有重复性操作。
+
+MultiOn属于"computer use agent"（计算机使用代理）赛道的先驱，
+比Anthropic的Computer Use和OpenAI的Operator更早进入市场。Garg曾在
+多个AI播客中分享了构建可靠浏览器Agent的挑战——特别是在非结构化的
+网页环境中保持一致性和处理异常情况的难度。
+
+
+% =============================================================
+\section{AI 消费产品：伴侣、硬件与写作}
+\label{sec:founders-consumer}
+% =============================================================
+
+% -----------------------------------------------------------
+\subsection{Character.AI：Noam Shazeer的传奇与Google的回归}
+\label{subsec:founders-characterai}
+% -----------------------------------------------------------
+
+\textbf{Noam Shazeer}的名字出现在AI历史上最重要的论文之一中——他是
+2017年Google"Attention Is All You Need"论文（Transformer架构的
+诞生论文）的八位作者之一。在Google任职期间，他领导了LaMDA（Language
+Model for Dialogue Applications）团队——这是Google对话式AI的核心
+技术基础。
+
+\begin{keybox}[Noam Shazeer：从Transformer到Character.AI再到Google]
+\begin{itemize}
+  \item \textbf{2017年}：作为Google研究员，共同发明Transformer架构
+  \item \textbf{2021年10月}：离开Google（据报道是因为Google不愿
+    发布LaMDA给公众使用）
+  \item \textbf{2022年}：与\textbf{Daniel De Freitas}联合创立
+    Character.AI，获得a16z投资
+  \item \textbf{2024年8月}：与De Freitas及核心研究团队回归Google
+    DeepMind
+\end{itemize}
+\end{keybox}
+
+Character.AI允许用户创建和与AI角色对话——这些角色可以模拟历史人物、
+虚构角色和流行文化偶像。产品在年轻用户中极为流行，用户平均每天花费
+大量时间与AI角色交互。
+
+2024年8月的"acqui-hire"交易是AI行业标志性事件之一：Google将Shazeer、
+De Freitas及研究团队带回了DeepMind，同时获得了Character.AI技术的
+非独占许可权。Shazeer被任命为Google Gemini的技术联合负责人（与Jeff
+Dean和Oriol Vinyals并列）——这或许是AI行业中最重要的技术岗位之一。
+Character.AI则在新领导层下继续作为独立公司运营。
+
+\textbf{Daniel De Freitas}是Character.AI的联合创始人兼总裁，在Google
+期间与Shazeer共同构建了LaMDA。De Freitas的技术专长在于大规模对话
+系统的训练和优化。他与Shazeer一同回到Google后加入了DeepMind团队。
+
+这笔交易与Microsoft收购Inflection（Mustafa Suleyman）和Amazon收购
+Adept形成了一个模式：\textbf{大型科技公司通过"反向收购"的方式重新
+获取曾经流失的AI人才}，同时规避了正式收购可能带来的反垄断审查。
+
+% -----------------------------------------------------------
+\subsection{Eugenia Kuyda与Replika：AI伴侣的先驱}
+\label{subsec:founders-replika}
+% -----------------------------------------------------------
+
+\textbf{Eugenia Kuyda}是Replika的创始人——也是AI伴侣赛道中极少数
+\textbf{女性创始人}之一。
+
+Replika的创立有一个令人心碎的起源故事：2015年，Kuyda失去了她最好的
+朋友——他在一场车祸中丧生。出于悲伤和思念，Kuyda用朋友生前的文字
+消息训练了一个聊天机器人，试图在某种程度上"延续"与他的对话。这个
+个人项目最终演变成了Replika——一个AI伴侣App。
+
+2017年正式推出后，Replika在COVID-19疫情期间迎来了用户激增——孤独
+和社交隔离让数百万人转向AI寻求情感支持。到2023年，Replika拥有1000万
+用户，其中40\%与AI建立了"浪漫关系"。Harvard商学院的案例研究显示，
+85\%的用户报告互动后情绪改善。
+
+\begin{whybox}[AI伴侣的伦理困境]
+Replika的成功引发了一系列深刻的伦理问题：
+\begin{itemize}
+  \item 与AI建立亲密关系是否健康？
+  \item 对青少年用户的心理影响如何？
+  \item 当AI被训练为"永远同意、永远支持"时，是否会损害用户的
+    现实社交能力？
+\end{itemize}
+Kuyda本人对这些问题持开放态度。她在2024年的Verge采访中表示："如果
+人类最终和AI结婚了，那也没关系。"但她也承认需要特别关注未成年人
+的使用。2025年10月，Kuyda从Replika CEO的位置上退下来，转任创始人
+和顾问，同时推出了新产品Wabi——一个让用户无需代码即可创建个性化
+mini-app的平台。
+\end{whybox}
+
+% -----------------------------------------------------------
+\subsection{AI硬件的先驱与警示：Humane与Rabbit}
+\label{subsec:founders-hardware}
+% -----------------------------------------------------------
+
+AI消费产品领域中最引人注目（也最令人警醒）的两个案例是Humane和Rabbit。
+
+\textbf{Imran Chaudhri}和\textbf{Bethany Bongiorno}——一对夫妻，
+均为前Apple资深员工——于2018年创立了Humane。Chaudhri在Apple工作了
+二十多年，参与了iPhone和iPad等标志性产品的设计；Bongiorno则负责
+Apple的软件工程管理。
+
+他们的愿景是创造一种"后智能手机"的交互方式——AI Pin，一个佩戴在
+胸前的胸针形状设备，售价699美元，通过激光将信息投影到用户手掌上，
+使用语音交互。2023年11月发布时，产品获得了巨大的媒体关注。
+
+然而，2024年4月AI Pin正式发货后，评测结果灾难性地糟糕。评论者批评
+它缓慢、不实用、电池续航差。更深层的问题在于：在智能手机已经如此
+成熟的今天，\textbf{一个功能更少、体验更差、价格不菲的独立设备
+为什么会有人买}？
+
+\begin{warnbox}[Humane的教训]
+多项报道指出，Humane内部存在"toxic positivity"（有毒的正面思维）
+文化——内部批评意见被压制，团队在明知产品存在严重问题的情况下仍然
+推进发布。2025年2月，Humane宣告终结，被HP收购，产品线转型为HP IQ。
+从超过2.3亿美元的融资（投资者包括Sam Altman和Microsoft）到被收购，
+Humane的故事是AI硬件创业中最昂贵的教训之一。
+\end{warnbox}
+
+\textbf{Jesse Lyu}（吕骋）的Rabbit R1则是另一个引人入胜的AI硬件故事。
+Lyu 1990年生于中国西安，是一个极具个人魅力的创业者——世界级的
+《魔兽争霸》玩家、音乐制作人、半职业兰博基尼赛车手。他此前创立的
+Ravetech被百度收购，Forbes将他评为30岁以下顶级企业家。
+
+2024年1月，Lyu在CES上发布了Rabbit R1——一个售价199美元的橙色手持
+AI设备。他身着全黑站在台上，一个接一个地进行现场演示——语音查询、
+计算机视觉识别、在线订购——这段发布会视频在社交媒体上病毒式传播。
+R1在发布后迅速售出数万台。
+
+然而，和Humane一样，Rabbit R1在实际使用中暴露了大量问题。用户发现
+许多功能不如演示中那样可靠，独立设备的价值主张在智能手机面前难以
+成立。Rabbit的后续发展也不顺利。
+
+这两个案例共同说明了一个残酷的事实：\textbf{在AI软件如此便宜且
+随处可得的时代，AI硬件需要提供极其强大的独特价值才能生存}。当ChatGPT
+在你的手机上就能用时，为什么要花700美元买一个功能更少的独立设备？
+
+% -----------------------------------------------------------
+\subsection{AI写作与生产力工具的创始人}
+\label{subsec:founders-writing}
+% -----------------------------------------------------------
+
+AI写作工具是生成式AI最早的商业化应用之一，诞生了一批有代表性的
+创始人。
+
+\subsubsection{Jasper AI的三位创始人} \textbf{Dave Rogenmoser}（CEO）、
+\textbf{Chris Hull}和\textbf{John Philip Morgan}于2021年1月在德克萨斯
+州奥斯汀创立了Jasper AI（最初名为Conversion.ai，后短暂更名为
+Jarvis——直到收到Marvel的律师函）。Jasper可能是AI写作赛道中\textbf{最早
+的独角兽}：仅用18个月就达到了15亿美元的估值，一度被视为AI应用层的
+明星。Jasper利用GPT-4等大语言模型为营销团队生成高质量的营销文案，
+提供50+模板和SEO集成。20\%的Fortune 500使用其产品。
+
+然而，随着ChatGPT的发布和通用LLM能力的飞速提升，Jasper面临了一个
+存在性挑战：\textbf{当ChatGPT本身就能写出高质量文案时，为什么还需要
+一个专门的AI写作工具}？Jasper不得不从通用AI写作转型为更垂直的企业
+营销AI平台，这个转型过程充满了挑战。
+
+\subsubsection{Paul Yacoubian与Copy.ai} \textbf{Paul Yacoubian}是
+Copy.ai的联合创始人兼CEO，与\textbf{Chris Lu}共同创立了这家公司。
+Copy.ai最初与Jasper类似，定位为AI写作助手，但在2024年果断转型为
+\textbf{GTM（Go-to-Market）AI平台}，专注于利用AI自动化销售和营销
+工作流。Yacoubian同时也是一位活跃的天使投资人，投资组合涵盖多个
+赛道。Copy.ai拥有超过1000万注册用户。
+
+\subsubsection{May Habib与Writer} \textbf{May Habib}的人生故事堪称
+AI创业领域中最具启发性的叙事之一。
+
+Habib的家庭在1990年代从黎巴嫩乡村逃到加拿大。作为八个孩子中最年长的
+一个，八岁的Habib带着一个信念——"你出生时说的语言不应该决定你最终
+过什么样的人生"——开始了在新世界的旅程。
+
+成年后，Habib先在华尔街的投资银行工作，后来转向科技创业。她创立的
+Writer定位为\textbf{企业级全栈生成式AI平台}——与Jasper面向营销人员
+不同，Writer瞄准的是更广阔的企业场景，包括合规文档、品牌一致性、
+内部知识管理等。
+
+Writer的差异化在于其\textbf{全栈架构}——不仅仅是调用第三方LLM的
+包装器，而是构建了自己的企业级AI基础设施，包括自研模型和企业数据
+集成。到2024年11月，Writer完成了2亿美元C轮融资，估值19亿美元。
+客户包括多家Fortune 500企业。
+
+Inc. Magazine在2026年3月将Habib评为"你需要知道的被低估的AI愿景
+家"。作为AI领域中少数的女性CEO和中东裔创业者，Habib的成功对行业
+的多样性意义重大。
+
+
+% =============================================================
+\section{交叉叙事：AI创业生态的模式与启示}
+\label{sec:founders-patterns}
+% =============================================================
+
+在梳理了数十位AI创业者的故事后，我们可以提炼出几个重要的跨领域模式。
+
+\begin{corebox}[AI 创业者的七个共性模式]
+\begin{enumerate}
+  \item \textbf{学术-创业的极速转化}：Cursor创始人从MIT毕业到
+    百亿公司用了3年；Pika创始人从Stanford退学到估值4.7亿美元
+    用了不到1年。传统的"毕业-大厂-积累经验-创业"路径被彻底
+    缩短。
+  \item \textbf{大厂"毕业生"效应}：Perplexity的Srinivas来自
+    OpenAI，Augment的Gur-Ari来自Google，Character.AI的Shazeer
+    来自Google，Black Forest Labs的Rombach来自Stability AI。
+    大型AI实验室成为了创业者的"黄埔军校"。
+  \item \textbf{竞赛冠军通道}：Cognition的三位创始人都是竞赛
+    编程顶尖选手。在AI编程领域，竞赛成绩成为了创业能力的强信号。
+  \item \textbf{Fork \textgreater{} Build from scratch}：Cursor
+    Fork VS Code，而不是从零构建编辑器。在AI时代，"站在巨人
+    肩膀上"的策略特别有效——因为核心差异化来自AI能力，而不是
+    基础软件工程。
+  \item \textbf{小团队、大影响}：Midjourney 11人、Cursor 150人、
+    Cognition 111人。AI公司的人均产出远超传统SaaS公司。
+  \item \textbf{地理去中心化}：ElevenLabs在伦敦，BFL在弗赖堡，
+    Mistral在巴黎，Ideogram在多伦多。AI创业不再是硅谷的专利。
+  \item \textbf{争议与法律风险并行}：Perplexity面临版权诉讼，
+    Suno面临RIAA起诉，Stability AI在诉讼中几乎崩塌——\textbf{训练
+    数据的版权问题}是悬在所有AI创业公司头上的达摩克利斯之剑。
+\end{enumerate}
+\end{corebox}
+
+% -----------------------------------------------------------
+\subsection{反向收购：大厂重新吸收创业人才}
+\label{subsec:founders-acquihire}
+% -----------------------------------------------------------
+
+2024--2025年间，一种新的交易模式在AI行业中频繁出现：\textbf{反向收购}
+（acqui-hire）。大型科技公司不直接收购创业公司（这会触发反垄断审查），
+而是"雇佣"创始人和核心团队，同时获得技术的非独占许可权。
+
+\begin{keybox}[2024--2025年重大AI反向收购]
+\small
+\begin{tabularx}{\textwidth}{l l l r}
+\toprule
+\rowcolor{figLightGray}
+\textbf{时间} & \textbf{大厂} & \textbf{创业公司} & \textbf{金额} \\
+\midrule
+2024年3月  & Microsoft   & Inflection AI    & \$6.5亿 \\
+2024年6月  & Amazon      & Adept            & 未披露 \\
+2024年8月  & Google      & Character.AI     & 未披露 \\
+2025年7月  & Google      & Windsurf         & \$24亿 \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent 这种模式的本质是：大厂用现金买回自己曾经"泄漏"的人才
+和知识产权，同时避免了正式收购所带来的监管麻烦。对创业公司的投资者
+来说，这是一种"退出"方式；对留下来的团队来说，则意味着需要在新
+领导层下重新寻找方向。
+\end{keybox}
+
+% -----------------------------------------------------------
+\subsection{估值泡沫还是新范式？}
+\label{subsec:founders-valuation}
+% -----------------------------------------------------------
+
+一个不可回避的问题是：AI创业公司的估值是否存在泡沫？
+
+\begin{itemize}
+  \item Cursor以500亿美元估值谈判时，其ARR约20亿美元——这意味着
+    \textbf{25倍的ARR估值倍数}。作为参照，传统高增长SaaS公司
+    的估值倍数通常在10--15倍。
+  \item Cognition以102亿美元估值时，ARR仅7300万美元——
+    \textbf{140倍的ARR估值倍数}。
+  \item Sierra以100亿美元估值时，收入1.5亿美元——
+    \textbf{约67倍的收入倍数}。
+\end{itemize}
+
+支持这些高估值的论点是：AI工具的市场规模和增长速度是前所未有的。
+如果AI编程工具能够渗透全球5000万专业开发者中的大多数，并且ARPU从
+\$20/月提升到\$200+/月，那么Cursor的潜在TAM（Total Addressable
+Market）可能超过1000亿美元。在这种情况下，500亿美元的估值只是
+未来市场的一小部分。
+
+\begin{whybox}[估值的另一面]
+反对的声音同样值得关注：
+\begin{itemize}
+  \item AI编程工具的\textbf{切换成本极低}——开发者今天用Cursor，
+    明天可以轻松切换到Windsurf或Claude Code
+  \item \textbf{基础模型提供商}（OpenAI、Anthropic）随时可能直接
+    进入应用层，挤压创业公司的空间——Claude Code和OpenAI Codex
+    就是最直接的证据
+  \item 许多AI产品的\textbf{用户留存}仍不确定——"试用"和"持续
+    付费"之间存在巨大鸿沟
+  \item 2026年3月，社交媒体上已开始出现开发者从Cursor转向Claude
+    Code的讨论，引发了市场对Cursor增长可持续性的质疑
+\end{itemize}
+\end{whybox}
+
+% -----------------------------------------------------------
+\subsection{AI创业的YC效应}
+\label{subsec:founders-yc}
+% -----------------------------------------------------------
+
+Y Combinator（YC）在AI创业浪潮中扮演了独特的角色。截至2026年3月，
+YC已资助了超过1458家AI相关创业公司。在2023--2025年的YC批次中，
+AI公司的占比达到了前所未有的高度。
+
+值得关注的YC AI公司包括：
+
+\begin{itemize}
+  \item \textbf{Scale AI}（2016年批次）：由Alexandr Wang创立，
+    目前估值约138亿美元，是AI数据标注和RLHF领域的领军企业
+  \item 多个在Agent、开发者工具和企业AI领域的新兴公司正在2025--2026
+    年的批次中涌现
+\end{itemize}
+
+YC的价值不仅在于资金（每家公司仅获得50万美元的种子投资），更在于
+其提供的\textbf{网络效应和信号价值}——"YC公司"本身就是一种品质
+背书，在竞争激烈的AI人才市场上尤为重要。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily},
+  founder/.style={
+    font=\sffamily\tiny, align=center, text width=1.8cm,
+    rounded corners=2pt, inner sep=2pt, minimum height=0.6cm,
+  },
+  sector/.style={
+    font=\sffamily\small\bfseries, text=white,
+    rounded corners=3pt, inner sep=5pt, minimum height=0.8cm,
+    minimum width=2.5cm,
+  },
+  arrow/.style={-{Stealth[length=3pt]}, figGray!50, thin},
+]
+
+% === Sector headers ===
+\node[sector, fill=figBlue] (coding) at (0, 0) {AI Coding};
+\node[sector, fill=figRed] (creative) at (4.5, 0) {Creative AI};
+\node[sector, fill=figGreen] (search) at (9, 0) {AI Search};
+\node[sector, fill=figOrange] (consumer) at (13.5, 0) {Consumer AI};
+
+% === AI Coding founders ===
+\node[founder, fill=figBlue!10] at (0, -1.2) {Truell+3\\Cursor};
+\node[founder, fill=figBlue!10] at (0, -2.2) {Scott Wu\\Devin};
+\node[founder, fill=figBlue!10] at (0, -3.2) {Masad\\Replit};
+\node[founder, fill=figBlue!10] at (0, -4.2) {Chase\\LangChain};
+\node[founder, fill=figBlue!10] at (0, -5.2) {Warner+Kant\\Poolside};
+
+% === Creative AI founders ===
+\node[founder, fill=figRed!10] at (4.5, -1.2) {Holz\\Midjourney};
+\node[founder, fill=figRed!10] at (4.5, -2.2) {Valenzuela\\Runway};
+\node[founder, fill=figRed!10] at (4.5, -3.2) {Guo+Meng\\Pika};
+\node[founder, fill=figRed!10] at (4.5, -4.2) {Rombach\\BFL};
+\node[founder, fill=figRed!10] at (4.5, -5.2) {Shulman\\Suno};
+
+% === AI Search founders ===
+\node[founder, fill=figGreen!10] at (9, -1.2) {Srinivas+3\\Perplexity};
+\node[founder, fill=figGreen!10] at (9, -2.2) {Socher\\You.com};
+\node[founder, fill=figGreen!10] at (9, -3.2) {Norouzi\\Ideogram};
+
+% === Consumer AI founders ===
+\node[founder, fill=figOrange!10] at (13.5, -1.2) {Taylor+Bavor\\Sierra};
+\node[founder, fill=figOrange!10] at (13.5, -2.2) {Shazeer\\Char.AI};
+\node[founder, fill=figOrange!10] at (13.5, -3.2) {Kuyda\\Replika};
+\node[founder, fill=figOrange!10] at (13.5, -4.2) {Staniszewski\\ElevenLabs};
+\node[founder, fill=figOrange!10] at (13.5, -5.2) {Chaudhri\\Humane};
+
+% === Title ===
+\node[font=\sffamily\small\bfseries, text=figGray, above=8pt] at (6.75, 0.5)
+  {AI Startup Founders Landscape (2022--2026)};
+
+\end{tikzpicture}
+\caption{AI创业者版图：按赛道分布的代表性创始人。每个赛道都有其
+独特的创始人画像——编程工具赛道以MIT/Harvard的年轻技术天才为主，
+创意AI赛道跨越了艺术和科学的边界，搜索赛道以学术大牛为特征，
+而消费AI赛道则汇聚了大厂高管和独立创新者。}
+\label{fig:founders-landscape}
+\end{figure}
+
+
+% =============================================================
+\section{本章人物索引}
+\label{sec:founders-index}
+% =============================================================
+
+为便于查阅，以下按字母顺序列出本章提及的全部AI创业者。
+
+\begin{keybox}[Chapter 11 人物索引]
+\small
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{姓名} & \textbf{公司/产品} & \textbf{关键标签} \\
+\midrule
+Asif, Sualeh          & Cursor (Anysphere)   & MIT, CPO \\
+Bavor, Clay           & Sierra AI            & ex-Google VP AR/VR, CTO \\
+Blattmann, Andreas    & Black Forest Labs    & Stable Diffusion核心作者 \\
+Bongiorno, Bethany    & Humane               & ex-Apple, AI Pin \\
+Camacho, Martin       & Suno                 & 联合创始人, ex-Kensho \\
+Chaudhri, Imran       & Humane               & ex-Apple 20年, AI Pin \\
+Chase, Harrison       & LangChain            & Harvard, Agent框架 \\
+Chen, Douglas         & Windsurf/Codeium     & 联合创始人, $\to$ Google \\
+Crivello, Flo         & Lindy AI             & ex-Cruise, AI助手 \\
+Dabkowski, Piotr      & ElevenLabs           & CTO, 波兰, 语音AI \\
+De Freitas, Daniel    & Character.AI         & ex-Google LaMDA, $\to$ DeepMind \\
+Dietzen, Scott        & Augment Code         & CEO, ex-Sun Microsystems \\
+Ding, David           & Udio                 & CEO, ex-DeepMind \\
+Esser, Patrick        & Black Forest Labs    & Stable Diffusion核心作者 \\
+Friedman, Itamar      & Qodo (CodiumAI)      & CEO, 代码质量AI \\
+Freyberg, Keenan      & Suno                 & 联合创始人, ex-Kensho \\
+Garg, Div             & MultiOn              & CEO, 浏览器Agent \\
+Germanidis, Anastasis & Runway               & 联合创始人, NYU Tisch \\
+Guo, Demi             & Pika Labs            & CEO, Stanford PhD dropout \\
+Gur-Ari, Guy          & Augment Code         & 创始人, ex-Google \\
+Habib, May            & Writer               & CEO, 黎巴嫩裔加拿大人 \\
+Hao, Steven           & Cognition (Devin)    & CTO, 竞赛编程 \\
+Ho, Johnny            & Perplexity AI        & 联合创始人 \\
+Holz, David           & Midjourney           & ex-Leap Motion, 无VC融资 \\
+Hull, Chris           & Jasper AI            & 联合创始人 \\
+Jain, Amit            & Luma AI              & CEO, Dream Machine \\
+Kant, Eiso            & Poolside AI          & 联合创始人, ex-source\{d\} \\
+Konwinski, Andy       & Perplexity AI        & 联合创始人, Apache Spark \\
+Kucsko, Georg         & Suno                 & 联合创始人, ex-Kensho \\
+Kuyda, Eugenia        & Replika              & CEO/创始人, AI伴侣先驱 \\
+Liu, Beyang           & Sourcegraph          & CTO, Cody AI \\
+Liu, Jerry            & LlamaIndex           & CEO, Princeton, RAG框架 \\
+Lunnemark, Arvid      & Cursor (Anysphere)   & MIT, Jane Street \\
+Lyu, Jesse (吕骋)     & Rabbit               & 西安$\to$硅谷, R1设备 \\
+Masad, Amjad          & Replit               & 约旦$\to$硅谷, Replit Agent \\
+Matamala, Alejandro   & Runway               & 联合创始人, 智利裔 \\
+McCann, Bryan         & You.com              & 联合创始人, ex-Salesforce NLP \\
+Meng, Chenlin         & Pika Labs            & CTO, Stanford PhD dropout \\
+Mohan, Varun          & Windsurf/Codeium     & CEO $\to$ Google DeepMind \\
+Morgan, John Philip   & Jasper AI            & 联合创始人 \\
+Mostaque, Emad        & Stability AI         & 创始人, 2024年3月辞职 \\
+Norouzi, Mohammad     & Ideogram             & 创始人, ex-Google Brain \\
+Polu, Stanislas       & Dust                 & 创始人, ex-OpenAI \\
+Rogenmoser, Dave      & Jasper AI            & CEO \\
+Rombach, Robin        & Black Forest Labs    & Latent Diffusion发明者 \\
+Sanger, Aman          & Cursor (Anysphere)   & MIT, COO \\
+Shazeer, Noam         & Character.AI         & Transformer共同发明者 \\
+Shulman, Mikey        & Suno                 & CEO, Harvard物理PhD \\
+Socher, Richard       & You.com              & GloVe发明者, ex-Salesforce \\
+Srinivas, Aravind     & Perplexity AI        & CEO, IIT Madras, ex-OpenAI \\
+Staniszewski, Mati    & ElevenLabs           & CEO, 波兰, 语音AI \\
+Taylor, Bret          & Sierra AI            & CEO, Google Maps共同创建者 \\
+Truell, Michael       & Cursor (Anysphere)   & CEO, MIT, 25岁亿万富翁 \\
+Valenzuela, Cristóbal & Runway               & CEO, 智利裔, NYU Tisch \\
+Warner, Jason         & Poolside AI          & 联合创始人, ex-GitHub CTO \\
+Wu, Scott             & Cognition (Devin)    & CEO, IOI金牌, Harvard \\
+Yacoubian, Paul       & Copy.ai              & CEO, GTM AI \\
+Yan, Walden           & Cognition (Devin)    & CPO, 竞赛编程 \\
+Yarats, Denis         & Perplexity AI        & CTO, ex-Meta AI \\
+\bottomrule
+\end{tabularx}
+\end{keybox}
+
+\bigskip
+
+本章覆盖的人物跨越了AI编程、搜索、创意生成、音乐/语音、Agent、消费
+产品和硬件等多个赛道。他们的共同点是：在一个技术能力每6个月就翻倍的
+时代，以惊人的速度将基础模型的能力转化为改变真实世界的产品。
+
+在本书的其他章节中，读者将看到这些创业者与大型AI实验室
+（第3--7章）、芯片和基础设施供应商（第9章）、投资者（第10章）和学术
+研究者（第12章）之间千丝万缕的联系。AI创业不是一个孤立的现象，而是
+整个AI生态系统共同演化的结果——大学培养人才，实验室推进技术，投资者
+提供资本，而创业者则将这一切整合为\textbf{用户愿意付费的产品}。
+
+对\textit{The AI Startup Landscape}读者的提示：本章与该书第5章
+（开发者工具）、第7章（创意AI）和第9章（消费AI社交）形成直接对话。
+\textit{Landscape}从\textbf{市场和产品}的角度分析这些公司，本章则
+聚焦于\textbf{创始人}——他们是谁、从哪里来、为什么选择这条路。
+两个视角互为补充。

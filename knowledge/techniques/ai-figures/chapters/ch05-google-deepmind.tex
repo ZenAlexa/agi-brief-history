@@ -1,0 +1,1219 @@
+\chapter{Google DeepMind：搜索巨人的 AI 超级武器}
+\label{ch:google}
+
+%% ============================================================
+%% Chapter 5 — Google DeepMind & Google Brain
+%% Covers ~65 figures across DeepMind, Google Brain, Gemini,
+%% Transformer authors, and key departures.
+%% ============================================================
+
+在人工智能的历史中，没有任何一家公司比 Google 拥有更多的矛盾身份。
+它是 Transformer 架构的发明者，却眼睁睁看着 OpenAI 用这项技术掀起了 ChatGPT 革命；
+它拥有世界上最顶尖的 AI 研究实验室 DeepMind，却在产品化竞赛中一度落后于创业公司；
+它培养了 AI 时代最耀眼的一批人才，却也经历了最惨烈的人才流失。
+2024 年，当 Demis Hassabis 和 John Jumper 站上诺贝尔化学奖的领奖台时，
+Google DeepMind 终于向世界证明了一件事：
+\textbf{基础研究的价值无法用季度财报来衡量。}
+
+本章将深入讲述两个传奇组织——DeepMind 和 Google Brain——的故事，
+以及它们合并为 Google DeepMind 之后，
+如何在 Gemini 时代重新定义 AI 的边界。
+我们将追踪超过 60 位关键人物的轨迹，
+从诺贝尔奖得主到 Transformer 的八位作者，
+从留守的忠诚者到出走的叛逆者。
+
+\begin{keybox}[Google 的 AI 悖论]
+Google 是 AI 时代最大的悖论体：
+它\textbf{发明}了 Transformer（2017）、提出了 Scaling Laws 的关键实证（Chinchilla, 2022）、
+训练了第一个击败人类围棋冠军的 AI（AlphaGo, 2016）、
+预测了几乎所有已知蛋白质的结构（AlphaFold2, 2020）——
+但在消费级 AI 产品的竞赛中，它直到 2024 年底才勉强追平 OpenAI。
+一位前 Google Brain 研究员的评价广为流传：
+``Google 拥有所有的原材料，但让别人做了蛋糕。''
+\end{keybox}
+
+
+%% ============================================================
+\section{DeepMind：从伦敦创业公司到诺贝尔奖}
+\label{sec:deepmind-origin}
+%% ============================================================
+
+DeepMind 的故事始于 2010 年的伦敦，
+由三位背景迥异的创始人共同缔造：
+一个国际象棋神童出身的神经科学家（Demis Hassabis），
+一个来自新西兰的 AGI 理论家（Shane Legg），
+以及一个从未上过大学却在社会企业领域建立了声望的政策活动家（Mustafa Suleyman）。
+这个组合看起来不太可能成功，
+但正是这种跨学科的张力赋予了 DeepMind 独特的基因：
+\textbf{用神经科学启发的算法，在游戏中验证通用智能的可能性。}
+
+2014 年 1 月，Google 以超过 5 亿美元的价格收购了 DeepMind——
+这是当时 Google 在欧洲最大的一笔收购。
+据报道，Facebook 也曾参与竞标，
+但 Hassabis 选择了 Google，部分原因是 Google 同意让 DeepMind 保持相对独立的运营模式，
+并成立了一个 AI 伦理委员会。
+
+\begin{corebox}[DeepMind 大事记]
+\begin{itemize}[noitemsep]
+  \item \textbf{2010}：Hassabis、Legg、Suleyman 在伦敦创立 DeepMind Technologies
+  \item \textbf{2013}：发表 DQN 论文，用深度强化学习玩 Atari 游戏
+  \item \textbf{2014}：被 Google 以超过 5 亿美元收购
+  \item \textbf{2016}：AlphaGo 以 4:1 击败围棋世界冠军李世石
+  \item \textbf{2017}：AlphaGo Zero 从零开始自我对弈，超越所有前代版本
+  \item \textbf{2018}：AlphaFold 在 CASP13 蛋白质结构预测竞赛中夺冠
+  \item \textbf{2020}：AlphaFold2 在 CASP14 中取得突破性成果
+  \item \textbf{2022}：发布 2 亿个蛋白质结构预测；Chinchilla 论文挑战 Scaling Laws
+  \item \textbf{2023}：与 Google Brain 合并为 Google DeepMind
+  \item \textbf{2023.12}：发布 Gemini 多模态模型
+  \item \textbf{2024.10}：Hassabis 和 Jumper 获诺贝尔化学奖
+  \item \textbf{2025}：AlphaEvolve、AlphaGeometry 等新突破持续涌现
+\end{itemize}
+\end{corebox}
+
+
+%% ------------------------------------------------------------
+\subsection{Demis Hassabis——赢得两座诺贝尔奖的博学者}
+\label{subsec:hassabis}
+%% ------------------------------------------------------------
+
+\noindent\textbf{Demis Hassabis}（1976-- ，英国伦敦）是那种让人怀疑``天才是否真的存在''的人物。
+
+他的履历读起来像一部关于人类潜能的科幻小说：
+4 岁学会国际象棋，13 岁成为国际象棋大师，
+同龄段排名一度位居世界第二；
+16 岁加入传奇游戏公司 Bullfrog Productions，
+参与设计了经典模拟经营游戏 \textit{Theme Park}（该游戏赢得了 Golden Joystick Award）；
+17 岁时成为 \textit{Syndicate} 的设计师；
+之后进入剑桥大学攻读计算机科学，
+又创办了自己的游戏公司 Elixir Studios；
+随后在伦敦大学学院（UCL）完成了认知神经科学博士学位，
+研究海马体与情景记忆、想象力之间的关系——
+他的论文发表在 \textit{Science} 上，被引用数千次。
+
+\begin{whybox}[为什么 Hassabis 的神经科学背景如此重要？]
+Hassabis 不是一个单纯的``AI 工程师''。他在 UCL 的博士研究揭示了
+人类大脑如何利用海马体来\textbf{想象未来场景}——
+这与 AI 中的``规划''（planning）能力直接相关。
+DeepMind 早期的研究方向——用强化学习玩游戏——
+正是这种``神经科学启发 AI''哲学的直接体现。
+AlphaGo 的成功不仅是工程胜利，
+更是 Hassabis 关于``通用智能可以通过游戏来研究''这一信念的验证。
+\end{whybox}
+
+要理解 Hassabis 如何成为今天的 Hassabis，需要更仔细地回溯他的``多重人生''。
+在 Bullfrog Productions 时期（1994 年前后），年仅 17 岁的他参与了
+\textit{Theme Park} 的 AI 系统设计——这款游戏卖出了数百万份，
+赢得了 Golden Joystick Award，
+由此奠定了 Hassabis 对``智能体在模拟环境中学习''的早期直觉。
+他随后在 Lionhead Studios 参与了 Peter Molyneux 的 \textit{Black \& White} 的早期开发，
+这是一款以``学习型 AI 宠物''为核心卖点的上帝模拟游戏。
+
+1998 年，Hassabis 从剑桥大学以双一等（Double First）成绩毕业后，
+创办了自己的游戏公司 \textbf{Elixir Studios}。
+公司的代表作 \textit{Republic: The Revolution}（2003）是一款极具野心的政治模拟游戏，
+试图用 AI 驱动整个虚拟国家的社会动态。
+然而，这款游戏的技术野心超过了当时硬件的承载能力，
+商业表现令人失望。Elixir Studios 于 2005 年关闭——
+但这段``失败的游戏创业''恰恰为 Hassabis 提供了关键的管理和创业经验，
+也加深了他对``通用 AI 需要更根本的理论突破''的认识。
+
+\begin{corebox}[从游戏到神经科学：一次关键的转向]
+Elixir Studios 关闭后，Hassabis 做出了一个在外人看来不可思议的选择：
+放弃商业世界，回到学术界。
+他进入 UCL（伦敦大学学院）攻读认知神经科学博士，
+研究海马体如何同时支持\textbf{情景记忆}和\textbf{想象未来场景}的能力。
+他的关键发现是：失忆症患者不仅无法回忆过去，
+也无法想象新的虚构场景——这意味着记忆和想象共享同一套神经机制。
+这篇论文发表在 2007 年的 \textit{Science} 上，
+被 \textit{Science} 评为当年十大科学突破之一，
+至今被引用超过 3000 次。
+正是这项研究让 Hassabis 确信：
+\textbf{理解大脑是构建通用智能的捷径}。
+\end{corebox}
+
+博士毕业后，Hassabis 在 UCL 的 Gatsby Computational Neuroscience Unit
+做了一年博士后研究——正是在那里，
+他遇到了同在 Gatsby Unit 的 \textbf{Shane Legg}。
+Legg 当时刚从瑞士 IDSIA 完成关于``机器超级智能''的博士论文，
+两人发现彼此对 AGI 的信念高度一致。
+Hassabis 后来回忆：``我们花了很多时间在 Gatsby 的咖啡室里讨论
+如何真正构建通用智能。我知道我找到了合适的合伙人。''
+
+2010 年，Hassabis 与 Shane Legg 和 Mustafa Suleyman 共同创立了 DeepMind。
+他的愿景从一开始就非常清晰：
+\textbf{``先解决智能问题，然后用智能解决其他一切问题。''}
+（``Solve intelligence, then use it to solve everything else.''）
+
+\begin{whybox}[Hassabis 的管理哲学：``小团队，大问题'']
+与硅谷常见的``快速行动，打破常规''不同，
+Hassabis 在 DeepMind 建立了一种独特的管理文化：
+将世界级研究者组织成 5--15 人的小型跨学科团队，
+每个团队攻克一个根本性的科学问题。
+他亲自参与技术细节的讨论——据多位前员工描述，
+Hassabis 能在同一周内深入讨论蛋白质折叠的物理约束、
+围棋算法的搜索空间，以及强化学习的数学基础。
+这种``博学者管理模式''在 AI 领域几乎独一无二。
+一位前 DeepMind 研究员评价：
+``Demis 不只是 CEO，他是那个能在白板上和你讨论
+梯度下降细节的 CEO。''
+\end{whybox}
+
+这个愿景在 2016 年的首尔实现了第一次重大验证。
+AlphaGo 以 4:1 击败了围棋世界冠军李世石——
+这场比赛被超过 2 亿人在线观看，
+被《科学》杂志评为 2016 年度``突破性进展''的候选。
+对于围棋界而言，第二局中 AlphaGo 下出的第 37 手棋
+至今被认为是``超越人类直觉''的标志性时刻——
+职业棋手评估这手棋被人类下出的概率不到万分之一。
+而第四局更加令人动容：李世石在几乎绝望的局面下
+下出了``神之一手''（Move 78），反败为胜。
+赛后，李世石含泪说这是他职业生涯最有价值的一局。
+Hassabis 本人也在赛后表示：
+``李世石的这手棋让我们的团队学到了新东西。
+这正是我们开发 AlphaGo 的初衷——
+不是为了击败人类，而是为了与人类一起发现新知识。''
+这场比赛让 DeepMind 从一个小众的 AI 实验室
+一跃成为全球公众最知名的 AI 品牌。
+
+但 Hassabis 真正的``登顶时刻''来自蛋白质折叠。
+2020 年，AlphaFold2 在 CASP14（蛋白质结构预测的奥林匹克竞赛）中
+以令人震惊的精度解决了这个困扰生物学界 50 年的难题。
+到 2022 年，DeepMind 已经发布了超过 2 亿个蛋白质结构的预测，
+覆盖了几乎所有已知蛋白质。
+2024 年 10 月 9 日，瑞典皇家科学院宣布：
+\textbf{Demis Hassabis 和 John Jumper 因``蛋白质结构预测''
+获得 2024 年诺贝尔化学奖}（与 David Baker 共享）。
+
+Hassabis 于 2017 年被授予 CBE 勋章，
+2024 年被授予骑士爵位（Knighted），
+2023 年获得 Lasker 基础医学研究奖和 Breakthrough Prize 生命科学奖。
+他还被 \textit{Time} 杂志评为 2017 年和 2025 年最具影响力的 100 人之一，
+并作为``AI 的建筑师''群体之一被选为 \textit{Time} 2025 年度人物。
+
+在 Google DeepMind 合并后，Hassabis 担任 CEO，
+直接向 Sundar Pichai 汇报。
+据 CNBC 报道，到 2026 年初，两人几乎每天通话，
+讨论从模型架构到竞争情报的一切事务。
+Alphabet 2026 年宣布的 1750 亿至 1850 亿美元资本支出计划，
+很大程度上是对 Hassabis 和 Google DeepMind 的豪赌。
+
+
+%% ------------------------------------------------------------
+\subsection{Shane Legg——AGI 信仰的守护者}
+\label{subsec:legg}
+%% ------------------------------------------------------------
+
+\noindent\textbf{Shane Legg}（1973/74-- ，新西兰）是 DeepMind 三位创始人中
+最低调但在智识上最激进的一位。
+
+Legg 在新西兰北岛的 Rotorua 长大，
+先后在怀卡托大学获得学士学位、奥克兰大学获得硕士学位
+（论文题目为 \textit{Solomonoff Induction}），
+然后远赴瑞士卢加诺，在 IDSIA 研究所攻读博士，
+师从 Marcus Hutter 研究\textbf{超级智能的形式化理论}。
+他的博士论文题为 \textit{Machine Super Intelligence}（2008），
+提出了一种机器智能的形式化定义，
+为此获得了加拿大奇点研究所的研究奖。
+
+在 2000 年代初期，Legg 与 Ben Goertzel 一起重新引入并推广了
+\textbf{``人工通用智能''（AGI）}这一术语——
+用来描述一种能够完成几乎任何人类认知任务的 AI。
+在当时，谈论 AGI ``会让你被归入疯子的行列''。
+
+\begin{corebox}[Legg 的 AGI 时间表预测]
+2011 年，Legg 在 LessWrong 博客上接受采访时估计，
+AGI 有大约 50\% 的概率在 2028 年之前实现。
+这个预测在当时被很多人认为是荒谬的，
+但到了 2023 年，越来越多的人开始认真对待这种可能性。
+Legg 的面试风格也反映了这种信念——
+他会在面试中明确讨论 AGI 可能到来的时间和风险，
+``看他们如何反应''。
+\end{corebox}
+
+DeepMind 与 Google Brain 合并后，Legg 的头衔从``首席科学家''
+变为``首席 AGI 科学家''（Chief AGI Scientist）——
+这个头衔本身就说明了他在组织中的独特定位。
+他目前领导 Google DeepMind 的技术 AGI 安全团队（Technical AGI Safety team），
+致力于确保通用 AI 的安全发展。
+2019 年，他被授予大英帝国司令勋章（CBE）。
+
+
+%% ------------------------------------------------------------
+\subsection{Mustafa Suleyman——从社会活动家到 Microsoft AI CEO}
+\label{subsec:suleyman}
+%% ------------------------------------------------------------
+
+\noindent\textbf{Mustafa Suleyman}（1984-- ，英国伦敦）的人生轨迹
+是 DeepMind 三位创始人中最富戏剧性的。
+
+他出生在伦敦，父亲是一位来自叙利亚的出租车司机，
+母亲是一位英国护士。他在伦敦北部长大，
+就读于 Thornhill 小学和 Barnet 的 Queen Elizabeth 学校。
+正是在那里，通过最好的朋友——Demis Hassabis 的弟弟——
+Suleyman 认识了 Hassabis。
+两人从少年时代就开始讨论``如何改变世界''。
+
+19 岁时，Suleyman 从牛津大学 Mansfield College 辍学，
+与朋友 Mohammed Mamdani 共同创立了 Muslim Youth Helpline，
+一个为穆斯林青年提供心理健康支持的电话咨询服务。
+这个组织后来成为英国最大的穆斯林心理健康支持服务之一。
+之后，他为伦敦市长 Ken Livingstone 担任人权政策顾问，
+又帮助创办了咨询公司 Reos Partners，
+为联合国、荷兰政府和 WWF 等客户提供谈判和调解服务。
+
+2010 年，Suleyman 与 Hassabis 和 Legg 共同创立了 DeepMind，
+担任应用 AI 负责人（Head of Applied AI）。
+他在 DeepMind 的近十年时间里，
+推动了 AI 在医疗健康领域的应用（包括与英国 NHS 的合作），
+但据报道因``激进的管理风格''引发投诉，最终在 2019 年左右离开。
+他随后在 Google 担任 AI 产品副总裁一段时间。
+
+2022 年，Suleyman 创立了 \textbf{Inflection AI}，
+并与 Karén Simonyan（VGGNet 的共同作者）一起构建了 Pi 聊天机器人。
+Inflection 曾获得超过 15 亿美元的融资，估值一度达到 40 亿美元。
+
+\begin{whybox}[Suleyman 的``非传统收购'']
+2024 年 3 月，Microsoft 宣布聘请 Suleyman 担任新成立的 \textbf{Microsoft AI} 部门的
+CEO（执行副总裁级别），直接向 Satya Nadella 汇报。
+Karén Simonyan 担任首席科学家。
+这笔交易的结构非常特殊：
+Microsoft 并没有正式收购 Inflection AI，
+而是支付了约 6.5 亿美元用于许可 Inflection 的技术和雇佣其核心团队成员。
+Inflection AI 继续独立运营，但其最有价值的人才和技术已经转移到了 Microsoft。
+这种``非传统收购''模式后来被多次复制（如 Google 与 Character.AI 的交易）。
+\end{whybox}
+
+在 Microsoft，Suleyman 负责所有消费级 AI 产品和研究，
+包括 Copilot、Bing 和 Edge。
+他也是 Microsoft 高级领导团队的成员。
+Suleyman 于 2023 年出版了 \textit{The Coming Wave}（《即将到来的浪潮》），
+讨论 AI 和合成生物学带来的机遇与风险。
+
+\begin{keybox}[DeepMind 三位创始人的分道扬镳]
+DeepMind 的三位创始人代表了 AI 领域三种典型的职业路径：
+\begin{itemize}[noitemsep]
+  \item \textbf{Hassabis}：留守者——坚守 DeepMind 15 年，最终赢得诺贝尔奖和 Google 的全力支持
+  \item \textbf{Legg}：信念者——从头到尾只关心一件事（AGI 安全），头衔变了但使命不变
+  \item \textbf{Suleyman}：连续创业者——从 DeepMind 到 Inflection 到 Microsoft，
+        在产品化和影响力的道路上不断迭代
+\end{itemize}
+\end{keybox}
+
+
+%% ============================================================
+\section{DeepMind 的研究明星}
+\label{sec:deepmind-stars}
+%% ============================================================
+
+DeepMind 之所以能在 AI 研究中持续产出突破性成果，
+不仅因为 Hassabis 的愿景，更因为它吸引和培养了一批世界级的研究人才。
+以下是其中最重要的几位。
+
+
+%% ------------------------------------------------------------
+\subsection{David Silver——AlphaGo 之父}
+\label{subsec:silver}
+%% ------------------------------------------------------------
+
+\noindent\textbf{David Silver}（1976-- ，英国）是强化学习领域最具影响力的研究者之一，
+也是 AlphaGo、AlphaZero 和 AlphaStar 背后的核心人物。
+
+Silver 在剑桥大学基督学院读本科时结识了 Hassabis——
+这段友谊最终将他带入了 DeepMind。
+毕业后，他先是联合创办了一家视频游戏公司 Elixir Studios，
+然后于 2004 年回到学术界，在加拿大阿尔伯塔大学攻读博士学位，
+研究强化学习与计算机围棋中的模拟搜索算法。
+他的博士论文于 2009 年完成，
+其中提出的算法被用于当时最强的 9×9 围棋程序之一 MoGo。
+
+加入 DeepMind 后，Silver 领导了强化学习研究组，
+并主导了一系列里程碑式的项目：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{AlphaGo}（2016）：第一个击败人类围棋世界冠军的程序，
+        结合了深度神经网络和蒙特卡洛树搜索
+  \item \textbf{AlphaGo Zero}（2017）：完全从零开始自我对弈学习，
+        在 40 天内超越了所有前代版本
+  \item \textbf{AlphaZero}（2018）：通用化的自我博弈算法，
+        在国际象棋、将棋和围棋中同时达到超人水平
+  \item \textbf{AlphaStar}（2019，与 Oriol Vinyals 共同领导）：
+        在即时战略游戏 StarCraft II 中达到 Grandmaster 水平
+\end{itemize}
+
+Silver 于 2019 年获得 ACM 计算奖（ACM Prize in Computing），
+也是英国皇家学会会员（FRS）。
+他同时在 UCL 担任教授，
+他的强化学习课程讲义在全球被广泛使用。
+
+\begin{whybox}[Silver 的出走与新方向]
+2026 年 1 月，Silver 正式离开 Google DeepMind，
+创立了自己的 AI 初创公司 \textbf{Ineffable Intelligence}，总部位于伦敦。
+在此之前，他已经处于``学术休假''状态数月。
+据报道，Silver 对大型语言模型是否能单独实现超级智能持怀疑态度，
+他的新公司可能会探索强化学习与其他范式的结合。
+这是 DeepMind ``人才流失''中最具象征意义的事件之一——
+AlphaGo 之父选择了独立之路。
+\end{whybox}
+
+
+%% ------------------------------------------------------------
+\subsection{John Jumper——用 AI 破解生命密码的诺贝尔奖得主}
+\label{subsec:jumper}
+%% ------------------------------------------------------------
+
+\noindent\textbf{John Michael Jumper}（1985-- ，美国阿肯色州小石城）
+是一位``偶然的化学家''，但他的偶然改变了整个结构生物学。
+
+Jumper 在美国南方长大，本科就读于范德堡大学（Vanderbilt University），
+之后获得 Marshall Scholarship 前往剑桥大学攻读物理学硕士。
+他最初在芝加哥大学攻读物理学博士，
+但很快发现自己对纯物理研究缺乏热情，于是退出，
+转而在一家公司写程序来建模蛋白质。
+蛋白质折叠问题深深吸引了他——
+``很容易看到这些连接；如果我们做对了，就有人能从医院回家。''
+
+他回到芝加哥大学，改为攻读化学博士学位，
+师从 Karl Freed 教授和 Tobin Sosnick 教授，
+2017 年完成论文 \textit{New Methods Using Rigorous Machine Learning
+for Coarse-Grained Protein Folding and Dynamics}。
+
+\begin{corebox}[``我到的时候一点化学都不懂'']
+Jumper 曾回忆他在芝加哥大学的经历：
+``当我开始的时候，我一点化学都不懂。完全不懂。
+我不得不速通整个课程。
+我想办法保持比我当助教的本科生化学课超前一周。''
+这种从``零基础''到诺贝尔奖的飞跃，
+是 AI 时代跨学科研究最生动的注脚。
+\end{corebox}
+
+2017 年博士毕业后，Jumper 加入 DeepMind，
+领导 AlphaFold 项目的核心开发。
+在 2020 年的 CASP14 竞赛中，
+AlphaFold2 以远超竞争对手的精度预测了蛋白质的三维结构，
+达到了接近实验测量的准确度。
+这被广泛认为是 AI 在自然科学中最重要的单一突破。
+截至 2024 年 1 月，AlphaFold 团队已经发布了超过 2.14 亿个蛋白质结构的预测。
+
+2021 年，\textit{Nature} 将 Jumper 列入年度``科学十大人物''（Nature's 10）。
+2023 年，他获得了 Breakthrough Prize 生命科学奖。
+2024 年 10 月，他与 Hassabis 共同获得诺贝尔化学奖。
+截至 2025 年，Jumper 担任 Google DeepMind 的 Director。
+
+
+%% ------------------------------------------------------------
+\subsection{Oriol Vinyals——从 StarCraft 冠军到 Gemini 技术主管}
+\label{subsec:vinyals}
+%% ------------------------------------------------------------
+
+\noindent\textbf{Oriol Vinyals}（1983-- ，西班牙萨瓦德尔）
+是一位在多个 AI 子领域都留下了深刻印记的研究者。
+
+Vinyals 出生在巴塞罗那附近的加泰罗尼亚，
+在加泰罗尼亚理工大学（UPC）学习数学和电信工程，
+然后赴美攻读计算机科学，
+先后在加州大学圣迭戈分校获得硕士，
+在加州大学伯克利分校获得博士（2013），
+导师是 Nelson Morgan。
+
+他的核心贡献包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Sequence-to-Sequence 模型}（2014）：与 Ilya Sutskever 和 Quoc Le
+        共同发明了 seq2seq 模型，
+        这个模型彻底改变了机器翻译，成为 Google Translate 的基础
+  \item \textbf{知识蒸馏}（Knowledge Distillation, 2015）：与 Geoffrey Hinton 和
+        Jeff Dean 共同提出，
+        通过``教师-学生''范式将大模型的知识压缩到小模型中
+  \item \textbf{AlphaStar}（2019）：领导 DeepMind 的 StarCraft II AI 项目，
+        首次在即时战略游戏中达到人类 Grandmaster 水平。
+        有趣的是，Vinyals 少年时就是一名高排名的 StarCraft 玩家
+\end{itemize}
+
+2016 年，\textit{MIT Technology Review} 将他评为 35 岁以下最具创新力的 35 人之一。
+在 Google DeepMind 合并后，
+Vinyals 升任 VP of Research，
+并成为 \textbf{Gemini 项目的联合技术主管}（与 Noam Shazeer、Jeff Dean 并列）。
+2025 年，加泰罗尼亚理工大学授予他荣誉博士学位。
+
+
+%% ------------------------------------------------------------
+\subsection{更多 DeepMind 研究领袖}
+\label{subsec:deepmind-others}
+%% ------------------------------------------------------------
+
+\paragraph{Pushmeet Kohli}（印度 Dehradun）——
+Google DeepMind VP of Research，领导``科学与战略倡议部门''
+（Science and Strategic Initiatives Unit）。
+他监督了 AlphaFold、AlphaEvolve（通用进化编码代理）、
+SynthID（AI 生成内容水印系统）和 Co-Scientist（科学假设生成代理）等项目。
+在加入 DeepMind 之前，他是 Microsoft Research 的合伙科学家和研究主任。
+他在 NIT Warangal 获得本科学位，在 Oxford Brookes University 获得博士学位
+（导师 Philip Torr），曾在剑桥大学做博士后。
+被 \textit{Time} 杂志列入 Time 100 AI 名单。
+
+\paragraph{Koray Kavukcuoglu}（土耳其）——
+Google DeepMind CTO，2025 年 6 月被提升为
+\textbf{首席 AI 架构师}（Chief AI Architect, SVP 级别），
+直接向 Sundar Pichai 汇报。
+他负责将 DeepMind 的研究成果整合到 Google 的所有产品中——
+这是 Google 长期以来``研究到产品''转化难题的核心。
+Kavukcuoglu 本科和硕士就读于中东技术大学（METU）航空航天工程，
+博士在纽约大学计算机科学系完成，\textbf{师从 Yann LeCun}，
+研究无监督学习和特征提取。
+2012 年作为应届博士毕业生加入 DeepMind，
+参与了 AlphaGo、AlphaFold 和 WaveNet 等里程碑项目。
+
+\paragraph{Raia Hadsell}（美国）——
+Google DeepMind VP of Research，共同领导 Frontier AI 研究部门。
+她的职业路径非常不寻常：
+本科在 Reed College 学习的是\textbf{宗教与哲学}，
+之后``偏离轨道''成为了计算机科学家。
+她在纽约大学攻读博士（导师 Yann LeCun），
+研究 Siamese 神经网络（今天被称为``triplet loss''）、
+人脸识别算法和移动机器人的深度学习。
+她的博士论文 \textit{Learning Long-range Vision for Offroad Robots}
+获得了 2009 年杰出论文奖。
+2014 年加入当时还只有 50 人的 DeepMind（刚被 Google 收购），
+此后在持续学习、深度强化学习机器人控制和神经导航模型等领域
+做出了重要贡献。
+
+\paragraph{Nando de Freitas}（津巴布韦/南非/英国）——
+前 Google DeepMind Senior AI Director（2014--2024），
+现任 \textbf{Microsoft AI VP of Artificial Intelligence}。
+de Freitas 的人生经历堪称传奇：
+出生在津巴布韦，患有疟疾；曾是莫桑比克战争的难民；
+在马德拉岛（当时没有自来水和电力的火山岩小屋中）生活；
+8 岁移居委内瑞拉；之后在南非的种族隔离时代长大，
+曾在黑人城镇非法卖啤酒为生。
+他在维特沃特斯兰德大学获得电气工程学士和控制硕士，
+在剑桥大学三一学院获得博士学位（研究神经网络的贝叶斯方法），
+之后在 UC Berkeley 做博士后，
+先后在 UBC 和牛津大学担任教授。
+在 DeepMind，他共同领导了图像、音乐、音频和视频生成的研究，
+参与了 Gato、AlphaCode、Flamingo、Lyria、Imagen 2 和 Genie 等项目。
+2024 年 9 月离开 DeepMind，加入 Microsoft AI。
+
+\paragraph{Laurent Sifre}（法国）——
+前 DeepMind 研究科学家（2014--2024），
+Gemini 项目的关键贡献者，现为 \textbf{H Company} 联合创始人兼 CTO。
+Sifre 毕业于巴黎综合理工学院和国立路桥学院，
+2014 年在应用数学方向获得博士学位（导师 Stéphane Mallat）。
+在 DeepMind 的九年间，他参与了 AlphaGo、AlphaFold、AlphaStar，
+以及 Chinchilla（提出训练计算最优大语言模型的 Scaling Law）、
+RETRO、Gemma 和 Gemini 等关键项目。
+2024 年初离开 Google，与前 DeepMind 同事 Karl Tuyls、Daan Wierstra、
+Julien Perolat 及 CEO Charles Kantor 共同创立了 H Company，
+获得了 2.2 亿美元种子轮融资，总部设在法国。
+
+\paragraph{Lila Ibrahim}（美国）——
+Google DeepMind COO（2018 年至今），
+是 DeepMind 的第一位首席运营官。
+在加入 DeepMind 之前，她曾在 Intel 工作 18 年（从 Pentium 处理器设计工程师做起，
+后来担任 CEO Craig Barrett 的幕僚长），
+在 Kleiner Perkins Caufield \& Byers 担任高级运营合伙人，
+在 Coursera 担任总裁和 COO。
+她是教育科技非营利组织 Team4Tech 的联合创始人和主席，
+毕业于普渡大学电气工程专业。
+Ibrahim 在 DeepMind 的角色不仅是运营管理，
+还主导了公司的治理、伦理和 AI for Good 倡议。
+
+
+%% ============================================================
+\section{Google Brain 与 Transformer 革命}
+\label{sec:google-brain}
+%% ============================================================
+
+如果说 DeepMind 代表了``用 AI 做科学''的路线，
+那么 Google Brain 则代表了``用 AI 改造 Google''的路线。
+这两条路线的交汇，最终催生了 Gemini——
+但在此之前，Google Brain 自身就已经是 AI 历史上最具影响力的研究团队之一。
+
+
+%% ------------------------------------------------------------
+\subsection{Jeff Dean——工程传奇与 Google 的 AI 总设计师}
+\label{subsec:jeff-dean}
+%% ------------------------------------------------------------
+
+\noindent\textbf{Jeffrey Adgate Dean}（1968-- ，美国夏威夷）
+是那种在硅谷被当作``传说''来讨论的人物——
+而且是字面意义上的``传说''。
+
+在 Google 内部流传着一系列``Jeff Dean Facts''
+（模仿互联网上的``Chuck Norris Facts''梗），
+用夸张的方式致敬他的传奇地位：
+``编译器不会给 Jeff Dean 发警告。Jeff Dean 给编译器发警告。''
+``\texttt{gcc -O4} 会把你的代码发邮件给 Jeff Dean 让他重写。''
+``Google 搜索在 2002 年宕机了几个小时，Jeff Dean 开始用手动方式处理查询。
+搜索质量翻了一倍。''
+这些段子在 2008 年愚人节由 Google 同事 Kenton Varda 创建了一个内部网站来收集，
+迅速从内部笑话传播到整个技术社区——
+它们之所以好笑，恰恰是因为其中有一层\textbf{真实}：
+Dean 确实在很多方面超越了人们对``一个工程师能做什么''的想象。
+
+\begin{keybox}[Jeff Dean 的成长背景：一个全球化的童年]
+Dean 出生在夏威夷，父亲是热带疾病研究者，母亲是医学人类学家。
+这个家庭因父母的研究工作频繁迁移——
+Dean 的童年在多个国家和地区度过。
+在进入明尼苏达大学之前，他曾跟随家人生活在不同的文化环境中。
+在大学一年级，他遇到了未来的妻子 Heidi Hopper。
+更值得注意的是，\textbf{在攻读研究生之前}，
+Dean 曾在世界卫生组织（WHO）的全球艾滋病项目工作，
+开发 HIV/AIDS 大流行的统计建模和预测软件——
+从全球公共卫生到搜索引擎再到 AI，
+Dean 的职业轨迹始终围绕着``用计算解决大规模问题''。
+\end{keybox}
+
+他于 1990 年在明尼苏达大学以最优等成绩（summa cum laude）获得计算机科学和经济学学士学位
+（本科毕业论文就是关于神经网络的——这在 1990 年是一个极为小众的选择），
+1996 年在华盛顿大学获得博士学位（导师 Craig Chambers，研究编译器优化）。
+在读博之前，他曾在 DEC（Digital Equipment Corporation）的
+Western Research Laboratory 工作，
+与后来成为他在 Google 的长期搭档的 \textbf{Sanjay Ghemawat} 结识。
+Dean 和 Ghemawat 的合作关系是计算机科学史上最富成效的``双人组合''之一——
+MapReduce、BigTable、Spanner 等改变行业的系统，
+几乎都是两人共同设计和实现的。
+\textit{The New Yorker} 在 2018 年的一篇深度报道中
+将他们比作``编程界的 Lennon 和 McCartney''。
+
+1999 年，Dean 加入 Google——当时 Google 还只是一家初创公司，
+他大约是第 20 号员工。
+
+在 Google 的 25 年多时间里，Dean 共同设计和实现了
+\textbf{五代 Google 搜索索引和查询系统}，
+支撑了文档数量、查询吞吐量和更新频率各 100 倍到 10000 倍的增长。
+他的核心贡献包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{MapReduce}（2004）：与 Sanjay Ghemawat 共同发明，
+        革命性地简化了大规模分布式数据处理
+  \item \textbf{BigTable}（2005）：大规模半结构化存储系统，
+        驱动了 50 多个 Google 产品
+  \item \textbf{Spanner}（2012）：全球分布式数据库
+  \item \textbf{Google Brain}（2011）：与 Andrew Ng、Greg Corrado、Quoc Le
+        共同创立深度学习研究团队
+  \item \textbf{TensorFlow}（2015）：共同创建的开源机器学习框架，
+        成为 AI 研究和产业的标准工具
+  \item \textbf{TPU}（Tensor Processing Unit）：推动了 Google 的 AI 专用芯片开发
+\end{itemize}
+
+\begin{corebox}[Jeff Dean 的``信封背面计算'']
+2006 年，Dean 做了一个改变 Google 命运的``信封背面计算''：
+如果每个 Google 用户每天只用三分钟的语音搜索，
+Google 就需要将全球所有数据中心的容量翻一倍。
+大多数工程师会写一份备忘录解释为什么语音搜索不可行。
+Dean 则花了接下来十年时间构建了 TPU——
+将神经网络推理成本降低了 10--30 倍，
+使现代 AI 在经济上变得可行。
+这种``在瓶颈成为危机之前就识别并解决它''的能力，
+定义了 Dean 的整个职业生涯。
+\end{corebox}
+
+Dean 的传奇不仅在于他\textit{做了什么}，更在于他\textit{如何做}。
+他在 Google 内部被选入 2009 年美国国家工程院（NAE），
+表彰他在``大规模分布式计算系统的科学与工程''方面的贡献。
+2023 年，他被进一步选为 NAE 院士。
+在 Google 的内部等级体系中，
+Dean 是极少数获得 \textbf{Google Senior Fellow} 头衔的人之一——
+这是 Google 内部最高级别的个人贡献者荣誉，
+相当于工程副总裁级别。
+
+\begin{whybox}[从系统工程师到 AI 领袖的转变]
+Dean 的职业生涯经历了一次深刻的转变：
+从``Google 最伟大的系统工程师''到``Google AI 的总设计师''。
+2011 年，他与 Andrew Ng 等人共同创立 Google Brain 时，
+AI 在 Google 内部还是一个边缘项目。
+但 Dean 敏锐地意识到，深度学习的核心瓶颈是\textbf{计算基础设施}——
+而这恰好是他最擅长的领域。
+他推动了 TensorFlow 的开源（2015），
+将 Google 的 AI 工具链变成了全球标准；
+他主导了 TPU 的开发，让 Google 成为唯一一家
+同时拥有顶级 AI 模型和自研 AI 芯片的公司。
+这种``系统思维 + AI 直觉''的组合，
+使 Dean 成为 AI 时代罕见的``全栈型领导者''。
+\end{whybox}
+
+2018 年，Dean 被任命为 Google AI 的负责人（SVP）。
+2023 年，在 DeepMind 与 Google Brain 合并为 Google DeepMind 之后，
+他被任命为 \textbf{Google 首席科学家}（Chief Scientist）。
+他目前同时担任 Gemini 项目的整体联合技术主管。
+在 Google Scholar 上，Dean 的论文被引用次数超过 15 万次——
+\textit{MapReduce} 和 \textit{TensorFlow} 各自被引用超过 3 万次。
+
+
+%% ------------------------------------------------------------
+\subsection{Quoc V. Le——从越南到 AutoML 的先驱}
+\label{subsec:quoc-le}
+%% ------------------------------------------------------------
+
+\noindent\textbf{Lê Viết Quốc}（Quoc V. Le，1982-- ，越南承天顺化省）
+是 Google Brain 的创始成员之一，也是深度学习多个关键突破的推动者。
+
+Le 在越南顺化的国学中学就读，
+之后移居澳大利亚，在澳大利亚国立大学获得计算机科学学士学位
+（师从 Alex Smola 研究核方法），
+然后在斯坦福大学获得博士学位（导师 Andrew Ng）。
+
+2011 年，Le 与 Andrew Ng、Jeff Dean 和 Greg Corrado
+共同创立了 \textbf{Google Brain}。
+2012 年，他发表了一篇开创性的论文：
+他开发了一个大规模深度神经网络，
+能够从 YouTube 上的 1000 万张图像中自动学会识别猫——
+这个``Google 猫''实验在当时引发了巨大的关注，
+被认为是深度学习从学术走向产业的标志性事件之一。
+
+Le 的核心贡献还包括：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Sequence-to-Sequence}（2014）：与 Ilya Sutskever 和 Oriol Vinyals
+        共同发明，奠定了神经机器翻译的基础
+  \item \textbf{Neural Architecture Search (NAS) / AutoML}（2016--2017）：
+        用强化学习自动搜索最优神经网络架构，
+        开创了``让 AI 设计 AI''的研究方向
+  \item \textbf{Google Neural Machine Translation (GNMT)}：
+        为 Google Translate 提供了深度学习支撑
+\end{itemize}
+
+Le 目前是 Google DeepMind 的 Google Fellow，
+这是 Google 内部最高级别的个人贡献者职位。
+
+
+%% ------------------------------------------------------------
+\subsection{Zoubin Ghahramani——贝叶斯学习的教父}
+\label{subsec:ghahramani}
+%% ------------------------------------------------------------
+
+\noindent\textbf{Zoubin Ghahramani}（1970-- ，伊朗裔英国人）
+是概率机器学习领域的世界级权威，
+也是 Google Brain 与 DeepMind 合并过程中的关键人物。
+
+Ghahramani 在马德里的美国学校读中学，
+在宾夕法尼亚大学获得认知科学和计算机科学双学位，
+在 MIT 获得认知神经科学博士学位
+（导师 Michael Jordan 和 Tomaso Poggio）。
+他的学术足迹遍布多伦多大学、UCL、卡耐基梅隆大学和剑桥大学。
+
+他在 2015 年当选为英国皇家学会会员（FRS），
+2021 年获得 Royal Society Milner Award。
+在加入 Google 之前，他是 \textbf{Uber 的首席科学家}（2016--2020），
+也是 Geometric Intelligence 的联合创始人（后来成为 Uber AI Labs）。
+他还是 Alan Turing Institute 的创始剑桥联络主任，
+以及 Leverhulme Centre for the Future of Intelligence 的创始副主任。
+
+2020 年，Ghahramani 加入 Google Brain 担任高级研究主任，
+2021 年成为 VP of Research，领导 Google Brain。
+在 2023 年 Google Brain 与 DeepMind 合并后，
+他继续担任 Google DeepMind 的 VP of Research。
+2023 年，他领导完成了英国的 \textit{Future of Compute Review}。
+
+
+%% ------------------------------------------------------------
+\subsection{其他 Google Brain / Google AI 关键人物}
+\label{subsec:brain-others}
+%% ------------------------------------------------------------
+
+\paragraph{Blaise Agüera y Arcas}（1975-- ，美国普罗维登斯）——
+Google VP and Fellow，Technology \& Society CTO，
+领导 \textbf{Paradigms of Intelligence (Pi)} 基础研究团队。
+他因发明了 \textbf{Federated Learning}（联邦学习）而闻名——
+这种去中心化的模型训练方法避免了共享私人数据，
+是 Google 手机上设备端机器学习的核心技术。
+Agüera y Arcas 在墨西哥城长大，
+在普林斯顿大学获得学位，
+加入 Google 之前是 Microsoft 的杰出工程师
+（Bing Maps 和 Bing Mobile 的架构师）。
+他在 2016 年创立了 Google 的 Artists + Machine Intelligence 项目，
+并出版了多本著作，包括 2025 年的 \textit{What Is Intelligence?}。
+
+\paragraph{François Chollet}（1989 年 10 月 20 日-- ，法国）——
+\textbf{Keras} 深度学习框架的创造者，AI 领域最具影响力的``逆行者''之一。
+
+Chollet 2012 年毕业于巴黎综合理工学院联盟成员
+ENSTA Paris（巴黎高等国防先进技术学院），
+获得工程师文凭（Diplôme d'Ingénieur，相当于 Master of Engineering）。
+2015 年，就在加入 Google 之际，他开源发布了 \textbf{Keras}——
+一个设计哲学为``为人类而非机器设计''的深度学习框架。
+Keras 的核心理念是\textbf{极致简洁}：
+用 Python 式的直觉 API 将复杂的神经网络构建降低到几行代码。
+这个选择在当时颇具远见——TensorFlow 的原生 API 以晦涩难用著称，
+而 Keras 作为其高层封装迅速成为事实标准。
+到 2024 年，Keras 拥有超过 200 万用户，
+驱动了 Waymo 自动驾驶汽车、YouTube 和 Netflix 的推荐引擎、
+以及大量信用卡欺诈检测系统等关键产品。
+
+但 Chollet 在 Google 工作近十年间真正让他``出圈''的，
+不是 Keras 的工程成就，而是他作为\textbf{AI 哲学家}的角色。
+2019 年，他发表了 \textit{On the Measure of Intelligence} 论文，
+系统性地批判了 AI 领域以``基准跑分''衡量智能的做法，
+并提出了 \textbf{ARC}（Abstraction and Reasoning Corpus）基准——
+一个旨在测试 AI 系统是否具有类人``流体智能''（fluid intelligence）的评估标准。
+ARC 的测试任务设计巧妙：
+每个任务都需要受试者从极少量的示例中归纳出抽象规则，
+然后应用到全新的情境中——这恰恰是当前 LLM 最薄弱的能力。
+
+\begin{whybox}[Chollet vs. LLM：AI 领域最尖锐的批评]
+Chollet 是 AI 领域最直言不讳的``LLM 怀疑论者''。
+他的核心论点是：大型语言模型本质上是\textbf{记忆机器}而非推理机器。
+``LLM 在泛化方面挣扎，因为它们完全依赖于记忆。
+一旦遇到训练数据中没有的东西，它们就会崩溃。''
+这一立场使他与 AI 主流叙事形成了尖锐对立——
+在一个几乎所有人都在追逐更大模型、更多参数的时代，
+Chollet 坚持认为\textbf{规模不是通往 AGI 的道路}。
+他与 Zapier 联合创始人 Mike Knoop 共同发起了
+110 万美元的 \textbf{ARC Prize} 竞赛，
+挑战研究者解决那些困扰当前 AI 系统但对人类相对简单的空间推理问题。
+到 2024 年底，最佳 AI 系统在 ARC-AGI 上的得分仍远低于人类水平——
+但 Chollet 自己承认，某些接近解决的方案暴露了测试设计本身的缺陷，
+促使他开始设计更严格的 ARC-AGI-2 版本。
+\end{whybox}
+
+2024 年 11 月，在 Google 工作超过 9 年后，
+Chollet 宣布离开，创办自己的公司。
+他在告别博文中写道：在他的任期内，
+他亲眼见证了深度学习从``一个学术小众领域''
+演变为``一个雇佣数百万人的产业''。
+离开前，他亲自挑选了 Jeff Carpenter 作为 Keras 团队在 Google 的继任者，
+并承诺继续从外部参与 Keras 的开源开发。
+\textit{Time} 杂志将他列入 2024 年 AI 领域最具影响力的 100 人，
+他还获得了 Global Swiss AI Award。
+
+
+%% ============================================================
+\section{Transformer 八杰：他们在哪里？}
+\label{sec:transformer-eight}
+%% ============================================================
+
+2017 年春天，八位 Google 研究员共同撰写了一篇论文，
+标题是 \textit{Attention Is All You Need}。
+这篇 11 页的论文引入了 \textbf{Transformer 架构}，
+彻底改变了深度学习的面貌。
+当这篇论文出现在 NeurIPS 2017 会议上时，
+很少有人能预见到它会成为 ChatGPT、GPT-4、Gemini、Claude
+以及几乎所有现代大型语言模型的基础。
+
+\begin{whybox}[一篇论文如何催生了万亿美元的产业？]
+Transformer 的核心创新是用 \textbf{自注意力机制}（self-attention）
+完全替代了此前主导序列建模的循环神经网络（RNN）和卷积神经网络（CNN）。
+这使得模型能够并行处理序列中的所有位置，
+极大地提高了训练效率，
+并为后来的``大力出奇迹''——用海量数据和计算资源训练巨大模型——
+提供了技术基础。
+没有 Transformer，就没有 GPT，没有 BERT，没有 Gemini。
+\textbf{这篇论文是 AI 时代的``创世纪文本''。}
+\end{whybox}
+
+令人惊讶的是，这八位作者最终\textbf{全部离开了 Google}
+（最后一位 Llion Jones 于 2023 年 8 月离开），
+其中六位创立了自己的公司。
+一位前 Google 员工的评价广为流传：
+``Google 拥有了造出 ChatGPT 的所有原材料，却让别人做了蛋糕。''
+
+以下是这八位作者的去向：
+
+\begin{enumerate}[noitemsep]
+
+\item \textbf{Noam Shazeer}（1975/76-- ，美国费城）——
+      \textbf{Transformer 论文的第一作者}，
+      也是 AI 时代关于``人才价值''最戏剧性的案例研究。
+
+      Shazeer 在 Duke 大学获得计算机科学和数学双学位后，
+      于 2000 年加入当时还在车库阶段的 Google。
+      他的第一个重大贡献是改进了 Google 搜索引擎的拼写纠正器——
+      一个看似不起眼但每天被数十亿次查询触发的系统。
+      之后，他编写了 \textbf{PHIL 算法}，
+      成为 Google AdSense 系统的核心——
+      这个广告引擎为 Google 带来了数百亿美元的收入。
+
+      在 Transformer 论文（2017）中，Shazeer 的贡献尤为突出：
+      据他本人描述，他\textbf{亲自设计了 Multi-Head Attention 机制和残差架构}，
+      并编写了第一个超越当时最优水平（SOTA）的工作实现。
+      此前，他还在 2016 年发表了 \textbf{Sparsely-Gated Mixture of Experts} 论文——
+      这种``稀疏专家混合''架构在多年后被证明是
+      扩展大型语言模型的关键技术之一（GPT-4 被广泛认为采用了 MoE 架构）。
+      2018 年的 \textbf{Mesh-TensorFlow} 是第一个让巨型 Transformer
+      能够在超级计算机上实际训练的分布式系统。
+
+      \begin{whybox}[Shazeer 为什么离开 Google？]
+      在 Google 工作近 20 年后，Shazeer 与同事 Daniel De Freitas
+      共同构建了聊天机器人 \textbf{Meena}（后更名为 LaMDA）。
+      这个系统在内部测试中展现了令人惊叹的对话能力——
+      事实上，它就是后来引发``AI 是否有意识''争议的那个系统
+      （Google 工程师 Blake Lemoine 在 2022 年声称 LaMDA ``有知觉''）。
+      但 Google 管理层以``reputational risk''（声誉风险）为由，
+      \textbf{拒绝将 Meena/LaMDA 发布给公众}。
+      Shazeer 后来在 \textit{No Priors} 播客中回忆：
+      ``Google 害怕发布聊天机器人，害怕它说错话的后果。''
+      这种``安全优先''的保守策略
+      直接导致了 Google 在聊天机器人赛道上落后 OpenAI 将近两年。
+      \end{whybox}
+
+      2021 年，Shazeer 和 De Freitas 带着失望离开 Google，
+      创立了 \textbf{Character.AI}——
+      一家允许用户创建和交互 AI 角色的公司。
+      Character.AI 迅速成为消费级 AI 领域的现象级产品，
+      月活跃用户一度超过 2000 万，估值超过 10 亿美元。
+      它比 ChatGPT 更早上线——
+      Shazeer 后来说：``我们是第一个基于 Transformer 架构
+      推出消费级聊天产品的公司。''
+
+      然后，在 2024 年 8 月，故事迎来了最戏剧性的转折：
+      Google 以一笔价值 \textbf{27 亿美元}的``非传统交易''
+      将 Shazeer、De Freitas 和约 30 名 Character.AI 研究人员``重新雇佣''回了 Google DeepMind。
+      交易结构刻意避开了正式收购——
+      Google 支付的是技术许可费和人才雇佣费。
+      据报道，Shazeer 个人持有 Character.AI 30--40\% 的股份，
+      这意味着他个人从这笔交易中获得了接近 \$10 亿的回报。
+      \textbf{这可能是历史上``因一个人而支付的最高人才价格''}。
+
+      Shazeer 被任命为 \textbf{Gemini 项目的技术主管}（与 Jeff Dean 和 Oriol Vinyals 并列）。
+      回归后，他在 \textit{Fast Company} 的采访中表示：
+      ``Google 拥有世界上最优秀的研究者群体，
+      以及我认识、热爱并尊重的优秀领导者。
+      Google 开发并拥有 LLM 革命背后的大部分技术；
+      将这些技术带回给拥有它们的团队是正确的。''
+      如今，这位 Transformer 的共同发明者正在领导 Google 向 AGI 的冲锋。
+
+\item \textbf{Ashish Vaswani}——
+      Transformer 架构的核心设计者之一。
+      离开 Google 后，先加入了 \textbf{Adept AI}（后来离开），
+      然后与 Niki Parmar 共同创立了 \textbf{Essential AI}，总部位于旧金山。
+      2025 年 12 月，Essential AI 发布了其首个模型 Rnj-1
+      （以印度数学家 Ramanujan 命名），
+      一个 83 亿参数的从头训练的 dense transformer 模型，
+      在编码、数学和代理推理能力上声称达到``前沿匹配''水平。
+      Vaswani 坚持认为预训练（而非后训练强化学习）才是机器智能的核心。
+
+\item \textbf{Niki Parmar}——
+      ``自学成才的童年程序员''，Transformer 论文最年轻的共同作者之一。
+      离开 Google 后先加入 Adept AI，后与 Vaswani 共同创立了 Essential AI，
+      目前在该公司领导 AI 创新。
+
+\item \textbf{Jakob Uszkoreit}——
+      计算语言学出身，离开 Google 后将 AI 应用于\textbf{生物技术}领域，
+      共同创立了 \textbf{Inceptive}，
+      利用深度学习设计 RNA 分子——
+      这是 Transformer 技术``外溢''到其他科学领域的典型案例。
+
+\item \textbf{Llion Jones}——
+      在 Google 工作了近 12 年，是八位作者中最后一个离开的
+      （2023 年 8 月）。
+      他加入了前 Google 研究科学家 David Ha，
+      在东京共同创立了 \textbf{Sakana AI}——
+      一个专注于``自然启发''生成式 AI 研究的实验室。
+      Jones 表示，Google 的规模阻碍了他想做的那种研究。
+
+\item \textbf{Aidan Gomez}——
+      八位作者中最年轻的（当时还是实习生），
+      离开 Google 后共同创立了 \textbf{Cohere}——
+      一家面向企业的大型语言模型公司，
+      与 OpenAI 和 Anthropic 竞争。
+      Cohere 获得了超过 4 亿美元的融资，
+      以企业级 AI 部署和 RAG（检索增强生成）能力著称。
+
+\item \textbf{Łukasz Kaiser}——
+      离开 Google 后加入了 \textbf{OpenAI}，
+      作为研究科学家参与了 GPT 系列模型的开发。
+
+\item \textbf{Illia Polosukhin}——
+      离开 Google 后没有留在 AI 领域，
+      而是共同创立了 \textbf{NEAR Protocol}——
+      一个基于区块链的去中心化应用平台，
+      这或许是 Transformer 八位作者中最出人意料的职业转向。
+
+\end{enumerate}
+
+\begin{keybox}[一篇论文，八个方向]
+Transformer 八位作者的去向完美地映射了 AI 时代的多元化路径：
+\textbf{大公司回归}（Shazeer → Google）、
+\textbf{AI 创业}（Vaswani/Parmar → Essential AI, Gomez → Cohere）、
+\textbf{跨领域应用}（Uszkoreit → 生物技术）、
+\textbf{国际化}（Jones → 日本）、
+\textbf{Web3}（Polosukhin → 区块链）、
+\textbf{竞争对手}（Kaiser → OpenAI）。
+一篇论文的作者们走向了如此不同的方向，
+这本身就是 AI 时代创造力与多样性的最佳注脚。
+\end{keybox}
+
+
+%% ============================================================
+\section{Gemini 时代：合并与反击}
+\label{sec:gemini}
+%% ============================================================
+
+2022 年 11 月，ChatGPT 的发布在 Google 内部拉响了``红色警报''（code red）。
+一家他们资助过、使用他们发明的技术的初创公司，
+用一个他们本可以先发布的产品，瞬间吸引了上亿用户。
+Google 的反应速度令人意外地慢——
+2023 年 2 月匆忙发布的 Bard 聊天机器人在发布会上出现事实错误，
+导致 Alphabet 市值一天蒸发 1000 亿美元。
+
+Sundar Pichai 做出了一个重大决定：
+\textbf{将 Google Brain 和 DeepMind 合并为 Google DeepMind}，
+由 Demis Hassabis 担任 CEO。
+2023 年 4 月 20 日，Pichai 在一篇博客中宣布了这一决定：
+
+\begin{quote}
+``我们一直幸运地拥有两个世界级的研究团队……
+为了确保通用 AI 的大胆和负责任的发展，
+我们正在创建一个新的部门……
+这个部门叫做 Google DeepMind，
+将把两个领先的研究团队合并在一起。''
+\end{quote}
+
+Jeff Dean 从 Google Brain 的负责人转任 Google 首席科学家。
+这次合并在当时被视为 Google 的``孤注一掷''——
+承认此前的双轨研究体系（Brain 做产品化研究，DeepMind 做基础研究）
+在面对 OpenAI 的整合攻势时不够高效。
+
+\begin{corebox}[Gemini 的``三驾马车''领导层]
+Gemini 项目的技术领导由三人共同担纲：
+\begin{itemize}[noitemsep]
+  \item \textbf{Jeff Dean}——整体联合技术主管，Google 首席科学家
+  \item \textbf{Noam Shazeer}——2024 年 8 月从 Character.AI 回归后担任技术主管
+  \item \textbf{Oriol Vinyals}——VP of Research，联合技术主管
+\end{itemize}
+产品层面由 \textbf{Eli Collins}（VP of Product）领导，
+他负责将 Gemini 模型转化为面向用户的产品
+（包括 Gemini App、Imagen、Veo 等）。
+Collins 曾就读于 Charlotte Latin School，
+被选为 2026 年 Echo Foundation 年度人道主义者。
+\end{corebox}
+
+2023 年 12 月 6 日，Google DeepMind 发布了 \textbf{Gemini 1.0}——
+这是合并后的第一个大型联合项目，
+也是第一个在多个基准测试中声称超越 GPT-4 的多模态模型。
+之后是 Gemini 1.5 Pro（长上下文窗口）、Gemini 1.5 Flash（快速轻量版本），
+以及持续迭代的 Gemini 2.0 系列。
+
+到 2024 年底，Google 在大型语言模型的竞争中终于``追上了节奏''。
+但 Hassabis 的野心远不止于此——
+他多次公开表示，Google DeepMind 的目标是\textbf{通用人工智能（AGI）}，
+而 Gemini 只是通往这一目标的一个里程碑。
+
+Alphabet 2026 年宣布的 1750 亿至 1850 亿美元资本支出计划（几乎是 2025 年的两倍），
+在很大程度上是为 Google DeepMind 的 AGI 愿景买单。
+
+
+%% ============================================================
+\section{人才战争：Google 的``大脑外流''}
+\label{sec:brain-drain}
+%% ============================================================
+
+Google 在 AI 时代面临的最大挑战之一，
+不是技术问题，而是\textbf{人才流失}。
+从 Transformer 八位作者全部出走，到伦理研究员被解雇引发的公关危机，
+再到顶级研究人员被竞争对手高薪挖角——
+Google 一直在经历着 AI 领域最剧烈的人才地震。
+
+
+%% ------------------------------------------------------------
+\subsection{伦理风暴：Timnit Gebru 与 Margaret Mitchell 事件}
+\label{subsec:ethics-crisis}
+%% ------------------------------------------------------------
+
+2020 年 12 月 2 日，Google 伦理 AI 团队联合负责人
+\textbf{Timnit Gebru} 宣布被公司``强制解雇''。
+Gebru 是 AI 伦理领域最受尊敬的领导者之一，
+因共同撰写了一篇揭示人脸识别技术对女性和有色人种存在系统性偏见的论文而闻名。
+她也是 Black in AI 非营利组织的联合创始人。
+
+导火索是一篇关于大型语言模型风险的论文。
+Jeff Dean 在一封内部邮件中表示该论文``未达到发表标准''。
+Gebru 要求 Google 满足一系列条件，否则她将辞职。
+Google 选择直接终止了她的雇佣关系。
+
+这一事件引发了巨大的争议：
+超过 2600 名 Google 员工和 4300 名学术界及社会人士
+签署了请愿书，谴责``前所未有的研究审查''和``报复行为''。
+
+2021 年 2 月，Google 又解雇了伦理 AI 团队的另一位联合负责人
+\textbf{Margaret Mitchell}——
+她因为被发现自动化搜索公司内部文件（试图记录 Gebru 事件中的歧视模式）而被解雇。
+Mitchell 后来加入了 \textbf{Hugging Face}，
+在那里领导``从零开始构建 AI 伦理''的工作，
+负责开发确保训练数据集无偏见的工具。
+
+这场伦理风暴的连锁反应是深远的。
+Google Brain 最高级别的管理者之一
+\textbf{Samy Bengio}（Yoshua Bengio 的弟弟）
+在 2021 年 4 月宣布辞职——
+他是因 Gebru 事件引发的动荡而离开的最高级别人物。
+Bengio 曾在 Google Brain 工作了 14 年多，
+之后加入了 \textbf{Apple}，担任 AI 和机器学习研究高级总监。
+
+\begin{warnbox}[伦理危机的教训]
+Google 的伦理 AI 事件揭示了大型科技公司在 AI 发展中面临的深层矛盾：
+当 AI 伦理研究的结论与公司的商业利益（大型语言模型是 Google 核心业务之一）
+发生冲突时，``独立研究''的承诺能否兑现？
+Gebru 和 Mitchell 事件表明，答案往往是否定的。
+这场危机也加速了 AI 伦理研究从公司内部向
+独立机构转移的趋势——
+Gebru 创立了 \textbf{DAIR}（Distributed AI Research Institute），
+致力于不受企业影响的 AI 伦理研究。
+\end{warnbox}
+
+
+%% ------------------------------------------------------------
+\subsection{流向竞争对手的人才}
+\label{subsec:talent-to-competitors}
+%% ------------------------------------------------------------
+
+除了伦理事件引发的离职潮，Google 还面临着来自竞争对手的系统性人才掠夺。
+
+\paragraph{Noam Shazeer 和 Daniel De Freitas → Character.AI → Google}
+如前所述，Shazeer 和 De Freitas 因 Google 拒绝发布 Meena 聊天机器人
+而在 2021 年离开，创立了 Character.AI。
+这个决定让 Google 在聊天机器人赛道上落后了将近两年。
+2024 年 8 月，Google 以 27 亿美元的代价将他们``请回''——
+这笔交易本身就是 Google 在人才战争中``自己打败自己''的最好注脚。
+
+\paragraph{Barret Zoph}——
+Google Brain 的重要研究员（Neural Architecture Search 的共同作者之一），
+于 2023 年左右离开 Google，加入了 OpenAI。
+在 OpenAI，他参与了后训练（post-training）相关的工作。
+之后他与 Mira Murati 等人共同创立了 \textbf{Thinking Machines Lab}，
+但在 2026 年 1 月又与联合创始人 Luke Metz 一起\textbf{回到了 OpenAI}——
+这一连串的跳槽引发了争议，
+据报道 Thinking Machines 方面指控 Zoph 向竞争对手泄露了公司机密信息。
+
+\paragraph{Jason Wei}——
+Google Brain 研究科学家，因 \textbf{Chain-of-Thought Prompting}
+（思维链提示）和 Instruction Tuning 等工作而广为人知。
+他的研究帮助推广了大型语言模型中``涌现能力''（emergent abilities）的概念。
+2023 年离开 Google 加入 OpenAI，参与了推理和代理相关的工作，
+包括 o1 模型。2025 年 7 月，他又从 OpenAI 跳槽到
+\textbf{Meta Superintelligence Labs}——
+这使他成为连续从 Google → OpenAI → Meta 流转的典型案例。
+
+\paragraph{Ian Goodfellow}——
+\textbf{生成对抗网络（GAN）的发明者}，
+被广泛称为``GAN 之父''。
+Goodfellow 1987 年出生，
+在斯坦福大学获得学士和硕士学位（曾修读 Andrew Ng 的课程），
+在蒙特利尔大学获得博士学位（导师 Yoshua Bengio 和 Aaron Courville）。
+他的职业轨迹是 AI 时代``旋转门''的缩影：
+\textbf{Google Brain → OpenAI（早期员工之一） → Google Brain →
+Apple（机器学习总监） → Google DeepMind}（现任研究科学家）。
+2014 年，他在一个酒吧与朋友讨论生成模型时
+灵光一闪提出了 GAN 的概念——
+``两个相互对抗的网络''这个想法彻底改变了 AI 生成内容的面貌。
+他也是经典教科书 \textit{Deep Learning}（2016）的第一作者。
+
+\paragraph{Laurent Sifre 和 DeepMind 的法国出走}——
+如前所述，Sifre 在 2024 年初离开 DeepMind，
+与多位前 DeepMind 同事在法国创立了 H Company，获得了 2.2 亿美元种子轮融资。
+这是 DeepMind 人才向欧洲``回流''的一个重要信号。
+
+\paragraph{David Silver → Ineffable Intelligence}——
+2026 年 1 月，AlphaGo 之父 Silver 离开 DeepMind，
+在伦敦创立了自己的 AI 初创公司 Ineffable Intelligence。
+这是 Google DeepMind 最具象征意义的人才流失事件之一。
+
+\paragraph{Nando de Freitas → Microsoft AI}——
+2024 年 9 月，de Freitas 在 DeepMind 工作近十年后
+加入 Microsoft AI 担任 VP of Artificial Intelligence。
+据 Business Insider 报道，在 2025 年从 Google 离开的 AI 和云业务高管中，
+大多数最终去了 Microsoft——
+而 Microsoft AI 的领导者正是 DeepMind 的另一位联合创始人 Mustafa Suleyman。
+
+\begin{corebox}[Google DeepMind 的人才流失地图（2021--2026）]
+\begin{itemize}[noitemsep]
+  \item \textbf{→ 创办初创公司}：David Silver (Ineffable Intelligence),
+        Laurent Sifre (H Company), François Chollet (新公司),
+        Noam Shazeer/Daniel De Freitas (Character.AI, 后回归)
+  \item \textbf{→ OpenAI}：Barret Zoph, Jason Wei (后去 Meta), Łukasz Kaiser
+  \item \textbf{→ Microsoft}：Mustafa Suleyman (AI CEO), Nando de Freitas (VP AI),
+        以及 2025 年多名高管
+  \item \textbf{→ Apple}：Samy Bengio, Ian Goodfellow (后回 DeepMind)
+  \item \textbf{→ Hugging Face}：Margaret Mitchell
+  \item \textbf{→ 独立研究}：Timnit Gebru (DAIR)
+  \item \textbf{→ Meta}：Jason Wei (经 OpenAI 中转)
+\end{itemize}
+\end{corebox}
+
+
+%% ============================================================
+\section{Google 的 AI 生态系统：不仅仅是 DeepMind}
+\label{sec:google-ecosystem}
+%% ============================================================
+
+Google 的 AI 影响力远不止于 DeepMind 和 Google Brain。
+在更广泛的 Google 生态系统中，还有许多重要的 AI 人物和团队。
+
+\paragraph{Sundar Pichai}（1972-- ，印度金奈）——
+Alphabet 和 Google CEO。
+虽然 Pichai 不是 AI 研究者，
+但他在 2016 年将 Google 重新定义为``AI 优先公司''，
+并在 2023 年做出了合并 Google Brain 和 DeepMind 的关键决策。
+他与 Hassabis 的关系从``保持距离的赞助者''
+演变为``每天通话的合作伙伴''，
+这种关系的转变本身就反映了 AI 在 Google 战略中地位的根本性提升。
+
+\paragraph{Greg Corrado}——
+Google Brain 联合创始人之一（与 Jeff Dean、Andrew Ng、Quoc Le 一起），
+曾是 Google 计算神经科学团队的负责人，
+在将深度学习引入 Google 产品中发挥了关键作用。
+
+\paragraph{Aja Huang}——
+AlphaGo 项目的首席程序员和先驱，
+在 AlphaGo 与李世石和柯洁的两场公开比赛中，
+都是代替 AlphaGo ``落子''的人。
+目前在 Google DeepMind 担任 Senior Staff Research Scientist。
+他之前在阿尔伯塔大学做博士后，研究兴趣集中在强化学习和深度学习。
+
+
+%% ============================================================
+\section{本章小结}
+\label{sec:google-summary}
+%% ============================================================
+
+Google DeepMind 的故事是 AI 时代最复杂、最矛盾的叙事之一。
+
+一方面，没有任何一家机构在基础 AI 研究上取得了如此多的里程碑式成就：
+从 DQN 到 AlphaGo，从 AlphaFold 到 Gemini，
+从 Transformer 到 Chinchilla 的 Scaling Laws，
+从 WaveNet 到 AlphaGeometry——
+这些成就中的任何一个，
+都足以让一个研究实验室名垂青史。
+
+另一方面，Google 也经历了 AI 时代最惨痛的``自我伤害''：
+发明了 Transformer 却让 OpenAI 用它做了 ChatGPT；
+培养了 Noam Shazeer 却逼他出走，然后花 27 亿美元请他回来；
+拥有 Jeff Dean 和 Demis Hassabis 却直到 2023 年才让他们真正联手；
+在 AI 伦理领域试图``既做裁判又做运动员''，结果两边都失去了信任。
+
+\begin{keybox}[Google DeepMind 的核心教训]
+\begin{enumerate}[noitemsep]
+  \item \textbf{基础研究的长期价值}：AlphaFold 从立项到诺贝尔奖用了约六年。
+        在一个被季度财报驱动的行业中，
+        Google 对基础研究的持续投入最终获得了最高级别的认可。
+  \item \textbf{``发明者困境''}：发明技术和将技术产品化是两种截然不同的能力。
+        Google 拥有前者但长期缺乏后者的紧迫感。
+        Koray Kavukcuoglu 在 2025 年被提升为首席 AI 架构师，
+        正是为了弥合这一鸿沟。
+  \item \textbf{人才是最稀缺的资源}：在 AI 时代，
+        一个顶尖研究员的价值可以达到数十亿美元
+        （Shazeer 的``身价''通过 Character.AI 交易被明码标价为 27 亿美元的一部分）。
+        留住人才比招募人才更重要——而留住人才的关键是让他们能够做自己想做的事。
+  \item \textbf{组织架构决定创新速度}：Google Brain 和 DeepMind 长期并行运作
+        导致了资源分散和内部竞争。
+        2023 年的合并是痛苦但必要的——
+        Gemini 的成功证明了整合的价值。
+\end{enumerate}
+\end{keybox}
+
+截至 2026 年初，Google DeepMind 拥有约 2000 多名研究人员和工程师，
+仍然是全球 AI 人才密度最高的研究机构之一。
+Alphabet 正在为其投入前所未有的资源——
+1750 亿至 1850 亿美元的年度资本支出计划
+是对``用 AI 重新定义 Google''这一愿景的最大赌注。
+
+在 Hassabis 的领导下，Google DeepMind 的目标已经从``发表论文''
+转变为``构建 AGI 并将其嵌入 Google 的每一个产品''。
+这个目标能否实现，将在很大程度上取决于
+本章描述的这些人物——从诺贝尔奖得主到工程传奇，
+从 AGI 信仰者到连续创业者——
+能否在同一面旗帜下协同作战。
+
+AI 时代的终极赛跑才刚刚开始，
+而 Google DeepMind 手中握着最多的牌。
+问题是：这一次，它能不能自己做好蛋糕。

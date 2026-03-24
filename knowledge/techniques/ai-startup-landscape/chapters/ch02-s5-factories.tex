@@ -1,0 +1,355 @@
+% ch02-s5-factories.tex  — §2.5 AI Factories and Supercompute Clusters
+% Part of Chapter 2: Infrastructure Layer
+% Input from: ch02-infrastructure.tex (or main file)
+
+\section{AI 工厂与超级集群}
+\label{sec:infra-factories}
+
+NVIDIA CEO Jensen Huang 在 GTC 2025 上提出了一个定义时代的比喻：
+\textbf{``上一次工业革命的原材料是水，产品是电；
+这一次，原材料是数据和电力，产品是 token。''}
+到了 GTC 2026，他进一步将这一概念具象化——
+``AI 工厂''（AI Factory）不再是隐喻，而是一种全新的工业设施类型：
+吞入海量数据和百兆瓦级电力，
+产出的不是钢铁或电能，而是智能——以 token 为单位计量的数字商品。
+
+这一概念的背后是一组令人瞠目的数字。
+2025 年，全球五大超算厂商（Microsoft、Google、Meta、Amazon、Oracle）
+的资本开支合计约 \$3,810 亿；
+进入 2026 年，这一数字预计飙升至 \$6,350--6,650 亿，
+同比增长 67--74\%。
+Moody's 预测超算厂商 capex 正逼近 \$7,000 亿大关。
+Dell'Oro Group 的数据显示，
+2025 年全球数据中心资本开支已同比猛增 57\%，
+且 2026 年的增长势头丝毫未减。
+AI 算力的建设规模，
+已经可以与 20 世纪初的铁路和电力基础设施投资相提并论。
+
+\begin{keybox}[全球超算厂商资本开支演进（2022--2026E）]
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{lXXXXX}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{2022} & \textbf{2023} & \textbf{2024} & \textbf{2025} & \textbf{2026E} \\
+\midrule
+Microsoft   & \$24B  & \$32B  & \$56B  & \$80B   & \$110--120B \\
+Google      & \$31B  & \$32B  & \$52B  & \$75B   & \$100--110B \\
+Meta        & \$32B  & \$28B  & \$39B  & \$66--72B & \$95--115B \\
+Amazon      & \$58B  & \$48B  & \$74B  & \$100B  & \$130--150B \\
+Oracle      & \$7B   & \$8B   & \$12B  & \$30B+  & \$50--60B \\
+\midrule
+\textbf{合计} & \$152B & \$148B & \$233B & \$381B & \$635--665B \\
+\bottomrule
+\end{tabularx}
+
+\vspace{4pt}
+\noindent\textit{数据来源：各公司财报、Futurum Research、Yahoo Finance 汇编。
+2026E 为分析师共识估计。}
+\end{keybox}
+
+以下逐一剖析全球最具代表性的 AI 超级集群项目。
+
+% =====================================================================
+\subsection{xAI Colossus：122 天建成的超级计算机}
+\label{subsec:xai-colossus}
+
+2024 年 7 月，Elon Musk 在 Memphis, Tennessee 启动了一场史无前例的``闪电战''：
+从空地到 10 万块 H100 GPU 上线，仅用了 \textbf{122 天}。
+这就是 xAI 的 Colossus 超算集群——
+以速度而非规模率先震撼了业界。
+
+Colossus 的第一阶段部署了 10 万块 H100；
+到 2024 年底升级为 15 万块 H100 加 5 万块 H200，
+并引入了 3 万块 NVIDIA GB200。
+值得注意的是，
+Colossus 选择了 \textbf{NVIDIA Spectrum-X 以太网}而非传统的 InfiniBand 互联——
+这是一个重大的技术赌注。
+Spectrum-X 基于 RoCE（RDMA over Converged Ethernet）协议，
+理论上可以在降低成本的同时实现更灵活的网络拓扑，
+但在超大规模训练中是否能匹敌 InfiniBand 的可靠性，
+至今仍是行业争论的焦点。
+
+到 2025 年底，xAI 已购入第三栋建筑，
+目标是将总功率扩展至 2\,GW，
+GPU 数量推向 100 万块。
+2026 年 2 月的最新消息显示，
+Memphis 园区的 GPU 总量已接近 55.5 万块。
+2026 年 3 月，xAI 又提交了一份 \$6.59 亿的扩建许可，
+为 Colossus 2 新增一栋 31.2 万平方英尺的四层建筑。
+Musk 的目标清晰且激进：
+\textbf{在 AGI 竞赛中，算力就是弹药，速度就是战略}。
+
+% =====================================================================
+\subsection{Stargate：史上最大 AI 基础设施计划}
+\label{subsec:stargate}
+
+2025 年 1 月，OpenAI、SoftBank 和 Oracle 联合宣布了 \textbf{Stargate 计划}——
+一项总投资 \$5,000 亿、为期四年的 AI 基础设施建设项目，
+被多家媒体冠以``人类历史上最大规模的 AI 基础设施投资''。
+
+Stargate 的旗舰站点位于 Texas 州 Abilene，
+规划用电量达 1.2\,GW，
+将部署 40 万块 NVIDIA GB200 GPU，
+运行在 Oracle OCI Zettascale10 架构之上，
+峰值算力目标为 \textbf{16 zettaFLOPS}——
+这一数字是 2024 年全球最强超算 Frontier 的数千倍。
+
+到 2025 年 9 月，OpenAI、Oracle 和 SoftBank 宣布新增五个站点，
+称 Stargate 的建设``进度超前''，
+有望在 2025 年底前锁定全部 \$5,000 亿投资和 10\,GW 总算力承诺。
+然而，2026 年 2 月传出的消息给这幅宏伟蓝图蒙上了阴影：
+三方伙伴之间就\textbf{数据中心的最终控制权}产生了分歧——
+OpenAI、Oracle 和 SoftBank 各有不同的战略诉求，
+项目部分环节出现延迟。
+这一插曲揭示了超大型 AI 基础设施项目的深层挑战：
+技术和资金固然重要，
+但\textbf{治理结构与利益对齐}才是决定项目成败的关键变量。
+
+% =====================================================================
+\subsection{CoreWeave：从加密矿场到 AI 云基础设施巨头}
+\label{subsec:coreweave-cluster}
+
+CoreWeave 的故事是 AI 时代最不可思议的转型叙事之一。
+这家公司从加密货币挖矿起步，
+转型为 NVIDIA GPU 云服务商后一路狂飙，
+2025 年 3 月在 IPO 前夕与 OpenAI 签下 \$11.9B 合同，
+随后 9 月又追加 \$6.5B，合计 \textbf{\$22.4B} 的 OpenAI 算力承诺。
+截至 2025 年 Q3，CoreWeave 的营收积压（backlog）已翻倍至 \$55.6B，
+公司将 2025 年全年 capex 设定为 \$23B。
+
+CoreWeave 的战略不止于美国本土。
+在英国，Crawley 和 Docklands 的数据中心已投入运营，
+目标是到 2030 年将全球算力规模扩展至 \textbf{5+\,GW}。
+CoreWeave 的核心优势在于\textbf{极致的 GPU 密度和裸金属灵活性}——
+不同于 AWS 或 Azure 的通用云，
+CoreWeave 从底层就为 AI 工作负载优化，
+这让它在训练和推理的性价比上形成了差异化竞争力。
+其风险也同样突出：
+客户集中度极高（OpenAI 占据绝对多数），
+一旦 OpenAI 转向自建算力或分散供应商，
+CoreWeave 的营收基础将面临严峻考验。
+
+% =====================================================================
+\subsection{Meta RSC 及扩展：开放计算的超级工厂}
+\label{subsec:meta-rsc}
+
+Meta 在 AI 基础设施上的投入力度，
+足以让多数独立国家的科技预算黯然失色。
+2025 年，Meta 宣布全年 capex 为 \$66--72B，
+2026 年预计进一步攀升至近 \$100B。
+
+Meta 的超级集群布局分为两条线：
+\textbf{Prometheus} 和 \textbf{Hyperion}。
+Prometheus 是 Meta 首个 GW 级 AI 集群，
+计划 2026 年上线，采用了一种名为
+\textbf{Backend Aggregation (BAG)} 的创新架构——
+通过 Disaggregated Schedule Fabric (DSF) 和
+Non-Scheduled Fabric (NSF) 两种网络结构的融合，
+实现 GW 级集群的高效互联。
+2026 年 2 月，Meta 工程博客详细披露了 Prometheus 的技术细节，
+标志着这一项目从概念走向实施。
+
+Hyperion 则是更远期的愿景：
+一个 \textbf{5\,GW} 的超级数据中心园区，
+计划部署``数百万''块 NVIDIA Blackwell 和下一代 Rubin GPU。
+若 Hyperion 全面建成，
+其单一站点的用电量将超过许多小型国家的全国用电。
+
+Meta 的独特之处在于其\textbf{开放计算理念}（Open Compute Project）。
+不同于 Google 和 Amazon 的自研+封闭路线，
+Meta 将数据中心设计开源，
+推动了整个行业的服务器和冷却技术进步。
+这种``开放''策略既是技术哲学，
+也是降低供应链风险的务实选择——
+当你公开设计标准时，
+供应商之间的竞争自然会压低成本。
+
+% =====================================================================
+\subsection{Google TPU Pods：垂直整合的算力之路}
+\label{subsec:google-tpu}
+
+在所有超大规模玩家中，
+Google 走了一条最彻底的\textbf{垂直整合}路线：
+自研芯片（TPU）、自研网络（Jupiter）、
+自研编译器（XLA）、自研框架（JAX），
+端到端控制从硅片到模型的每一层。
+
+TPU v5p 每个 Pod 包含 8,960 颗芯片，
+单芯片峰值算力 459\,TFLOPS，
+通过 Google 的定制 ICI（Inter-Chip Interconnect）网络互联。
+2025 年发布的 \textbf{TPU v6e Trillium} 实现了单芯片 \textbf{4.7 倍}的性能提升，
+在密集 LLM 训练中约快 4 倍，
+推理吞吐提升 2.8--2.9 倍。
+每颗 Trillium 配备 32\,GB HBM，内存带宽约 1,600\,GB/s，
+单个 Pod 可扩展至 256 颗芯片。
+
+Anthropic 签下了 Google 历史上最大的 TPU 合同——
+数十万块 Trillium 芯片，计划到 2027 年扩展至 100 万块。
+Midjourney 从 GPU 迁移至 TPU 后推理成本降低了 65\%。
+这些数据表明，
+TPU 正在从 Google 的``内部工具''演变为
+\textbf{具有外部竞争力的算力平台}。
+
+Google 还提出了 \textbf{AI Hypercomputer} 的整合架构概念，
+将 TPU Pod、GPU 节点、存储和网络统一编排，
+为不同规模和类型的 AI 工作负载提供最优资源分配。
+2026 年发布的 \textbf{Ironwood（TPU v7）}
+则进一步推高了 Google 自研芯片的性能天花板。
+
+% =====================================================================
+\subsection{Oracle OCI：Stargate 背后的基础设施骨干}
+\label{subsec:oracle-oci}
+
+Oracle 在 AI 基础设施竞赛中的崛起是最出人意料的故事之一。
+曾经被视为``传统企业软件公司''的 Oracle，
+凭借 OCI（Oracle Cloud Infrastructure）在 AI 云市场中杀出了一条血路。
+
+2025 年 10 月，Oracle 发布了 \textbf{Zettascale10} 集群——
+号称``云上最大的 AI 超级计算机''，
+包含 131,072 块 NVIDIA Blackwell GPU，
+峰值性能达 10 倍于前代 Zettascale 集群的 zettaFLOPS 级算力。
+更重要的是，Oracle 推出了自研的 \textbf{Acceleron RoCE 网络架构}，
+这是一种基于以太网的高速互联方案，
+直接挑战 InfiniBand 在超大规模训练中的垄断地位。
+Oracle 声称 Zettascale10 可扩展至 \textbf{80 万块 GPU} 的超级集群。
+
+Oracle 的 capex 增长同样惊人：
+2025 年的资本支出预计是前一年的三倍，
+反映了 Stargate 项目和其他 AI 客户需求的强力拉动。
+作为 Stargate 的核心基础设施提供商，
+Oracle 已将自身从数据库公司重新定位为
+\textbf{AI 时代的算力基础设施供应商}——
+这一转型的成功与否，将决定 Oracle 未来十年的市场地位。
+
+% =====================================================================
+\subsection{ByteDance/火山引擎：中国 AI 算力的隐形巨头}
+\label{subsec:bytedance-infra}
+
+在中国 AI 云市场中，
+ByteDance 旗下的火山引擎（Volcengine）悄然成长为仅次于阿里云的第二大玩家。
+其 AI 应用豆包（Doubao）的月活跃用户已达 \textbf{1.7 亿}，
+庞大的用户规模反向驱动了对算力基础设施的饥渴需求。
+
+更引人注目的是 ByteDance 的\textbf{海外算力布局}。
+2026 年 3 月，多家媒体披露 ByteDance 正在
+马来西亚等海外市场悄悄建设大规模 NVIDIA GPU 集群，
+投资规模约 \$25 亿，
+采购的是 NVIDIA 最新的 Blackwell 系列芯片。
+这一布局的逻辑清晰：
+在中美芯片管制的大背景下，
+\textbf{海外节点既能规避出口管制限制，
+又能服务于 TikTok 等全球化产品的 AI 推理需求}。
+
+ByteDance 的 AI 基础设施战略体现了中国科技公司的一种普遍模式：
+在国内依靠自研芯片和国产替代方案应对制裁压力，
+在海外则尽可能地获取最先进的 NVIDIA 硬件。
+这种``双轨制''将是理解未来全球 AI 算力格局的重要视角。
+
+% =====================================================================
+\subsection{中东 AI 数据中心：第三极的崛起}
+\label{subsec:middle-east-dc}
+
+\begin{whybox}[为什么中东成为 AI 算力第三极？]
+三个结构性因素推动中东成为继美国和中国之后的全球 AI 算力第三极：
+\begin{itemize}[noitemsep]
+  \item \textbf{主权财富基金的战略转向}——
+        沙特 PIF、阿联酋 Mubadala 等主权基金将 AI 基础设施
+        视为``后石油时代''经济转型的核心支柱，
+        资金规模和决策速度远超市场化融资。
+  \item \textbf{能源禀赋的先天优势}——
+        中东拥有全球最低的发电成本（天然气+光伏），
+        可以为 GW 级数据中心提供极具竞争力的电力价格。
+  \item \textbf{地缘政治的``中间人''角色}——
+        中东国家同时与中美保持良好关系，
+        可以成为全球 AI 模型训练和推理的``中立枢纽''，
+        吸引双方都无法直接服务的市场。
+\end{itemize}
+\end{whybox}
+
+沙特阿拉伯的布局最为激进。
+在暂停了耗资 \$500 亿的 NEOM ``The Line'' 项目后，
+沙特将资源迅速转向了 AI 基础设施。
+国有 AI 公司 \textbf{HUMAIN}
+（由公共投资基金 PIF 控股）正在全国规划 211 个站点，
+建设 GW 级 AI 数据中心网络。
+2026 年 3 月，HUMAIN 与 MIS 签署了 \$5 亿的数据中心设计建造合同，
+同时与 Qualcomm 合作部署 AI200 系列推理芯片。
+NEOM 本身仍保留了 \$50 亿、1.5\,GW 的数据中心规划（目标 2028 年）。
+沙特政府已将 2026 年定为``AI 之年''。
+
+阿联酋方面，G42（背靠 Abu Dhabi 的 AI 巨头）
+与 Microsoft 达成了 \$15.2B 的战略合作，
+涵盖 Azure 云部署和 AI 模型训练。
+G42 正在中东和中亚地区建设多个数据中心集群，
+目标是成为``非美非中''世界的首选 AI 算力提供商。
+
+% =====================================================================
+
+\begin{corebox}[全球 AI 超算竞赛：军备竞赛式投入]
+2026 年的全球 AI 基础设施竞赛已具备``军备竞赛''的所有特征：
+\begin{itemize}[noitemsep]
+  \item \textbf{规模指数级增长}——
+        从 2022 年的 \$1,520 亿到 2026 年的 \$6,500 亿以上，
+        四年翻了 4 倍多。
+  \item \textbf{国家意志介入}——
+        美国 Stargate 获白宫背书，
+        沙特以主权基金推动，
+        中国以``新基建''政策牵引。
+  \item \textbf{赢家通吃的逻辑}——
+        算力优势直接转化为模型能力优势，
+        而模型能力优势又吸引更多数据和用户，
+        形成``飞轮效应''。
+  \item \textbf{退出成本极高}——
+        一旦开始建设 GW 级数据中心，
+        停止投入意味着沉没成本和竞争力的双重损失。
+\end{itemize}
+这不是一场可以选择观望的竞赛。
+正如 Jensen Huang 在 GTC 2026 上所言：
+``世界正在从通用计算时代进入 token 经济时代——
+每一家公司都需要自己的 AI 工厂。''
+\end{corebox}
+
+% =====================================================================
+
+\begin{warnbox}[能源危机：AI 的电力饥渴]
+AI 超级集群的狂飙突进正将全球能源系统推向极限：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{电力消耗}——
+        美国数据中心 2024 年耗电 183\,TWh，
+        占全国总用电量约 4.4\%。
+        到 2030 年，这一比例预计翻倍至 8--9\%。
+  \item \textbf{核能回归}——
+        Microsoft 以 \$16B、20 年合约推动三里岛核电站重启（835\,MW，目标 2028 年）；
+        Google 与 Kairos Power 签署首个企业级 SMR 合同（500\,MW，2030+ 上线）；
+        Amazon 投资超过 \$20B 将 Susquehanna 核电站转型为 AI 园区。
+        科技巨头的核电合同总额已超过 \$52B。
+  \item \textbf{碳排放悖论}——
+        科技公司一方面承诺碳中和，
+        另一方面却在建设数百万千瓦的化石燃料+核能发电设施。
+        Google 2023 年碳排放同比增长 13\%，
+        Microsoft 增长 29\%——
+        而 AI 基础设施的大规模建设才刚刚开始。
+  \item \textbf{水资源压力}——
+        液冷和蒸发冷却技术虽然提升了 PUE，
+        但 GW 级数据中心每年消耗数十亿升水，
+        在水资源紧张的地区（如美国西部、中东）引发日益激烈的社区反对。
+\end{itemize}
+
+AI 工厂的``产品是 token''，
+但其``副产品''——碳排放、热污染和水资源消耗——
+正在成为这个时代最大的外部性之一。
+\end{warnbox}
+
+从 Memphis 的闪电施工到 Abilene 的万亿投资，
+从 Crawley 的 GPU 密集机房到利雅得的主权 AI 工厂，
+2022--2026 年的 AI 基础设施建设已经重塑了全球的能源版图、
+供应链格局和地缘政治博弈。
+Jensen Huang 的``AI 工厂''比喻并不夸张——
+这些设施正在成为 21 世纪的发电站，
+只不过它们输出的不是电力，而是智能。
+
+下一节将讨论连接这些超级集群的高速网络和互联技术
+（\S\ref{sec:infra-networking}），
+没有它们，再多的 GPU 也只是一堆孤立的硅片。

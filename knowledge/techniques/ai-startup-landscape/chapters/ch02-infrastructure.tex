@@ -1,0 +1,433 @@
+\chapter{基础设施层：算力、芯片与 AI 工厂}
+\label{ch:infrastructure}
+
+% The foundational layer enabling all AI applications.
+% Covers GPU cloud, custom silicon, training clusters, inference serving,
+% networking, and edge compute.
+
+% §2.1 GPU Cloud and Compute-as-a-Service
+\input{chapters/ch02-s1-gpu-cloud}
+
+% §2.2 AI Chip Startups (Western + Chinese)
+\section{AI 芯片新势力}
+\label{sec:infra-chips}
+
+\input{chapters/ch02-s2a-chips-west}
+
+\input{chapters/ch02-s2b-chips-china}
+
+% §2.3 Training Infrastructure
+\input{chapters/ch02-s3-training}
+
+% §2.4 Inference Optimization and Serving
+\input{chapters/ch02-s4-inference}
+
+% §2.5 AI Factories and Supercompute Clusters
+\input{chapters/ch02-s5-factories}
+
+% §2.6 Networking and Interconnect + §2.7 CDN and Edge AI
+\input{chapters/ch02-s67-network-edge}
+
+% §2.8 Ecosystem Analysis — to be written after cross-section review
+\section{生态位分析与竞争格局}
+\label{sec:infra-landscape}
+
+% Infrastructure layer competitive landscape market map
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\sffamily\scriptsize},
+  bubble/.style={draw=none, fill opacity=0.7, text opacity=1},
+]
+% --- Axes ---
+\draw[-{Stealth[length=3mm]}, thick, figGray]
+  (0,0) -- (13.5,0) node[right, font=\sffamily\small] {收入规模};
+\draw[-{Stealth[length=3mm]}, thick, figGray]
+  (0,0) -- (0,11.5) node[above, font=\sffamily\small] {技术层级};
+
+% X-axis tick labels (revenue)
+\foreach \x/\lab in {
+  1.5/{\$0},
+  4/{\$100M},
+  6.5/{\$500M},
+  9/{\$1B},
+  11.5/{\$5B+}}{
+  \node[below, figGray, font=\sffamily\tiny] at (\x, -0.1) {\lab};
+  \draw[figGray!40] (\x, 0) -- (\x, 0.1);
+}
+
+% Y-axis layer labels (technology tiers)
+\foreach \y/\lab in {
+  1.8/{Edge \& CDN},
+  3.8/{网络互连},
+  5.8/{推理优化},
+  7.8/{训练基础设施},
+  9.8/{芯片},
+  11.2/{GPU 云}}{
+  \node[left, figGray, font=\sffamily\tiny, text width=1.8cm, align=right] at (-0.1, \y) {\lab};
+  \draw[figGray!15, dashed] (0, \y) -- (13, \y);
+}
+
+% --- Legend ---
+\begin{scope}[shift={(9.2, 10.8)}]
+  \fill[figBlue, opacity=0.7]   (0, 0) circle (3pt);
+  \node[right, font=\sffamily\tiny] at (0.2, 0) {独立};
+  \fill[figRed, opacity=0.7]    (1.8, 0) circle (3pt);
+  \node[right, font=\sffamily\tiny] at (2.0, 0) {被收购};
+  \fill[figGreen, opacity=0.7]  (3.4, 0) circle (3pt);
+  \node[right, font=\sffamily\tiny] at (3.6, 0) {IPO/上市};
+  \fill[figGray, opacity=0.5]   (0, -0.5) circle (3pt);
+  \node[right, font=\sffamily\tiny] at (0.2, -0.5) {关停/转型};
+  \node[right, font=\sffamily\tiny] at (2.0, -0.5) {气泡大小 $\propto$ 估值};
+\end{scope}
+
+% ====== GPU Cloud (y ~ 11.2) ======
+% CoreWeave — $35B valuation, ~$2B rev → x≈10, big bubble
+\fill[figBlue, bubble] (10, 11.2) circle (14pt);
+\node[above right, figBlue!80!black, font=\sffamily\tiny\bfseries] at (10.5, 11.4) {CoreWeave};
+% Lambda Labs — $2.8B val, ~$300M rev
+\fill[figBlue, bubble] (5.2, 11.0) circle (8pt);
+\node[below, font=\sffamily\tiny] at (5.2, 10.5) {Lambda};
+% Together AI — $3.3B val, ~$100M rev
+\fill[figBlue, bubble] (4, 11.4) circle (8pt);
+\node[above, font=\sffamily\tiny] at (4, 11.9) {Together};
+% Crusoe Energy — $3.3B val
+\fill[figBlue, bubble] (3.5, 10.8) circle (8pt);
+\node[below left, font=\sffamily\tiny] at (3.2, 10.5) {Crusoe};
+% Voltage Park — smaller
+\fill[figBlue, bubble] (2.2, 11.5) circle (5pt);
+\node[above, font=\sffamily\tiny] at (2.2, 11.8) {Voltage Park};
+% Nebius — IPO
+\fill[figGreen, bubble] (6, 11.5) circle (7pt);
+\node[above, font=\sffamily\tiny] at (6, 11.9) {Nebius};
+
+% ====== Chips (y ~ 9.8) ======
+% Cerebras — IPO, $8B+
+\fill[figGreen, bubble] (3.5, 9.8) circle (11pt);
+\node[above, font=\sffamily\tiny\bfseries] at (3.5, 10.3) {Cerebras};
+% Groq — $2.8B val
+\fill[figBlue, bubble] (4.5, 9.5) circle (8pt);
+\node[below right, font=\sffamily\tiny] at (4.8, 9.2) {Groq};
+% SambaNova — $5.1B val
+\fill[figBlue, bubble] (5.8, 10.0) circle (9pt);
+\node[above right, font=\sffamily\tiny] at (6.2, 10.2) {SambaNova};
+% d-Matrix
+\fill[figBlue, bubble] (1.8, 9.6) circle (5pt);
+\node[below, font=\sffamily\tiny] at (1.8, 9.2) {d-Matrix};
+% Tenstorrent — $2.8B
+\fill[figBlue, bubble] (3, 9.2) circle (7pt);
+\node[below, font=\sffamily\tiny] at (3, 8.7) {Tenstorrent};
+% Etched
+\fill[figBlue, bubble] (2.0, 10.2) circle (5pt);
+\node[left, font=\sffamily\tiny] at (1.6, 10.2) {Etched};
+% 寒武纪 (Cambricon) — IPO in China
+\fill[figGreen, bubble] (7.5, 9.8) circle (9pt);
+\node[above, font=\sffamily\tiny] at (7.5, 10.3) {寒武纪};
+% Habana — acquired by Intel
+\fill[figRed, bubble] (6.5, 9.3) circle (6pt);
+\node[below, font=\sffamily\tiny] at (6.5, 8.9) {Habana};
+% Graphcore — acquired
+\fill[figRed, bubble] (2.5, 10.5) circle (5pt);
+\node[above, font=\sffamily\tiny] at (2.5, 10.8) {Graphcore};
+
+% ====== Training (y ~ 7.8) ======
+% Mosaic ML (Databricks) — acquired
+\fill[figRed, bubble] (5, 7.8) circle (8pt);
+\node[above, font=\sffamily\tiny] at (5, 8.3) {MosaicML};
+% Weights \& Biases — $8.7B
+\fill[figBlue, bubble] (6, 7.5) circle (10pt);
+\node[below, font=\sffamily\tiny\bfseries] at (6, 7.0) {W\&B};
+% Anyscale (Ray) — $1B val
+\fill[figBlue, bubble] (4.5, 7.2) circle (7pt);
+\node[below left, font=\sffamily\tiny] at (4.2, 6.8) {Anyscale};
+% Determined AI — acquired by HPE
+\fill[figRed, bubble] (3.2, 7.8) circle (5pt);
+\node[above left, font=\sffamily\tiny] at (2.8, 8.1) {Determined AI};
+% Lightning AI
+\fill[figBlue, bubble] (2.5, 7.5) circle (5pt);
+\node[below, font=\sffamily\tiny] at (2.5, 7.1) {Lightning AI};
+% Modal
+\fill[figBlue, bubble] (3.8, 8.2) circle (6pt);
+\node[above, font=\sffamily\tiny] at (3.8, 8.6) {Modal};
+
+% ====== Inference (y ~ 5.8) ======
+% Fireworks AI — $2.5B val
+\fill[figBlue, bubble] (5, 5.8) circle (8pt);
+\node[above, font=\sffamily\tiny] at (5, 6.3) {Fireworks};
+% Baseten — $1.1B val
+\fill[figBlue, bubble] (4, 5.5) circle (7pt);
+\node[below, font=\sffamily\tiny] at (4, 5.0) {Baseten};
+% Replicate
+\fill[figBlue, bubble] (3.5, 6.2) circle (6pt);
+\node[above left, font=\sffamily\tiny] at (3.2, 6.5) {Replicate};
+% OctoAI — acquired
+\fill[figRed, bubble] (3, 5.5) circle (5pt);
+\node[below left, font=\sffamily\tiny] at (2.6, 5.2) {OctoAI};
+% vLLM (open source / UC Berkeley)
+\fill[figBlue, bubble] (2, 6.0) circle (4pt);
+\node[left, font=\sffamily\tiny] at (1.6, 6.0) {vLLM};
+% BentoML
+\fill[figBlue, bubble] (2.5, 5.8) circle (4pt);
+\node[below, font=\sffamily\tiny] at (2.5, 5.4) {BentoML};
+
+% ====== Networking (y ~ 3.8) ======
+% Astera Labs — IPO
+\fill[figGreen, bubble] (7, 3.8) circle (9pt);
+\node[above, font=\sffamily\tiny\bfseries] at (7, 4.3) {Astera Labs};
+% Celestial AI
+\fill[figBlue, bubble] (2.5, 3.8) circle (6pt);
+\node[below, font=\sffamily\tiny] at (2.5, 3.4) {Celestial AI};
+% Ayar Labs
+\fill[figBlue, bubble] (3.5, 4.1) circle (5pt);
+\node[above, font=\sffamily\tiny] at (3.5, 4.5) {Ayar Labs};
+% Lightmatter
+\fill[figBlue, bubble] (3, 3.5) circle (6pt);
+\node[below, font=\sffamily\tiny] at (3, 3.0) {Lightmatter};
+
+% ====== Edge & CDN (y ~ 1.8) ======
+% Useful Sensors
+\fill[figBlue, bubble] (1.8, 1.8) circle (4pt);
+\node[right, font=\sffamily\tiny] at (2.1, 1.8) {Useful Sensors};
+% Qualcomm AI (not startup, omit)
+% Hailo — $2B
+\fill[figBlue, bubble] (3.5, 1.8) circle (6pt);
+\node[above, font=\sffamily\tiny] at (3.5, 2.2) {Hailo};
+% Kneron
+\fill[figBlue, bubble] (2.5, 2.1) circle (4pt);
+\node[above, font=\sffamily\tiny] at (2.5, 2.5) {Kneron};
+% Mythic — shut down
+\fill[figGray, bubble, fill opacity=0.5] (1.5, 2.3) circle (4pt);
+\node[left, font=\sffamily\tiny, figGray] at (1.2, 2.3) {Mythic};
+
+\end{tikzpicture}
+\caption{基础设施层市场竞争格局全景图。气泡大小近似反映公司估值（截至2026年3月），
+横轴为收入规模，纵轴为技术层级。颜色编码：蓝色=独立运营，红色=已被收购，
+绿色=已IPO/上市，灰色=已关停或转型。}
+\label{fig:infra-market-map}
+\end{figure}
+
+% Written 2026-03-21 after cross-section review of §2.1--§2.7.
+
+\subsection{六层价值链与利润分布}
+
+将前七节的公司数据叠加在一起，AI 基础设施层的价值链可沿
+六个层级展开：\textbf{GPU 云}（CoreWeave、Lambda、Nebius）、
+\textbf{芯片}（NVIDIA + 挑战者）、
+\textbf{训练}（Anyscale、MosaicML、Lightning AI）、
+\textbf{推理}（Fireworks、Together、Baseten）、
+\textbf{网络}（Lightmatter、Ayar Labs、Enfabrica）、
+\textbf{边缘}（Hailo、Cloudflare Workers AI、Apple Neural Engine）。
+每一层都有数十家创业公司竞争，但利润分布却极度不均。
+
+\begin{keybox}[谁拿走了最多利润？]
+NVIDIA 2025 财年数据中心收入超过 \$1,150 亿，
+净利润率约 55\%——这意味着仅 NVIDIA 一家，
+就从 AI 基础设施层攫取了超过 \$600 亿净利润。
+相比之下，CoreWeave 2025 年营收 \$51.3 亿但仍在亏损，
+全部 Neocloud 创业公司的营收总和不到 NVIDIA 的十分之一，
+且多数处于烧钱扩张阶段。
+这形成了一个鲜明的``卖铲子''格局：
+\textbf{GPU 云公司是 NVIDIA 的大客户，
+芯片挑战者是 NVIDIA 的潜在替代者，
+推理公司是 NVIDIA 生态的软件层——
+而 NVIDIA 自身则通过硬件销售、软件锁定（CUDA）
+和战略收购（Groq、Run:ai、OctoAI、Lepton AI、Enfabrica），
+从每一层抽取价值。}
+\end{keybox}
+
+网络互联层正在成为被低估的价值节点。
+Lightmatter 估值 \$44 亿、Ayar Labs 估值 \$37.5 亿、
+Celestial AI 被 Marvell 以 \$32.5 亿收购——
+三家光互联公司合计估值超过 \$110 亿，
+说明资本已意识到：在万卡集群时代，
+\textbf{连接 GPU 的管道与 GPU 本身同等重要}。
+
+\subsection{Neocloud 竞争格局：从百花齐放到寡头整合}
+
+\S\ref{sec:infra-gpu-cloud} 梳理了 11 家 GPU 云创业公司，
+但全球 Neocloud 总数已超过 100 家。
+这一赛道正经历从``百花齐放''到``寡头整合''的剧烈收缩。
+
+整合逻辑来自三个结构性力量。
+\textbf{第一，资本壁垒指数级攀升}。
+2023 年建设一个万卡 H100 集群需要约 \$3 亿；
+到 2026 年，CoreWeave 单年 capex 已达 \$230 亿，
+Nebius 获得 Meta \$270 亿合同——
+能匹配这一资本门槛的创业公司屈指可数。
+\textbf{第二，NVIDIA 的``Exemplar Cloud''认证}机制
+赋予了少数几家公司（CoreWeave、Lambda、Crusoe）
+优先获取最新 GPU 的特权，
+形成了一种``被选中者才能生存''的马太效应。
+\textbf{第三，长期合约锁定}——
+CoreWeave 的 \$556 亿积压订单和 Nebius 的 Meta 合约
+意味着头部玩家已将未来数年的算力需求预先锁定，
+后来者面临的不是技术竞争，而是客户已被瓜分的残酷现实。
+
+\begin{corebox}[两种 Neocloud 生存模式]
+\textbf{``超级 Neocloud''模式}（CoreWeave、Nebius、Lambda）：
+自建 GW 级数据中心，签下数十亿美元长期合约，
+通过纵向整合（CoreWeave 收购 W\&B、Lightning AI 合并 Voltage Park）
+向全栈 AI 云演进。5--10 家将存活。
+
+\textbf{``轻资产市场''模式}（RunPod、Vast.ai、Modal、SF Compute）：
+不拥有或少量拥有 GPU，以市场撮合、Serverless 抽象
+或开发者体验取胜。资本效率极高
+（RunPod 融资 \$22M 即达 \$1.2 亿 ARR），
+但规模天花板和企业客户信任度是核心瓶颈。
+这一层更可能以数十家的形式长期存在，
+服务长尾开发者和中小企业。
+\end{corebox}
+
+未来两年，Lightning AI/Voltage Park 式的合并将密集发生。
+那些既无 NVIDIA 特殊关系、又无差异化定位的中型 Neocloud，
+将面临被收购或淘汰的命运。
+
+\subsection{芯片创业的生死博弈}
+
+\S\ref{sec:infra-chips} 覆盖了西方 9 家和中国 10 家 AI 芯片创业公司。
+一个残酷的统计是：在西方 9 家中，
+Groq 被 NVIDIA \$200 亿收购、Graphcore 被 SoftBank \$4 亿``贱卖''、
+Etched 和 MatX 尚未出货——
+\textbf{真正以独立公司形态实现规模化产品交付的，
+仅有 Cerebras、Tenstorrent 和 Hailo 三家}。
+
+\begin{warnbox}[为什么 90\% 的 AI 芯片创业公司会失败]
+AI 芯片创业面临三重死亡螺旋：
+\begin{enumerate}[noitemsep]
+  \item \textbf{CUDA 生态的引力}。
+        十余年积累的数百万开发者、数千个优化库
+        构成了从 NVIDIA 迁出的巨大摩擦成本。
+        Intel Gaudi 3 定价仅 H100 一半，
+        却因软件生态不成熟而出货目标下调 30\%。
+  \item \textbf{流片的``死亡之谷''}。
+        从芯片设计到量产出货通常需要 3--5 年、
+        数亿美元投入，且一次流片失败可能
+        直接耗尽公司现金储备。
+        Graphcore 从 2016 年成立到 2024 年被收购，
+        累计消耗 \$7.67 亿仍未实现可持续商业化。
+  \item \textbf{架构押注的赌博性}。
+        Etched 和 MatX 押注 Transformer 将主导 5--10 年，
+        但 State Space Model 等新架构的崛起
+        随时可能让专用 ASIC 变成废硅——
+        这正是 Graphcore IPU 在 LLM 时代失去价值的翻版。
+\end{enumerate}
+\end{warnbox}
+
+中国 AI 芯片的生存逻辑截然不同。
+出口管制创造了约 500 亿美元的``真空市场''，
+政府 3440 亿元大基金三期和约 \$70B 两会补贴
+提供了市场经济中不可能获得的资本支持，
+客户``被迫试用''打破了 CUDA 生态锁定。
+结果是：寒武纪 2025 年首次盈利（净利 20.59 亿元），
+海光信息营收 143.76 亿元，
+``四小龙''密集 IPO 且首日涨幅动辄数百个百分点。
+\textbf{中国芯片是``政策驱动''的生存逻辑，
+西方芯片是``市场驱动''的生死博弈——
+前者的风险在于估值泡沫（四家合计市值 1.66 万亿元，PS 超 70 倍），
+后者的风险在于独立生存的概率极低。}
+
+\subsection{推理经济学的结构性变革}
+
+\S\ref{sec:infra-inference} 记录了推理赛道最惊人的数据：
+\textbf{2022--2026 年间，同等能力的推理成本下降了约 1000 倍}——
+从 GPT-3.5 Turbo 的 \$2.00/M tokens
+到 DeepSeek-R1 的 \$0.15/M tokens，
+小模型更低至 \$0.03/M tokens。
+
+这一降幅的驱动力来自四个叠加层：
+PagedAttention 将显存利用率从 30--50\% 提升至 90\%+；
+FP8/INT4 量化实现 2--4 倍加速；
+Speculative Decoding 进一步压缩延迟；
+前缀缓存在 Agent 场景下节省 30--50\% 计算。
+这些技术的复合效应，加上 GPU 算力本身的增长，
+共同推动了推理成本的指数级下降
+（详见 \textit{Emergence} 第九章的技术分析）。
+
+推理优化公司的护城河究竟在哪里？
+答案正在从``更便宜的推理''转向``更完整的平台''。
+当 vLLM 和 SGLang 作为开源引擎被所有人使用时，
+纯粹的性价比竞争必然走向零利润。
+Fireworks AI 的``复合 AI 推理引擎''、
+Together AI 的``全栈 AI 云''、
+Baseten 的企业级推理编排——
+它们的共同方向是向上攀升到\textbf{平台层}，
+用多模型编排、微调、Agent 工作流等更高层抽象
+制造迁移成本。
+
+\begin{keybox}[NVIDIA 系统性收购的防守逻辑]
+NVIDIA 在 2024--2025 年连续收购了
+Groq（\$200 亿）、Run:ai（\$7 亿）、
+OctoAI（$\sim$\$1.65 亿）、Lepton AI（数亿美元）、
+Enfabrica（$>$\$9 亿），
+并大额投资了 Baseten（\$1.5 亿）和 Together AI。
+这并非简单的消灭竞争——而是一套完整的防御体系：
+\textbf{控制推理软件栈}（防止 vLLM 在 AMD 上跑得同样好）、
+\textbf{获取顶尖人才}（Caffe 之父、TPU 发明者、TVM 核心开发者），
+以及\textbf{补全技术拼图}
+（Groq 的确定性推理 + 自家 GPU 的训练和 prefill）。
+当 AMD ROCm 日益成熟时，
+NVIDIA 用软件层的深度绑定制造额外的迁移壁垒。
+\end{keybox}
+
+\subsection{2026 年基础设施层展望}
+
+\textbf{谁会成为``AI 版 AWS''？}
+CoreWeave 已是最接近的候选者——
+\$51.3 亿营收、\$556 亿积压订单、
+收购 W\&B 构建全栈平台。
+但其客户集中度（OpenAI 占绝对多数）是致命软肋。
+Nebius 背靠 Meta \$270 亿合同，在欧洲以 GDPR 合规取胜。
+最终，``AI 版 AWS''可能不是某一家 Neocloud，
+而是 NVIDIA 自身——通过 DGX Cloud、NIM 和系列收购，
+NVIDIA 正在从芯片公司蜕变为 AI 基础设施平台公司。
+
+\textbf{能源将成为终极瓶颈}。
+\S\ref{sec:infra-factories} 的数据触目惊心：
+五大超算厂商 2026 年 capex 预计达 \$6,350--6,650 亿，
+美国数据中心耗电占全国用电 4.4\% 且到 2030 年将翻倍，
+科技巨头核电合同总额已超 \$520 亿。
+xAI Colossus 目标 2\,GW、Meta Hyperion 规划 5\,GW——
+当单一站点用电超过小型国家时，
+\textbf{GPU 不再是约束条件，电力才是}。
+Crusoe 用废气发电、中东用廉价天然气+光伏——
+能获取低成本能源的公司，将拥有结构性成本优势。
+
+\textbf{光互联是否会改变游戏规则？}
+以太网在 2025 年首次超越 InfiniBand 占据 AI 后端网络主导份额，
+UEC Spec 1.0 标准化了高性能 AI 以太网。
+光互联三巨头（Lightmatter、Ayar Labs、Celestial AI/Marvell）
+的共封装光学技术正在突破铜缆的带宽和距离极限。
+当集群规模从万卡走向百万卡时，
+\textbf{光互联不是锦上添花，而是物理必然}——
+它将决定下一代 AI 工厂的架构上限。
+
+\begin{corebox}[基础设施层 2026 年五大判断]
+\begin{enumerate}[noitemsep]
+  \item \textbf{Neocloud 整合加速}：
+        100+ 家 GPU 云将在 2026--2027 年缩减至 20--30 家，
+        头部 5 家占据 80\%+ 市场份额。
+  \item \textbf{芯片格局固化}：
+        NVIDIA 维持 80\%+ 训练份额，
+        推理芯片赛道留给 Cerebras、Tenstorrent
+        和中国国产方案各约 5--10\% 的空间。
+  \item \textbf{推理成本继续下降}：
+        2026 年底 GPT-4 等效推理将降至 \$0.05/M tokens 以下，
+        AI Agent 的大规模部署成为经济可行。
+  \item \textbf{能源成为核心竞争力}：
+        拥有低成本电力合约（核能/可再生能源）的公司
+        将获得 30--50\% 的运营成本优势。
+  \item \textbf{光互联标准化}：
+        CPO 将从实验走向量产部署，
+        成为 10 万+ GPU 集群的标配互联方案。
+\end{enumerate}
+\end{corebox}
+
+基础设施层是 AI 创业生态的地基。
+本章七节覆盖的近百家公司——
+从 CoreWeave 的 \$435 亿市值到 JarvisLabs 的印度学生云，
+从 NVIDIA 的 \$600 亿净利润到 Banana 的关停倒闭——
+共同描绘了一幅残酷而壮观的图景：
+\textbf{基础设施层的赢家将定义未来十年 AI 计算的成本曲线，
+而成本曲线将决定上层每一个 AI 应用的生死}。
+在这个意义上，本章讨论的不仅是芯片和数据中心——
+而是整个 AI 时代的地质底层。

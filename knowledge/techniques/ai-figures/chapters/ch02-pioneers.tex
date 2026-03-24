@@ -1,0 +1,1772 @@
+% =============================================================
+% Chapter 2: Deep Learning Pioneers and Godfathers
+% Book: AI Figures — Who's Who in the Age of AI
+% =============================================================
+
+\chapter{Deep Learning Pioneers and Godfathers}
+\label{ch:pioneers}
+
+% Chapter overview: The individuals who built the intellectual and engineering
+% foundations of modern deep learning — from backpropagation and CNNs to
+% Transformers and reinforcement learning.  Their stories reveal how a
+% marginalized research agenda became the dominant paradigm of 21st-century
+% technology.
+
+如果说人工智能是一座正在拔地而起的摩天大楼，那么本章讲述的就是那些打地基的人。
+从1980年代在学术界边缘坚持神经网络研究的``异端''，到2017年在Google内部
+悄然写出改变世界论文的八位工程师，再到用AI解决蛋白质折叠问题并获得诺贝尔奖的
+科学家——这些人的故事构成了现代AI最激动人心的编年史。
+
+他们中有些人等待了三十年才看到自己的理论被验证（Hinton、LeCun、Bengio），
+有些人在二十多岁就写出了被引用超过十万次的论文（Vaswani、Gomez），
+有些人从国际象棋神童成长为诺贝尔奖得主（Hassabis），还有些人放弃了
+数十亿美元的商业机会转而投身AI安全研究（Sutskever、Bengio）。
+他们的共同点是：每个人都在某个关键时刻做出了改变AI历史轨迹的贡献。
+
+本章按主题分组介绍约三十位深度学习先驱，从``图灵奖三巨头''开始，
+经过Transformer的八位作者，到更广泛的奠基性人物。
+对于每一位，我们不仅讲述``做了什么''，更试图回答``为什么是他/她''——
+什么样的背景、训练和直觉，使得这些人能够看到同时代人看不到的东西。
+
+
+% =============================================================
+\section{The Turing Award Trio: Hinton, LeCun, Bengio}
+\label{sec:turing-trio}
+% =============================================================
+
+2018年3月27日，ACM（美国计算机协会）宣布将当年的图灵奖授予
+Geoffrey Hinton、Yann LeCun和Yoshua Bengio，以表彰他们
+``在深度神经网络方面做出的概念性和工程性突破''。
+这是计算机科学的最高荣誉，被誉为``计算领域的诺贝尔奖''，
+奖金100万美元。三位获奖者随后被媒体冠以``AI教父''
+（Godfathers of AI）的称号——一个他们本人态度各异的标签。
+
+\begin{whybox}[Why This Matters: 三十年的坚持]
+在深度学习于2012年``爆发''之前，神经网络研究在AI主流社区中
+长期处于边缘地位。从1980年代末到2000年代中期，支持向量机（SVM）、
+核方法和概率图模型才是学术会议的主角。Hinton、LeCun和Bengio
+在这段``AI寒冬''中坚持了近三十年，不断改进训练算法、
+提出新的网络架构、培养学生，最终等到了算力和数据
+追上他们理论的时刻。他们的故事是科学史上
+``少数派报告最终成为主流共识''的经典案例。
+\end{whybox}
+
+
+% -------------------------------------------------------------
+\subsection{Geoffrey Hinton——敲响警钟的教父}
+\label{sec:hinton}
+% -------------------------------------------------------------
+
+\subsubsection{从心理学到AI}
+Geoffrey Everest Hinton于1947年12月6日出生在英国伦敦温布尔登。
+他的家族有着深厚的学术传统——曾曾祖父是逻辑学家George Boole
+（布尔代数的发明者），曾曾祖母是数学教育家Mary Everest Boole。
+他的中间名``Everest''来自另一位著名亲戚——
+George Everest爵士，英属印度的测量总监，
+珠穆朗玛峰的英文名``Mount Everest''正是以他命名。
+父亲Howard Hinton是著名的昆虫学家，
+叔叔Colin Clark是经济学家，
+外曾祖父James Hinton则是外科医生和作家。
+可以说，Boole-Hinton家族是一条贯穿两个世纪的学术谱系，
+从布尔代数到深度学习，从逻辑的数学化到智能的计算化，
+形成了一条惊人的思想传承链。
+
+Hinton早年在布里斯托尔的Clifton College就读，
+随后进入剑桥大学国王学院，于1970年获得实验心理学学士学位。
+
+``我一直想理解大脑是如何工作的，''Hinton在多次采访中回忆道。
+他在剑桥期间曾短暂考虑过木匠和建筑学，但最终被一个问题
+深深吸引：\textbf{人类如何从经验中学习？}
+这个问题引导他走向人工智能。
+1978年，他在爱丁堡大学获得人工智能博士学位，
+导师是Christopher Longuet-Higgins。
+
+\subsubsection{与慢性背痛共处的人生}
+Hinton的个人生活中有一个鲜为人知但深刻影响了他工作方式的细节：
+他从青少年时期就患有严重的慢性背痛。
+``我最后一次坐下是在2005年，''他经常这样说，
+``而那是一个错误。''到了五十多岁，背痛严重到
+他决定彻底放弃坐姿。此后他所有的工作都是站立完成的，
+乘车时他横躺在后座上，吃饭时像僧侣一样跪在泡沫垫子上。
+``如果你让它完全控制你的生活，它反而不会给你任何麻烦，''
+他对《纽约时报》记者Cade Metz这样解释。
+
+这个细节揭示了Hinton性格中的一个核心特质：
+\textbf{他愿意彻底重构自己的生活方式来适应约束条件}——
+无论是身体上的约束，还是智识上的约束。
+正如他用三十年坚持神经网络研究一样，
+他用二十年适应了一种大多数人无法想象的日常生活。
+
+\subsubsection{反向传播与Boltzmann机}
+博士毕业后，Hinton先后在苏塞克斯大学、加州大学圣迭戈分校和
+卡内基梅隆大学工作。在这些年里，他做出了两项奠基性贡献：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{反向传播的推广}（1986年）：与David Rumelhart和
+    Ronald Williams合作发表的论文
+    ``Learning Representations by Back-propagating Errors''
+    发表在\textit{Nature}上，展示了如何通过梯度下降有效地训练
+    多层神经网络。虽然反向传播的数学原理并非他们首创
+    （可追溯至1960年代的控制论），但这篇论文首次清晰地
+    证明了它在学习内部表示方面的强大能力。
+  \item \textbf{Boltzmann机}（1985年）：与Terry Sejnowski合作
+    发明的Boltzmann机是一种随机递归神经网络，
+    基于统计物理中的能量函数和模拟退火。
+    这项工作将物理学的工具引入了神经网络训练，
+    也正是2024年诺贝尔物理学奖表彰的核心贡献之一。
+\end{itemize}
+
+\subsubsection{多伦多大学与``AI寒冬''的坚守}
+1987年，由于对里根政府军事化AI研究的不满
+（Hinton是坚定的和平主义者），他离开美国，
+加入了加拿大高等研究院（CIFAR）并成为多伦多大学计算机科学系教授。
+在随后的二十多年里，多伦多大学成为全球神经网络研究的圣地。
+
+这段时期的关键里程碑包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{深度信念网络}（2006年）：Hinton提出了一种
+    逐层贪婪预训练的方法，首次证明深层网络可以被有效训练。
+    这篇发表在\textit{Neural Computation}上的论文
+    被广泛认为是深度学习复兴的起点。
+  \item \textbf{AlexNet}（2012年）：Hinton的两位学生
+    Alex Krizhevsky和Ilya Sutskever开发的AlexNet
+    在ImageNet大规模视觉识别挑战赛中以压倒性优势获胜，
+    top-5错误率从26.2\%骤降至15.3\%。
+    这一结果如同一声惊雷，宣告了深度学习时代的到来。
+\end{itemize}
+
+\subsubsection{Google岁月与离开}
+2013年，Google以约4400万美元收购了Hinton与学生创办的
+DNNresearch Inc.。Hinton加入Google Brain，担任杰出研究员，
+后升任副总裁和工程院士（Vice President \& Engineering Fellow）。
+在Google期间，他继续推动深度学习研究，
+同时保持在多伦多大学的职位。
+
+然而，2023年5月，Hinton做出了一个震惊AI界的决定：
+他从Google辞职，公开表达对AI安全的深切担忧。
+``我对自己毕生的工作感到一些后悔，''他对《纽约时报》说。
+``我用一个常见的借口来安慰自己：如果我不做，
+别人也会做。''他警告说，AI系统可能很快就会比人类更聪明，
+而我们还没有准备好应对这种情况。
+
+\subsubsection{双料诺贝尔级荣誉}
+2024年10月8日，瑞典皇家科学院宣布将2024年诺贝尔物理学奖
+授予Geoffrey Hinton和John Hopfield，
+``以表彰他们在利用人工神经网络实现机器学习方面的
+基础性发现和发明''。Hinton的Boltzmann机——
+建立在Hopfield网络基础上的随机生成模型——
+被认为是现代深度学习的物理学根基。
+
+这使得Hinton成为极少数同时获得图灵奖和诺贝尔奖的科学家之一，
+也是首位因AI研究获得诺贝尔物理学奖的人。
+
+得知获奖的那一刻颇具戏剧性。Hinton当时正在加州一家
+``没有网络连接、手机信号也很差''的廉价旅馆里睡觉，
+一个带有瑞典口音的国际电话把他叫醒。
+``有人问我是不是Geoffrey Hinton……
+然后告诉我获得了诺贝尔物理学奖。
+我的第一反应是：等一下，我不做物理学。''
+此后好几天，他都在用``统计推理''计算
+一个心理学家获得诺贝尔物理学奖的概率有多低，
+以此验证这件事是否真的发生了。
+他原本当天要去做核磁共振检查，
+``我想我得取消了，''他说。
+
+\subsubsection{AI安全的具体警告}
+Hinton对AI安全的担忧不是笼统的恐惧，而是指向了多个具体风险。
+在2024年12月10日的诺贝尔奖晚宴致辞中，他系统地阐述了这些担忧：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{短期风险}：AI已经通过推送令人愤怒的内容
+    创造了分裂性的信息茧房；它正被威权政府用于大规模监控，
+    被网络犯罪分子用于钓鱼攻击。
+  \item \textbf{中期风险}：AI可能很快被用于制造新型病毒，
+    或开发能\textbf{自主选择目标}的自主武器。
+  \item \textbf{长期风险}：人类正走在创造出
+    ``比我们更聪明的数字存在''的道路上，
+    而我们完全不知道是否能控制它们。
+    如果这些系统由\textbf{追求短期利润}的公司创造，
+    公共安全将不会是首要考量。
+\end{itemize}
+
+``所有这些短期风险都需要各国政府和国际组织
+紧急而有力的关注，''他在致辞中说。
+这使得他的诺贝尔演说成为了一次罕见的``获奖者警告世界''时刻——
+在庆典的华丽氛围中，他选择用最直白的语言说出最沉重的话。
+
+\begin{corebox}[Core Insight: Hinton的遗产]
+Hinton的职业生涯完美诠释了一个悖论：
+\textbf{最深刻地推动了一项技术发展的人，也可能最深刻地理解
+其危险性。}他的故事提醒我们，科学家对自己创造物的责任
+不会因为技术的成功而消失——恰恰相反，成功使得这种责任
+变得更加沉重。截至2026年，Hinton继续担任
+Vector Institute的首席科学顾问，
+同时积极参与全球AI安全政策讨论。
+\end{corebox}
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Yann LeCun——从手写识别到世界模型}
+\label{sec:lecun}
+% -------------------------------------------------------------
+
+\subsubsection{法国少年的神经网络梦}
+Yann Andr\'{e} LeCun（法语发音接近``勒坤''，
+但他本人接受英语发音``le-KUNN''）于1960年7月8日出生在
+法国巴黎北郊的Soisy-sous-Montmorency。
+他在ESIEE Paris获得电气工程师文凭（1983年），
+然后在巴黎第六大学（Pierre and Marie Curie University，
+现索邦大学）攻读博士学位，1987年毕业。
+他的博士论文提出了反向传播算法的早期变体，
+与Hinton的工作平行但独立发展。
+
+博士毕业后，LeCun前往多伦多大学跟随Hinton做博士后研究，
+这段经历奠定了两人终身的学术友谊。
+
+\subsubsection{AT\&T Bell Labs与卷积神经网络}
+1988年，LeCun加入AT\&T Bell Labs，
+开始了他最具影响力的一段研究生涯。在这里，
+他开发了\textbf{卷积神经网络}（CNN）的核心架构，
+特别是用于手写数字识别的LeNet系列。
+LeNet-5（1998年）能够准确识别手写支票上的数字，
+被美国银行系统广泛部署——在AI的``寒冬''时期，
+这是少数几个真正商业化的神经网络应用之一。
+
+LeCun在Bell Labs期间的其他重要贡献包括：
+\begin{itemize}[noitemsep]
+  \item DjVu图像压缩技术（与L\'{e}on Bottou合作）
+  \item Optimal Brain Damage——一种网络剪枝方法
+  \item Graph Transformer Networks——将CNN推广到图结构
+\end{itemize}
+
+\subsubsection{纽约大学与Meta AI}
+2003年，LeCun加入纽约大学（NYU）Courant数学科学研究所
+担任教授。他后来成为NYU数据科学中心的创始主任，
+目前持有Jacob T. Schwartz计算机科学讲席教授头衔。
+
+2013年，LeCun被Facebook（现Meta）聘为AI研究部门
+（Facebook AI Research，FAIR）的首任主任。
+2018年起，他担任Meta的副总裁兼首席AI科学家
+（VP \& Chief AI Scientist）。在Meta期间，
+他主导了开源大语言模型LLaMA系列的研发方向，
+推动了``开放AI''的理念。
+
+值得一提的是，LeCun是AI领域最活跃的``社交媒体战士''之一。
+他在X（原Twitter）上以犀利、直率甚至好斗的风格著称，
+经常与AI安全倡导者（包括他的图灵奖共同获奖者Hinton和Bengio）
+公开辩论。他坚持认为当前的大语言模型
+``在本质上不可能达到人类水平的智能''，
+因为它们缺乏对物理世界的理解。
+
+\subsubsection{JEPA：一个与LLM截然不同的技术路线}
+LeCun的技术愿景集中在\textbf{JEPA}
+（Joint Embedding Predictive Architecture，联合嵌入预测架构）上。
+与大语言模型通过预测下一个token来学习不同，
+JEPA在\textbf{抽象表示空间}中进行预测——
+它不试图重建输入信号的每一个细节，
+而是学习预测事物的抽象表征。
+
+LeCun用一个生动的比喻来解释这个区别：
+``一只猫理解物理世界的能力比任何大语言模型都强。
+猫知道如果一个物体从桌子边缘落下，它会掉到地上。
+但没有一个LLM真正`理解'这一点——
+它们只是在统计上模仿了描述这件事的文本。''
+
+他的论点是：对于文本这种低带宽、高信息密度的媒介，
+逐token预测是有效的。但对于视频和真实世界数据
+这种高带宽、高冗余的信号，生成式方法
+（如自编码器和掩码图像建模）会系统性地失败，
+因为细节的不确定性太大了。
+JEPA通过在嵌入空间而非像素空间中预测，
+优雅地绕过了这个问题。
+2024年发布的V-JEPA 2已在物理推理基准测试中
+达到了最先进的水平。
+
+\subsubsection{``AI辩论场上的格斗家''}
+LeCun在社交媒体上的辩论风格在AI社区中是独一无二的。
+他不回避与任何人——包括他的图灵奖共获者——进行
+长篇、公开、有时近乎尖锐的学术辩论。
+当Hinton警告``AI可能很快比人类更聪明''时，
+LeCun的回应通常是：``我们连猫的智能水平都还没达到。''
+当AI末日论者（doomers）呼吁暂停AI研究时，
+他称这种立场``基于对技术现状的根本误解''。
+
+这种风格让他赢得了一批铁杆拥趸，也招致了不少批评。
+但LeCun似乎享受这种辩论——他将自己定位为
+AI社区中``理性乐观主义''的代言人，
+认为恐惧和过度监管比AI本身更危险。
+
+\subsubsection{离开Meta，创办AMI Labs}
+LeCun离开Meta的背景比简单的``创业冲动''更复杂。
+2025年6月，Mark Zuckerberg投入143亿美元收购Scale AI，
+并在Meta内部成立了以LLM为核心的
+Meta Superintelligence Labs新部门。
+LeCun一手创建的FAIR（Facebook AI Research）被边缘化，
+机器人团队被解散。到2025年11月，
+LeCun的世界观与Meta的技术方向之间的裂痕已无法弥合。
+
+``我走进Mark的办公室，告诉他我要离开了，''
+LeCun后来回忆这次对话。
+他随即创立了\textbf{AMI Labs}
+（Advanced Machine Intelligence Labs），
+总部设在巴黎，CEO是Nabla创始人Alexandre LeBrun。
+AMI Labs的目标是开发能够\textbf{理解物理世界、
+具有持久记忆、能够推理并规划复杂行动}的AI系统——
+即他长期倡导的``世界模型''（World Models）。
+
+2026年3月，AMI Labs宣布完成10.3亿美元融资，
+投前估值35亿美元，由Cathay Innovation、
+Greycroft、Bezos Expeditions等共同领投。
+``我的预测是，`世界模型'将成为下一个热词，''
+LeBrun对TechCrunch说。
+``六个月内，每家公司都会自称是世界模型公司来融资。''
+这标志着65岁的LeCun开启了职业生涯的新篇章——
+他正在用自己的声誉和智识资本，
+押注整个AI产业的方向是错误的。
+
+\begin{keybox}[Key Awards: Yann LeCun]
+\begin{itemize}[noitemsep]
+  \item ACM图灵奖（2018年，与Hinton、Bengio共享）
+  \item IEEE神经网络先驱奖（2014年）
+  \item 美国国家工程院院士（2017年）
+  \item 美国国家科学院院士（2021年）
+  \item 法国荣誉军团勋章（2023年）
+  \item Queen Elizabeth Prize for Engineering（2025年）
+\end{itemize}
+\end{keybox}
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Yoshua Bengio——从深度学习到AI安全}
+\label{sec:bengio}
+% -------------------------------------------------------------
+
+\subsubsection{巴黎出生，蒙特利尔成长}
+Yoshua Bengio于1964年3月5日出生在法国巴黎，
+随家人移居加拿大。他在麦吉尔大学完成了全部学位：
+计算机工程学士（1986年）、计算机科学硕士（1988年）
+和计算机科学博士（1991年）。
+博士毕业后，他先后在MIT脑与认知科学系和AT\&T Bell Labs
+做博士后研究，然后于1993年加入蒙特利尔大学计算机科学系，
+此后再未离开。
+
+Bengio的弟弟Samy Bengio同样是杰出的机器学习研究者
+（曾在Google工作，现在Apple），兄弟二人的论文经常被混淆。
+
+\subsubsection{语言模型与注意力机制的奠基者}
+Bengio的研究贡献涵盖深度学习的多个核心领域：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{神经网络语言模型}（2003年）：论文
+    ``A Neural Probabilistic Language Model''首次提出用神经网络
+    学习词的分布式表示（word embeddings）并建模语言概率，
+    直接启发了后来的Word2Vec和所有现代大语言模型。
+  \item \textbf{注意力机制}（2014年）：与Dzmitry Bahdanau合作的
+    论文``Neural Machine Translation by Jointly Learning to Align
+    and Translate''引入了注意力机制（Attention），
+    允许模型在翻译时动态地``关注''输入序列的不同部分。
+    这一思想后来被Transformer架构推广为``自注意力''（Self-Attention），
+    成为现代AI的核心计算原语。
+  \item \textbf{生成对抗网络}（2014年）：Bengio作为Ian Goodfellow
+    的博士导师，参与了GAN论文的指导。
+  \item \textbf{去噪自编码器}（2008年）：为后来的扩散模型
+    和自监督学习奠定了基础。
+\end{itemize}
+
+\subsubsection{Mila与AI生态系统建设}
+2017年，Bengio创立了Mila——魁北克人工智能研究所，
+并担任科学主任直到2025年3月转为科学顾问。
+Mila已发展成为全球最大的深度学习学术研究中心之一，
+拥有超过1000名研究人员。
+
+Bengio同时是CIFAR``机器与大脑学习''项目的联合主任，
+IVADO的创始科学主任，
+以及加拿大CIFAR AI讲席教授。
+他的影响力不仅在于自身研究，更在于培养了一代又一代
+深度学习研究者。
+
+\subsubsection{全球最高引学者与AI安全转向}
+截至2025年11月，Bengio成为首位Google Scholar引用量
+突破100万的AI研究者，也是全领域在世学者中引用量最高的人。
+他的h-index和总引用量均居全球计算机科学家之首。
+
+然而，大约从2023年开始，Bengio将越来越多的精力
+投入到AI安全和治理领域。他签署了多封公开信呼吁
+暂停大型AI实验，在联合国、G7和各国政府面前作证，
+并于2024年被\textit{TIME}杂志评为全球100位最具影响力人物之一。
+
+2025年6月，Bengio宣布创立\textbf{LawZero}——
+一个致力于``安全优先设计''（safe-by-design）AI的非营利组织。
+LawZero的成立源于他对当前前沿AI模型日益增长的危险能力的担忧，
+包括欺骗、自我保存和目标失调等行为。Bengio强调，
+LawZero作为非营利组织的结构是为了``隔绝市场和政府压力，
+避免AI安全被商业利益所妥协''。
+
+\begin{whybox}[Why This Matters: 三位教父的分歧]
+三位图灵奖共同获得者在AI安全问题上的巨大分歧，
+是理解当前AI辩论的一把钥匙。Hinton离开Google，
+公开表达``生存风险''级别的担忧；Bengio创立LawZero，
+致力于技术层面的安全解决方案；而LeCun则坚持认为
+当前的AI系统离人类水平智能还很远，过度恐慌反而有害。
+这三种立场——\textbf{警报者}、\textbf{建设性安全主义者}
+和\textbf{务实乐观主义者}——代表了AI社区内部最重要的
+三种思潮。读者在阅读本书姊妹篇\textit{Emergence}
+第十三章（前沿问题）时，可以进一步了解这场辩论的技术细节。
+\end{whybox}
+
+
+% =============================================================
+\section{``Attention Is All You Need''：八位Transformer作者}
+\label{sec:transformer-authors}
+% =============================================================
+
+2017年6月12日，一篇由八位Google研究员撰写的论文
+被提交到arXiv，标题简洁而大胆：``Attention Is All You Need''。
+论文提出了\textbf{Transformer}架构——一种完全基于
+自注意力机制（Self-Attention）的序列建模方法，
+摒弃了此前主导序列任务的循环神经网络（RNN）和
+长短期记忆网络（LSTM）。
+
+这篇论文截至2026年已被引用超过15万次，
+成为人类历史上被引用最多的计算机科学论文之一。
+GPT、BERT、PaLM、LLaMA、Claude、Gemini、DALL-E、
+Stable Diffusion、AlphaFold 2、Codex、Whisper——
+现代AI工业的整个产品线，都运行在这八个人发明的架构之上。
+
+更引人注目的是：到2023年8月，八位作者已全部离开Google，
+分散在各自创立或加入的创业公司中。他们的离去象征着一个时代的结束
+——Google曾经是AI人才的最大聚集地，
+但它未能将这项革命性发明转化为先发优势。
+
+\begin{corebox}[Core Insight: 一篇论文改变世界]
+``Attention Is All You Need''的影响力可以与计算机科学史上
+少数几篇论文相提并论：图灵1936年关于可计算数的论文、
+香农1948年关于信息论的论文、以及Backus等人1957年的
+Fortran报告。它不仅解决了一个技术问题（高效的序列建模），
+更开启了一个全新的计算范式。
+关于Transformer架构的技术细节，
+读者可参阅姊妹篇\textit{Emergence}第二章的深入讨论。
+\end{corebox}
+
+
+% -------------------------------------------------------------
+\subsection{Ashish Vaswani——第一作者与Essential AI}
+\label{sec:vaswani}
+% -------------------------------------------------------------
+
+Ashish Vaswani是``Attention Is All You Need''的第一作者，
+也是Transformer架构的核心设计者。他在印度长大，
+在印度理工学院（IIT）完成本科后赴美深造，
+在南加州大学（USC）获得计算机科学博士学位，
+专攻机器学习与自然语言处理。
+
+加入Google Brain后，Vaswani花了数年时间研究注意力机制
+在神经网络中的应用。他意识到一个关键问题：
+RNN和LSTM的\textbf{顺序计算}本质严重限制了训练效率——
+每个时间步必须等待前一步完成，无法充分利用GPU的并行能力。
+Transformer的核心创新正是用自注意力完全取代循环计算，
+使得序列中所有位置可以同时交互。
+
+论文发表于NeurIPS 2017（当时仍称NIPS）后，Vaswani继续在Google
+工作了一段时间，随后于2022年与Niki Parmar共同创立了
+\textbf{Essential AI}，一家面向企业的AI公司。
+Essential AI在2024年获得了约5600万美元的融资。
+2025年12月，Essential AI发布了首个模型Rnj-1
+（以印度数学家Ramanujan命名），
+号称仅用80亿参数就达到了前沿水平的编码、数学和
+智能体推理能力——远小于OpenAI的万亿参数量级。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Noam Shazeer——数学天才与Character.AI传奇}
+\label{sec:shazeer}
+% -------------------------------------------------------------
+
+Noam Shazeer或许是八位作者中最具传奇色彩的人物。
+出生于约1975--1976年，他在1994年以满分成绩
+获得国际数学奥林匹克（IMO）金牌——
+那一年美国队实现了罕见的全队满分壮举，
+这一纪录直到2022年才被中国队追平。
+\textit{TIME}杂志曾报道这一成就。
+
+Shazeer在杜克大学（Duke University）学习计算机科学和数学，
+2000年毕业后加入了成立仅两年的Google，
+成为最早的几百名员工之一。在Google的二十年间，
+他从软件工程师做到高级软件工程师和研究科学家，
+参与了Google搜索引擎的核心算法改进，
+是Google广告拼写校正系统和早期机器翻译系统的关键贡献者。
+
+2017年，当``Attention Is All You Need''的早期草稿出来时，
+Shazeer惊讶地发现自己的名字被列在第一位
+（最终发表时按字母排序）。``我当时并没有想太多，''他回忆说。
+但历史证明，他对Transformer的贡献是不可或缺的。
+
+2021年，Shazeer离开Google，与Daniel De Freitas共同创立了
+\textbf{Character.AI}——一个允许用户与AI角色对话的平台。
+Character.AI迅速走红，一度成为增长最快的消费级AI应用之一。
+然而，2024年8月，在一项惊人的交易中，
+Google以约27亿美元的价格将Shazeer``请回''：
+Google获得了Character.AI的技术授权和Shazeer本人，
+而Character.AI则保持独立运营。
+Shazeer重返Google DeepMind担任副总裁和AI研究负责人，
+据报道目标直指AGI——通用人工智能。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{其他六位作者的去向}
+\label{sec:other-transformer-authors}
+% -------------------------------------------------------------
+
+\subsubsection{Llion Jones与Sakana AI}
+Llion Jones是一位威尔士裔英国人，在伯明翰大学获得人工智能与
+计算机科学学士学位及高级计算机科学硕士学位。
+他先在YouTube工作了三年多，2015年加入Google，
+专注于机器智能和自然语言理解的研究。
+
+Jones在Google工作了近12年，是八位作者中最后一位离开的。
+2023年8月，他远赴日本东京，
+与前Google研究科学家David Ha共同创立了
+\textbf{Sakana AI}（``sakana''在日语中意为``鱼''）。
+Sakana AI以``自然启发的AI研究''为理念，
+探索超越Transformer的下一代AI架构。
+公司在2024年获得了超过2亿美元的融资。
+
+\subsubsection{Jakob Uszkoreit与Inceptive}
+Jakob Uszkoreit出生于德国，在柏林工业大学获得硕士学位。
+他是八位作者中唯一一位将AI转向生命科学领域的人。
+在Google工作13年后（2008--2021），
+他先后参与了Google Translate的早期开发、
+Google Assistant的语言理解团队建设以及Google Brain的深度学习研究。
+
+2021年7月，Uszkoreit与斯坦福大学生物化学家Rhiju Das
+共同创立了\textbf{Inceptive}，
+一家用深度学习和高通量实验``学习生命语言''的生物技术公司。
+Inceptive专注于RNA药物设计——
+利用类似Transformer的架构来理解和设计RNA分子。
+``如果Transformer可以理解人类语言，''Uszkoreit说，
+``它也应该能理解生命的语言。''
+
+值得一提的是，Uszkoreit的父亲Hans-J\"{u}rgen Uszkoreit
+是计算语言学领域的知名教授，可以说NLP研究在这个家族中``遗传''了。
+
+\subsubsection{Aidan Gomez与Cohere}
+Aidan Gomez是八位作者中最年轻的，论文发表时年仅20岁。
+1998年（一说1997年）出生于加拿大多伦多，
+他当时还是多伦多大学计算机科学本科生，
+在Google Brain多伦多办公室实习时参与了Transformer论文的研究。
+他曾与Geoffrey Hinton和Jeff Dean等AI传奇人物共事。
+
+实习结束后，Gomez完成了本科学业，
+并开始在牛津大学攻读计算机科学博士学位。
+2019年，他与Ivan Zhang和Nick Frosst（Hinton的学生）
+共同创立了\textbf{Cohere}——一家面向企业的AI语言模型公司。
+截至2024年，Cohere的估值已达约55亿美元，
+由Nvidia等顶级投资者支持，
+成为加拿大最成功的AI创业公司之一。
+
+\subsubsection{Illia Polosukhin与NEAR Protocol}
+Illia Polosukhin来自乌克兰，在哈尔科夫国立无线电电子大学
+获得应用数学与计算机科学硕士学位。
+他在Google Research工作了约三年（2014--2017），
+参与了TensorFlow的开发，并领导了Google搜索引擎
+问答功能的团队。
+
+Polosukhin是八位作者中唯一一位将事业转向
+区块链和Web3的人。2017年，他与Alexander Skidanov
+创立了NEAR.ai，最初专注于AI和程序合成。
+但很快，两人看到了去中心化技术的潜力，
+将项目转型为\textbf{NEAR Protocol}——
+一个Layer-1区块链平台，于2020年正式上线。
+到2025年，NEAR已成为Web3领域最重要的基础设施项目之一。
+
+\subsubsection{Niki Parmar——从自学编程到Anthropic}
+Niki Parmar的故事是八位作者中最励志的之一。
+她是印度裔，没有考上印度理工学院（IIT），
+一度认为自己``错过了机会''。但她选择了自学编程，
+在南加州大学（USC）获得计算机科学硕士学位后，
+于2015年24岁时加入Google——成为团队中最年轻的成员，
+也是唯一一个没有博士学位的人。
+
+在Google Brain，Parmar成为Transformer论文的核心贡献者之一，
+并领导了将Transformer扩展到大规模语言模型的研究。
+离开Google后，她先后共同创立了两家AI公司：
+\textbf{Adept AI}（2021年，获得超过4亿美元融资）和
+\textbf{Essential AI}（2023年，与Vaswani共同创立）。
+2025年1月，她加入了\textbf{Anthropic}
+担任技术人员（Member of Technical Staff），
+为Claude系列模型的开发做出贡献。
+
+\subsubsection{\L{}ukasz Kaiser——从数学逻辑到推理模型}
+\L{}ukasz Kaiser于1981年12月24日出生在波兰弗罗茨瓦夫。
+他在弗罗茨瓦夫大学学习计算机科学和数学，
+然后在德国亚琛工业大学（RWTH Aachen）获得博士学位，
+研究方向是数学逻辑、自动机理论和自动结构——
+这些是理论计算机科学的核心领域。
+
+博士毕业后，Kaiser在巴黎第七大学（Paris Diderot）担任
+终身研究员，2013年转入Google Brain，
+在那里他共同设计了用于机器翻译、解析和其他生成任务的
+神经模型，并参与了TensorFlow系统和Tensor2Tensor库的开发。
+
+Kaiser后来加入了\textbf{OpenAI}，
+在那里他参与了ChatGPT、GPT-4以及推理模型o1和o3的开发。
+在2025年TEDAI大会上，他被介绍为
+``共同发明了推理模型（o1、o3）、ChatGPT和GPT-4，
+并共同开创了Transformer和TensorFlow系统''的人。
+
+\begin{keybox}[Key Reference: 八位作者的去向与公司估值（截至2026年初）]
+\begin{itemize}[noitemsep]
+  \item \textbf{Ashish Vaswani} $\to$ Essential AI
+    （联合创始人兼CEO，估值数亿美元级）
+  \item \textbf{Noam Shazeer} $\to$ Character.AI $\to$
+    回归Google DeepMind（VP，Character.AI交易价值约27亿美元）
+  \item \textbf{Niki Parmar} $\to$ Adept AI $\to$ Essential AI $\to$
+    Anthropic（Member of Technical Staff）
+  \item \textbf{Jakob Uszkoreit} $\to$ Inceptive
+    （联合创始人，RNA药物设计）
+  \item \textbf{Llion Jones} $\to$ Sakana AI
+    （联合创始人，东京，融资超2亿美元）
+  \item \textbf{Aidan Gomez} $\to$ Cohere
+    （联合创始人兼CEO，估值约55亿美元）
+  \item \textbf{Illia Polosukhin} $\to$ NEAR Protocol
+    （联合创始人，Layer-1区块链）
+  \item \textbf{\L{}ukasz Kaiser} $\to$ OpenAI
+    （参与GPT-4、ChatGPT和o1/o3推理模型开发）
+\end{itemize}
+八位作者创立或参与的公司总估值超过\textbf{百亿美元}——
+而这一切都起源于2017年的一篇论文。
+\end{keybox}
+
+
+% =============================================================
+\section{LSTM双雄：Schmidhuber与Hochreiter}
+\label{sec:lstm-duo}
+% =============================================================
+
+在Transformer统治AI世界之前，有一种架构在序列建模领域
+称霸了近二十年——\textbf{长短期记忆网络}
+（Long Short-Term Memory，LSTM）。
+LSTM的两位发明者——J\"{u}rgen Schmidhuber和Sepp Hochreiter
+——的故事既是合作的佳话，也是AI学术界优先权之争的缩影。
+
+
+% -------------------------------------------------------------
+\subsection{J\"{u}rgen Schmidhuber——``如果AI成熟了，它会叫我爸爸''}
+\label{sec:schmidhuber}
+% -------------------------------------------------------------
+
+J\"{u}rgen Schmidhuber于1963年1月17日出生在德国慕尼黑。
+他在慕尼黑工业大学（TU Munich）完成了全部学业。
+从15岁起，他就有一个明确的人生目标：
+\textbf{``建造一个比我更聪明的自我改进AI，然后退休。''}
+这句话成了他数十年来的签名式宣言。
+
+Schmidhuber目前担任瑞士Dalle Molle人工智能研究所（IDSIA）
+的科学主任，以及沙特阿拉伯KAUST（阿卜杜拉国王科技大学）
+AI Initiative的主任和计算机科学教授。
+
+\subsubsection{``奇迹年''1990--1991}
+Schmidhuber将1990--1991年称为他的``Annus Mirabilis''（奇迹年），
+声称在这两年里奠定了现代深度学习的多项基础：
+\begin{itemize}[noitemsep]
+  \item \textbf{线性Transformer}的原理（1991年），
+    他认为这是自注意力机制的前身
+  \item \textbf{生成对抗思想}（1990年），
+    通过对抗式神经网络实现人工好奇心
+  \item 神经网络蒸馏、深度学习、元学习等概念的早期形式
+\end{itemize}
+
+这些优先权声明在AI社区中引起了持续的争议。
+Schmidhuber以``频繁且强烈地主张自己的优先权''著称，
+曾公开批评Transformer论文的作者未充分引用他的早期工作，
+也曾与GAN的发明者Ian Goodfellow发生过公开争论。
+《纽约时报》为他写过一篇著名的特稿，标题是：
+``When A.I. Matures, It May Call J\"{u}rgen Schmidhuber `Dad'\,''。
+
+\subsubsection{LSTM与实际影响}
+不管优先权之争如何，一个不争的事实是：
+LSTM（1997年论文，Hochreiter为第一作者，Schmidhuber为通讯作者）
+在2010年代成为了自然语言处理和语音识别的主导技术。
+到2017年，LSTM运行在超过30亿台智能手机上：
+Google的语音识别（基于CTC-LSTM）、Google翻译（每天超过40亿次
+LSTM翻译）、Apple的Siri和QuickType、Amazon的Alexa
+——全部依赖于LSTM架构。
+
+Schmidhuber的实验室还在2011年首次以深度神经网络赢得了
+官方计算机视觉竞赛（达到超人表现），
+在2012年赢得了首个深度学习医学影像竞赛（癌症检测）。
+这些突破比AlexNet还要早几个月，
+但由于AlexNet在ImageNet上的戏剧性胜利获得了更多关注，
+Schmidhuber的贡献常被忽视——这也是他频繁发声的原因之一。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Sepp Hochreiter——梯度消失问题的发现者}
+\label{sec:hochreiter}
+% -------------------------------------------------------------
+
+Josef ``Sepp'' Hochreiter于1967年2月14日出生在德国M\"{u}hldorf。
+他在慕尼黑工业大学学习，在Schmidhuber的指导下
+完成了改变深度学习历史的毕业论文。
+
+\subsubsection{发现梯度消失问题}
+1991年，年轻的Hochreiter在他的毕业论文中
+\textbf{数学地证明了}标准循环神经网络的致命缺陷：
+梯度在反向传播过程中会指数级地衰减
+（vanishing gradient problem），使得网络
+无法学习超过约10个时间步的长距离依赖关系。
+这不是一个小麻烦——它是一个根本性的障碍。
+
+四年后，1997年，Hochreiter和Schmidhuber发表了他们的解决方案：
+\textbf{LSTM}。LSTM的核心创新是引入了``门控''机制
+（输入门、遗忘门和输出门），允许网络选择性地
+记住或遗忘信息，从而在长序列中保持梯度流动。
+这篇发表在\textit{Neural Computation}上的论文
+成为了AI历史上被引用最多的论文之一。
+
+\subsubsection{学术生涯与xLSTM}
+Hochreiter后来在柏林工业大学和科罗拉多大学博尔德分校工作过，
+1999年在慕尼黑工业大学获得博士学位（导师为Wilfried Brauer）。
+2006年起，他在奥地利约翰内斯开普勒大学林茨分校（JKU Linz）任教，
+先后领导了生物信息学研究所和机器学习研究所，
+并创立了Linz Institute of Technology AI Lab。
+他也是人工智能高等研究所（IARAI）的创始主任。
+
+2024年，Hochreiter提出了\textbf{xLSTM}
+（Extended LSTM），声称这种改进版的LSTM在某些任务上
+可以与Transformer竞争甚至超越它们。
+``我们还处于早期阶段，''他说，
+``LSTM的故事还没有结束。''
+
+
+% =============================================================
+\section{ImageNet时代的英雄}
+\label{sec:imagenet-heroes}
+% =============================================================
+
+如果说LSTM统治了序列建模的世界，
+那么\textbf{卷积神经网络}（CNN）则征服了计算机视觉。
+而这场征服的导火索，是2012年的ImageNet竞赛。
+
+% -------------------------------------------------------------
+\subsection{Alex Krizhevsky——AlexNet与深度学习革命的导火索}
+\label{sec:krizhevsky}
+% -------------------------------------------------------------
+
+Alex Krizhevsky是一位加拿大计算机科学家，
+出生在乌克兰，在多伦多大学Hinton的实验室攻读博士学位。
+2012年，他开发了一个被命名为\textbf{AlexNet}的
+深层卷积神经网络，并用两块GeForce GTX 580显卡进行训练。
+
+AlexNet在ImageNet大规模视觉识别挑战赛上的表现
+是计算机视觉历史上最戏剧性的时刻之一：
+top-5错误率15.3\%，而第二名使用传统手工特征的方法
+只达到26.2\%——差距将近11个百分点。
+这不像是渐进式的改进，而像是一种完全不同的技术。
+
+``Ilya觉得我们应该做这件事，Alex让它跑起来了，
+而我得了诺贝尔奖，''Hinton后来开玩笑说。
+确实，是Sutskever的直觉——
+``神经网络的性能会随数据量扩展''——
+和Krizhevsky的工程才华的结合，
+创造了这个历史性的突破。
+
+AlexNet之后不久，Krizhevsky和Sutskever将他们的公司
+DNN Research Inc.卖给了Google。Krizhevsky在Google工作到
+2017年9月，因``对工作失去兴趣''而离开，
+转入了一家名为Dessa的小型深度学习公司。
+他也是CIFAR-10和CIFAR-100数据集的主要创建者。
+虽然他后来淡出了公众视野，但AlexNet的影响是永恒的：
+它点燃了深度学习革命的导火索。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Fei-Fei Li——ImageNet的创造者与``AI教母''}
+\label{sec:feifei-li}
+% -------------------------------------------------------------
+
+如果AlexNet是点燃革命的火花，
+那么\textbf{ImageNet}就是等待引爆的火药库。
+而创造这个火药库的人，是被称为``AI教母''
+（Godmother of AI）的李飞飞（Fei-Fei Li）。
+
+\subsubsection{从新泽西干洗店到斯坦福讲台}
+李飞飞于1976年出生在中国，16岁时随父母移民美国新泽西州。
+家境清贫，她十几岁时就在父母的干洗店里帮工。
+凭借卓越的学术能力，她获得奖学金进入普林斯顿大学，
+1999年以优异成绩（High Honors）获得物理学学士学位。
+随后她进入加州理工学院（Caltech）攻读博士学位，
+2005年获得电气工程博士学位。
+
+\subsubsection{ImageNet——一个曾被嘲笑的想法}
+2007年，已是普林斯顿助理教授的李飞飞产生了一个大胆的想法：
+创建一个包含数百万张标注图像的超大规模数据库，
+用于训练和评估计算机视觉算法。
+当时的主流做法是在几千张图片的小数据集上做实验，
+她的同事们认为这个想法``太野心勃勃了''。
+
+2009年，她在迈阿密的一次学术会议上以海报形式
+首次展示了ImageNet，几乎没有引起关注。
+但她坚持了下来。ImageNet最终包含了约1500万张图片，
+涵盖22000个类别，并从2010年开始举办年度竞赛
+（ImageNet Large Scale Visual Recognition Challenge，ILSVRC）。
+
+正是这个竞赛为AlexNet提供了舞台。
+没有ImageNet的大规模数据，AlexNet的深度学习方法
+就无法展示其压倒性的优势。在这个意义上，
+\textbf{李飞飞的数据远见与Hinton的算法理论同样重要}。
+
+\subsubsection{斯坦福HAI与World Labs}
+李飞飞从2009年起在斯坦福大学任教，先后担任
+斯坦福AI实验室（SAIL）主任（2013--2018年）。
+2017--2018年间，她曾赴Google Cloud担任副总裁兼AI/ML首席科学家。
+2019年，她共同创立了斯坦福以人为本AI研究院
+（Stanford HAI），成为AI伦理和治理领域的重要声音。
+
+2024年9月，李飞飞与三位同事创办了\textbf{World Labs}，
+一家专注于``空间智能''（Spatial Intelligence）的AI公司，
+获得了2.3亿美元融资（投资者包括Geoffrey Hinton），
+估值达到约12.5亿美元。
+2025年，她再次入选\textit{TIME} AI 100
+最具影响力人物榜单。
+
+\begin{keybox}[Key Lesson: 数据的力量]
+李飞飞的ImageNet故事揭示了AI进步的一个常被忽视的维度：
+\textbf{数据基础设施与算法创新同样重要}。
+当学术界都在优化算法时，她选择了构建数据集——
+一个看起来``不够性感''的工作。
+但正是这种基础设施的远见，
+为整个深度学习革命提供了必要条件。
+\end{keybox}
+
+
+% =============================================================
+\section{AI大众化先锋：Andrew Ng与Andrej Karpathy}
+\label{sec:popularizers}
+% =============================================================
+
+深度学习的成功不仅需要算法突破和工程创新，
+还需要有人将这些知识传播给全世界。
+Andrew Ng和Andrej Karpathy是AI教育和普及化的两面旗帜。
+
+% -------------------------------------------------------------
+\subsection{Andrew Ng——八百万学生的AI老师}
+\label{sec:andrew-ng}
+% -------------------------------------------------------------
+
+吴恩达（Andrew Yan-Tak Ng）于1976年4月18日
+出生在英国伦敦。他的父亲Ronald Paul Ng是血液学家和讲师。
+吴恩达在卡内基梅隆大学获得计算机科学学士学位，
+在MIT获得硕士学位，在加州大学伯克利分校获得博士学位。
+
+\subsubsection{Google Brain与Coursera}
+2011年，吴恩达在斯坦福大学开设了一门在线机器学习课程，
+吸引了超过10万名学生注册——这在当时是前所未有的数字。
+这一成功直接催生了\textbf{Coursera}（2012年，
+与Daphne Koller共同创立），
+如今是全球最大的MOOC（大规模开放在线课程）平台。
+
+同时期，吴恩达创立并领导了\textbf{Google Brain}项目——
+使用大规模深度学习算法的团队。
+2012年，Google Brain产出了著名的``Google猫''实验：
+一个拥有10亿参数的神经网络自主从YouTube视频中
+学会了识别猫的概念，无需人工标注。
+这一成果登上了各大媒体头条，
+向公众展示了深度学习的无监督学习潜力。
+
+\subsubsection{百度首席科学家}
+2014年，吴恩达加入百度担任副总裁兼首席科学家，
+建设了一支超过1300人的AI团队，
+负责百度的AI技术和战略。2017年离开百度后，
+他创立了多家公司：
+\begin{itemize}[noitemsep]
+  \item \textbf{DeepLearning.AI}：在线AI教育平台，
+    至今已有超过800万学生学习过他的课程
+  \item \textbf{Landing AI}：为制造业提供AI解决方案的SaaS公司
+  \item \textbf{AI Fund}：一个初始规模1.75亿美元的
+    AI创业投资基金
+\end{itemize}
+
+2024年4月，Amazon宣布任命吴恩达为其董事会成员，
+标志着他在商业领域的影响力进一步扩大。
+
+吴恩达被\textit{TIME}杂志评为2012年100位最具影响力人物之一，
+并入选2023年TIME100 AI最具影响力AI人物榜单。
+他目前是斯坦福大学兼职教授，
+曾担任斯坦福AI实验室（SAIL）主任。
+
+\begin{corebox}[Core Insight: 民主化的力量]
+吴恩达的最大贡献或许不是任何一篇论文或一个产品，
+而是\textbf{让全世界任何有互联网连接的人都能免费学习AI}。
+从Google Brain到Coursera到DeepLearning.AI，
+他始终致力于降低AI教育的门槛。在一个充斥着
+``AI将取代人类''恐惧的时代，
+吴恩达选择的回应是：``让更多人理解AI。''
+\end{corebox}
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Andrej Karpathy——从斯坦福到特斯拉再到教育}
+\label{sec:karpathy}
+% -------------------------------------------------------------
+
+Andrej Karpathy于1986年10月23日出生在
+捷克斯洛伐克布拉迪斯拉发（现斯洛伐克），
+15岁时随家人移民到加拿大多伦多。
+他在多伦多大学获得计算机科学和物理学双学位（2009年），
+在英属哥伦比亚大学（UBC）获得硕士学位（2011年），
+在斯坦福大学获得计算机科学博士学位（2016年），
+导师正是李飞飞。
+
+\subsubsection{OpenAI、Tesla、再回OpenAI}
+Karpathy的职业轨迹是AI产业快速变化的缩影：
+\begin{itemize}[noitemsep]
+  \item \textbf{OpenAI}（2015--2017年）：作为创始成员之一，
+    研究深度学习、生成模型和强化学习。
+    他还曾在DeepMind（2015年暑期）实习，
+    参与了深度强化学习研究。
+  \item \textbf{Tesla}（2017--2022年）：担任AI高级总监，
+    领导Autopilot自动驾驶的计算机视觉团队，
+    负责数据标注、神经网络训练和在自研芯片上的部署
+  \item \textbf{OpenAI}（2023--2024年）：回归后组建了
+    专注于中间训练（midtraining）和合成数据生成的新团队
+  \item \textbf{Eureka Labs}（2024年至今）：创立的AI教育平台，
+    首个课程是LLM101n——``让我们构建一个讲故事的AI''
+\end{itemize}
+
+\subsubsection{Tesla：纯视觉方案的技术推手}
+在Tesla的五年是Karpathy职业生涯中最具挑战性的一段时期，
+也是他对工业界影响最深远的阶段。
+他主导了一个在当时极具争议的技术决策：
+\textbf{移除雷达和激光雷达，完全依赖摄像头}
+实现自动驾驶。这个``纯视觉''（Vision-Only）方案
+意味着Tesla的Autopilot/FSD系统仅使用
+安装在车身周围的八个摄像头的视频输入，
+通过深层卷积神经网络提取特征，
+再用Transformer网络融合多视角信息，
+最后通过递归神经网络（LSTM）在时间维度上整合。
+
+Karpathy在2021年CVPR会议上的技术演讲
+详细解释了这个架构的设计理念：
+``人类只用两个眼睛就能开车。
+如果摄像头足够好、神经网络足够大、
+训练数据足够多，纯视觉方案是可行的。''
+他还主导建设了Tesla内部超级计算机集群
+（全球前五），以及大规模自动标注数据的离线流水线。
+
+\subsubsection{AI时代的教育家}
+Karpathy之所以在AI社区拥有独特的影响力，
+不仅因为他的工程能力，更因为他是一位天才的教育者和传播者。
+他的YouTube频道上关于大语言模型的深度讲解视频
+（如``Deep Dive into LLMs like ChatGPT''和
+``How I use LLMs''）获得了数百万次观看。
+
+他的``Zero to Hero''编程系列从零开始构建神经网络，
+被认为是互联网上最好的深度学习入门教程之一。
+这个系列有一个鲜明的教学哲学：
+\textbf{不使用任何库，从第一行代码开始手写一切}。
+从微积分和反向传播开始，到手写一个完整的GPT模型，
+整个过程完全透明。他的开源项目\texttt{nanoGPT}
+和\texttt{minbpe}也遵循同样的``极简主义''原则——
+用最少的代码行数实现核心功能，
+让任何人都能在一台笔记本电脑上理解和运行。
+
+\begin{keybox}[Key Quote: Karpathy的编程哲学]
+``\textbf{Software 2.0}——在这个新范式中，
+你不再用C++或Python编写程序。
+你用神经网络的权重`编写'它们。
+人类写的部分只是架构和训练代码，
+而真正的`程序'是通过大规模数据优化出来的。''
+
+——Andrej Karpathy，\textit{Software 2.0}博客文章（2017年）
+\end{keybox}
+
+2020年，他入选\textit{MIT Technology Review}
+``35岁以下创新者''榜单；
+2024年，他被\textit{TIME}评为AI领域
+100位最具影响力人物之一。
+
+
+% =============================================================
+\section{GAN的发明者：Ian Goodfellow}
+\label{sec:goodfellow}
+% =============================================================
+
+Ian Goodfellow于1987年出生在美国，
+是深度学习领域最具创造力的年轻研究者之一。
+他在斯坦福大学获得计算机科学学士和硕士学位，
+最初是医学预科生，后来在Andrew Ng的课程影响下
+转向了机器学习。``我意识到这会是一条
+更快地影响更多领域的路径，''他回忆说。
+之后他前往蒙特利尔大学，在Yoshua Bengio的指导下
+攻读机器学习博士学位。
+
+\subsection{酒吧里诞生的灵感}
+
+2014年的一个夜晚，Goodfellow在蒙特利尔的一家酒吧
+与朋友讨论技术问题时，突然想到了一个绝妙的主意：
+用两个神经网络互相对抗——一个生成器（Generator）
+试图创造逼真的假数据，一个判别器（Discriminator）
+试图区分真假。两者在博弈中互相提升。
+
+他当晚回家就开始编程，第一次实验就成功了。
+这就是\textbf{生成对抗网络}
+（Generative Adversarial Networks，GANs）的诞生。
+Yann LeCun称GAN是``过去十年机器学习领域最酷的发明''。
+
+GAN的应用范围极其广泛：从生成逼真的人脸照片
+（StyleGAN）到图像超分辨率、数据增强、药物发现，
+乃至后来引发争议的Deepfake视频技术。
+
+\subsection{从OpenAI到Google到Apple再到DeepMind}
+Goodfellow的职业路径经历了AI产业的核心节点：
+\begin{itemize}[noitemsep]
+  \item \textbf{Google}（2015--2016年，2017--2019年）：
+    在Google Brain担任研究科学家和高级研究员
+  \item \textbf{OpenAI}（2016--2017年）：早期研究科学家
+  \item \textbf{Apple}（2019--2022年）：
+    担任机器学习总监（Director of Machine Learning），
+    在Apple的秘密特殊项目组工作
+  \item \textbf{DeepMind}（2022年至今）：研究科学家
+\end{itemize}
+
+他还是深度学习领域最重要的教科书之一
+——\textit{Deep Learning}（2016年，与Bengio和Aaron Courville合著）
+的第一作者。这本书被全球数百所大学采用，
+至今仍是深度学习入门的标准参考。
+
+Goodfellow被\textit{Foreign Policy}杂志
+评为100位全球思想者之一，
+被\textit{MIT Technology Review}评为
+35岁以下创新者之一。
+
+
+% =============================================================
+\section{Ilya Sutskever——从AlexNet到OpenAI到SSI}
+\label{sec:sutskever}
+% =============================================================
+
+Ilya Sutskever的名字贯穿了过去十五年深度学习的几乎每一个
+重大突破。他是AlexNet的合作者、序列到序列学习的发明者、
+OpenAI的联合创始人和首席科学家、以及2023年``OpenAI政变''
+的关键参与者。
+
+\subsection{从俄罗斯到以色列到多伦多}
+
+Sutskever于1986年12月8日出生在苏联高尔基市
+（现俄罗斯下诺夫哥罗德）。他的家庭是犹太裔，
+在苏联解体前夕的动荡中，五岁的Sutskever
+随家人移居以色列耶路撒冷。
+他在耶路撒冷度过了童年和少年时期，
+曾就读于以色列开放大学（Open University of Israel）。
+五岁时第一次看到计算机，
+他就被``完全迷住了''——``I was utterly enchanted,''
+他后来对《多伦多大学杂志》回忆说。
+这种着迷持续到了他的青少年时代。
+
+16岁时，Sutskever再次移民，这次来到了加拿大。
+他在多伦多大学获得数学学士学位（2005年），
+然后做出了改变他一生的决定：
+加入Geoffrey Hinton的实验室。
+在Hinton的指导下，他获得了计算机科学
+硕士和博士学位，博士论文聚焦于训练递归神经网络。
+Hinton后来无数次提及Sutskever的直觉天赋：
+``Ilya有一种非凡的能力，能够看出什么是重要的，
+而什么只是噪声。''
+
+\subsection{关键直觉：规模就是一切}
+
+Sutskever最重要的智识贡献可能不是任何一篇具体的论文，
+而是一个\textbf{直觉}：神经网络的性能会随着
+数据和模型规模的增长而持续提升。
+在2011年，这还远非共识——大多数研究者认为
+神经网络很快就会碰到天花板。但Sutskever说服了Krizhevsky
+用更大的数据集和更深的网络来做实验，
+最终催生了AlexNet。
+
+``Ilya觉得我们应该做这件事，Alex让它跑起来了，
+而我得了诺贝尔奖，''Hinton后来打趣说。
+
+\subsection{OpenAI：从联合创始人到``政变者''}
+
+2015年，Sutskever与Sam Altman、Greg Brockman等人
+共同创立了OpenAI。作为首席科学家和联合创始人，
+他领导了OpenAI的核心研究方向，
+是GPT系列模型的幕后推动者。他还共同领导了
+Superalignment团队——一个专注于确保超级智能AI
+可以被控制和对齐的研究小组。此外，
+他是AlphaGo论文的唯一Google DeepMind外部合作者，
+也是CLIP、DALL-E等多个里程碑式项目的核心贡献者。
+在学术影响力方面，他是历史上被引用次数最多的
+计算机科学家之一，并连续三年（2022--2024年）
+获得NeurIPS时间检验奖（Test of Time Award）——
+一个前所未有的三连冠。
+
+2023年11月17日，一场震惊科技界的事件发生了：
+OpenAI董事会突然解雇了CEO Sam Altman。
+Sutskever作为六名董事会成员之一投票支持了这一决定。
+据多方报道，他的动机是出于对AI安全的深层担忧——
+他认为OpenAI在商业化的道路上走得太快，
+安全考量正被增长压力所边缘化。
+然而，事态发展之快远超所有人的预期：
+超过700名员工签署公开信威胁集体辞职，
+微软（OpenAI最大投资者）施加了巨大压力。
+仅仅五天后，Altman就恢复了CEO职位。
+
+Sutskever在11月20日发文表示``深感后悔''，
+称``我从未想过伤害OpenAI''。但这一事件的余波
+持续了数月。Superalignment团队在他和共同领导人
+Jan Leike先后离开后被解散。
+2024年5月，Sutskever正式离开了他参与创立的公司。
+
+\subsection{Safe Superintelligence Inc.}
+
+2024年6月19日，Sutskever在X上发布了一条简洁的声明：
+``我正在创办一家新公司。我们将以一条直线追求安全的超级智能，
+只有一个焦点、一个目标、一个产品。''
+\textbf{Safe Superintelligence Inc.}（SSI）
+由他与Daniel Gross和Daniel Levy共同创立，
+总部设在帕洛阿尔托和特拉维夫。
+
+SSI的独特之处在于它的组织原则：
+\textbf{在开发任何产品之前先解决安全问题}。
+公司没有收入目标，没有产品路线图，
+没有商业化压力——它故意将自己隔离在
+硅谷的``快速发布、快速迭代''文化之外。
+``SSI是我们的使命、我们的名称、
+也是我们的全部产品路线图，''Sutskever写道，
+``因为它是我们的唯一焦点。''
+
+尽管没有任何产品，SSI的估值飙升速度令人瞠目。
+2024年9月获得约10亿美元融资后，
+2025年3月又完成了20亿美元的新一轮融资，
+估值达到约300亿美元——
+这使得SSI成为了历史上估值最高的
+``没有产品、没有收入''的创业公司。
+投资者押注的完全是Sutskever的个人智慧和判断力。
+
+Sutskever于2022年当选为英国皇家学会院士（FRS），
+2026年获得美国国家科学院工业应用科学奖。
+他的故事是AI时代最深刻的道德寓言之一：
+一个亲手建造了世界上最强大AI系统的人，
+最终选择将毕生精力投入到确保这些系统不会伤害人类。
+
+\begin{whybox}[Why This Matters: 数据的顿悟]
+Sutskever最重要的智识遗产或许可以用一句话概括：
+\textbf{``数据是AI的心脏。''}
+在2011年，大多数研究者认为神经网络的性能
+会很快碰到天花板。但Sutskever有一个近乎信仰的直觉：
+如果你给模型更多的数据、更大的规模，
+它的表现会持续提升——不会有明显的``瓶颈''。
+这个直觉催生了AlexNet，推动了GPT系列的Scaling Law，
+并最终塑造了整个AI产业``越大越好''的范式。
+然而，讽刺的是，创造了Scaling Law信仰的人，
+后来也是第一个说``仅靠扩展是不够的''的人——
+这正是他创立SSI的原因。
+\end{whybox}
+
+
+% =============================================================
+\section{DeepMind：从游戏到诺贝尔奖}
+\label{sec:deepmind}
+% =============================================================
+
+% -------------------------------------------------------------
+\subsection{Demis Hassabis——国际象棋神童、游戏设计师、诺贝尔奖得主}
+\label{sec:hassabis}
+% -------------------------------------------------------------
+
+Demis Hassabis于1976年7月27日出生在英国伦敦北部，
+父亲是希腊裔塞浦路斯人，母亲是新加坡华人。
+他的人生轨迹读起来像是一部不可思议的小说。
+
+\subsubsection{神童年代}
+四岁时，Hassabis看到父亲和叔叔下国际象棋，
+要求他们教他。他很快就在棋局上击败了两位长辈。
+到13岁时，他已是国际象棋大师（Chess Master），
+Elo等级分一度达到约2300分，
+是当时英格兰同年龄段排名第二的棋手。
+他在国际比赛中与成年人对弈，
+展现出远超年龄的战略思维能力。
+八岁时，他得到了人生中第一台计算机，
+立刻用它编写了一个能下奥赛罗棋（Othello）的程序。
+
+然而，他的野心远不止于棋盘。他很早就意识到，
+比赢得棋局更有趣的是\textbf{理解游戏背后的思维机制}，
+并用计算机重现它。``下棋让我开始思考：
+我自己的思维过程是怎样的？
+我能不能改进它？''——这个反思直接将他引向了人工智能。
+
+\subsubsection{游戏产业与学术之路}
+Hassabis的游戏生涯开始得惊人地早。
+16岁时，他就加入了Peter Molyneux创立的
+Bullfrog Productions，参与设计了赛博朋克策略游戏
+\textit{Syndicate}。17岁时，他担任了
+\textit{Theme Park}的\textbf{首席程序员}——
+这是一款模拟经营游乐园的游戏，
+赢得了当年的金摇杆奖（Golden Joystick Award），
+全球销量数百万份，
+催生了整个``经营模拟''（Tycoon）游戏品类。
+考虑到他当时只有17岁，这个成就几乎不可思议。
+
+Peter Molyneux回忆Hassabis第一天来上班的场景：
+``他看起来像《指环王》里的精灵……
+这个瘦小的孩子走进来，你在街上可能看都不会看一眼。
+但他眼里有一种闪光：智慧的闪光。''
+
+Hassabis随后在剑桥大学皇后学院（Queens' College）
+以``双重一等''（Double First）的成绩获得计算机科学学士学位（1997年）。
+毕业后他先在Peter Molyneux的新公司Lionhead Studios工作，
+又创立了自己的游戏公司Elixir Studios（2000--2005年），
+开发了即时战略游戏\textit{Republic: The Revolution}
+和\textit{Evil Genius}。
+
+然而，游戏产业没有完全满足他的求知欲。
+2005年，他做出了一个令人惊讶的决定：
+放弃商业，进入伦敦大学学院（UCL）攻读认知神经科学博士学位。
+
+\subsubsection{神经科学：理解大脑如何想象}
+Hassabis的博士研究聚焦于一个迷人的问题：
+\textbf{人类大脑是如何构建对未来场景的想象的？}
+他发现，海马体（hippocampus）——
+一个传统上被认为只与记忆有关的脑区——
+在``想象从未发生过的新场景''时同样发挥关键作用。
+海马体受损的患者不仅会失去记忆，
+还会失去想象新场景的能力。
+
+这项研究发表在2007年的\textit{Proceedings of the
+National Academy of Sciences}上，
+随后在\textit{Science}的拓展研究中得到进一步验证，
+被誉为认知神经科学领域十年来最重要的发现之一。
+更关键的是，它为Hassabis后来创立DeepMind提供了
+核心的生物学启示：\textbf{记忆、想象和规划
+共享相同的神经计算基础}——
+如果你能理解这种机制，
+你就找到了通往通用智能的生物学线索。
+
+\subsubsection{DeepMind的创立与收购}
+2010年，Hassabis与Shane Legg和Mustafa Suleyman
+共同创立了\textbf{DeepMind Technologies}。
+公司的使命直截了当：``解决智能，然后用智能解决一切''
+（Solve intelligence, then use that to solve everything else）。
+
+2014年1月，Google以约5亿英镑收购了DeepMind
+——当时AI创业公司的最高收购价。
+收购后，DeepMind保持了相当大的研究自主权。
+
+\subsubsection{AlphaGo：AI的``登月时刻''}
+2016年3月，DeepMind的\textbf{AlphaGo}在首尔以4:1
+击败了围棋世界冠军李世石——
+这是AI历史上最具象征意义的时刻之一。
+全球超过2亿人在线观看了这场比赛。
+围棋因其天文数字般的可能局面（约$10^{170}$），
+被认为是``AI的终极挑战''——
+大多数专家预测AI至少还需要十年才能在围棋上击败人类。
+
+这场比赛的决定性时刻是第二局中的\textbf{第37手}（Move 37）。
+这是一步如此非传统的棋着，以至于职业棋手评论员
+最初认为它是一个错误——``这不是人类会下的棋。''
+但它被证明是决定性的一步。
+Hassabis后来在2026年3月AlphaGo十周年回顾中写道：
+``Move 37展示了AI的潜力，
+它标志着我们现在拥有了
+开始处理真实世界科学问题的技术手段。''
+
+更令人动容的是第四局。李世石在前三局均告负后，
+在第四局中下出了被称为``God's Move''的第78手，
+击败了AlphaGo。当这一步棋落下时，
+观赛室里的DeepMind工程师们竟然鼓起了掌——
+他们为对手的创造力而喝彩。
+这一刻被纪录片\textit{AlphaGo}（2017年）完美捕捉，
+成为了AI历史上最具人文温度的影像记录之一。
+
+AlphaGo的技术核心——结合深度神经网络与蒙特卡洛树搜索的
+强化学习方法——主要由David Silver领导的团队开发
+（见\ref{sec:david-silver}节）。
+
+\subsubsection{AlphaFold与诺贝尔奖}
+如果说AlphaGo证明了AI可以在游戏中超越人类，
+那么\textbf{AlphaFold}则证明了AI可以解决
+人类无法解决的科学问题。
+
+蛋白质折叠问题——根据氨基酸序列预测蛋白质的三维结构——
+是生物学领域持续了50年的大挑战。
+2020年，AlphaFold 2在CASP14竞赛中以碾压性的优势获胜，
+准确度达到了实验方法的水平。到2024年，
+AlphaFold数据库已免费发布了超过2.14亿个蛋白质结构预测，
+被来自190个国家的超过200万名研究者使用。
+
+2024年10月9日，瑞典皇家科学院宣布将诺贝尔化学奖
+授予Demis Hassabis和John Jumper（因蛋白质结构预测），
+以及David Baker（因计算蛋白质设计）。
+这使得Hassabis成为了从国际象棋神童到游戏设计师
+到神经科学家再到诺贝尔奖得主的``不可能之路''的终点
+——或者说，新的起点。
+2024年他被英国王室授予爵士爵位（knighted），
+2025年他入选\textit{TIME} 100最具影响力人物，
+并被选为\textit{TIME}年度人物``AI建筑师''群体的代表之一。
+
+\subsubsection{管理风格与``谨慎乐观主义''}
+Hassabis对AI的态度可以被概括为\textbf{``谨慎乐观主义''}
+（cautious optimism）——
+这与Hinton的``悲观警报主义''和LeCun的``务实乐观主义''
+形成了有趣的三角关系。
+``我终生致力于这项工作，因为我相信它将成为
+人类最有益的技术，''他在获得诺贝尔奖后说，
+``但伴随着如此强大和变革性的技术，风险也随之而来。''
+
+作为DeepMind的CEO，Hassabis以一种罕见的管理风格著称：
+他同时是科学家和管理者，能够深入到具体的技术细节中，
+又能把握组织的整体战略方向。
+他还创立了\textbf{Isomorphic Labs}（2021年），
+一家将AI应用于药物发现的独立公司，
+利用AlphaFold的技术积累来加速新药开发。
+截至2026年，他继续担任Google DeepMind的CEO
+和英国政府的AI顾问。
+
+\begin{whybox}[Why This Matters: 跨学科的力量]
+Hassabis的故事是跨学科思维力量的极致展现。
+国际象棋训练了他的战略思维，游戏设计教会了他如何
+构建复杂系统，神经科学给了他理解智能的生物学视角。
+正是这些看似不相关的经历的融合，
+使他能够设想并实现像DeepMind这样的组织。
+这提醒我们：\textbf{最伟大的AI突破往往
+来自于AI之外的灵感。}
+\end{whybox}
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{David Silver——AlphaGo的架构师}
+\label{sec:david-silver}
+% -------------------------------------------------------------
+
+David Silver于1976年出生在英国，
+在剑桥大学基督学院（Christ's College）获得学士学位（1997年），
+期间与Demis Hassabis成为了朋友。
+毕业后，他没有直接进入学术界，
+而是共同创立了一家视频游戏公司Elixir Studios。
+
+2004年，Silver重返学术界，
+在加拿大阿尔伯塔大学攻读强化学习方向的博士学位（2009年毕业）。
+他的博士论文``Reinforcement Learning and Simulation-Based
+Search in Computer Go''为后来的AlphaGo奠定了技术基础。
+
+Silver在DeepMind领导或共同领导了一系列里程碑式的项目：
+\begin{itemize}[noitemsep]
+  \item 用深度强化学习玩Atari游戏（\textit{Nature}，2015年）
+  \item \textbf{AlphaGo}：击败围棋世界冠军（\textit{Nature}，2016年）
+  \item \textbf{AlphaZero}：从零开始学习下棋、将棋和围棋，
+    击败所有最强AI程序（\textit{Nature}，2017年；\textit{Science}，2018年）
+  \item \textbf{MuZero}：不需要知道规则就能学会游戏
+    （\textit{Science}，2020年）
+  \item 对AlphaFold（蛋白质折叠）和AlphaProof
+    （在国际数学奥林匹克中获得奖牌，2024年）的贡献
+\end{itemize}
+
+Silver的工作获得了ACM计算奖（2019年）、
+Mensa基金会奖、英国皇家工程学院银质奖章、
+以及ACM Fellow和英国皇家学会院士（FRS）等荣誉。
+
+2025年，Silver离开DeepMind，创立了\textbf{Ineffable Intelligence}，
+继续追求用强化学习构建超级智能代理的研究。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{John Jumper——解开蛋白质密码的人}
+\label{sec:jumper}
+% -------------------------------------------------------------
+
+John Michael Jumper于1985年出生在美国阿肯色州小石城。
+他在范德堡大学（Vanderbilt University）获得物理学学士学位，
+在剑桥大学获得MPhil（Marshall奖学金），
+在芝加哥大学获得硕士和博士学位（2017年，
+导师Tobin Sosnick和Karl Freed）。
+他的博士论文题为``New Methods Using Rigorous Machine Learning
+for Coarse-Grained Protein Folding and Dynamics''
+——精确预见了他后来在DeepMind的工作方向。
+
+加入DeepMind后，Jumper领导了AlphaFold 2的技术开发。
+这个系统在2020年的CASP14竞赛中取得了中位GDT分数92.4
+的惊人成绩（满分100，实验方法通常在90分左右），
+解决了一个困扰生物学家半个世纪的问题。
+
+2024年，38岁的Jumper与Hassabis共同获得诺贝尔化学奖
+——他是历史上最年轻的化学奖得主之一。
+``这太不可思议了，''他在获奖后说。
+``我一直是一个计算生物学家，
+我喜欢在演讲中说：我们需要这个方法行得通。
+我们需要计算来解决生物学的问题——
+而它真的开始行得通了。''
+
+Jumper的其他荣誉包括\textit{Nature}年度十大科学人物（2021年）、
+BBVA基金会前沿知识奖（2022年）和
+Breakthrough Prize生命科学奖（2023年）。
+截至2025年，他继续在Google DeepMind担任总监。
+
+
+% =============================================================
+\section{理论奠基者与AI哲人}
+\label{sec:theorists}
+% =============================================================
+
+深度学习的爆发离不开更广泛的AI理论基础。
+本节介绍几位虽然不总被归入``深度学习''阵营，
+但对整个AI领域具有根本性影响的理论家。
+
+% -------------------------------------------------------------
+\subsection{Judea Pearl——因果推理的先知}
+\label{sec:pearl}
+% -------------------------------------------------------------
+
+Judea Pearl于1936年9月4日出生在英属巴勒斯坦托管地的
+特拉维夫（现以色列）。他在以色列理工学院（Technion）
+获得电气工程学士学位（1960年），
+在纽瓦克工程学院（现新泽西理工学院）获得电子学硕士学位（1961年），
+在罗格斯大学获得物理学硕士学位，
+在布鲁克林理工学院（现纽约大学工程学院）
+获得电气工程博士学位（1965年）。
+
+\subsubsection{贝叶斯网络与因果推理}
+1969年，Pearl加入加州大学洛杉矶分校（UCLA）计算机科学系，
+此后再未离开。他的两项核心贡献彻底改变了AI处理不确定性的方式：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{贝叶斯网络}（1980年代）：Pearl开发了一种
+    用有向无环图表示变量之间概率依赖关系的框架，
+    以及在这些图上进行高效推理的信念传播算法。
+    这一框架使得AI系统能够在不确定条件下进行合理推理，
+    成为医学诊断、语音识别和机器人技术等领域的基石。
+  \item \textbf{因果推理}（1990年代至今）：Pearl提出了
+    一套基于结构因果模型的因果推理数学框架——
+    do-calculus——使得从观测数据中
+    推断因果关系成为可能。他的著作
+    \textit{Causality: Models, Reasoning and Inference}
+    （2000年）成为了统计学、经济学、流行病学等
+    多个学科的标准参考。
+\end{itemize}
+
+2011年，Pearl获得图灵奖，
+``以表彰他通过发展概率和因果推理的演算
+对人工智能的根本贡献''。
+2025年，他被选为英国皇家学会的外籍院士。
+
+Pearl也因其个人悲剧而为公众所知：
+他的儿子Daniel Pearl是《华尔街日报》记者，
+2002年在巴基斯坦被基地组织关联的恐怖分子绑架并杀害。
+Pearl此后一直积极参与Daniel Pearl基金会的工作。
+
+\begin{corebox}[Core Insight: 因果推理的AI意义]
+Pearl认为当前的深度学习系统存在根本性局限：
+它们只能发现\textbf{相关性}，而无法理解\textbf{因果关系}。
+``我们即将见证一场小型革命，''他说。
+``将因果模型引入机器学习，将产生一台能理解
+自己为什么这样做、哪里做错了、
+如何不再重蹈覆辙、如何向用户解释自己的错误、
+并能说出`对不起'且\textbf{真心如此}的机器。''
+这一观点对理解当前大语言模型的局限性
+和未来的改进方向至关重要。
+\end{corebox}
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Michael I. Jordan——机器学习的``乔丹''}
+\label{sec:michael-jordan}
+% -------------------------------------------------------------
+
+Michael Irwin Jordan于1956年2月25日出生在美国
+马里兰州阿伯丁。他在路易斯安那州立大学获得心理学学士学位（1978年），
+在亚利桑那州立大学获得数学（统计学）硕士学位（1980年），
+在加州大学圣迭戈分校获得认知科学博士学位（1985年）。
+
+2016年，\textit{Science}杂志将Jordan评为
+\textbf{全球最具影响力的计算机科学家}——
+一个令许多人感到意外的排名，因为Jordan的名字
+在公众中远不如Hinton或LeCun知名。
+但在学术界，他的影响力是无与伦比的。
+
+\subsubsection{学术贡献}
+Jordan的贡献横跨机器学习、统计学、认知科学和
+生物信息学：
+\begin{itemize}[noitemsep]
+  \item \textbf{潜在狄利克雷分配}（LDA，2003年，与David Blei
+    和Andrew Ng合作）：一种广泛使用的主题模型
+  \item 变分推理的理论框架
+  \item 循环神经网络（Jordan网络）的早期形式
+  \item 机器学习中概率方法的系统发展
+\end{itemize}
+
+他在MIT（1988--1998年）和UC Berkeley（1998年至今）
+培养了一批深刻影响AI领域的学生，
+包括Andrew Ng、Zoubin Ghahramani（剑桥教授、
+Google DeepMind研究副总裁）、
+David Blei（哥伦比亚大学教授）和Percy Liang等。
+
+Jordan是美国国家科学院院士、美国国家工程院院士、
+美国艺术与科学院院士、英国皇家学会外籍院士。
+他获得了2022年首届世界顶尖科学家协会（WLA）奖
+（计算机科学类），2020年IEEE John von Neumann Medal，
+2016年IJCAI卓越研究奖，2015年David Rumelhart奖等荣誉。
+
+Jordan曾多次发表文章指出，人们对``AI''这个术语的
+过度使用和炒作可能会造成误导。他强调，
+当前的系统本质上是\textbf{统计模式匹配}，
+距离真正的``智能''还有很长的路要走。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Stuart Russell与Peter Norvig——AI教科书的双星}
+\label{sec:russell-norvig}
+% -------------------------------------------------------------
+
+如果说AI领域有一本``圣经''，那就是
+\textit{Artificial Intelligence: A Modern Approach}
+（AIMA，《人工智能：一种现代方法》）。
+这本由Stuart Russell和Peter Norvig合著的教科书
+自1995年首版以来，已在135个国家的超过1500所大学中使用，
+Google Scholar引用超过59000次，
+是世界上使用最广泛的AI教科书。
+第四版于2020年出版。
+
+\subsubsection{Stuart Russell}
+Stuart Jonathan Russell于1962年出生在英国朴茨茅斯。
+他在牛津大学Wadham学院获得物理学一等荣誉学士学位（1982年），
+在斯坦福大学获得计算机科学博士学位（1986年）。
+博士毕业后即加入UC Berkeley，
+目前担任杰出教授（Distinguished Professor），
+持有Smith-Zadeh工程讲席。
+
+Russell的学术贡献涵盖AI的多个核心领域，
+但大约从2013年开始，他将越来越多的精力
+转向了\textbf{AI安全}。他创立了UC Berkeley的
+人类兼容AI中心（CHAI），并于2019年出版了
+极具影响力的著作\textit{Human Compatible}
+（《与人类兼容》），提出了一种基于逆强化学习
+（Inverse Reinforcement Learning）的AI安全框架——
+让AI系统通过观察人类行为来学习人类的目标和偏好，
+而不是被赋予固定的目标函数。
+
+Russell目前是世界经济论坛AI理事会联合主席、
+OECD AI未来专家组联合主席，
+并担任英国、美国和欧盟多个AI政策咨询委员会的成员。
+2021年，他被BBC邀请发表里思讲座（Reith Lectures）
+——英国最负盛名的公共演讲系列之一。
+
+\subsubsection{Peter Norvig}
+Peter Norvig是美国计算机科学家，
+在UC Berkeley获得博士学位（1986年），
+现任斯坦福大学HAI的杰出教育院士
+（Distinguished Education Fellow），
+同时也是Google的研究员。
+
+Norvig的职业生涯横跨学术界、NASA和Google：
+他曾在USC、斯坦福和Berkeley任教，
+在NASA Ames研究中心担任计算科学部门负责人
+（获得NASA杰出成就奖），
+2001年加入Google后先后领导了核心搜索算法团队
+和研究部门。他是AAAI Fellow、ACM Fellow、
+加州科学院院士和美国艺术与科学院院士。
+
+与Russell共同教授的一门AI在线课程
+吸引了160000名学生注册，
+是MOOC革命的先驱之一。
+
+
+% =============================================================
+\section{未来学家与AI治理先驱}
+\label{sec:futurists-governance}
+% =============================================================
+
+% -------------------------------------------------------------
+\subsection{Ray Kurzweil——奇点的预言者}
+\label{sec:kurzweil}
+% -------------------------------------------------------------
+
+Raymond Kurzweil于1948年2月12日出生在美国纽约皇后区。
+他在MIT获得计算机科学学士学位。
+他是发明家、作家、企业家和未来学家——
+在AI的学术界和产业界之外，
+他可能是公众认知度最高的AI相关人物。
+
+\subsubsection{发明家的履历}
+Kurzweil的发明清单令人叹为观止：
+\begin{itemize}[noitemsep]
+  \item 第一台全字体光学字符识别（OCR）系统
+  \item 第一台文本转语音阅读机（Kurzweil Reading Machine，
+    第一台被盲人音乐家Stevie Wonder订购）
+  \item Kurzweil K250——第一台能够逼真模拟
+    大钢琴和其他管弦乐器音色的电子乐器
+  \item 多项语音识别技术的突破
+\end{itemize}
+
+他因此获得了1999年美国国家技术与创新奖章
+（由克林顿总统亲自颁发）、
+2001年Lemelson-MIT奖（50万美元）、
+21个荣誉博士学位以及三位美国总统的表彰。
+PBS将他列为``塑造美国的16位革命者''之一。
+
+\subsubsection{奇点理论}
+Kurzweil的核心思想是\textbf{加速回报定律}
+（The Law of Accelerating Returns）：
+技术进步是指数级的，而人类的直觉是线性的，
+因此我们系统性地低估了未来的变化速度。
+
+他在2005年的著作\textit{The Singularity Is Near}
+（《奇点临近》）中预测：到2029年，
+AI将达到人类水平的通用智能（AGI）；
+到2045年左右，人类和机器智能将合并，
+达到``奇点''（Singularity）。
+在2024年的续作\textit{The Singularity Is Nearer}
+（《奇点更近了》）中，他重申了这些预测，
+并指出AI的最新进展使得2029年的AGI时间表
+正在获得越来越多的可信度。
+
+Kurzweil自2012年起在Google工作，
+目前仍然是Google的首席未来学家和AI研究员。
+无论人们是否同意他的预测，
+他的框架无疑深刻影响了整个AI产业对未来的想象。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Yejin Choi——常识推理的先锋}
+\label{sec:yejin-choi}
+% -------------------------------------------------------------
+
+Yejin Choi是韩裔美国计算机科学家，
+专注于自然语言处理、常识推理和多模态AI研究。
+她目前是斯坦福大学HAI的Dieter Schwarz基金会
+计算机科学教授和高级研究员，
+此前在华盛顿大学Allen School担任教授（2014--2023年），
+同时是Allen AI研究所（AI2）的资深研究经理。
+
+\subsubsection{常识推理：AI最难的问题}
+Choi的核心研究方向是让AI系统具备\textbf{常识推理}能力——
+即人类在日常生活中不假思索就能运用的知识：
+``如果你把冰淇淋放在太阳下，它会融化''、
+``人们通常在生日时感到高兴''。
+这些对人类来说极其简单的推理，
+对AI系统来说却异常困难。
+
+她领导开发的项目包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{ATOMIC}：大规模常识知识图谱
+  \item \textbf{COMET}：能够自动生成常识推理的神经网络模型
+  \item 对大语言模型``隐含偏见''和
+    ``道德推理能力''的系统性研究
+\end{itemize}
+
+\subsubsection{``天才''基金与公共影响力}
+2022年10月，Choi被授予\textbf{MacArthur Fellow}
+（麦克阿瑟``天才''基金），获得80万美元无条件奖金，
+以表彰她``使用自然语言处理开发能够推理并理解
+人类语言隐含含义的AI系统''的工作。
+
+2023年，她入选\textit{TIME} 100 AI最具影响力人物榜单；
+2025年再次入选。她是AI领域少数同时在
+学术研究和公共政策讨论中都具有重要影响力的女性科学家之一。
+
+\bigskip
+
+% -------------------------------------------------------------
+\subsection{Percy Liang——基准测试与开源的守护者}
+\label{sec:percy-liang}
+% -------------------------------------------------------------
+
+Percy Liang是斯坦福大学计算机科学副教授，
+斯坦福基础模型研究中心（CRFM）主任，
+也是Stanford HAI的高级研究员。
+他在MIT获得学士和工程硕士学位，
+在UC Berkeley获得博士学位（2011年，
+导师为Michael I. Jordan和Dan Klein）。
+
+Liang的核心贡献在于为AI/ML领域建立了
+\textbf{严格的评估和基准测试框架}：
+\begin{itemize}[noitemsep]
+  \item \textbf{HELM}（Holistic Evaluation of Language Models）：
+    一个全面评估大语言模型的开源基准，
+    涵盖准确性、校准度、鲁棒性、公平性和效率等多个维度。
+    HELM已成为评估和比较不同LLM的行业标准之一。
+  \item \textbf{CodaLab Worksheets}：促进可复现研究的平台
+  \item 基础模型透明度指数和AI政策建议
+\end{itemize}
+
+他的奖项包括总统早期职业科学家和工程师奖（PECASE，2019年）、
+IJCAI计算机与思想奖（2016年）、
+NSF CAREER奖和Sloan研究基金等。
+
+Liang同时也是\textbf{Together AI}的联合创始人——
+一家提供开源AI基础设施的公司。
+他的工作体现了一种理念：
+\textbf{AI的进步不仅需要更强的模型，
+更需要更好的评估方法和更高的透明度。}
+
+
+% =============================================================
+\section{本章小结}
+\label{sec:pioneers-summary}
+% =============================================================
+
+回顾本章介绍的三十余位深度学习先驱，
+几个贯穿性的主题清晰浮现：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{长期主义的回报}：Hinton、LeCun和Bengio
+    在神经网络的``寒冬''中坚持了近三十年。
+    Hochreiter和Schmidhuber的LSTM等了近二十年
+    才获得大规模商业应用。科学上最有价值的方向
+    往往需要最长的等待。
+
+  \item \textbf{跨学科的力量}：本章中最成功的人物
+    几乎都具有跨学科背景——Hinton从心理学出发，
+    Jordan从认知科学出发，Hassabis融合了
+    游戏设计和神经科学，Jumper从物理学和化学出发。
+    深度学习本身就是数学、计算机科学、
+    统计学和神经科学交叉的产物。
+
+  \item \textbf{工程与理论的双轮驱动}：
+    每一个重大突破都需要理论洞察和工程实现的结合。
+    Transformer论文的八位作者既是研究者也是工程师；
+    AlexNet的成功依赖于Krizhevsky将CNN
+    高效实现在GPU上的工程能力。
+
+  \item \textbf{责任意识的觉醒}：从Hinton离开Google到
+    Bengio创立LawZero，从Sutskever创立SSI到
+    Russell出版\textit{Human Compatible}，
+    越来越多的深度学习先驱正在将精力
+    从``让AI更强大''转向``让AI更安全''。
+    这种转变不是偶然的——
+    恰恰是最了解这项技术的人最清楚其潜在风险。
+
+  \item \textbf{从学术到创业的大迁徙}：
+    Transformer论文的八位作者全部离开Google创业；
+    LeCun在65岁离开Meta创业；
+    David Silver离开DeepMind创立Ineffable Intelligence。
+    这反映了一个更广泛的趋势：
+    AI人才正在从大公司流向创业公司，
+    寻找更大的自主权和影响力。
+    关于这一趋势的详细分析，
+    读者可参阅姊妹篇\textit{AI Startup Landscape}。
+\end{enumerate}
+
+\begin{whybox}[Why This Chapter Matters]
+理解这些先驱的故事不仅是满足历史好奇心。
+在一个AI正在深刻重塑社会的时代，
+了解\textbf{谁}在做出关键决策、
+他们的\textbf{动机}和\textbf{价值观}是什么、
+以及他们过去的\textbf{选择}如何塑造了今天的AI景观，
+对于每一个关心AI未来的人来说都至关重要。
+技术不是在真空中发展的——
+它是由具体的人在具体的环境中创造的。
+本章讲述的就是这些人的故事。
+\end{whybox}

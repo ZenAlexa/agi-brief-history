@@ -1,0 +1,315 @@
+\documentclass[
+  customlatinfont = macos,
+]{hkustthesis}
+
+\usepackage{hkust-cjk}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{calc,decorations.markings,decorations.pathreplacing,positioning,fit,backgrounds,arrows.meta,shapes.geometric}
+% === Global scientific figure palette ===
+% Inspired by Nature/Science/Springer Lecture Notes
+\definecolor{figBlue}{HTML}{2166AC}
+\definecolor{figRed}{HTML}{B2182B}
+\definecolor{figGreen}{HTML}{1B7837}
+\definecolor{figOrange}{HTML}{E66101}
+\definecolor{figGray}{HTML}{636363}
+\definecolor{figLightGray}{HTML}{F0F0F0}
+\usepackage{fontawesome5}  % \faGithub, \faEnvelope, etc.
+
+% ============================================================
+% Book-style formatting: compact layout + footnote citations
+% ============================================================
+
+% Reduce line spacing for book-like density
+\linespread{1.25}
+
+% Tighter list spacing globally
+\setlist{itemsep=0pt, parsep=1pt, topsep=3pt}
+
+% Book-style footnote citations: \cite{key} -> footnote with full reference
+% \unskip removes the preceding ~ (non-breaking space) before footnote marker
+\let\origcite\cite
+\renewcommand{\cite}[1]{\unskip\footfullcite{#1}}
+
+% Code listing style (slightly smaller for book density)
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+  columns=flexible,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+  keywordstyle=\color{blue!70!black}\bfseries,
+  commentstyle=\color{green!50!black}\itshape,
+  stringstyle=\color{red!60!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=6pt,
+  tabsize=4,
+  showstringspaces=false,
+  language=Python,
+  aboveskip=6pt,
+  belowskip=6pt,
+}
+
+% Insight box colors
+\definecolor{coreBg}{HTML}{EFF6FF}
+\definecolor{coreBorder}{HTML}{3B82F6}
+\definecolor{whyBg}{HTML}{FEF3C7}
+\definecolor{whyBorder}{HTML}{D97706}
+\definecolor{keyBg}{HTML}{F0FDF4}
+\definecolor{keyBorder}{HTML}{22C55E}
+\definecolor{warnBg}{HTML}{FEF2F2}
+\definecolor{warnBorder}{HTML}{EF4444}
+\definecolor{mathBg}{HTML}{F5F3FF}
+\definecolor{mathBorder}{HTML}{8B5CF6}
+\definecolor{codeBg}{HTML}{ECFDF5}
+\definecolor{codeBorder}{HTML}{10B981}
+
+\newtcolorbox{corebox}[1][]{
+  colback=coreBg, colframe=coreBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\newtcolorbox{whybox}[1][]{
+  colback=whyBg, colframe=whyBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\newtcolorbox{keybox}[1][]{
+  colback=keyBg, colframe=keyBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\newtcolorbox{warnbox}[1][]{
+  colback=warnBg, colframe=warnBorder,
+  fonttitle=\bfseries, title={#1},
+  boxrule=0.8pt, arc=3pt,
+  before skip=6pt, after skip=6pt,
+}
+
+\hkustsetup{
+  info = {
+    degree        = {mphil},
+    title         = {The AI Startup Landscape: A Comprehensive Survey of the Global AI Ecosystem (2022--2026)},
+    author        = {Ziming Wang},
+    school        = {Academy of Interdisciplinary Studies},
+    department    = {Division of Integrative Systems and Design},
+    program       = {Technology Innovation and Entrepreneurship},
+    supervisor    = {},
+    submit-month  = {March 2026},
+    submit-date   = {21 March 2026},
+    defend-date   = {},
+    city          = {Hong Kong},
+  }
+}
+
+\addbibresource{refs.bib}
+\emergencystretch=2em
+
+% ============================================================
+% Springer svmono-aligned book numbering
+% ============================================================
+% Restore chapter-prefixed counters (override NeurIPS global numbering)
+\counterwithin{section}{chapter}
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+\counterwithin{equation}{chapter}
+
+% Springer monograph standard: number down to subsection (3 levels),
+% subsubsection is unnumbered bold run-in heading.
+\setcounter{secnumdepth}{2}
+
+% Subsubsection: unnumbered, bold, run-in (Springer svmono style)
+\titleformat{\subsubsection}[runin]
+  {\normalsize\bfseries}{}{0pt}{#1.}
+\titlespacing{\subsubsection}{0pt}
+  {1.5ex plus 0.5ex minus 0.2ex}{0.8em}
+
+\begin{document}
+
+% ============================================================
+% Cover page — Springer Nature typography, LNAI-inspired layout
+% ============================================================
+\newfontfamily\coversans{MerriweatherSans-Regular.otf}[
+  Path = /usr/local/texlive/2025/texmf-dist/fonts/opentype/sorkin/merriweather/,
+  BoldFont = MerriweatherSans-Bold.otf,
+  ItalicFont = MerriweatherSans-Italic.otf,
+  BoldItalicFont = MerriweatherSans-BoldItalic.otf,
+]
+\newfontfamily\coverserif{Merriweather-Regular.otf}[
+  Path = /usr/local/texlive/2025/texmf-dist/fonts/opentype/sorkin/merriweather/,
+  BoldFont = Merriweather-Bold.otf,
+  ItalicFont = Merriweather-Italic.otf,
+  BoldItalicFont = Merriweather-BoldItalic.otf,
+]
+\definecolor{coverBg}{HTML}{FAFAFA}      % warm off-white (Springer cover stock)
+\definecolor{coverBand}{HTML}{1A4730}    % deep forest green — distinguishes from Emergence's teal-navy
+\definecolor{coverTitle}{HTML}{1A1A1A}   % near-black for title
+\definecolor{coverAccent}{HTML}{C4883A}  % warm amber accent (vs Emergence's gold)
+\definecolor{coverSub}{HTML}{5A5A5A}     % dark grey for secondary text
+\definecolor{coverNode}{HTML}{7BA38F}    % muted green for network motif
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+  % === Off-white background ===
+  \fill[coverBg] (current page.south west) rectangle (current page.north east);
+
+  % === Left band — deep green panel (58mm) ===
+  \fill[coverBand]
+    (current page.south west) rectangle
+    ([xshift=58mm]current page.north west);
+
+  % === Geometric motif: interconnected startup ecosystem ===
+  % Hub-and-spoke pattern representing layered ecosystem
+  \begin{scope}[shift={(current page.south west)}, xshift=29mm, yshift=80mm,
+                every node/.style={circle, fill=coverNode!70, minimum size=3pt,
+                                   inner sep=0pt}]
+    % Central hub nodes (foundation models)
+    \node (h1) at (0, 5.0) {};
+    \node (h2) at (0.6, 6.2) {};
+    \node (h3) at (-0.4, 7.4) {};
+    % Infrastructure layer (bottom)
+    \node (i1) at (-0.8, 1.0) {};
+    \node (i2) at (0.5, 1.8) {};
+    \node (i3) at (-0.3, 2.6) {};
+    \node (i4) at (0.8, 3.2) {};
+    % Platform layer (middle)
+    \node (p1) at (-1.0, 4.0) {};
+    \node (p2) at (1.1, 4.4) {};
+    \node (p3) at (-0.6, 3.6) {};
+    % Application layer (top)
+    \node (a1) at (-0.9, 8.4) {};
+    \node (a2) at (0.7, 9.0) {};
+    \node (a3) at (-0.2, 9.8) {};
+    \node (a4) at (0.4, 10.6) {};
+    \node (a5) at (-0.7, 11.2) {};
+    % Thin connections (ecosystem web)
+    \foreach \a/\b in {i1/i2, i2/i3, i3/i4, i1/i3,
+                        i3/p1, i4/p2, i2/p3,
+                        p1/h1, p2/h2, p3/h1,
+                        h1/h2, h2/h3, h1/h3,
+                        h2/a1, h3/a2, h2/a3,
+                        a1/a2, a2/a3, a3/a4, a4/a5, a1/a5}
+      \draw[white!18, line width=0.3pt] (\a) -- (\b);
+    % Highlighted path (infra → model → app value chain)
+    \foreach \a/\b in {i1/i3, i3/p1, p1/h1, h1/h2, h2/a3, a3/a4}
+      \draw[coverAccent!60, line width=0.7pt] (\a) -- (\b);
+    % Key nodes in amber
+    \foreach \n in {i1, h1, h2, a4}
+      \node[fill=coverAccent!80, minimum size=4.5pt] at (\n) {};
+  \end{scope}
+
+  % === Top-left: series label (white on band, Springer style) ===
+  \node[anchor=north west, white!80,
+        font=\fontsize{7.5}{9}\coversans\selectfont,
+        text width=48mm, align=left]
+    at ([xshift=5mm, yshift=-12mm]current page.north west)
+    {LLM Observatory\\[1pt]Monograph Series};
+
+  % === Top rule (amber, spans from band to right edge) ===
+  \fill[coverAccent]
+    ([xshift=58mm, yshift=-28mm]current page.north west)
+    rectangle
+    ([xshift=-20mm, yshift=-29.5mm]current page.north east);
+
+  % === Main title block ===
+  \node[anchor=north west, coverTitle,
+        font=\fontsize{32}{40}\coversans\bfseries\selectfont,
+        text width=10cm]
+    at ([xshift=68mm, yshift=-38mm]current page.north west)
+    {The AI Startup\\Landscape};
+
+  % === Chinese title ===
+  \node[anchor=north west, coverSub,
+        font=\fontsize{16}{22}\selectfont]
+    at ([xshift=68mm, yshift=-78mm]current page.north west)
+    {AI 创业全景};
+
+  % === Subtitle (bold serif, deep green) ===
+  \node[anchor=north west, coverBand,
+        font=\fontsize{12}{16}\coverserif\bfseries\itshape\selectfont,
+        text width=10cm]
+    at ([xshift=68mm, yshift=-100mm]current page.north west)
+    {A Comprehensive Survey of the Global\\AI Ecosystem (2022--2026)};
+
+  % === Amber rule ===
+  \draw[coverAccent, line width=1.2pt]
+    ([xshift=68mm, yshift=-118mm]current page.north west) --
+    ([xshift=120mm, yshift=-118mm]current page.north west);
+
+  % === Keywords ===
+  \node[anchor=north west, coverSub,
+        font=\fontsize{9}{14}\coversans\bfseries\selectfont,
+        text width=9cm]
+    at ([xshift=68mm, yshift=-126mm]current page.north west)
+    {Infrastructure\enspace\textperiodcentered\enspace
+     Foundation Models\enspace\textperiodcentered\enspace
+     Platforms\\[3pt]
+     Developer Tools\enspace\textperiodcentered\enspace
+     Consumer AI\enspace\textperiodcentered\enspace
+     Enterprise AI\\[3pt]
+     Funding\enspace\textperiodcentered\enspace
+     China Ecosystem\enspace\textperiodcentered\enspace
+     Global Landscape};
+
+  % === Bottom: author block ===
+  \fill[coverAccent]
+    ([xshift=58mm, yshift=62mm]current page.south west)
+    rectangle
+    ([xshift=-20mm, yshift=60.5mm]current page.south east);
+
+  \node[anchor=west, coverTitle,
+        font=\fontsize{13}{16}\coversans\bfseries\selectfont]
+    at ([xshift=68mm, yshift=46mm]current page.south west)
+    {Ziming Wang};
+
+  \node[anchor=west, coverSub,
+        font=\fontsize{8.5}{11.5}\coverserif\selectfont]
+    at ([xshift=68mm, yshift=35mm]current page.south west)
+    {The Hong Kong University of Science and Technology};
+
+  \node[anchor=west, coverSub!70,
+        font=\fontsize{8}{11}\coversans\selectfont]
+    at ([xshift=68mm, yshift=24mm]current page.south west)
+    {Draft v0.1.0\quad\textperiodcentered\quad March 2026\quad\textperiodcentered\quad
+     \href{https://github.com/ZenAlexa}{\color{coverSub!70}{\faGithub}~ZenAlexa}};
+\end{tikzpicture}
+\clearpage
+
+\frontmatter
+\tableofcontents
+
+\mainmatter
+
+\input{chapters/ch01-overview}
+\input{chapters/ch02-infrastructure}
+\input{chapters/ch03-model-companies}
+\input{chapters/ch04-platform}
+\input{chapters/ch05-devtools}
+\input{chapters/ch06-consumer-prod}
+\input{chapters/ch07-consumer-create}
+\input{chapters/ch08-consumer-life}
+\input{chapters/ch09-consumer-social}
+\input{chapters/ch10-enterprise}
+\input{chapters/ch11-china}
+\input{chapters/ch12-global}
+\input{chapters/ch13-funding}
+\input{chapters/ch14-patterns}
+\input{chapters/ch15-outlook}
+
+\appendix
+\input{chapters/ch16-appendix}
+
+\printbibliography[heading=bibintoc,title=References]
+
+\end{document}

@@ -1,0 +1,1637 @@
+% =============================================================
+% Chapter 6: Meta AI and the Open Source Revolution
+% Book: AI Figures — Who's Who in the Age of AI
+% =============================================================
+
+\chapter{Meta AI 与开源革命}
+\label{ch:meta}
+
+2024年7月18日，Mark Zuckerberg 发表了一封公开信，标题简洁有力：
+\textit{Open Source AI Is the Path Forward}。
+这封信不仅宣告了 Llama 3.1 405B——当时最大的开放权重模型——的发布，
+更标志着一个价值万亿美元的科技巨头将开源作为核心AI战略的历史性时刻。
+从 2023 年 2 月 Llama 1 在 4chan 上被泄露，到 2025 年 4 月 Llama 4 的正式发布，
+再到 2025 年末 Zuckerberg 暗示未来的``超级智能''模型可能不再完全开源，
+Meta 的 AI 旅程是理解开源 AI 运动最核心的叙事线索。
+
+与此同时，一个平行的生态系统正在蓬勃生长：
+Hugging Face 从一个青少年聊天机器人创业公司蜕变为估值 45 亿美元的``AI 界 GitHub''；
+EleutherAI 从一群 Discord 上的业余爱好者成长为改变行业规则的开源力量；
+Tri Dao 的 FlashAttention 成为几乎所有 LLM 训练的标配组件；
+PyTorch 从 Meta 内部项目发展为统治深度学习的框架生态。
+
+本章讲述的是一群相信``开放即力量''的人，
+以及他们如何在闭源巨头的阴影下，
+建造了一个任何人都可以参与的 AI 世界。
+
+\begin{corebox}[本章人物图谱]
+本章覆盖约 70 位关键人物，分布在以下层次：
+\begin{itemize}
+  \item \textbf{Meta AI 领导层}：Yann LeCun、Mark Zuckerberg、Joelle Pineau、
+    Ahmad Al-Dahle、Alexandr Wang（新任 Chief AI Officer）；
+  \item \textbf{FAIR 研究核心}：L\'eon Bottou、Rob Fergus、Jason Weston、
+    Mike Lewis、Douwe Kiela、Larry Zitnick、Ari Morcos；
+  \item \textbf{Llama 团队}：Hugo Touvron、Thibaut Lavril、Guillaume Lample、
+    Timoth\'ee Lacroix、Gautier Izacard、Thomas Scialom、Baptiste Rozi\`ere；
+  \item \textbf{PyTorch 生态}：Soumith Chintala、Adam Paszke；
+  \item \textbf{Hugging Face}：Clem Delangue、Julien Chaumond、Thomas Wolf、
+    Lewis Tunstall、Philipp Schmid；
+  \item \textbf{EleutherAI \& 草根开源}：Stella Biderman、Connor Leahy、Sid Black；
+  \item \textbf{开源基础设施}：Tri Dao、Jonathan Frankle、Stas Bekman、
+    Together AI（Vipul Ved Prakash、Ce Zhang）；
+  \item \textbf{本地推理革命}：Georgi Gerganov（llama.cpp）、
+    Justine Tunney（llamafile）、Jeffrey Morgan（Ollama）、
+    Timothy Jaeryang Baek（Open WebUI）；
+  \item \textbf{AI 生成艺术工具链}：AUTOMATIC1111（Stable Diffusion WebUI）、
+    comfyanonymous（ComfyUI）、kohya-ss（LoRA 训练脚本）；
+  \item \textbf{LLM 服务与架构创新}：Woosuk Kwon \& Lianmin Zheng（vLLM）、
+    Albert Gu（Mamba / 状态空间模型）、Abubakar Abid（Gradio）。
+\end{itemize}
+\end{corebox}
+
+
+% =============================================================
+\section{Yann LeCun 的愿景：为什么开源必须赢}
+\label{sec:lecun-vision}
+% =============================================================
+
+要理解 Meta 的开源 AI 战略，
+必须首先理解 Yann LeCun——这个在 AI 领域最具争议、
+也最不妥协的声音。
+
+\subsection{从卷积网络到图灵奖}
+
+Yann LeCun，1960 年生于法国巴黎，
+是现代深度学习的三位``教父''之一。
+1980 年代末，他在 AT\&T Bell Labs 与同事设计了第一个能高精度识别手写数字的
+卷积神经网络（CNN），这一架构后来被命名为 LeNet-5。
+2018 年，LeCun 与 Geoffrey Hinton、Yoshua Bengio 共同获得 ACM 图灵奖，
+被誉为``深度学习的教父''。
+
+但 LeCun 从来不是一个安于荣誉的人。
+在 AI 冬天最寒冷的年代——1990 年代末到 2000 年代初——
+当整个学术界对神经网络嗤之以鼻时，
+LeCun 在纽约大学（NYU）坚持着自己的信念。
+他后来回忆说：``有整整十五年，我感觉自己在对着墙说话。''
+
+\subsection{创建 FAIR：学术自由与工业资源的联姻}
+
+2013 年 9 月，LeCun 接受了 Mark Zuckerberg 的邀请，
+加入 Facebook 创建 Fundamental AI Research（FAIR）实验室。
+这个决定的背景是：Google 已经收购了 DeepMind（2014 年 1 月），
+Baidu 挖走了 Andrew Ng 领导硅谷 AI 实验室，
+AI 人才争夺战进入白热化阶段。
+
+LeCun 提出了一个在当时看来激进的条件：
+FAIR 的研究成果必须公开发表，
+研究人员必须保留学术自由，
+实验室的文化应该更像大学而非公司。
+Zuckerberg 同意了。
+这个决定在后来被证明具有深远影响——
+FAIR 的开放文化直接催生了 PyTorch、fairseq、Llama 等改变行业的开源项目。
+
+LeCun 与 Rob Fergus（NYU 同事，计算机视觉专家）
+共同建立了 FAIR 的初始团队。
+Fergus 是 ZFNet 的共同发明者，
+曾获 CVPR 2003 最佳论文奖，
+在 NYU 与 LeCun 共同创建了 CILVR（Computational Intelligence, Learning,
+Vision, and Robotics）实验室。
+他从 2013 年到 2020 年在 FAIR 工作，
+之后短暂转往 Google，2025 年又回到 Meta。
+
+\begin{whybox}[为什么 LeCun 选择 Facebook 而非 Google？]
+LeCun 在多次访谈中解释了他的逻辑：
+\begin{enumerate}
+  \item \textbf{学术自由}：Google 当时已经有了强大的 AI 研究团队（Google Brain），
+    新加入者很难定义自己的研究方向。Facebook 是一张白纸。
+  \item \textbf{公开发表权}：Facebook 承诺所有基础研究成果可以公开发表，
+    这在工业实验室中极为罕见。
+  \item \textbf{数据优势}：Facebook 拥有全球最大的图像和文本数据集——
+    用户每天上传数十亿张照片和数百亿条消息——
+    这对训练大规模 AI 模型具有不可替代的价值。
+  \item \textbf{CEO 的直接支持}：Zuckerberg 对 AI 的兴趣是真诚且深入的，
+    他愿意为 FAIR 提供长期的资源承诺，而不要求短期回报。
+\end{enumerate}
+\end{whybox}
+
+\subsection{JEPA 与反 LLM 立场：AI 界的异见者}
+
+LeCun 在 AI 社区中最引人注目的角色是\textbf{``LLM 怀疑论者''}。
+当整个行业都在追逐更大的语言模型时，
+LeCun 公开、反复、毫不妥协地表达了一个立场：
+\textbf{大型语言模型是通往人类级别 AI 的死胡同}。
+
+他的核心论点可以归结为五个论断：
+
+\begin{enumerate}
+  \item \textbf{LLM 不理解物理世界}：语言模型只接触文本，
+    而人类智能的基础是对物理世界的感知和建模。
+    一个从未``看到''或``触摸''过世界的系统，
+    不可能真正理解``重力''或``疼痛''的含义。
+  \item \textbf{自回归生成是低效的}：逐 token 生成文本是一种计算上的浪费。
+    人类不会一个字一个字地``生成''思想——
+    我们在更高的抽象层次上思考和规划。
+  \item \textbf{Sora 不是世界模型}：OpenAI 的视频生成模型 Sora
+    虽然能生成逼真的视频，但它并不理解物理规律——
+    它只是学会了像素层面的统计模式。
+  \item \textbf{AI 不会消灭人类}：LeCun 认为关于 AI 存在性风险的担忧
+    是``荒谬的''，这使他与 Geoffrey Hinton 和 Yoshua Bengio 产生了公开分歧。
+  \item \textbf{开源是唯一安全的道路}：集中在少数公司手中的闭源 AI
+    比开放的 AI 更危险，因为它剥夺了社会对 AI 系统进行审查和改进的能力。
+\end{enumerate}
+
+他提出的替代方案是 \textbf{JEPA}（Joint Embedding Predictive Architecture）——
+一种在潜在空间（latent space）而非像素空间中进行预测的架构。
+2023 年 6 月，Meta 发布了 \textbf{I-JEPA}，
+这是第一个基于 LeCun 愿景的具体模型，
+它在图像理解任务上展现了不依赖数据增强的学习能力。
+
+\begin{keybox}[JEPA 的核心直觉]
+传统的生成模型（如 GPT）试图在\textbf{输出空间}预测下一个 token 或像素——
+这要求模型预测每一个细节，包括大量不重要的信息。
+JEPA 的思路不同：它在\textbf{抽象表示空间}中进行预测，
+只需要捕捉``发生了什么''而不需要预测``每个像素是什么颜色''。
+这更接近人类的认知方式——我们理解一个场景时，
+不需要在脑海中渲染每一个像素。
+\end{keybox}
+
+\subsection{离开 Meta：一个时代的终结}
+
+2025 年 11 月 20 日，LeCun 正式宣布离开 Meta。
+在一篇长长的 Facebook 帖子中，他写道创建 FAIR 是
+``我最骄傲的非技术成就''。
+但他的离开并非突然——在此前的几个月里，
+FAIR 经历了重大裁员和重组，
+Meta 的资源越来越倾斜向 LLM 和商业化产品，
+而 LeCun 坚持的``世界模型''路线在公司内部逐渐失去资源和自主权。
+
+离开 Meta 后，LeCun 创立了 \textbf{Advanced Machine Intelligence Labs（AMI）}，
+继续推进他的 JEPA/世界模型研究。
+Meta 作为合作伙伴参与了 AMI。
+与此同时，Meta 任命了 Scale AI 创始人 Alexandr Wang
+为新的 Chief AI Officer，以 143 亿美元收购 Scale AI 的交易
+标志着 Meta 从基础研究向执行和规模化的战略转向。
+
+\begin{whybox}[LeCun 离开的深层原因]
+表面上看，LeCun 的离开是因为``LLM vs.\ 世界模型''的技术路线之争。
+但更深层的原因是 Meta 的战略优先级发生了根本变化：
+\begin{itemize}
+  \item FAIR 的基础研究文化与 Meta 对商业化 AI 产品的急迫需求产生了冲突；
+  \item Llama 4 在发布后遭遇了基准测试争议，
+    加剧了内部对研究质量 vs.\ 发布速度的争论；
+  \item Alexandr Wang 的任命代表了一种完全不同的 AI 哲学——
+    数据工程和运营执行优先于基础研究创新。
+\end{itemize}
+LeCun 的离开不仅是个人选择，更是一个隐喻：
+当工业实验室的商业压力超过学术自由时，
+即使是图灵奖得主也无法改变方向。
+\end{whybox}
+
+
+% =============================================================
+\section{FAIR 研究军团：被忽视的幕后英雄}
+\label{sec:fair-team}
+% =============================================================
+
+FAIR 在其巅峰时期是全球最具影响力的 AI 研究机构之一，
+其研究人员的论文引用量、开源贡献和人才输出都位居前列。
+但与 Google DeepMind 或 OpenAI 不同，
+FAIR 的许多核心贡献者鲜为公众所知。
+本节将逐一介绍这些``幕后英雄''。
+
+\subsection{L\'eon Bottou：随机梯度下降的奠基者}
+
+L\'eon Bottou，1965 年生于法国 Saint Germain du Teil，
+是机器学习优化理论领域最重要的人物之一。
+他在巴黎综合理工学院（\'Ecole Polytechnique，X84 届）获得工程学位，
+在巴黎高等师范学校（\'Ecole Normale Sup\'erieure）获得数学和计算机科学硕士，
+在巴黎第十一大学获得计算机科学博士学位。
+
+Bottou 的学术生涯跨越了 AT\&T Bell Labs、AT\&T Labs Research、
+NEC Labs America 和 Microsoft Research，
+最终加入 Facebook AI Research。
+他与 LeCun 的合作可以追溯到 1990 年代——
+两人在 Bell Labs 共同完成了具有里程碑意义的论文
+\textit{Gradient-based Learning Applied to Document Recognition}（1998），
+这篇论文至今仍是深度学习领域引用量最高的论文之一。
+
+Bottou 最深远的贡献是对\textbf{随机梯度下降}（Stochastic Gradient Descent, SGD）
+的理论分析和实践推广。
+他的工作证明了一个反直觉的结论：
+在大规模数据集上，使用单个样本近似计算梯度的``粗糙''方法，
+反而比使用全部数据计算精确梯度的方法更高效。
+这个看似简单的洞见是所有现代深度学习训练的理论基石。
+
+在 FAIR，Bottou 与 Soumith Chintala 合作发表了
+\textit{Wasserstein Generative Adversarial Networks}（WGAN，2017），
+用 Wasserstein 距离替代了 GAN 训练中不稳定的 Jensen-Shannon 散度，
+显著改善了 GAN 的训练稳定性。
+
+\subsection{Mike Lewis：RAG 的发明者}
+
+Mike Lewis 是 FAIR Seattle 办公室的研究科学家，
+他的研究横跨自然语言处理的多个关键领域。
+Lewis 在牛津大学获得硕士学位，在爱丁堡大学获得博士学位（导师 Mark Steedman），
+之后在华盛顿大学做博士后（与 Luke Zettlemoyer 合作），
+然后加入 FAIR。
+
+Lewis 的两项最具影响力的贡献是：
+
+\begin{enumerate}
+  \item \textbf{BART}（Bidirectional and Auto-Regressive Transformers, 2019）：
+    一个将 BERT 的双向编码器和 GPT 的自回归解码器结合在一起的预训练模型。
+    BART 在文本摘要、翻译和问答等任务上设立了新的基准。
+  \item \textbf{RAG}（Retrieval-Augmented Generation, 2020）：
+    这篇论文提出了一种将外部知识检索与生成模型结合的框架，
+    模型在生成回答之前先从知识库中检索相关文档。
+    RAG 后来成为 LLM 应用中最重要的范式之一——
+    2024--2025 年几乎所有企业级 AI 应用都在使用某种形式的 RAG。
+\end{enumerate}
+
+\begin{corebox}[RAG 为什么如此重要？]
+LLM 的一个根本性局限是\textbf{知识过时}——模型只知道训练数据截止日期之前的信息。
+RAG 通过在推理时动态检索最新的外部知识来解决这个问题。
+Mike Lewis 的贡献在于他首次证明了
+将检索和生成端到端地联合训练是可行且有效的。
+这篇 2020 年的论文在当时并未引起太多关注，
+但随着 ChatGPT 的爆发和企业 AI 应用的兴起，
+RAG 迅速成为行业标准范式。
+Lewis 的合作者之一 Douwe Kiela（见下文）
+后来创办了 Contextual AI，专门将 RAG 商业化。
+\end{corebox}
+
+\subsection{Jason Weston：记忆网络与对话 AI 的先驱}
+
+Jason Weston 是 FAIR 纽约办公室的研究科学家和 NYU 访问研究教授。
+他在伦敦大学 Royal Holloway 学院和 AT\&T Research 获得博士学位，
+研究生涯经历了 Biowulf Technologies、Max Planck 生物控制论研究所、
+NEC Labs America 和 Google。
+
+Weston 的核心贡献在于开创了\textbf{记忆增强神经网络}（Memory-Augmented Neural Networks）
+这一研究方向。2014--2015 年，他与 Sumit Chopra、Antoine Bordes 等人
+提出了 Memory Networks 和 End-to-End Memory Networks，
+赋予神经网络在外部记忆存储上进行推理的能力。
+这些工作是后来所有``知识增强生成''方法（包括 RAG）的思想先驱。
+
+此外，Weston 在\textbf{开放域对话系统}方面做出了奠基性贡献，
+推动了 Facebook 从简单的聊天机器人向知识驱动的对话 AI 的转变。
+他发表了超过 100 篇论文，
+研究兴趣涵盖推理、记忆、感知、交互和通信等领域。
+
+\subsection{Douwe Kiela：从 RAG 论文到 Contextual AI}
+
+Douwe Kiela，1986 年生于荷兰阿姆斯特丹，
+是 RAG 范式的重要推动者和成功商业化的典范。
+
+Kiela 在乌特勒支大学、阿姆斯特丹大学和剑桥大学接受教育，
+在 Meta AI 期间领导了提出 RAG 方法的研究团队。
+他是 2020 年那篇开创性论文
+\textit{Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks}
+的核心作者之一。
+
+离开 Meta 后，Kiela 短暂担任 Hugging Face 研究主管，
+之后于 2022 年创办了 \textbf{Contextual AI}——
+一家专注于为企业构建基于上下文感知 AI 代理的公司。
+Contextual AI 筹集了超过 2000 万美元的种子轮资金，
+其核心产品将 RAG 技术应用于企业知识库的智能检索和生成。
+Kiela 同时担任斯坦福大学符号系统系的兼职教授。
+
+从学术论文到创业公司，Kiela 的轨迹代表了 FAIR 人才外溢的典型模式：
+\textbf{在 Meta 完成基础研究突破，然后带着技术和声誉出去创业}。
+
+\subsection{Larry Zitnick：从计算机视觉到催化剂发现}
+
+Larry Zitnick 在 FAIR 的角色有些独特——
+他目前的研究方向不是 LLM，而是\textbf{将 AI 应用于科学发现}。
+
+Zitnick 在卡内基梅隆大学机器人研究所获得博士学位，
+在 Microsoft Research 工作了 12 年，
+2016 年加入 FAIR，目前担任研究总监。
+
+他最广为人知的学术贡献包括 MS COCO 数据集
+（计算机视觉领域最重要的基准数据集之一）和
+VQA（Visual Question Answering）任务的定义。
+但近年来，他将研究重心转向了 \textbf{Open Catalyst Project}——
+一个利用机器学习模型来模拟原子间相互作用的开源项目，
+目标是加速清洁能源催化剂的发现。
+这个项目与 Google DeepMind 的 AlphaFold 在精神上是一脉相承的：
+用 AI 解决传统科学方法难以触及的问题。
+
+\subsection{Ari Morcos：从 FAIR 到 DatologyAI}
+
+Ari Morcos 的职业轨迹是理解 AI 人才流动的一个生动案例。
+他在哈佛获得博士学位，之后在 DeepMind 和 FAIR 做研究，
+工作涉及训练数据如何影响模型表示、彩票假设（lottery ticket hypothesis）
+和自监督学习。他的工作获得了 NeurIPS 和 ICML 的杰出论文奖。
+
+2023 年 9 月，Morcos 离开 Meta 创办了 \textbf{DatologyAI}——
+一家专注于通过数据策展（data curation）来提升模型训练效率的公司。
+DatologyAI 获得了 Felicis Ventures 的投资，
+其核心理念是：\textbf{选择正确的训练数据比增加数据量或计算量更重要}。
+这与 FAIR 长期以来对数据质量的重视一脉相承。
+
+
+% =============================================================
+\section{Llama 传奇：从泄露到解放}
+\label{sec:llama-saga}
+% =============================================================
+
+Llama 系列模型是 Meta 对开源 AI 最直接、最具影响力的贡献。
+从 2023 年到 2025 年，Llama 的四代模型不仅推动了开源 AI 生态的爆发，
+也深刻改变了整个 AI 行业的竞争格局。
+
+\subsection{Llama 1：意外的解放}
+
+2023 年 2 月 24 日，Meta 发布了 LLaMA（Large Language Model Meta AI），
+包含 7B、13B、33B 和 65B 四个参数规模的模型。
+论文的核心发现是：\textbf{使用公开可用的数据集，
+可以训练出性能比肩甚至超越 GPT-3（175B）的模型}。
+LLaMA-13B 在大多数基准测试上超越了 GPT-3，
+而 LLaMA-65B 的性能接近 Chinchilla-70B 和 PaLM-540B。
+
+但真正改变历史的不是论文本身，而是一次\textbf{意外泄露}。
+Meta 原本计划以申请审批的方式向研究人员有限开放 LLaMA。
+然而在发布后仅一周，2023 年 3 月初，
+一个匿名用户在 4chan 的技术板块上传了 LLaMA 模型权重的 torrent 链接。
+权重迅速在 AI 社区中传播开来。
+
+\begin{whybox}[泄露为什么改变了一切？]
+LLaMA 的泄露之所以具有历史性影响，是因为它打破了两个假设：
+\begin{enumerate}
+  \item \textbf{大模型需要大公司}：LLaMA-13B 能在单块消费级 GPU 上运行，
+    这意味着独立开发者和小团队第一次可以在自己的硬件上运行
+    性能接近 GPT-3 的模型。
+  \item \textbf{开源模型不如闭源模型}：LLaMA 证明了在同等参数规模下，
+    精心训练的开源模型可以匹敌或超越闭源模型。
+    这直接挑战了 OpenAI ``大模型必须闭源''的叙事。
+\end{enumerate}
+泄露后的几个月内，社区基于 LLaMA 构建了 Alpaca、Vicuna、
+Koala 等微调模型，形成了一个前所未有的开源 LLM 生态系统。
+\end{whybox}
+
+\subsection{Llama 团队：论文背后的面孔}
+
+LLaMA 论文的作者列表揭示了一个主要由法国研究人员组成的团队：
+
+\textbf{Hugo Touvron}（第一作者），
+2019 年作为常驻博士生加入 FAIR 巴黎办公室，
+由 Herv\'e J\'egou（Facebook）和 Matthieu Cord（巴黎索邦大学）共同指导。
+Touvron 拥有巴黎综合理工学院和巴黎第九大学的双学士学位，
+以及巴黎综合理工学院、巴黎高等师范学院（ENS Paris-Saclay）
+和巴黎高等技术学院（ENSTA ParisTech）的三个硕士学位。
+他最初的研究方向是计算机视觉（图像分类、迁移学习），
+后来转向 NLP，成为 LLaMA 项目的核心推动者。
+
+\textbf{Thibaut Lavril} 和 \textbf{Gautier Izacard} 是论文的其他关键作者。
+\textbf{Xavier Martinet}、\textbf{Marie-Anne Lachaux}、
+\textbf{Timoth\'ee Lacroix}、\textbf{Baptiste Rozi\`ere}、
+\textbf{Naman Goyal}、\textbf{Eric Hambro}、\textbf{Faisal Azhar}、
+\textbf{Aurelien Rodriguez}、\textbf{Armand Joulin}、
+\textbf{Edouard Grave} 和 \textbf{Guillaume Lample}
+共同构成了完整的作者团队。
+
+值得注意的是，这个团队后来经历了显著的\textbf{人才流失}——
+其中最引人注目的是 Llama 论文的三位作者（Guillaume Lample、Timoth\'ee Lacroix
+以及 Arthur Mensch，后者虽非 Llama 论文作者但同为 FAIR 巴黎的核心研究员）
+在 2023 年 4 月共同创办了 \textbf{Mistral AI}，
+后来成为欧洲最成功的 AI 创业公司之一，估值超过 140 亿美元，
+三位创始人在 2025 年成为法国首批 AI 亿万富翁。
+
+\begin{corebox}[Meta Llama 团队的人才外溢效应]
+根据 2025 年 5 月 Business Insider 的报道，
+Meta 的 Llama AI 团队一直在``持续失血''，
+大量核心人才加入了 Mistral 和其他竞争对手。
+这种现象揭示了开源 AI 策略的一个悖论：
+\textbf{你训练了最好的研究人员，然后他们带着经验离开，
+创建与你竞争的公司}。
+但从更广阔的视角来看，这种人才流动恰恰证明了
+FAIR 作为``AI 人才培养基地''的巨大成功。
+Mistral 的崛起使欧洲拥有了自己的前沿 AI 力量，
+这在某种意义上是 Meta 开源哲学的延伸。
+\end{corebox}
+
+\subsection{Guillaume Lample \& Timoth\'ee Lacroix：从 Llama 到 Mistral}
+
+\textbf{Guillaume Lample} 是 LLaMA 论文的最后一位作者，
+也是 Mistral AI 的联合创始人和首席科学家。
+他于 2016 年加入 FAIR 巴黎办公室攻读博士学位，
+2020 年转为研究科学家，直到 2023 年初离开创办 Mistral。
+Lample 在无监督机器翻译和跨语言预训练方面做出了重要贡献。
+Sifted 将他称为 Mistral ``流星崛起''背后的``AI 天才''。
+
+\textbf{Timoth\'ee Lacroix} 是 Mistral 的联合创始人和 CTO，
+同样来自 FAIR 巴黎，是 LLaMA 论文的作者之一。
+两人与来自 Google DeepMind 的 \textbf{Arthur Mensch}
+于 2023 年 4 月 28 日在巴黎创立了 Mistral AI，
+三人都拥有巴黎综合理工学院的背景。
+
+Mistral 的创立故事本身就是一个关于开源与人才流动的寓言：
+在 Meta 积累了 LLM 训练的核心经验，
+然后用这些经验在欧洲建立了一个``开放权重优先''的竞争者。
+2025 年，Mistral 的估值超过 140 亿美元，
+拥有约 350 名员工，
+产品线涵盖 Mistral Large、Codestral、Le Chat 等。
+
+\subsection{Thomas Scialom：Llama 2/3 背后的 RLHF 专家}
+
+\textbf{Thomas Scialom} 是 Meta AI 的高级研究科学家，
+也是 Llama 系列模型\textbf{后训练}（post-training）阶段的关键人物。
+他是 Llama 2 的项目负责人和 Llama 3 后训练的负责人。
+
+在加入 Meta 之前，Scialom 的职业经历横跨学术界和工业界。
+他参与了多个重要的 Meta AI 项目，包括：
+BLOOM（BigScience 项目的 176B 参数多语言模型）、
+Galactica（面向科学文献的大模型，因争议而被迅速下线）、
+Toolformer（教 LLM 使用外部工具的先驱工作）
+和 Code Llama（面向代码生成的专用模型）。
+
+在 Latent Space 播客的深度访谈中，Scialom 分享了多个内部洞见：
+Llama 4 于 2024 年 6 月开始训练；
+多语言能力在极少数据的情况下``几乎自然涌现''；
+合成数据在预训练和后训练中都发挥了关键作用。
+他是连接 Meta 内部研究和外部开源社区的重要桥梁。
+
+\subsection{Baptiste Rozi\`ere \& Jonas Gehring：Code Llama 与 fairseq}
+
+\textbf{Baptiste Rozi\`ere} 是 Code Llama 的核心作者，
+该模型是基于 Llama 2 微调的代码生成专用模型，
+在发布时被认为是最强的开源代码模型之一。
+
+\textbf{Jonas Gehring} 是 FAIR 的研究科学家，
+同时在苏黎世联邦理工学院（ETH Z\"urich）攻读博士学位。
+他在 2017 年发表的 \textit{Convolutional Sequence to Sequence Learning}
+是将卷积网络应用于序列到序列任务的开创性工作，
+为 FAIR 的 \textbf{fairseq} 工具库奠定了基础。
+fairseq 后来成为机器翻译和序列建模领域最重要的开源工具之一，
+也是 Llama 训练基础设施的重要组成部分。
+Gehring 同时是 Code Llama 论文的作者之一。
+
+\subsection{Llama 的进化：从 1 到 4}
+
+Llama 系列的演进速度令人惊叹：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Llama 1}（2023.02）：7B--65B，公开数据训练，被泄露后引爆开源生态；
+  \item \textbf{Llama 2}（2023.07）：7B--70B，正式开放权重，
+    包含对话微调版本，引入 RLHF，与 Microsoft 合作分发；
+  \item \textbf{Llama 3}（2024.04）：8B 和 70B 先行发布，
+    后续发布 405B——当时最大的开放权重模型，
+    在多个基准上接近 GPT-4 级别；
+  \item \textbf{Llama 3.1/3.2/3.3}（2024 下半年）：
+    持续迭代，增加多模态能力和更长上下文窗口；
+  \item \textbf{Llama 4}（2025.04）：原生多模态，MoE 架构，
+    Scout（17B 活跃参数，16 专家）和 Maverick 两个版本，
+    Scout 支持 1000 万 token 上下文窗口。
+\end{itemize}
+
+\begin{whybox}[Llama 4 的基准争议]
+Llama 4 在 2025 年 4 月发布后引发了争议。
+Meta 声称 Llama 4 Scout 在多个基准上超越了 Gemma 3、
+Gemini 2.0 Flash-Lite 和 Mistral 3.1。
+但独立测试者发现某些基准结果难以复现，
+社区对 Meta 是否针对特定基准进行了过度优化提出了质疑。
+这场争议最终成为 Yann LeCun 离开 Meta 的催化剂之一——
+他在内部承认了基准问题的存在，
+这加剧了他与管理层在研究诚信问题上的分歧。
+\end{whybox}
+
+
+% =============================================================
+\section{Mark Zuckerberg：从元宇宙到开源 AI 的战略转向}
+\label{sec:zuckerberg}
+% =============================================================
+
+理解 Meta 的开源 AI 策略，最终绕不开一个人：Mark Zuckerberg。
+他不是研究者，不写论文，
+但正是他的战略决策使 Meta 成为开源 AI 最重要的推动力量——
+至少在一段时间内。
+
+\subsection{开源决策的商业逻辑}
+
+2023 年夏天，Meta 面临一个关键决策：
+是否公开发布 Llama 2 的权重。
+Llama 1 的``意外泄露''已经证明了社区对开放模型的巨大需求。
+Zuckerberg 决定正式拥抱开源。
+
+他在 2024 年 7 月的公开信中系统地阐述了开源的商业逻辑：
+
+\begin{enumerate}
+  \item \textbf{标准化优势}：开源模型如果成为行业标准，
+    Meta 就能影响整个 AI 生态的发展方向——
+    正如 Android 之于 Google、Linux 之于 Red Hat；
+  \item \textbf{成本优势}：开发者在 Llama 上运行推理的成本
+    约为使用 GPT-4o 等闭源模型的 50\%；
+  \item \textbf{人才吸引}：开源项目是吸引顶尖 AI 人才的最佳广告；
+  \item \textbf{安全论证}：开源允许更多人审查和改进模型的安全性，
+    比依赖单一公司的内部审查更可靠。
+\end{enumerate}
+
+\subsection{战略转向的信号}
+
+然而，到了 2025 年下半年，Zuckerberg 开始\textbf{修正}他的立场。
+2025 年 7 月 30 日，他在一封公开信中谈到``个人超级智能''的愿景时，
+暗示 Meta 未来可能\textbf{不会}开源所有的``超级智能''模型。
+
+2025 年 12 月，CNBC 报道了 Meta 正在开发一个代号为 \textbf{Avocado}
+的新前沿模型——这个模型计划作为\textbf{付费闭源产品}发布，
+标志着 Meta 可能从其标志性的开源策略中后退。
+Bloomberg 进一步报道称，Avocado 预计在 2026 年春季上线。
+
+\begin{corebox}[开源策略为什么可能变化？]
+Meta 考虑调整开源策略有几个关键原因：
+\begin{itemize}
+  \item \textbf{投资回报压力}：Meta 在 AI 上的资本支出已经达到天文数字
+    （仅 2025 年就超过 143 亿美元用于 Scale AI 的收购），
+    投资者开始要求看到直接的商业回报；
+  \item \textbf{竞争对手搭便车}：一些闭源竞争对手（特别是中国的公司）
+    直接使用 Llama 的权重来训练自己的商业产品，
+    而不向 Meta 的生态贡献任何回报；
+  \item \textbf{能力差距缩小}：当开源模型接近闭源模型的能力时，
+    免费提供最强模型就相当于直接补贴竞争对手；
+  \item \textbf{地缘政治压力}：LeCun 在 2025 年 7 月的 AI for Good 峰会上
+    仍在为开源辩护，但美国政府对向中国开放 AI 技术的担忧正在加剧。
+\end{itemize}
+\end{corebox}
+
+\subsection{Joelle Pineau：FAIR 的管理者与科学良知}
+
+\textbf{Joelle Pineau}（1974 年生于加拿大渥太华）
+是 FAIR 在 LeCun 之后最重要的领导者。
+她在滑铁卢大学获得工程学士，在卡内基梅隆大学获得硕士和博士学位
+（导师 Sebastian Thrun 和 Geoffrey Gordon），
+研究方向是不完全可观测环境下的规划与学习。
+
+Pineau 是麦吉尔大学教授、Mila 核心学术成员、
+加拿大 CIFAR AI Chair，以及 AAAI Fellow（2018）
+和加拿大皇家学会会士（2023）。
+她在 Meta 担任 AI 研究副总裁，负责管理全球 FAIR 团队。
+
+Pineau 在 Meta 的最重要贡献之一是推动\textbf{AI 研究的可重复性标准}——
+她强调论文应该公开代码和数据，实验结果应该可以被独立验证。
+这种立场在 FAIR 的开放文化中得到了充分体现。
+
+\textbf{2025 年 4--5 月}，Pineau 从 Meta 辞职。
+根据 Wikipedia 的信息，她后来加入 \textbf{Cohere} 担任首席 AI 官。
+她的离开——与 LeCun 的离开相隔仅几个月——
+标志着 FAIR 创始一代领导者的全面退场。
+
+\subsection{Ahmad Al-Dahle：从 Apple 到 Meta GenAI}
+
+\textbf{Ahmad Al-Dahle} 是一个在公众视野中相对低调
+但在 Meta AI 内部极具影响力的人物。
+他在滑铁卢大学获得计算机工程学位，
+在 Apple 工作了近十年（2005--2014），
+参与了多个与 AI 和机器感知相关的特殊项目。
+
+2020 年加入 Meta 后，Al-Dahle 担任生成式 AI 副总裁，
+\textbf{直接负责 Llama 系列模型的研究和产品化工作}。
+他领导的团队涵盖了大语言模型、多媒体生成等方向。
+在 Meta 内部，如果说 LeCun 代表的是基础研究的纯粹追求，
+Al-Dahle 则代表了将研究成果转化为产品的执行力量。
+
+2026 年 1 月，Al-Dahle 离开 Meta，
+加入 \textbf{Airbnb} 担任首席技术官（CTO），
+Airbnb CEO Brian Chesky 称他的加入对于公司在 AI 快速发展时代
+的技术战略至关重要。
+
+\subsection{Alexandr Wang：Meta 的新 AI 掌门人}
+
+2026 年 1 月，Meta 以 143 亿美元收购 \textbf{Scale AI}，
+并任命其 28 岁的创始人 \textbf{Alexandr Wang} 为 Meta 的
+Chief AI Officer。Wang 曾是最年轻的白手起家亿万富翁（25 岁时），
+他创建的 Scale AI 专注于 AI 数据标注和基础设施。
+
+Wang 的任命代表了 Meta AI 战略的根本转向：
+从 LeCun 时代的\textbf{基础研究驱动}
+转向\textbf{数据工程和运营执行驱动}。
+他到任后面临的首要挑战是修复 Llama 4 基准争议带来的信誉损失，
+以及在开源和闭源之间找到新的平衡点。
+
+在 2026 年 2 月的 AI Impact Summit 上，
+Wang 阐述了 Meta 的``个人超级智能''愿景：
+利用 Meta 35 亿每日活跃用户的数据优势，
+构建能够深度个性化的 AI 系统。
+
+
+% =============================================================
+\section{PyTorch：深度学习的通用语言}
+\label{sec:pytorch}
+% =============================================================
+
+如果 Llama 是 Meta 对 AI 模型层面的开源贡献，
+那么 \textbf{PyTorch} 就是 Meta 对 AI 基础设施层面的贡献——
+而且从影响范围来看，PyTorch 的重要性可能更大。
+
+\subsection{Soumith Chintala：PyTorch 的创造者}
+
+\textbf{Soumith Chintala}，出生于印度海德拉巴，
+是 PyTorch 的创造者和现代深度学习基础设施最重要的推动者之一。
+
+Chintala 的成长经历并非典型的精英路线——
+他在印度一所普通院校（被他自己称为``Tier 2 college''）完成了本科教育，
+曾在数学上挣扎过。
+但他对人工智能的热情驱使他来到美国，
+在纽约大学（NYU）跟随 Yann LeCun 和 Rob Fergus 进行研究。
+
+2014 年，Chintala 加入 Facebook AI Research，
+开始了他 11 年的 Meta 生涯。
+在 FAIR 的早期阶段，他参与了 GAN（生成对抗网络）的研究——
+他是 DCGAN 和 WGAN 的核心贡献者，
+后者（与 Martin Arjovsky 和 L\'eon Bottou 合作）
+至今仍是 GAN 研究领域引用量最高的论文之一。
+
+但 Chintala 最深远的贡献是 \textbf{PyTorch}。
+2016 年，他领导开发了这个基于 Python 的深度学习框架，
+其核心设计哲学是\textbf{``Pythonic + 动态计算图''}——
+让研究人员能够像写普通 Python 代码一样定义和调试神经网络，
+而不需要像 TensorFlow 1.x 那样先定义静态计算图再执行。
+
+PyTorch 迅速成为学术界的首选框架，
+然后逐步渗透到工业界。
+到 2024 年，PyTorch 已经被几乎所有主要 AI 实验室采用——
+OpenAI、Google DeepMind（部分）、Anthropic、Meta、Mistral、DeepSeek
+都在使用 PyTorch 进行训练。
+
+\begin{keybox}[PyTorch 为什么赢了？]
+PyTorch 击败 TensorFlow 成为深度学习标准框架的原因可以归结为三点：
+\begin{enumerate}
+  \item \textbf{动态计算图}：允许在运行时修改网络结构，
+    这对于研究人员调试和实验新架构至关重要。
+    TensorFlow 1.x 的静态图需要``先定义、后执行''，
+    极大地降低了迭代速度。
+  \item \textbf{Pythonic 设计}：PyTorch 的 API 遵循 Python 的惯用风格，
+    学习曲线远低于 TensorFlow 的自定义抽象。
+    一个熟悉 NumPy 的研究人员可以在几小时内上手 PyTorch。
+  \item \textbf{社区驱动}：Meta 将 PyTorch 定位为社区项目而非公司产品，
+    接受外部贡献，响应用户需求。
+    相比之下，Google 对 TensorFlow 的控制更为集中。
+\end{enumerate}
+虽然 Google 后来推出了 TensorFlow 2.x 和 JAX 来应对，
+但 PyTorch 已经建立了不可逆转的生态优势——
+大多数论文代码、教程和预训练模型都以 PyTorch 为基准。
+\end{keybox}
+
+在 Meta 内部，Chintala 的角色逐渐从研究者转变为领导者。
+他升至副总裁（VP）和 Fellow，
+同时负责 PyTorch 和 AI 基础设施相关的工作。
+在 Latent Space 播客中，他详细讨论了 Meta 的开源策略、
+Llama 3 的开发以及 Meta 自研 AI 芯片（MTIA ASIC）的计划。
+
+\textbf{2025 年 11 月}，在 Meta 工作 11 年后，Chintala 宣布离开。
+据报道，他在离职前遭遇了内部政治的压力。
+2026 年 1 月，他加入了 Mira Murati（前 OpenAI CTO）创立的
+\textbf{Thinking Machines Lab}，担任 CTO。
+这一人事变动意义重大——
+PyTorch 的创造者和 OpenAI 前 CTO 的联手，
+预示着一个新的 AI 力量中心的形成。
+
+\subsection{Adam Paszke：PyTorch 的另一位缔造者}
+
+\textbf{Adam Paszke} 是 PyTorch 的另一位关键缔造者，
+但他的名字远不如 Chintala 为人所知。
+
+Paszke 来自波兰，在华沙大学学习计算机科学和数学。
+他是 PyTorch 框架的原始作者（``Author of PyTorch''是他 GitHub 主页的自我介绍），
+在框架的底层架构设计中发挥了核心作用——
+包括自动微分引擎、FP16 支持、内存管理和 CUDA 优化。
+
+2018 年，Paszke 离开了 PyTorch 项目，
+加入 Google Research（后来是 Google DeepMind），
+从事 \textbf{JAX} 和 XLA 编译器的开发工作。
+这是一个微妙的讽刺：PyTorch 的原始作者最终去了 Google，
+为 PyTorch 的竞争对手工作。
+截至 2026 年，Paszke 是 Google DeepMind 的高级研究科学家，
+常驻柏林，是 JAX 和 LLVM 编译器项目的活跃贡献者。
+他是 RecurrentGemma 论文的合著者，
+显示了他从框架开发者到模型研究者的角色演变。
+
+
+% =============================================================
+\section{Hugging Face：AI 的 GitHub}
+\label{sec:huggingface}
+% =============================================================
+
+如果说 Meta 开源了模型，PyTorch 提供了训练框架，
+那么 \textbf{Hugging Face} 则构建了将一切连接在一起的\textbf{平台}。
+它是开源 AI 生态系统的中枢神经系统。
+
+\subsection{三个法国人的创业故事}
+
+Hugging Face 由三位法国联合创始人于 2016 年在纽约创立：
+
+\textbf{Cl\'ement Delangue}（CEO），此前的创业经历是 Moodstocks——
+一家做计算机视觉机器学习的公司，后来被 Google 收购。
+Delangue 是一位坚定的开源倡导者和活跃的天使投资人，
+个人投资了超过 27 家公司。
+
+\textbf{Julien Chaumond}（CTO），负责平台的技术架构。
+
+\textbf{Thomas Wolf}（Chief Science Officer，首席科学官），
+是公司科学方向的灵魂人物。
+Wolf 是 Hugging Face Transformers 库的主要发起人和高级主席。
+他同时是有史以来最大的 AI 研究合作项目 BigScience 的发起者和高级主席
+（该项目产出了 BLOOM 模型）。
+
+2019 年 10 月，Wolf 等人发表了论文
+\textit{HuggingFace's Transformers: State-of-the-art Natural Language Processing}，
+正式介绍了 Transformers 库。
+这个库的核心理念是\textbf{统一 API}——
+用一套标准接口访问所有主流的预训练模型
+（BERT、GPT-2、RoBERTa、T5 等）。
+这在当时解决了一个巨大的痛点：
+每个模型都有自己的代码库和不同的接口，
+研究人员需要花大量时间适配不同的实现。
+
+\subsection{从聊天机器人到 AI 枢纽}
+
+Hugging Face 最初并不是一个 AI 平台——
+它的第一个产品是一个\textbf{面向青少年的 AI 聊天机器人}。
+2017 年，团队带着这个产品入驻了巴黎的 Station F 孵化器。
+但他们很快意识到，聊天机器人的商业前景有限，
+真正的机会在于为 AI 研究社区提供基础设施。
+
+这个转型的关键时刻是 2018 年 BERT 的发布。
+Google 的 BERT 模型引爆了 NLP 领域的``预训练-微调''范式，
+但使用 BERT 的门槛仍然很高。
+Wolf 和团队抓住了这个机会，
+构建了一个让任何人都能用两三行代码加载和使用预训练模型的库。
+Transformers 库迅速在学术界和工业界获得了病毒式传播。
+
+到 2026 年，Hugging Face 的平台数据令人震撼：
+
+\begin{itemize}[noitemsep]
+  \item 超过 \textbf{100 万}个模型托管；
+  \item 超过 \textbf{50 万}个数据集托管；
+  \item 超过 \textbf{1000 万}注册用户；
+  \item 超过 \textbf{5000 个研究机构}使用其工具，
+    包括 Meta AI、Google Research、DeepMind、Amazon、Apple
+    和 Allen Institute for AI。
+\end{itemize}
+
+\begin{corebox}[Hugging Face 的商业模式]
+Hugging Face 的商业模式是``开源核心 + 企业服务''：
+\begin{itemize}
+  \item \textbf{开源层}：Transformers、Datasets、Tokenizers 等库完全免费开源，
+    任何人都可以使用；
+  \item \textbf{Hub 层}：模型和数据集托管平台，基础功能免费，
+    私有仓库和更大的存储需要付费；
+  \item \textbf{计算层}：Inference Endpoints 和 Spaces
+    允许用户在 Hugging Face 的基础设施上运行模型，按需付费；
+  \item \textbf{企业层}：为大型组织提供私有化部署、SLA 保障和技术支持。
+\end{itemize}
+2023 年，Hugging Face 完成了 2.35 亿美元的 D 轮融资，
+估值 45 亿美元，投资者包括 Google、NVIDIA、Amazon、
+Salesforce 和 Samsung。
+这轮融资的象征意义在于：
+几乎所有主要科技巨头都同时投资了一个开源平台——
+它们宁愿支持一个中立的基础设施，也不愿看到竞争对手控制 AI 分发渠道。
+\end{corebox}
+
+\subsection{Lewis Tunstall \& Philipp Schmid：社区建设者}
+
+Hugging Face 的成功不仅仅依赖于创始人——
+一批活跃的社区建设者和技术传播者同样功不可没。
+
+\textbf{Lewis Tunstall} 是 Hugging Face 的研究工程师，
+在 LLM 微调和数据生成领域有深入的实践经验。
+他与团队开发了 \textbf{NuminaMath} 数据集——
+包含超过 80 万个（问题，解答）对的数学推理训练数据——
+该数据集帮助团队赢得了 AI Mathematical Olympiad 的首个进步奖。
+Tunstall 还是 Hugging Face 关于 LLM 微调最佳实践指南的主要撰写者之一。
+
+\textbf{Philipp Schmid} 长期担任 Hugging Face 的技术传播者和开发者关系负责人，
+他与 Tunstall 合作发布了广受欢迎的
+\textbf{``SFT 10 条建议''}——
+为从业者提供了 LLM 微调的实用默认设置
+（3 个 epoch、学习率 2e-5、余弦调度等）。
+Schmid 后来加入了 Google DeepMind。
+
+
+% =============================================================
+\section{EleutherAI 与草根开源运动}
+\label{sec:eleutherai}
+% =============================================================
+
+如果说 Meta 的开源策略是``自上而下''的——
+一个万亿美元公司决定公开其研究成果——
+那么 \textbf{EleutherAI} 代表的是一种完全不同的力量：
+\textbf{自下而上}的草根开源运动。
+
+\subsection{Discord 上的革命}
+
+2020 年 7 月 7 日，一群 AI 爱好者在 Discord 上创建了一个服务器，
+最初命名为``LibreAI''，后来改名为``EleutherAI''——
+取自希腊语 eleutheria，意为``自由''。
+他们的目标简单而大胆：
+\textbf{创建 GPT-3 的开源替代品}。
+
+这个想法之所以激进，是因为 2020 年的 GPT-3 是一个完全封闭的系统——
+OpenAI 只提供 API 访问，不公开模型权重，
+训练成本据估计高达数百万美元。
+一群没有机构支持的业余爱好者想要复制这个成果，
+在当时看来几乎是天方夜谭。
+
+但他们做到了。
+
+\subsection{Stella Biderman：学术界的开源战士}
+
+\textbf{Stella Biderman} 是 EleutherAI 的创始人和最核心的领导者。
+她是一位数学家和 AI 研究者，
+在 EleutherAI 期间推动了多个里程碑式的项目：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{The Pile}：一个 800GB 的高质量英文文本数据集，
+    专门为训练大语言模型而策展，
+    包含学术论文、代码、法律文本、维基百科等多种来源。
+    The Pile 成为了后续许多开源模型的标准训练数据集。
+  \item \textbf{GPT-Neo}（2021）：基于 Mesh Transformer JAX 的
+    第一批公开可用的大型语言模型（1.3B 和 2.7B 参数）。
+  \item \textbf{GPT-J}（2021）：6B 参数模型，
+    在当时是最大的公开可用语言模型之一。
+  \item \textbf{GPT-NeoX-20B}（2022）：20B 参数模型，
+    使用 EleutherAI 自己开发的 GPT-NeoX 框架训练，
+    在 CoreWeave 提供的 GPU 集群上完成。
+    这是当时最大的完全公开权重的稠密自回归语言模型。
+  \item \textbf{Pythia}：一系列不同规模的语言模型，
+    专门设计用于研究 LLM 的训练动态和涌现行为。
+\end{itemize}
+
+2023 年初，EleutherAI 正式注册为 \textbf{EleutherAI Institute}，
+一个非营利研究机构。
+截至 2025 年，该组织维护着广泛使用的训练数据集，
+进行独立研究，并参与公共政策讨论。
+
+\begin{whybox}[EleutherAI 为什么重要？]
+EleutherAI 的历史意义不仅仅在于它训练的模型——
+在参数规模和性能上，它很快被 Meta 的 Llama 和其他模型超越。
+EleutherAI 真正的贡献是\textbf{证明了一种可能性}：
+\begin{enumerate}
+  \item 大型语言模型的训练不需要数十亿美元的预算；
+  \item 一群分布在全球的志愿者可以协调完成
+    此前只有大公司才能完成的项目；
+  \item 完全公开的模型权重和训练数据不会导致灾难性后果，
+    反而促进了安全研究和社区创新。
+\end{enumerate}
+在某种意义上，EleutherAI 为 Meta 后来的开源决策铺平了道路——
+它证明了``开放权重''的天不会塌下来。
+\end{whybox}
+
+\subsection{Connor Leahy：从开源到 AI 安全}
+
+\textbf{Connor Leahy}（1997 年生于美国）是 EleutherAI 的联合创始人，
+他的人生轨迹展示了开源 AI 社区中一种有趣的思想演化。
+
+Leahy 在慕尼黑工业大学学习计算机科学（2017--2020），
+期间在 Aleph Alpha（德国 AI 公司）工作，
+并与 Sid Black 等人共同创立了 EleutherAI。
+在 EleutherAI，他是 GPT-NeoX-20B 公告的发布者，
+也是社区的核心组织者。
+
+但随着 LLM 能力的快速提升，Leahy 经历了一次深刻的\textbf{思想转变}——
+他从一个热情的开源倡导者变成了一个 AI 安全的积极呼吁者。
+2022 年 3 月，他与 Sid Black 和 Gabriel Alfour 共同创办了 \textbf{Conjecture}——
+一家专注于 AI 对齐研究的创业公司。
+
+Conjecture 的使命是解决``认知软件''的安全问题。
+Leahy 在公开演讲中越来越频繁地警告 AI 发展的风险，
+将不受控制的 AI 发展比作``算法癌症''。
+他是 AI 安全研究社区中最年轻也最直言不讳的声音之一。
+
+这种从``构建开源 AI''到``警告 AI 风险''的转变
+在 EleutherAI 社区中并非个例——
+随着 LLM 能力的指数级增长，
+越来越多的开源开发者开始重新思考
+无条件开放的道德含义。
+
+\subsection{Sid Black：EleutherAI 的第三位联合创始人}
+
+\textbf{Sid Black} 是 EleutherAI 和 Conjecture 的联合创始人。
+他是 GPT-NeoX-20B 论文的第一作者，
+在 EleutherAI 的 GitHub 仓库中是最活跃的贡献者之一
+（用户名 sdtblck）。
+与 Leahy 一样，Black 后来将关注重心从开源模型开发
+转向了 AI 安全研究。
+
+
+% =============================================================
+\section{开源基础设施的建设者们}
+\label{sec:infra-builders}
+% =============================================================
+
+开源 AI 不仅仅是关于模型和平台——
+还需要一系列底层技术创新来使大规模训练变得可能和高效。
+本节介绍那些``铺设管道''的工程师和研究者。
+
+\subsection{Tri Dao：FlashAttention 的发明者}
+
+\textbf{Tri Dao} 是越南裔美国计算机科学家，
+普林斯顿大学助理教授，\textbf{Together AI} 的联合创始人和首席科学家。
+他在斯坦福大学获得计算机科学博士学位
+（导师 Christopher R\'e 和 Stefano Ermon），
+此前在斯坦福获得了数学学士、计算机科学硕士和统计学硕士。
+
+Dao 最具影响力的贡献是 \textbf{FlashAttention}——
+一种 IO 感知的精确注意力算法，
+通过利用 GPU 内存层次结构的不对称性，
+在不引入任何近似的情况下实现了注意力计算的显著加速和内存节省。
+
+\begin{keybox}[FlashAttention 的核心洞见]
+标准的 Transformer 注意力机制需要 $O(n^2)$ 的内存和计算，
+其中 $n$ 是序列长度。
+传统的优化方法试图通过\textbf{近似}来降低复杂度
+（如 sparse attention、linear attention）。
+Dao 的创新之处在于他发现瓶颈不在计算本身，
+而在于 GPU 的\textbf{内存带宽}——
+HBM（高带宽内存）和 SRAM（片上缓存）之间的数据搬运才是真正的瓶颈。
+FlashAttention 通过分块计算（tiling）和重新计算（recomputation）策略，
+将注意力计算的内存占用从 $O(n^2)$ 降到 $O(n)$，
+同时实现了 2--4 倍的运行速度提升。
+关键是：\textbf{这不是近似——它给出精确相同的结果}。
+\end{keybox}
+
+FlashAttention 的影响是全方位的。
+截至 2026 年，它被几乎所有主要 AI 组织使用：
+Meta、Microsoft、NVIDIA、OpenAI、Google、Mistral、IBM、
+DeepSeek、Tencent、Alibaba。
+它已被集成到几乎所有主流深度学习框架中。
+Dao 的后续工作包括 FlashAttention-2（2023）和 FlashAttention-4（2025），
+持续优化了并行性和工作分配。
+
+Dao 的职业轨迹本身就是``学术-工业双栖''的典范。
+2023 年博士毕业后，他同时获得了普林斯顿大学计算机科学系的助理教授职位
+和 Together AI 首席科学家的头衔——
+这在传统学术界几乎不可能发生，
+但在 AI 领域，顶尖人才的稀缺性使得这种安排成为常态。
+在普林斯顿，他建立了自己的研究组，
+继续推进高效 AI 系统的前沿研究；
+在 Together AI，他将这些研究直接转化为生产系统。
+
+此外，Dao 与 CMU 的 \textbf{Albert Gu} 共同提出了 \textbf{Mamba} 架构——
+一种基于选择性状态空间模型（Selective State Space Model）的序列建模方法，
+被视为 Transformer 的最有力的潜在替代架构
+（关于 Albert Gu 的详细介绍，见第~\ref{subsec:albert-gu}~节）。
+
+Dao 的学术荣誉包括 ICML 2022 杰出论文亚军奖、
+COLM 2024 杰出论文奖、MLSys 2025 杰出论文荣誉提名，
+以及 2025 年 Schmidt Sciences AI2050 Early Career Fellowship。
+\textit{Time} 杂志将他列入 2024 年 AI 领域最具影响力 100 人。
+
+\begin{whybox}[为什么 FlashAttention 改变了一切？]
+FlashAttention 的历史意义不仅仅在于技术本身的优雅，
+而在于它改变了整个 LLM 训练和推理的经济学。
+在 FlashAttention 之前，训练长上下文模型的内存需求
+随序列长度呈平方增长，这意味着 32K 上下文窗口
+在大多数硬件上根本不可行。
+FlashAttention 将这个瓶颈从平方降到了线性，
+直接使得 GPT-4 级别的 128K 上下文窗口、
+Claude 的 200K 上下文窗口、
+以及 Llama 4 Scout 的 1000 万 token 上下文窗口成为可能。
+\textbf{没有 FlashAttention，2024--2025 年的长上下文 LLM 革命
+根本不会发生}。
+几乎每一次你与一个能``记住''长对话历史的 AI 交互时，
+背后都有 Tri Dao 的算法在默默工作。
+\end{whybox}
+
+\subsection{Jonathan Frankle：从彩票假设到 Databricks}
+
+\textbf{Jonathan Frankle} 是神经网络效率研究领域最具影响力的人物之一，
+也是从学术研究成功转型为工业领导者的典范。
+
+Frankle 在 MIT 完成博士学位（导师 Michael Carbin），
+他的博士论文提出了\textbf{彩票假设}（Lottery Ticket Hypothesis, 2018）：
+在一个随机初始化的神经网络中，
+存在一个\textbf{稀疏子网络}（``中奖彩票''），
+它可以从相同的初始化开始训练到与完整网络相当的精度，
+同时参数量减少 90\% 以上。
+
+这个发现具有深远的理论和实践意义：
+它暗示了神经网络的过参数化（overparameterization）
+不是必要的，而是为了让优化算法能够``找到''好的子网络。
+彩票假设论文获得了 ICLR 2019 最佳论文奖，
+成为该领域引用量最高的论文之一。
+
+博士毕业后，Frankle 联合创办了 \textbf{MosaicML}——
+一个帮助非专家构建和训练大型生成式 AI 模型的平台。
+2023 年 6 月，Databricks 以 \textbf{13 亿美元}收购了 MosaicML。
+Frankle 加入 Databricks 担任首席 AI 科学家，
+领导公司的 AI 研究团队，同时在哈佛 Kempner Institute 任兼职教职。
+
+\begin{whybox}[MosaicML 的 13 亿美元收购说明了什么？]
+MosaicML 的核心产品不是模型本身，
+而是\textbf{训练效率工具}——帮助企业以更低的成本训练自己的 AI 模型。
+Databricks 收购 MosaicML 的逻辑是：
+在 AI 时代，\textbf{数据平台 + 模型训练能力 = 完整的企业 AI 解决方案}。
+这笔交易预示了一个趋势：
+AI 基础设施公司的价值可能不亚于模型公司本身。
+Frankle 从学术理论（彩票假设）出发，
+经过创业实践（MosaicML），最终在大型企业中
+找到了将研究转化为大规模产品的着陆点。
+\end{whybox}
+
+\subsection{Stas Bekman：BLOOM 背后的工程英雄}
+
+\textbf{Stas Bekman} 是开源 AI 社区中最被低估的工程英雄之一。
+他是一位拥有 24 年以上经验的资深软件工程师，
+专注于大规模 LLM 训练和推理系统的设计与优化。
+
+Bekman 最引人注目的成就是领导了 \textbf{BLOOM}
+（BigScience Large Open-science Open-access Multilingual Language Model）
+的训练工程。BLOOM 是一个 176B 参数的多语言模型，
+在 384 块 A100 GPU 上训练完成——
+这是 2022 年最大规模的开源 LLM 训练之一，
+由全球超过 1000 名研究者通过 BigScience 项目协作完成。
+
+Bekman 的贡献不是算法创新，而是\textbf{工程集成和优化}——
+他使 Hugging Face Transformers、DeepSpeed、Megatron-LM
+和 PyTorch 这些不同的组件能够协同工作，
+在大规模集群上稳定运行。
+他是 Hugging Face 关于 BLOOM 训练技术的博客文章的主要作者，
+那篇文章成为了大规模 LLM 训练工程的权威参考。
+
+Bekman 还编写了广受好评的 \textbf{Machine Learning Engineering Open Book}，
+并持续为 Hugging Face Transformers、Accelerate 和 DeepSpeed 贡献代码。
+目前他在 Snowflake AI Research 工作，
+专注于多百万 token 序列的可扩展训练。
+
+\subsection{Together AI：开源 AI 的云基础设施}
+
+\textbf{Together AI} 代表了开源 AI 生态中一种独特的定位：
+不做模型、不做框架，而是提供\textbf{运行开源模型的云基础设施}。
+
+Together AI 于 2022 年 6 月创立，
+四位联合创始人是 \textbf{Vipul Ved Prakash}（CEO）、
+\textbf{Ce Zhang}（CTO）、\textbf{Christopher R\'e}
+和 \textbf{Percy Liang}——
+后两位是斯坦福大学的教授，
+也是 Tri Dao 的博士导师和合作者。
+
+\textbf{Vipul Ved Prakash} 在创办 Together AI 之前
+有丰富的创业和技术领导经验。
+\textbf{Ce Zhang} 是苏黎世联邦理工学院的教授（后转任芝加哥大学），
+在数据管理和机器学习系统领域有深厚的学术背景。
+
+Together AI 的差异化在于将\textbf{研究和基础设施}紧密结合——
+公司约 50\% 的员工是研究人员，
+他们不仅优化推理速度（号称达到 5000 tokens/s），
+还投资于状态空间模型（State Space Models）等前沿架构研究。
+公司在 2025 年 2 月完成了 3.05 亿美元的 B 轮融资，
+估值达到 33 亿美元，由 Salesforce Ventures 领投。
+
+Together AI 与 Tri Dao 的关系尤其密切——
+Dao 同时担任普林斯顿教授和 Together AI 首席科学家，
+FlashAttention 和 Mamba 的研究都与 Together AI 有直接关联。
+这种\textbf{学术-工业双栖}的模式在开源 AI 生态中越来越常见。
+
+
+% =============================================================
+\section{开源基础设施的无名英雄}
+\label{sec:unsung-heroes}
+% =============================================================
+
+前面几节讲述的是拥有大量资源的组织和机构——
+Meta、Hugging Face、EleutherAI、Together AI——
+它们从顶层定义了开源 AI 的架构和方向。
+但开源 AI 生态系统真正的奇迹在于：
+\textbf{一些最具变革性的工具，是由个人开发者或极小团队创造的}。
+这些人没有数十亿美元的预算，没有数千块 GPU 的集群，
+甚至在很多情况下连全职工资都没有——
+但他们构建的软件被数百万人每天使用，
+其影响力不亚于任何大公司的旗舰产品。
+
+本节讲述这些``无名英雄''的故事。
+
+
+\subsection{Georgi Gerganov：让 LLM 在你的笔记本上运行的人}
+\label{subsec:gerganov}
+
+2023 年 3 月 10 日，Meta 发布 LLaMA 模型仅两周后，
+一个名为 \textbf{Georgi Gerganov} 的保加利亚开发者
+在 GitHub 上推送了一个项目：\textbf{llama.cpp}。
+这个项目的 README 写着一句朴素到近乎随意的话：
+``The main goal is to run the model using 4-bit quantization on a MacBook.
+\ldots{} This was hacked in an evening---I have no idea if it works correctly.''
+
+它不仅``works correctly''——它改变了整个 AI 行业的格局。
+
+Gerganov 的教育背景是\textbf{物理学}，不是计算机科学。
+他在索菲亚大学（Sofia University St.\ Kliment Ohridski）
+获得了医学物理学硕士学位，
+之后在 ViewRay（一家医疗设备公司）担任首席科学家近九年，
+从事磁共振引导放射治疗系统的软件开发。
+在一次播客访谈中，他回忆道：
+``My education background is physics\ldots{}
+I just enjoyed [programming], I found it fun\ldots{}
+And yeah, I guess that's it.''
+
+2022 年 9 月，出于对 C 语言编程的纯粹热爱，
+Gerganov 开始编写一个小型张量计算库——后来被命名为 \textbf{ggml}
+（Georgi Gerganov's Machine Learning library）。
+他最初的目的只是``练习 C 编程''和``解决一些工作中的 ML 问题''。
+但当他将 ggml 应用到当时最先进的 Transformer 模型时——
+先是 GPT-2，然后是 GPT-J，接着是 OpenAI 的 Whisper——
+他发现这个纯 C 实现的推理速度和内存效率远超预期。
+
+\begin{keybox}[ggml 的设计哲学]
+ggml 的核心设计哲学是\textbf{极简主义和硬件贴近}：
+\begin{itemize}[noitemsep]
+  \item 纯 C 语言实现，零外部依赖（不依赖 Python、PyTorch 或任何框架）；
+  \item 手写的 SIMD（AVX、AVX2、AVX-512、ARM NEON）优化内核；
+  \item 原生支持 Metal（Apple GPU）、CUDA、Vulkan 等多种后端；
+  \item 激进的量化方案（4-bit、5-bit、6-bit），
+    将模型体积压缩到原始大小的 25--40\%，
+    同时保持可接受的质量损失。
+\end{itemize}
+这种设计使得一个 7B 参数的 LLM 可以在
+一台没有独立 GPU 的 MacBook Air 上以交互速度运行——
+这在 llama.cpp 之前是不可想象的。
+\end{keybox}
+
+llama.cpp 的影响是爆炸性的。
+Simon Willison（Django 联合创始人）在回顾时写道：
+``It's hard to overstate the impact Georgi Gerganov has had on the local model space.''
+Meta 原始的 LLaMA 发布依赖 PyTorch 和 NVIDIA CUDA 硬件；
+Gerganov 的工作将其解放到了\textbf{几乎所有消费级硬件}上——
+MacBook、iPhone、Android 手机、树莓派、
+甚至浏览器（通过 WebAssembly）。
+
+Gerganov 还定义了 \textbf{GGUF}（GGML Unified Format）——
+一种专为本地推理优化的模型文件格式，
+成为了本地 AI 社区的\textbf{事实标准}。
+当你在 Hugging Face 上看到模型标注``GGUF 格式可用''时，
+那就是 Gerganov 定义的格式。
+
+2023 年 6 月，在 GitHub 前 CEO Nat Friedman 和投资人 Daniel Gross 的
+种子资金支持下，Gerganov 在索菲亚创立了 \textbf{ggml.ai}。
+截至 2026 年 3 月，llama.cpp 在 GitHub 上拥有超过 \textbf{98,000 颗星}，
+超过 450 名贡献者，是整个 AI 领域最活跃的开源项目之一。
+
+2026 年 2 月 20 日，Gerganov 宣布 ggml.ai 整个团队
+\textbf{加入 Hugging Face}——
+这标志着开源 AI 的推理层（llama.cpp/ggml）
+与分发层（Hugging Face Hub）的正式合流。
+Hugging Face CTO Julien Chaumond 称这是``a match made in heaven''：
+``llama.cpp is the fundamental building block for local inference,
+and transformers is the fundamental building block for model definition.''
+
+\begin{whybox}[为什么 llama.cpp 比 PyTorch 推理更重要？]
+PyTorch 是\textbf{训练}的标准框架，但它并非为推理优化：
+它的 Python 运行时开销、动态计算图和庞大的依赖链
+使其不适合在边缘设备上部署。
+llama.cpp 通过用纯 C/C++ 重写整个推理栈，
+消除了所有这些开销。
+这种``从零开始''的方法听起来原始，
+但正是这种``原始''使得 LLM 推理可以在任何地方运行——
+从数据中心的服务器到你口袋里的手机。
+\textbf{如果说 PyTorch 民主化了 AI 训练，
+那么 llama.cpp 民主化了 AI 部署}。
+\end{whybox}
+
+
+\subsection{Justine Tunney：将 LLM 装进一个文件的人}
+\label{subsec:tunney}
+
+\textbf{Justine Tunney} 是一位传奇的系统程序员，
+她的 \textbf{llamafile} 项目将``本地 AI 的易用性''推向了一个新极端：
+\textbf{下载一个文件，双击运行，就能与 AI 对话}。
+
+Tunney 的技术背景极为独特。
+她是 Google Brain 的校友，
+但更广为人知的身份是 \textbf{Cosmopolitan Libc} 的创造者——
+一个``build-anywhere run-anywhere''的 C 语言标准库，
+使 C 程序可以编译成在 Linux、macOS、Windows、FreeBSD、
+OpenBSD 和 NetBSD 上\textbf{同时原生运行}的单一可执行文件。
+她同时也是 Redbean 的创作者——
+一个可以作为单个 zip 可执行文件运行的开源 Web 服务器。
+在此之前，她还作为网络安全活动家积累了丰富的系统级经验。
+
+2023 年 11 月，在 Mozilla Innovation 的支持下，
+Tunney 将 Cosmopolitan Libc 与 llama.cpp 结合，
+创造了 \textbf{llamafile}——
+一种将 LLM 权重和推理引擎打包成\textbf{单个跨平台可执行文件}的方案。
+用户不需要安装 Python、不需要配置环境变量、
+不需要理解 CUDA 或 Metal——
+只需下载一个几 GB 的文件并运行。
+
+\begin{keybox}[llamafile 的技术核心]
+llamafile 的关键创新在于：
+\begin{enumerate}[noitemsep]
+  \item 使用 Cosmopolitan Libc 实现\textbf{六操作系统、双架构}
+    （AMD64 + ARM64）的单一二进制文件；
+  \item 内置 llama.cpp 的所有推理优化，
+    包括量化和硬件加速；
+  \item 自带 Web UI，运行后自动在浏览器中打开交互界面；
+  \item Tunney 亲自编写了 84 个矩阵乘法内核，
+    在 CPU 推理场景下实现了比标准 llama.cpp
+    快 30\%--500\% 的 prompt 处理速度。
+\end{enumerate}
+\end{keybox}
+
+llamafile 代表了一种极端的设计哲学：
+\textbf{零摩擦}（zero friction）。
+在 AI 工具链日益复杂的今天——
+conda 环境、Docker 容器、CUDA 驱动版本冲突——
+Tunney 证明了最先进的 AI 可以被压缩成
+``一个文件、一次点击''的体验。
+
+
+\subsection{Jeffrey Morgan：让``ollama run''成为动词的人}
+\label{subsec:morgan}
+
+如果 llama.cpp 是本地 LLM 推理的``引擎''，
+llamafile 是``一键启动''的极简方案，
+那么 \textbf{Ollama} 则是让本地 AI 真正``好用''的产品。
+它的创造者 \textbf{Jeffrey Morgan} 深谙一个道理：
+\textbf{技术的成功不取决于它的复杂性，而取决于它的简单性}。
+
+Morgan 是一位连续创业者，
+此前创建了 \textbf{Kitematic}（被 Docker 收购的 Docker GUI 工具）
+和 \textbf{Infra}（一家基础设施公司）。
+他曾在 Docker 担任高级工程师和产品经理，
+在 Twitter 和 Google 实习。
+这一系列经历塑造了他的核心信念：
+\textbf{开发者工具的成败在于入门门槛的高低}。
+
+2023 年，Morgan 与 \textbf{Michael Chiang} 在 Palo Alto
+共同创立了 Ollama，公司参加了 Y Combinator 的 W21 批次。
+Ollama 的核心产品是一个命令行工具，
+它将 llama.cpp 的推理引擎封装成了类似 Docker 的体验：
+
+\begin{verbatim}
+  ollama run llama3
+\end{verbatim}
+
+一行命令，自动下载模型，自动配置硬件加速，即刻开始对话。
+这种``Docker for LLMs''的设计范式大获成功——
+截至 2026 年，Ollama 已经成为本地 AI 社区中
+安装量最大的入口工具之一。
+
+\begin{whybox}[Ollama 的产品直觉]
+Morgan 从 Docker 的成功中学到的核心教训是：
+\textbf{抽象层级决定用户规模}。
+Docker 没有发明容器技术（Linux namespaces 和 cgroups 早已存在），
+但它将复杂的底层机制封装成了 \texttt{docker run} 一条命令。
+Ollama 对 LLM 做了完全相同的事——
+它没有发明量化推理（那是 llama.cpp 的功劳），
+但它将模型管理、硬件检测、API 服务
+封装成了连非技术用户都能使用的产品。
+这就是为什么 Ollama 能在已有 llama.cpp 的前提下
+仍然获得巨大的成功：
+\textbf{``能用''和``好用''之间的差距，
+就是工程师和产品经理之间的差距}。
+\end{whybox}
+
+
+\subsection{Timothy Jaeryang Baek：本地 AI 的用户界面}
+\label{subsec:baek}
+
+\textbf{Timothy Jaeryang Baek}（Tim J.\ Baek）
+是 \textbf{Open WebUI}（原名 Ollama WebUI）的创始人——
+目前最流行的本地 LLM 图形用户界面。
+
+Baek 是一位韩裔开发者，
+在伦敦大学获得计算机科学学士学位（一等荣誉），
+在 Simon Fraser 大学获得计算机科学硕士学位。
+他创建 Open WebUI 的动机直接而实际：
+Ollama 提供了强大的命令行体验，
+但大多数用户——尤其是非技术用户——需要一个\textbf{图形界面}。
+
+Open WebUI 提供了一个类似 ChatGPT 的 Web 界面，
+但完全运行在本地，支持 Ollama 和 OpenAI 兼容的 API。
+它的功能覆盖了多模型管理、对话历史、
+RAG（文档上传和检索增强生成）、
+语音输入和输出、以及丰富的自定义选项。
+
+Baek 对项目的治理有着清晰而不妥协的愿景。
+在 Open WebUI 的官方文档中，他明确表示：
+``Strategic and operational decisions are led openly and transparently
+by our founder\ldots{} ensuring a clear, unified, long-term vision.''
+项目的设计目标是``remain sustainable and independent for decades''——
+一种在快速迭代的 AI 领域中罕见的长期主义立场。
+
+他在个人网站上写下的话颇具野心：
+``I'm working towards building a foundational technology
+that would help realize my vision of creating a galactic empire,
+aiming to propel humanity to reach the stars.''
+虽然措辞宏大，但它反映了本地 AI 运动中一种深层信念：
+\textbf{自主性和去中心化是人类未来的基础}，
+而本地运行的 AI 是实现这一目标的关键技术。
+
+
+\subsection{Georgi Gerganov--Justine Tunney--Jeffrey Morgan--Tim Baek：本地 AI 的四层栈}
+
+值得注意的是，这四个人的工作构成了一个\textbf{完整的本地 AI 技术栈}：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{ggml / llama.cpp}（Gerganov）：底层推理引擎和张量计算；
+  \item \textbf{llamafile}（Tunney）：跨平台打包和极致 CPU 优化；
+  \item \textbf{Ollama}（Morgan）：模型管理和 API 服务层；
+  \item \textbf{Open WebUI}（Baek）：用户界面和交互层。
+\end{enumerate}
+
+这四层中的每一层都是由独立开发者或极小团队创建的，
+它们之间没有正式的组织关系，
+但通过开源协议和社区协作形成了一个有机的整体。
+这正是开源生态的魔力：
+\textbf{没有人``计划''了这个栈——它自发涌现了}。
+
+
+\subsection{AI 生成艺术的开源工具链}
+\label{subsec:sd-toolchain}
+
+本地 AI 革命不仅限于语言模型。
+2022 年 8 月 Stability AI 发布 Stable Diffusion 后，
+一个平行的开源工具链生态在图像生成领域迅速成形，
+其影响力和社区规模甚至超过了 LLM 工具链。
+
+\paragraph{AUTOMATIC1111：匿名开发者的 140K 星项目。}
+\textbf{AUTOMATIC1111}（也被称为 A1111）是一个
+几乎完全匿名的开发者——社区只知道他的 GitHub 用户名。
+2022 年 8 月 22 日，Stable Diffusion 发布仅一个月后，
+AUTOMATIC1111 发布了 \textbf{Stable Diffusion WebUI}——
+一个基于 Gradio 的图形界面，
+将 Stable Diffusion 从命令行工具变成了任何人都能使用的产品。
+
+这个项目在 GitHub 上积累了超过 \textbf{162,000 颗星}和 30,000 次 fork，
+成为 GitHub 历史上最受欢迎的 AI 项目之一。
+Wikipedia 称其为``the most popular tool for running diffusion models locally''。
+SD WebUI 的功能极其丰富：
+txt2img、img2img、inpainting、outpainting、
+ControlNet 集成、LoRA 加载、
+批量生成、X/Y/Z 参数扫描、
+以及一个庞大的扩展生态系统。
+
+AUTOMATIC1111 的匿名性本身就是开源精神的一种极端体现：
+\textbf{代码的价值不取决于作者的身份}。
+在一个痴迷于``创始人故事''的行业中，
+一个连真名都不知道的开发者创造了最广泛使用的 AI 工具之一。
+
+\paragraph{comfyanonymous 与 ComfyUI：节点化的 AI 工作流。}
+如果说 AUTOMATIC1111 的 SD WebUI 是面向\textbf{普通用户}的工具，
+那么 \textbf{ComfyUI}（由同样匿名的 \textbf{comfyanonymous} 开发）
+则是面向\textbf{高级用户和专业人士}的工作流引擎。
+
+ComfyUI 于 2023 年 1 月发布，
+采用\textbf{节点化}（node-based）的视觉编程界面——
+用户通过连接不同的节点（模型加载、提示词编码、采样器、
+后处理、放大等）来构建复杂的图像生成流水线。
+这种设计受到了 Houdini、Nuke 等专业视觉特效软件的启发，
+给予用户对生成过程每个步骤的精确控制。
+
+截至 2026 年，ComfyUI 在 GitHub 上拥有超过 \textbf{106,000 颗星}，
+已经成为 Stable Diffusion、Flux、Hunyuan 等扩散模型
+的\textbf{标准高级前端}。
+它的扩展生态包含了数百个社区开发的自定义节点，
+覆盖了从 IP-Adapter 到视频生成的几乎所有用例。
+
+\paragraph{kohya-ss：让微调成为可能。}
+\textbf{kohya-ss}（GitHub 用户名）是一位日本开发者，
+他编写的 \textbf{sd-scripts} 是 Stable Diffusion 生态中
+最重要的\textbf{训练工具}。
+在 kohya-ss 的脚本出现之前，
+微调 Stable Diffusion 模型（无论是全模型微调还是 LoRA）
+需要深入理解 PyTorch 训练循环和 GPU 内存管理。
+kohya-ss 将这一切封装成了配置化的脚本，
+支持 LoRA、LoCon、DreamBooth、文本反转等多种微调方法，
+覆盖 SD 1.5、SDXL 和 Flux 等多个架构。
+
+\textbf{bmaltais}（Bernard Maltais）为 kohya-ss 的脚本
+开发了一个广受欢迎的图形界面（kohya\_ss GUI），
+进一步降低了微调的门槛。
+
+\begin{corebox}[AI 生成艺术工具链的启示]
+AUTOMATIC1111、comfyanonymous 和 kohya-ss 的故事
+揭示了开源 AI 的一个重要模式：
+\textbf{最成功的工具往往不是由创造基础模型的人开发的}。
+Stability AI 创造了 Stable Diffusion，
+但用户实际使用的界面、工作流和微调工具
+全部来自社区的独立开发者。
+这与 LLM 生态中 Meta 创造 Llama
+但用户通过 llama.cpp / Ollama / Open WebUI 使用的模式完全一致。
+\textbf{在开源生态中，模型是原材料，工具才是产品}。
+\end{corebox}
+
+
+\subsection{vLLM 与 PagedAttention：LLM 服务的工业标准}
+\label{subsec:vllm}
+
+如果 llama.cpp 是\textbf{本地}推理的王者，
+那么 \textbf{vLLM} 就是\textbf{云端}推理的工业标准。
+它的创造者来自 UC Berkeley 的 Sky Computing Lab——
+一个孕育了 Databricks、Anyscale 和 Ray 的传奇实验室。
+
+2022 年夏天，博士生 \textbf{Zhuohan Li} 和 \textbf{Woosuk Kwon}
+正在为大模型推理的内存效率问题苦恼。
+当他们为实验室的 Vicuna 聊天机器人搭建 demo 时，
+发现性能``ridiculously slow''。
+Li 后来回忆说：``We realized memory management was going to be
+a big bottleneck for serving these models.''
+
+Kwon 提出了一个灵感来自\textbf{操作系统虚拟内存}的解决方案：
+将注意力机制的 KV cache 像操作系统管理内存页一样
+进行\textbf{分页管理}（paging）。
+这个算法被命名为 \textbf{PagedAttention}，
+它允许 KV cache 存储在非连续的内存块中，
+按需分配和释放，极大地提高了 GPU 内存利用率。
+
+\begin{keybox}[PagedAttention 的核心直觉]
+传统的 LLM 推理为每个请求预分配一大块连续的 GPU 内存
+来存储 KV cache。
+这导致了严重的\textbf{内存碎片化}和\textbf{浪费}——
+就像早期操作系统为每个进程分配连续物理内存一样低效。
+PagedAttention 借鉴了操作系统的\textbf{虚拟内存和分页}思想：
+KV cache 被分成固定大小的``页''（blocks），
+可以存储在 GPU 内存的任意位置，
+通过一个``页表''来追踪映射关系。
+这将 KV cache 的内存浪费从 60--80\% 降低到不到 4\%，
+使同一块 GPU 能同时服务的并发请求数量
+提升了 \textbf{2--4 倍}，最高可达 \textbf{24 倍}。
+\end{keybox}
+
+vLLM 于 2023 年 6 月正式开源，
+迅速成为 LLM 推理服务的事实标准。
+它被部署在 Chatbot Arena（LMSYS 的模型评测平台）、
+以及无数企业的生产环境中。
+
+\textbf{Woosuk Kwon}，1997 年前后生于韩国，
+在首尔大学获得数学与计算机科学学士学位，
+2021 年进入 UC Berkeley 攻读博士（导师 Ion Stoica）。
+2025 年秋完成博士论文（题为
+\textit{vLLM: An Efficient Inference Engine for Large Language Models}）后，
+他先加入了 Mira Murati 的 Thinking Machines Lab，
+后于 2025 年 11 月与人联合创立了 \textbf{Inferact}，
+继续推进 vLLM 的商业化。
+
+\textbf{Lianmin Zheng}（郑连民）是 vLLM 项目的另一位核心人物，
+同时也是 \textbf{LMSYS}（Large Model Systems Organization）的领导者
+和 \textbf{Chatbot Arena} 的创建者。
+Zheng 在北京大学获得学士学位，
+在 UC Berkeley 攻读博士（导师 Ion Stoica 和 Joseph Gonzalez），
+获得 Meta PhD Fellowship。
+他的工作横跨系统优化（Alpa、AlpaServe）
+和模型评估（Vicuna、Chatbot Arena），
+被 Sequoia Capital 评为 2024 年开源领域最具影响力的研究者之一。
+
+
+\subsection{Albert Gu：Transformer 的挑战者}
+\label{subsec:albert-gu}
+
+\textbf{Albert Gu} 是 \textbf{Mamba} 架构和\textbf{结构化状态空间模型}
+（Structured State Space Models, S4）的发明者，
+被 \textit{Time} 杂志评为 2024 年 AI 领域最具影响力 100 人之一。
+
+Gu 是 Carnegie Mellon University 的机器学习助理教授，
+同时是 AI 创业公司 \textbf{Cartesia} 的联合创始人。
+他的研究路径有一条清晰的主线：
+\textbf{寻找 Transformer 的替代架构}。
+
+Transformer 的核心注意力机制需要 $O(n^2)$ 的计算量，
+其中 $n$ 是序列长度——这意味着处理非常长的序列（如完整的基因组、
+数小时的音频、或超长文档）在计算上是极其昂贵的。
+Gu 的 S4 模型（2021）提出了一种基于\textbf{连续时间状态空间}的替代方案，
+结合了连续时间模型、循环网络和卷积网络的优势，
+理论复杂度仅为 $O(n)$ 或 $O(n \log n)$。
+
+2023 年 12 月，Gu 与 Tri Dao 共同发表了 \textbf{Mamba}——
+一种基于\textbf{选择性状态空间模型}的架构，
+通过输入依赖的参数选择机制
+使模型能够根据输入内容动态调整其信息过滤行为。
+Mamba 在语言建模基准上的性能匹配了同规模的 Transformer，
+但推理速度快 5 倍，且内存使用随序列长度\textbf{线性}增长。
+
+\begin{whybox}[Mamba 会取代 Transformer 吗？]
+截至 2026 年初，答案是``还不确定，但可能性在增加''。
+Transformer 仍然主导着 LLM 领域，
+但 Mamba 及其后续变体（Mamba-2、Jamba 等）
+正在\textbf{混合架构}中找到越来越多的用武之地——
+例如 AI21 Labs 的 Jamba 模型就将 Mamba 层和 Transformer 层交替使用。
+Abu Dhabi 的 Technology Innovation Institute（TII）
+也发布了基于纯 Mamba 架构的 Falcon Mamba 7B。
+Gu 创办的 Cartesia 正在将状态空间模型商业化，
+特别是在\textbf{音频处理}和\textbf{实时推理}等
+对延迟敏感的场景中，
+Mamba 的线性复杂度优势尤为明显。
+\end{whybox}
+
+
+\subsection{Abubakar Abid：让 ML Demo 变得简单}
+\label{subsec:abid}
+
+\textbf{Abubakar Abid} 是 \textbf{Gradio} 的创始人和 CEO——
+一个被数十万开发者用来构建 ML 演示界面的 Python 库。
+
+Abid 在 MIT 获得电气工程与计算机科学学士学位，
+在斯坦福大学获得应用机器学习博士学位。
+2019 年，他创办了 Gradio，
+其核心理念简洁有力：
+\textbf{任何机器学习模型都应该能在三行代码内获得一个交互式 Web 界面}。
+
+Gradio 的重要性在于它是开源 AI 生态的\textbf{``最后一公里''}。
+研究人员训练了模型、开发者优化了推理——
+但如果没有一个让非技术用户能够交互的界面，
+这些技术就只能停留在终端窗口中。
+Gradio 填补了这个空白。
+
+2021 年，Gradio 被 \textbf{Hugging Face 收购}，
+Abid 加入 Hugging Face 担任机器学习团队负责人。
+Gradio 成为 Hugging Face \textbf{Spaces} 平台的核心技术——
+当你在 Hugging Face 上看到一个可交互的模型 demo 时，
+它背后大概率就是 Gradio。
+
+AUTOMATIC1111 的 Stable Diffusion WebUI 最初也是基于 Gradio 构建的——
+这是一个有趣的开源层叠效应：
+Abid 的 Gradio 赋能了 AUTOMATIC1111 的 SD WebUI，
+后者又赋能了数百万 AI 艺术创作者。
+
+
+% =============================================================
+\section{开源的悖论：自由、商业与地缘政治}
+\label{sec:paradox}
+% =============================================================
+
+回顾本章涉及的所有人物和组织，
+一个深层的张力浮现出来：
+\textbf{开源 AI 既是一种理想主义运动，也是一种商业策略，
+还是一个地缘政治问题}——
+而这三个维度之间充满了内在矛盾。
+
+\subsection{理想主义者的困境}
+
+EleutherAI 的故事展示了一个经典的理想主义困境：
+当你证明了大型 AI 模型可以被开源时，
+你也打开了\textbf{所有可能的使用方式}——包括你不希望看到的那些。
+Connor Leahy 从开源倡导者转变为 AI 安全警告者，
+本身就是这个困境的人格化体现。
+
+\subsection{企业的算计}
+
+Meta 的开源策略从来不是纯粹的利他行为。
+正如 Zuckerberg 在公开信中坦承的，
+开源是为了让 Llama 成为行业标准，
+从而确保 Meta 在 AI 生态中的影响力。
+但当开源模型的能力接近闭源前沿时，
+免费提供就变成了向竞争对手（包括地缘政治对手）的直接补贴。
+2025 年底 Avocado 项目的曝光表明，
+即使是最坚定的开源倡导者也在重新计算得失。
+
+\subsection{人才的流动}
+
+从 FAIR 到 Mistral、从 Meta 到 Thinking Machines Lab、
+从 EleutherAI 到 Conjecture——
+开源 AI 社区的人才流动模式是双刃剑。
+一方面，它促进了知识和经验的广泛传播，
+使整个生态系统变得更加丰富。
+另一方面，它也意味着没有任何单一组织能够长期保持人才优势——
+\textbf{当你的研究文化越开放，你的人才就越容易离开}。
+
+\begin{keybox}[开源 AI 的核心悖论]
+本章揭示了开源 AI 运动的一个核心悖论：
+\textbf{开源的最大受益者往往不是开源的贡献者}。
+\begin{itemize}
+  \item Meta 开源了 Llama，但 DeepSeek 和其他中国公司
+    用它来训练自己的商业产品；
+  \item EleutherAI 证明了大规模训练的可行性，
+    但商业化机会被后来的 Together AI 和 Databricks 捕获；
+  \item Hugging Face 构建了基础设施，
+    但 OpenAI 和 Anthropic 的闭源模型仍然占据了最大的市场份额；
+  \item Tri Dao 发明了 FlashAttention，
+    但所有公司——包括闭源公司——都在免费使用它；
+  \item Georgi Gerganov 的 llama.cpp 使每一个本地 AI 应用成为可能，
+    但商业化收益主要流向了建立在其之上的产品公司；
+  \item AUTOMATIC1111 创造了 162K 星的 SD WebUI，
+    但连他的真名都无人知晓。
+\end{itemize}
+这并不意味着开源是错误的——
+它创造的总价值远超任何单一公司的损失。
+但它确实意味着\textbf{开源的激励结构需要重新设计}，
+以确保贡献者能够从自己创造的价值中获得合理的回报。
+Gerganov 加入 Hugging Face、vLLM 团队创办 Inferact——
+这些动向或许暗示着一种新模式的出现：
+\textbf{开源基础设施的创造者正在学会如何在保持开放的同时获取价值}。
+\end{keybox}
+
+\subsection{展望：开源 AI 的下一章}
+
+截至 2026 年初，开源 AI 运动正处于一个关键的十字路口：
+
+\begin{itemize}
+  \item Meta 的 Avocado 项目可能标志着最大的开源 AI 倡导者
+    开始走向混合策略（部分开源、部分闭源）；
+  \item Hugging Face 收购了 ggml.ai，正在整合从模型托管到本地推理的完整栈；
+  \item EleutherAI 已经从模型训练转向了政策研究和安全评估；
+  \item Albert Gu、Tri Dao 和 Together AI 正在推动下一代架构
+    （Mamba / 状态空间模型）的开源开发；
+  \item vLLM 从学术项目演变为工业标准，其核心团队开始商业化；
+  \item 欧盟的 AI Act 和美国的出口管制
+    正在为开源 AI 添加越来越多的法律约束。
+\end{itemize}
+
+无论未来走向如何，本章讲述的这些人——
+从 LeCun 的学术理想主义到 Zuckerberg 的商业实用主义，
+从 Biderman 的草根运动到 Dao 的算法创新，
+从 Gerganov 在索菲亚的公寓中``hacked in an evening''的 llama.cpp
+到 AUTOMATIC1111 的 162K 星匿名传奇——
+共同定义了 AI 历史上一个独特的时期：
+\textbf{当最强大的技术可以被所有人获取时，
+它将如何改变权力的分配？}
+
+这个问题的答案仍在书写中。

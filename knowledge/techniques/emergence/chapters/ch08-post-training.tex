@@ -500,18 +500,20 @@ RLHF 提供的是\textbf{序关系}，在所有可能的回答空间中定义了
 \begin{tikzpicture}[
   node distance=12mm and 14mm,
   every node/.style={font=\small},
-  stage/.style={rectangle, rounded corners=4pt, draw=figBlue, fill=figBlue!10,
-    minimum width=28mm, minimum height=12mm, align=center, font=\small\bfseries},
+  stage/.style={rectangle, rounded corners=4pt, draw=#1, fill=#1!10,
+    minimum width=28mm, minimum height=12mm, align=center, font=\small\bfseries,
+    line width=0.6pt},
+  stage/.default=figBlue,
   data/.style={rectangle, rounded corners=2pt, draw=figGray, fill=figLightGray,
     minimum width=24mm, minimum height=9mm, align=center, font=\footnotesize},
   arrow/.style={-{Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt, figBlue},
   label/.style={font=\scriptsize\itshape, figGray},
 ]
 % Main pipeline stages
-\node[stage] (sft) {SFT 模型};
-\node[stage, right=of sft] (rm) {奖励模型\\(Reward Model)};
-\node[stage, right=of rm] (ppo) {PPO 优化};
-\node[stage, right=of ppo] (eval) {评估 \&\\迭代};
+\node[stage=figBlue] (sft) {SFT 模型};
+\node[stage=figOrange, right=of sft] (rm) {奖励模型\\(Reward Model)};
+\node[stage=figRed, right=of rm] (ppo) {PPO 优化};
+\node[stage=figGreen, right=of ppo] (eval) {评估 \&\\迭代};
 
 % Data sources
 \node[data, above=8mm of sft] (sft-data) {指令-回答对\\(10K--500K)};
@@ -1138,13 +1140,13 @@ DPO~\cite{rafailov2023dpo}（Direct Preference Optimization）
   node distance=8mm and 14mm,
   every node/.style={font=\small},
   model/.style={rectangle, rounded corners=3pt, draw=#1, fill=#1!10,
-    minimum width=22mm, minimum height=10mm, align=center, font=\footnotesize\bfseries},
+    minimum width=22mm, minimum height=10mm, align=center, font=\footnotesize\bfseries,
+    line width=0.6pt},
   model/.default=figBlue,
   arrow/.style={-{Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt, #1},
   arrow/.default=figBlue,
   label/.style={font=\scriptsize, #1},
   label/.default=figGray,
-  brace/.style={decorate, decoration={brace, amplitude=5pt, raise=2pt}},
 ]
 % === RLHF (top) ===
 \node[font=\small\bfseries, figBlue] at (-1.5, 3.5) {RLHF (PPO)};

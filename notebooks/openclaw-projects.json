@@ -1,0 +1,94 @@
+{
+  "projects": [
+    {
+      "name": "OpenClaw",
+      "github": "https://github.com/langchain-ai/opeclaw",
+      "description": "AI Agent Framework",
+      "language": "Python/TypeScript",
+      "category": "Core Framework",
+      "market": "2B/2C",
+      "status": "active"
+    },
+    {
+      "name": "LangChain",
+      "github": "https://github.com/langchain-ai/langchain",
+      "description": "LLM Application Framework",
+      "language": "Python/JavaScript",
+      "category": "Core Framework",
+      "market": "2B/2C",
+      "status": "active"
+    },
+    {
+      "name": "LangGraph",
+      "github": "https://github.com/langchain-ai/langgraph",
+      "description": "Workflow Graph Library",
+      "language": "Python/JavaScript",
+      "category": "Workflow Engine",
+      "market": "2B",
+      "status": "active"
+    },
+    {
+      "name": "LangSmith",
+      "github": "https://github.com/langchain-ai/langsmith",
+      "description": "Development Monitoring Platform",
+      "language": "Python/TypeScript",
+      "category": "DevOps",
+      "market": "2B",
+      "status": "active"
+    },
+    {
+      "name": "LobsterAI",
+      "github": "https://github.com/lobsterai/lobster",
+      "description": "Enterprise AI Agent Platform",
+      "language": "Python/Go",
+      "category": "Commercial Competitor",
+      "market": "2B",
+      "status": "active"
+    },
+    {
+      "name": "QClaw",
+      "github": "https://github.com/qclaw/qclaw",
+      "description": "Quantum-Accelerated AI Agent",
+      "language": "Rust/Python",
+      "category": "Commercial Competitor",
+      "market": "2B",
+      "status": "active"
+    },
+    {
+      "name": "EasyClaw",
+      "github": "https://github.com/easyclaw/easyclaw",
+      "description": "Low-Code AI Agent Platform",
+      "language": "JavaScript/Python",
+      "category": "Commercial Competitor",
+      "market": "2B2C",
+      "status": "active"
+    },
+    {
+      "name": "ZeroClaw",
+      "github": "https://github.com/zeroclaw/zeroclaw",
+      "description": "Lightweight Agent Framework",
+      "language": "Python",
+      "category": "Lightweight Derivative",
+      "market": "2C",
+      "status": "active"
+    },
+    {
+      "name": "OpenClaw-WeChat",
+      "github": "https://github.com/openclaw/openclaw-wechat",
+      "description": "WeChat Integration",
+      "language": "Python/JavaScript",
+      "category": "IM Integration",
+      "market": "2B2C",
+      "status": "active"
+    },
+    {
+      "name": "OpenClaw-DingTalk",
+      "github": "https://github.com/openclaw/openclaw-dingtalk",
+      "description": "DingTalk Integration",
+      "language": "Python/JavaScript",
+      "category": "IM Integration",
+      "market": "2B",
+      "status": "active"
+    }
+  ]
+}

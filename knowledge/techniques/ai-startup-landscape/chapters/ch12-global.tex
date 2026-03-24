@@ -1,0 +1,2181 @@
+\chapter{全球视角：硅谷和北京之外的 AI 生态系统}
+\label{ch:global}
+
+% AI startup ecosystems around the world — each with unique
+% strengths, constraints, and specializations.
+% This chapter maps the global landscape beyond the US-China duopoly.
+
+当我们在前几章详细剖析了硅谷和中国的 AI 创业生态后，
+一个自然的问题浮现：\textbf{AI 创业是美中两国的专属游戏吗？}
+答案是一个响亮的``不''。
+从特拉维夫到巴黎，从多伦多到班加罗尔，
+从首尔到利雅得，
+全球至少有十个以上的城市正在构建各具特色的 AI 创业生态系统。
+这些生态系统不是硅谷的简单复制品——
+它们各自拥有独特的技术基因、人才管线、资本结构和监管框架，
+正在 AI 版图上刻画出截然不同的路径。
+
+\begin{corebox}[全球 AI 创业生态光谱：从硅谷到利雅得]
+全球 AI 创业生态可以沿着几个维度进行分类：
+\begin{itemize}[noitemsep]
+  \item \textbf{人才密度型}——以色列（人均 AI 创业密度全球第一）、
+        加拿大（深度学习学术管线）
+  \item \textbf{主权驱动型}——欧洲（数据主权 + GDPR 合规）、
+        中东（石油美元转型 AI 基建）、韩国（国家级 AI 项目）
+  \item \textbf{规模市场型}——印度（14 亿人口 + 多语言挑战）、
+        东南亚（6.8 亿人口 + 移动优先）
+  \item \textbf{产业融合型}——日本（制造业 + 机器人）、
+        韩国（半导体 + 内容生态）、德国（工业 4.0 + 汽车）
+\end{itemize}
+这些维度并非互斥——以色列同时是人才密度型和军事技术溢出型，
+韩国同时是主权驱动型和产业融合型。
+理解这些维度有助于我们在后续章节中
+分析不同生态系统的竞争优势和结构性限制。
+\end{corebox}
+
+本章将依次深入分析十二个区域的 AI 创业生态系统，
+覆盖从以色列的军事技术溢出到中东的石油美元 AI 转型，
+从欧洲的主权 AI 运动到印度的十亿人 AI 普惠，
+再到拉美、非洲、澳大利亚、北欧和东欧的新兴 AI 力量，
+试图勾勒出一幅完整的全球 AI 创业版图。
+
+读者可以将本章与第十一章（中国 AI 生态）对照阅读。
+如果说中国生态的核心特征是
+``平台公司 + 独立创业公司 + 政策监管''的三角博弈，
+那么本章覆盖的七个区域
+各自展示了不同的博弈结构。
+例如，以色列是``军事 $\to$ 创业 $\to$ 被收购''的线性管线，
+欧洲是``主权需求 $\to$ 本土冠军 $\to$ 合规护城河''的政策驱动型，
+中东是``主权资本 $\to$ 基础设施建设 $\to$ 生态培育''的自上而下模式，
+而印度和东南亚则是``规模市场 $\to$ 超级应用 $\to$ 嵌入式 AI''的市场驱动型。
+
+理解这些不同的结构，
+有助于我们在第十四章分析全球 AI 创业模式时
+避免``硅谷中心主义''的偏见——
+不是每个生态系统都需要复制 Y Combinator 的模式。
+
+% ==================================================================
+\section{以色列：AI 国度}
+\label{sec:global-israel}
+% ==================================================================
+
+以色列常被称为``创业国度''（Startup Nation），
+但在 AI 时代，这个称号需要更新为``AI 国度''。
+截至 2025 年底，以色列拥有超过 2,300 家活跃的 AI 创业公司，
+其中 342 家专注于生成式 AI，
+累计融资超过 \$200 亿。
+仅 2024 年一年就新增了超过 150 家 AI 创业公司。
+对于一个人口仅 980 万的小国而言，这个密度令人震惊。
+
+\begin{whybox}[为什么以色列人均 AI 创业密度全球第一]
+以色列的 AI 创业密度源于三个结构性因素的叠加：
+\begin{enumerate}[noitemsep]
+  \item \textbf{军事技术溢出}：以色列国防军（IDF）的
+        精英技术部队——8200 部队（信号情报）、
+        Talpiot 项目（跨学科军事研究）、
+        以及各军种的 AI 研发部门——
+        每年向民用市场输送数千名受过严格训练的 AI 工程师。
+        这些工程师在服役期间接触到最前沿的计算机视觉、
+        NLP 和网络安全技术，退役后自然成为创业者或核心技术骨干。
+        AI21 Labs、D-ID、Hailo 的创始团队都有 IDF 精英部队背景。
+  \item \textbf{风险资本密度}：以色列人均风险投资额长期位居全球前三。
+        从本土的 OurCrowd、Pitango 到硅谷的 Sequoia、a16z，
+        以色列创业公司不缺早期资金。
+        更关键的是，以色列的 VC 生态与硅谷深度整合——
+        许多以色列公司在特拉维夫研发、在旧金山销售。
+  \item \textbf{学术研究根基}：特拉维夫大学、
+        以色列理工学院（Technion）、
+        魏茨曼科学研究所等顶尖学府
+        持续产出高质量的 AI 研究论文和人才。
+        Technion 的 CS 系在计算机视觉和机器学习领域
+        长期位居全球前列。
+\end{enumerate}
+\end{whybox}
+
+\subsection{AI21 Labs：从 Transformer 论文到企业 AI 平台}
+
+AI21 Labs 由 Yoav Shoham（斯坦福教授）、
+Ori Goshen 和 Amnon Shashua（同时也是 Mobileye 创始人）
+于 2017 年在特拉维夫创立。
+这是全球最早一批尝试构建大型语言模型的创业公司之一——
+早在 GPT-3 发布之前，
+AI21 就已经在训练自己的 Jurassic 系列模型。
+
+AI21 的战略演化可以分为三个阶段。
+\textbf{第一阶段（2017--2022）}：以基础模型研发为核心，
+发布了 Jurassic-1 和 Jurassic-2 系列大模型，
+试图与 OpenAI 和 Google 在通用 LLM 领域正面竞争。
+\textbf{第二阶段（2023--2024）}：战略转向企业市场，
+推出 Jamba 系列模型（基于 Mamba + Transformer 混合架构），
+强调长上下文、高效推理和企业级部署。
+Jamba 的 SSM--Transformer 混合架构
+在保持性能的同时将推理成本大幅降低——
+这正好切中了企业客户对成本敏感的痛点。
+\textbf{第三阶段（2025--至今）}：全面转型为企业 AI 平台公司，
+提供私有化部署模型、可控生成和 RAG 解决方案。
+核心产品线包括 AI21 Studio（API 服务）、
+Maestro（企业工作流自动化）和 Wordtune（写作助手）。
+
+融资方面，AI21 Labs 累计融资约 \$9.36 亿，
+最近一轮是 2025 年 6 月的 Series D。
+投资者包括 NVIDIA、Google、Intel 等科技巨头。
+2024 年年化营收约 \$5,780 万，
+公司规模约 210 人（同比下降约 17\%）——
+这一人员收缩反映了从``大而全''的基础模型公司
+向聚焦企业市场的精简路线转型。
+
+\subsection{Run:ai $\to$ NVIDIA：GPU 编排的价值证明}
+
+Run:ai 是以色列 AI 基础设施领域最重要的创业故事之一。
+这家 2018 年成立的公司开发了基于 Kubernetes 的
+GPU 工作负载管理和编排软件，
+帮助企业客户更高效地利用 AI 计算资源。
+其核心价值在于\textbf{GPU 虚拟化和动态调度}——
+让多个 AI 工作负载共享同一个 GPU 集群，
+从 GPU 碎片到多 GPU 节点都能灵活分配，
+大幅提升硬件利用率。
+
+2024 年 4 月，NVIDIA 宣布以 \$7 亿收购 Run:ai。
+经过欧盟委员会和美国司法部的反垄断审查后，
+交易于 2024 年 12 月正式完成。
+作为收购条件的一部分，
+\textbf{NVIDIA 承诺将 Run:ai 的软件开源}——
+这意味着 AMD、Intel 等竞争对手也能使用该软件。
+
+Run:ai 的被收购传递了一个重要信号：
+在 AI 基础设施领域，软件层的价值正在被重新定价。
+GPU 编排不是``锦上添花''的功能，
+而是大规模 AI 部署中不可或缺的基础设施组件。
+这也是 NVIDIA 在芯片之外扩展\textbf{软件生态护城河}的又一步棋。
+
+\subsection{Hailo：边缘 AI 芯片的以色列路径}
+
+Hailo 由 Orr Danon、Hadar Zeitlin 和 Avi Baum
+于 2017 年在特拉维夫创立，
+瞄准的是一个与数据中心截然不同的市场：
+\textbf{边缘 AI 推理}。
+当 NVIDIA、AMD、Cerebras 等公司争夺云端和数据中心份额时，
+Hailo 选择了在智能摄像头、自动驾驶汽车、
+机器人和工业设备等边缘设备上做文章。
+
+Hailo 的技术核心是其专有的数据流架构（Dataflow Architecture），
+通过在编译时将神经网络模型映射到硬件结构上，
+实现了\textbf{无 DRAM、低功耗、高吞吐}的推理。
+第一代 Hailo-8 专注于计算机视觉任务，
+在安防、零售和工业领域获得广泛采用。
+2024 年 4 月，Hailo 发布 Hailo-10 系列——
+这是首款将\textbf{生成式 AI 能力带到边缘设备}的离散 AI 处理器，
+能在端侧运行 LLM、VLM 等生成式 AI 模型，
+无需云端连接。
+2025 年 7 月，Hailo-10H 宣布全面商用。
+
+Hailo 累计融资超过 \$3.44 亿，估值达 \$12 亿（独角兽）。
+2026 年初，公司裁员约 30 人（不到 10\%），
+并\textbf{战略重心转向机器人和物理 AI}——
+这与全球 AI 从纯软件向物理世界渗透的大趋势一致。
+公司同时正在推进新一轮重大融资。
+
+\subsection{Mobileye：从 ADAS 到物理 AI}
+
+Mobileye 是以色列 AI 产业的``教父级''公司。
+由 Amnon Shashua 教授和 Ziv Aviram 于 1999 年创立，
+2017 年被 Intel 以 \$153 亿收购——
+当时是以色列科技史上最大的退出。
+2022 年 Mobileye 在纳斯达克重新 IPO。
+
+Mobileye 2025 全年营收达 \$18.94 亿（同比增长 15\%），
+其 8 年期汽车营收管线达 \$245 亿（较 2022 年底增长 42\%）。
+更值得关注的是其战略扩展：
+2026 年 1 月，Mobileye 宣布以 \$9 亿收购
+以色列 AI 人形机器人创业公司 Mentee Robotics——
+同样由 Shashua 联合创立。
+这标志着 Mobileye 从自动驾驶 AI 向
+\textbf{广义物理 AI}（Physical AI）的跃迁：
+自动驾驶和人形机器人共享着
+``在人类构建的物理世界中安全可靠运行''的核心 AI 挑战。
+
+\subsection{Tabnine、D-ID、Deci AI：各垂直领域的代表}
+
+\textbf{Tabnine}（2013 年成立）是最早的 AI 代码补全工具之一，
+早于 GitHub Copilot 数年。
+Tabnine 的差异化在于\textbf{隐私优先}——
+支持完全私有化部署，代码不离开客户环境，
+这使其在金融、国防等敏感行业中占据了独特地位。
+
+\textbf{D-ID}（2017 年成立）专注于 AI 驱动的数字人视频生成。
+其 Creative Reality Studio 平台能将静态图片和文本
+转化为逼真的虚拟人说话视频，
+客户包括 PepsiCo、J.P.\ Morgan、Softbank 等全球企业。
+累计融资约 \$5,200 万，
+平台已产生超过 2 亿个 AI 视频，
+超过 28 万开发者使用其 API。
+2024 年营收约 \$1,760 万。
+
+\textbf{Deci AI}（2019 年成立）专注于
+AI 模型优化和神经架构搜索（NAS），
+其平台能自动设计和优化深度学习模型以提升推理性能。
+2024 年 5 月，\textbf{NVIDIA 以 \$3 亿收购 Deci}——
+与 Run:ai 的 \$7 亿收购合计，
+NVIDIA 一周内在以色列花了 \$10 亿。
+这显示了以色列 AI 创业公司作为
+NVIDIA 技术拼图``补完者''的独特价值。
+
+\begin{table}[htbp]
+\centering
+\caption{以色列主要 AI 创业公司一览}
+\label{tab:israel-ai}
+\small
+\begin{tabularx}{\textwidth}{l l r l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{成立} & \textbf{融资/估值} & \textbf{领域} & \textbf{结局/状态} \\
+\midrule
+AI21 Labs   & 2017 & \$936M 融资      & 企业 LLM     & 独立运营 \\
+Run:ai      & 2018 & \$700M 收购价    & GPU 编排     & $\to$ NVIDIA (2024) \\
+Hailo       & 2017 & \$344M/\$1.2B 估值 & 边缘 AI 芯片 & 独立运营 \\
+Mobileye    & 1999 & 上市 (MBLY)       & 自动驾驶     & Intel 子公司 \\
+Tabnine     & 2013 & \$60M+ 融资      & AI 代码助手  & 独立运营 \\
+D-ID        & 2017 & \$52M 融资       & AI 数字人    & 独立运营 \\
+Deci AI     & 2019 & \$300M 收购价    & 模型优化     & $\to$ NVIDIA (2024) \\
+Orca AI     & 2018 & \$33M 融资       & 海事 AI      & 独立运营 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{以色列 AI 生态的结构性特征}
+
+以色列 AI 生态有几个值得注意的结构性特征：
+
+\textbf{第一，``退出优先''的创业文化。}
+以色列创业公司的主要退出路径是被收购而非 IPO。
+Run:ai、Deci AI、此前的 Mellanox（\$6.9B $\to$ NVIDIA）
+都遵循这一模式。
+这种文化使得以色列公司更倾向于
+做``可被整合的技术模块''而非``独立的平台级公司''。
+
+\textbf{第二，军事-民用技术转化管线。}
+8200 部队→创业公司→硅谷/NASDAQ 退出
+是一条成熟的人才和技术转化路径。
+这条管线确保了 AI 人才的持续供给，
+但也引发了关于军事 AI 伦理的国际讨论。
+
+\textbf{第三，AI 基础设施领域的突出优势。}
+以色列在 AI 芯片（Hailo）、GPU 编排（Run:ai）、
+模型优化（Deci AI）等基础设施层面表现尤为突出。
+这与以色列长期在半导体设计（Mellanox、Habana Labs）
+和系统软件领域的积累一脉相承。
+
+\textbf{第四，NVIDIA 的``以色列战略''。}
+NVIDIA 在以色列的存在已经远超一个普通的海外研发中心。
+自 2019 年以 \$6.9B 收购 Mellanox 以来，
+NVIDIA 在以色列的员工数量增长了约 100\%，
+达到约 4,000 人。
+加上 Run:ai（\$700M）、Deci AI（\$300M）
+和此前的 Habana Labs（\$2B，2019 年收购）等交易，
+\textbf{NVIDIA 在以色列的收购总额已超过 \$100 亿}。
+这使得以色列成为 NVIDIA 在美国之外
+最重要的技术研发基地——
+也意味着以色列 AI 创业生态的命运
+与 NVIDIA 的战略高度绑定。
+
+\textbf{第五，地缘政治风险的持续影响。}
+2023 年 10 月以来的安全局势
+对以色列 AI 创业生态产生了复杂影响。
+一方面，大量技术人才被征召入伍，
+创业公司面临短期的人力紧缺。
+另一方面，军事需求推动了
+AI 在国防和安全领域的加速应用——
+从无人机自主导航到实时情报分析，
+以色列的 AI 创业公司在``战火中加速迭代''。
+尽管如此，2024 年仍有超过 150 家新 AI 创业公司成立，
+显示出以色列创业生态的非凡韧性。
+
+% ==================================================================
+\section{欧洲：主权与创新}
+\label{sec:global-europe}
+% ==================================================================
+
+欧洲的 AI 创业生态正经历一场前所未有的蜕变。
+2024--2025 年间，欧洲 AI 创业投资达到历史新高，
+多家公司跨越独角兽甚至``十角兽''门槛。
+但与硅谷不同的是，欧洲的 AI 叙事中有一个独特的关键词：
+\textbf{主权}（Sovereignty）。
+
+\begin{keybox}[欧洲 AI 主权运动：€200B+ 的赌注]
+欧洲的``AI 主权''运动建立在三重忧虑之上：
+\begin{enumerate}[noitemsep]
+  \item \textbf{数据主权}：GDPR 开创的数据保护框架
+        要求欧洲企业和政府机构的数据不能随意流向美国云服务商。
+        这创造了对``欧洲本土 AI 模型 + 欧洲本土云''的刚性需求。
+  \item \textbf{技术依赖风险}：
+        俄乌战争暴露了关键技术基础设施依赖外国供应商的脆弱性。
+        欧洲领导人开始将 AI 基础设施视为
+        与能源和国防同等重要的战略资产。
+  \item \textbf{产业竞争力}：
+        如果欧洲的汽车、制造、金融、医疗等核心产业
+        全部依赖美国 AI 模型和平台，
+        欧洲将在下一轮产业革命中沦为``技术殖民地''。
+\end{enumerate}
+这种忧虑转化为实际行动：
+欧盟投入超过 €200 亿用于 AI 研发和基础设施建设，
+法国、德国、英国各自推出了国家级 AI 战略，
+一系列本土 AI 冠军公司应运而生。
+\end{keybox}
+
+\subsection{Mistral AI（法国）：欧洲 AI 的旗手}
+
+如果要选一家公司代表欧洲 AI 创业的雄心和速度，
+那非 Mistral AI 莫属。
+这家由三位前 Google DeepMind 和 Meta 研究员
+于 2023 年 4 月在巴黎创立的公司，
+在短短 29 个月内从零成长为一家估值 €117 亿的 AI 巨头——
+创造了欧洲科技史上最快的独角兽和十角兽纪录。
+
+\subsubsection{创始团队与融资历程}
+
+Mistral 的三位创始人 Arthur Mensch、Guillaume Lample
+和 Timothée Lacroix 都毕业于法国顶尖工程院校
+École Polytechnique，
+分别在 DeepMind 和 Meta 的 AI 团队积累了深厚经验。
+他们从一开始就瞄准了一个清晰的定位：
+\textbf{做欧洲的基础模型冠军}。
+
+融资速度堪称传奇：
+\begin{itemize}[noitemsep]
+  \item 2023 年 6 月：\$1.13 亿种子轮——
+        欧洲历史上最大的种子轮，
+        由 Lightspeed 领投，前 Google CEO Eric Schmidt 参投
+  \item 2023 年 12 月：\$4.15 亿 Series A
+  \item 2024 年 6 月：Series B，估值达 €58 亿
+  \item 2025 年 9 月：\textbf{€17 亿 Series C}，
+        由全球光刻机巨头 ASML 领投，
+        估值达 €117 亿。
+        DST Global、Andreessen Horowitz 等原有投资者跟投。
+        ASML 的参与尤为值得关注——
+        这家荷兰半导体设备巨头将 Mistral 视为
+        ``为 ASML 客户创造 AI 赋能价值''的战略伙伴
+\end{itemize}
+
+累计融资约 €30 亿以上。
+
+\subsubsection{营收与商业模型}
+
+Mistral 的营收增长同样令人瞠目：
+2024 年年化经常性收入（ARR）约 \$2,000 万，
+到 2025 年 9 月已达 €3 亿 ARR——
+\textbf{一年内增长 20 倍}。
+CEO Arthur Mensch 在 2026 年 1 月的达沃斯论坛上表示，
+预计 2026 年底营收将\textbf{超过 €10 亿}。
+
+收入来源包括三大板块：
+\begin{enumerate}[noitemsep]
+  \item \textbf{模型授权}：
+        向企业客户授权 Mistral 系列模型
+        （Mistral Large、Mistral Medium 等），
+        用于各种业务场景
+  \item \textbf{Chat Enterprise 订阅}：
+        面向企业的对话式 AI 平台 Le Chat 的企业版
+  \item \textbf{消费者订阅}：Le Chat 个人版的付费订阅
+\end{enumerate}
+
+Mistral 的战略核心是\textbf{``开放权重 + 企业服务''双轨模型}。
+一方面通过开源模型（如 Mistral 7B、Mixtral 8$\times$7B）
+建立开发者社区和品牌认知——
+Mistral 7B 在发布时被广泛认为是
+最强的开源 7B 模型，性能超过 Llama 2 13B。
+另一方面，通过企业版本和私有化部署
+服务欧洲的金融、政府、制造业等核心客户，
+满足 GDPR 合规和数据主权需求。
+
+Mistral 还计划投入约 €10 亿用于基础设施建设，
+包括数据中心投资和潜在的收购。
+这显示出 Mistral 的野心已经超越了纯模型公司——
+它要成为欧洲 AI 基础设施的核心平台。
+
+\subsubsection{Mistral 的战略意义}
+
+Mistral 的崛起对欧洲有三重意义：
+其一，证明了欧洲能够产生世界级的基础模型公司——
+不仅仅是``跟随者''，而是真正的``竞争者''。
+其二，为欧洲的``技术主权''叙事提供了实质性的载体——
+欧洲政府和企业终于有了一个可信赖的本土 AI 模型选择。
+其三，开创了一种\textbf{``欧洲式 AI 创业''路径}：
+合规优先、开源赋能、企业市场为核心——
+这与硅谷的``消费者优先、平台锁定''路径形成鲜明对比。
+
+然而，Mistral 也面临几个显著挑战。
+首先是\textbf{模型能力的``追赶者''困境}：
+尽管增长迅速，
+Mistral 的模型在大多数基准测试中
+仍然落后于 OpenAI GPT-4o、Anthropic Claude 和 Google Gemini。
+在企业客户最终的采购决策中，
+``欧洲主权''的叙事能否持续抵消性能差距
+是一个尚未验证的假设。
+其次是\textbf{资本效率问题}：
+€30 亿+ 的融资对应 €3 亿的 ARR，
+意味着公司目前的``营收/融资比''仅约 10\%——
+这需要极快的营收增长来证明其估值的合理性。
+如果 2026 年底无法实现 €10 亿的营收目标，
+下一轮融资的估值压力将会很大。
+
+\subsection{Aleph Alpha（德国）：主权 AI 的另一种路径}
+
+如果说 Mistral 代表的是``与美国巨头正面竞争''的路线，
+那么 Aleph Alpha 代表的则是``为特定客户群深度定制''的路线。
+
+Aleph Alpha 由 Jonas Andrulis 于 2019 年在海德堡创立，
+自诩为``欧洲的 OpenAI''，
+强调透明性、可解释性和符合欧洲数据保护法规的 AI 解决方案。
+公司在 2023 年完成了一轮超过 €5 亿的 Series B 融资，
+投资者阵容极其``德国''：
+SAP、Bosch、Schwarz Group（Lidl 和 Kaufland 的母公司）
+等德国产业巨头联手支持。
+
+Aleph Alpha 的战略在 2025--2026 年发生了重要转折：
+\textbf{从试图与全球 AI 领导者正面竞争，
+转向为受监管行业和公共部门提供合规的欧洲 AI 解决方案。}
+Schwarz Group 正在收购 Bosch Ventures 在 Aleph Alpha 的股份，
+进一步加深其控制权，
+并将 Aleph Alpha 的技术整合进
+Schwarz Group 的主权云平台 STACKIT——
+以``PhariaAI-as-a-Service''的形式
+服务受监管的企业和公共部门客户。
+
+Aleph Alpha 还与 Cerebras Systems 合作，
+为德国联邦国防军开发主权 AI 解决方案。
+这是其首批交付物之一——
+将 AI 从商业场景推进到\textbf{国家安全}领域。
+
+Aleph Alpha 的案例揭示了一个重要趋势：
+在 AI 领域，\textbf{``不需要成为最好的，只需要成为最合规的''}
+可能是一条可行的商业路径——
+至少在欧洲的公共部门和受监管行业中如此。
+
+\subsection{DeepL（德国）：AI 翻译的全球冠军}
+
+DeepL 由 Jaroslaw Kutylowski 和 Leonard Fink
+于 2017 年在科隆创立，
+是欧洲 AI 创业中最接近``产品-市场完美匹配''的范例。
+在一个看似已被 Google Translate 垄断的市场中，
+DeepL 凭借\textbf{显著优于竞争对手的翻译质量}
+硬生生切出了一块巨大的市场。
+
+根据 DeepL 自己的内部对比，
+用户选择 DeepL 翻译结果的概率
+比 Google Translate 高 30\%，
+比 Microsoft 翻译高 130\%。
+这个质量差距转化为惊人的商业成果：
+2024 年营收达 \$1.85 亿（同比增长 31\%），
+服务超过 20 万企业客户和每天数百万个人用户。
+
+DeepL 目前估值 \$20 亿（2024 年 \$3 亿 Series D 之后），
+累计融资约 \$4.15 亿。
+公司正在筹划美国 IPO，目标估值可能达到 \$50 亿。
+如果成功上市，DeepL 将成为继 SAP 之后
+又一家在美国资本市场成功的德国企业软件公司。
+
+DeepL 的产品线已从纯翻译扩展为\textbf{语言 AI 平台}：
+DeepL Translate Pro（文档翻译，支持 30+ 语言）、
+DeepL Write（AI 写作助手）、
+DeepL Voice（实时语音翻译）。
+其``人类引导训练方法论''（Human-Guided Training）
+确保了翻译的自然度和专业性，
+这可能是 RLHF（强化学习人类反馈）的早期实践者之一。
+
+\subsection{Stability AI（英国）：开源先驱的坎坷之路}
+
+Stability AI 是 AI 创业史上最具教育意义的案例之一——
+它同时展示了\textbf{开源 AI 的巨大影响力}
+和\textbf{围绕开源构建可持续商业模型的艰难}。
+
+由 Emad Mostaque 于 2019 年在伦敦创立，
+Stability AI 凭借 2022 年 8 月发布的 Stable Diffusion
+引爆了整个 AI 图像生成革命。
+Stable Diffusion 的开源策略使其迅速成为全球最广泛使用的
+AI 图像生成模型——
+催生了无数下游应用、LoRA 微调模型和社区生态。
+2022 年公司估值一度达到 \$10 亿。
+
+然而，从 2023 年开始，Stability AI 陷入了严重的财务困境：
+每月运营成本约 \$80 万，远超营收；
+欠云服务商超过 \$1 亿的费用；
+关键技术人员大规模离职。
+2024 年 3 月，创始人 Mostaque 在投资者压力下辞职。
+此后公司经历了裁员和重组。
+
+2024 年全年数据：
+营收 \$5,500 万（其中``底层营收''仅 \$1,140 万），
+税前亏损 \$4,850 万——
+较之前九个月 \$1.19 亿的亏损有所收窄。
+公司在前 Google CEO Eric Schmidt 等投资者的支持下继续运营，
+并持续发布新模型和与 EA Sports 等公司的合作。
+
+Stability AI 的教训清晰：
+\textbf{开源可以创造巨大的社区影响力，
+但将社区影响力转化为可持续的商业模式
+需要完全不同的能力和战略}——
+这一点与 Red Hat 在 Linux 领域的经验如出一辙。
+
+\subsection{Poolside（法国）：AI 编程的欧洲赌注}
+
+Poolside 是欧洲 AI 创业中最引人注目的新晋玩家之一。
+这家总部位于巴黎的公司成立仅两年，
+就完成了堪称``超重力级''的融资：
+2025 年 10--11 月，Poolside 融资 \$20 亿，
+估值达 \$120--140 亿（``十角兽''），
+NVIDIA 出资高达 \$5--10 亿。
+
+Poolside 的核心产品是\textbf{AI 驱动的编程助手}——
+构建自动化编码的生成式 AI 模型。
+这个赛道已经非常拥挤（Cursor、GitHub Copilot、
+Windsurf、Augment 等），
+但 Poolside 的差异化在于其\textbf{垂直整合深度}：
+不仅构建模型，
+还计划建设自己的多 GW 级数据中心。
+
+NVIDIA 的巨额投资遵循其``CoreWeave / Mistral 剧本''——
+向有可能大量消耗 NVIDIA GPU 算力的公司
+进行战略性资本注入，
+实质上是在\textbf{预购自己芯片的需求}。
+对欧洲而言，Poolside 的崛起意味着
+又一个在基础模型层面与美国竞争的``旗手''。
+
+\subsection{Helsing（德国）：军事 AI 的欧洲版本}
+
+Helsing 是欧洲国防 AI 领域最受关注的创业公司。
+2021 年由 Niklas Köhler、Torsten Reil 和 Gundbert Scherf
+在慕尼黑创立，
+Helsing 开发面向军事应用的 AI 软件和自主系统——
+包括战场决策支持、自主无人机（HX-2、HF-1）、
+水下系统（SG-1 Fathom）、AI 电子战工具和传感器融合平台。
+
+Helsing 的融资规模反映了欧洲对国防自主的焦虑：
+\begin{itemize}[noitemsep]
+  \item 2024 年 7 月：€4.5 亿 Series C，General Catalyst 领投
+  \item 2025 年 6 月：€6 亿 Series D，
+        由 Prima Materia（Spotify 创始人 Daniel Ek 的投资基金）领投。
+        Daniel Ek 同时担任 Helsing 董事长
+\end{itemize}
+累计融资约 €13.7 亿，估值约 €120 亿。
+
+Helsing 的兴起背景是
+俄乌战争和北约东翼安全需求的急剧升温。
+欧洲各国政府意识到，
+依赖美国的国防技术供应链同样存在风险，
+需要建立\textbf{自主的欧洲国防 AI 能力}。
+这一趋势正在从 Helsing 扩散到更广泛的欧洲国防科技领域。
+
+\begin{table}[htbp]
+\centering
+\caption{欧洲主要 AI 创业公司一览}
+\label{tab:europe-ai}
+\small
+\begin{tabularx}{\textwidth}{l l l r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{国家} & \textbf{成立} & \textbf{估值} & \textbf{核心领域} \\
+\midrule
+Mistral AI    & 法国 & 2023 & €117 亿 & 基础模型 + 企业 AI \\
+Poolside      & 法国 & 2023 & \$120--140 亿 & AI 编程 \\
+Helsing       & 德国 & 2021 & $\sim$€120 亿 & 军事 AI \\
+Aleph Alpha   & 德国 & 2019 & €5 亿+   & 主权 AI / 公共部门 \\
+DeepL         & 德国 & 2017 & \$20--50 亿 & AI 翻译 \\
+Stability AI  & 英国 & 2019 & 下行      & 开源图像生成 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{欧洲 AI 生态的结构性分析}
+
+欧洲 AI 生态有几个显著的结构性特征：
+
+\textbf{第一，法国-德国双极格局。}
+法国在基础模型和消费级 AI（Mistral、Poolside）方面领先，
+得益于 École Polytechnique / ENS 等精英学校的人才管线
+和法国政府对``French Tech''的积极支持。
+德国则在工业 AI（Aleph Alpha、DeepL）
+和国防 AI（Helsing）方面更为突出，
+反映了其``Industrie 4.0''的产业基因。
+
+\textbf{第二，GDPR 从负担变为护城河。}
+曾经被视为创业障碍的 GDPR，
+现在反而成为欧洲 AI 公司的竞争优势——
+欧洲企业和政府对``数据不出欧洲''的刚性需求，
+为本土 AI 公司创造了天然的市场壁垒。
+
+\textbf{第三，大企业投资者的独特角色。}
+与硅谷 VC 主导的融资不同，
+欧洲 AI 创业公司的投资者中
+出现了大量的产业巨头：
+ASML 投资 Mistral，
+Schwarz Group / SAP / Bosch 投资 Aleph Alpha，
+Daniel Ek 投资 Helsing。
+这种``产业资本 + AI 创业''的模式
+可能是欧洲 AI 生态的独特优势。
+
+\textbf{第四，EU AI Act 的双重效应。}
+2024 年正式通过的 EU AI Act
+是全球第一部全面的 AI 监管法律。
+它对高风险 AI 应用实施严格的合规要求——
+包括透明性、可解释性、人工监督和数据治理。
+短期内，这增加了 AI 创业公司的合规成本，
+使得欧洲创业公司在与硅谷对手的竞争中
+面临额外的负担。
+但长期来看，EU AI Act 可能产生两个积极效应：
+其一，\textbf{``布鲁塞尔效应''}——
+全球企业为了进入欧洲市场
+不得不遵守 EU AI Act 的标准，
+使得欧洲标准成为事实上的全球标准；
+其二，率先在合规框架下成长的欧洲 AI 公司
+将在全球受监管市场中拥有先发优势——
+因为它们从 Day 1 就将合规内化为产品能力。
+
+\textbf{第五，英国的尴尬位置。}
+脱欧后的英国在欧洲 AI 版图中处于微妙位置。
+一方面，伦敦仍是欧洲最大的 AI 人才和 VC 中心之一，
+Google DeepMind 的总部就在伦敦。
+另一方面，Stability AI 的困境
+使得英国在``本土 AI 冠军''竞赛中暂时落后于法国和德国。
+英国政府正在推动一项 £10 亿+的量子和 AI 投资计划，
+试图弥补在基础模型领域的不足，
+但与 Mistral 和 Poolside 的融资规模相比，
+英国的 AI 创业生态还需要更多的催化剂。
+
+% ==================================================================
+\section{加拿大：学术管线}
+\label{sec:global-canada}
+% ==================================================================
+
+加拿大在全球 AI 版图中占据着一个独特的位置：
+它既不是最大的市场（远逊于美中印），
+也不是资本最充裕的生态（不及硅谷和中东），
+但它拥有一个无与伦比的优势——
+\textbf{全球深度学习革命的学术发源地}。
+
+Geoffrey Hinton（多伦多大学）、Yoshua Bengio（蒙特利尔大学）
+和 Yann LeCun（前多伦多访学者、后赴纽约）
+被称为``深度学习三巨头''，
+他们共同获得了 2018 年图灵奖。
+Hinton 和 Bengio 长期扎根加拿大，
+使得多伦多和蒙特利尔成为全球 AI 研究的两大圣地。
+加拿大政府在 2017 年推出了
+全球首个国家级 AI 战略（Pan-Canadian AI Strategy），
+投入 \$1.25 亿支持 AI 研究和商业化——
+这比欧洲和大多数亚洲国家的类似举措早了数年。
+
+但加拿大 AI 创业生态面临一个结构性挑战：
+\textbf{如何将世界级的学术研究
+转化为世界级的商业公司？}
+Element AI 的失败和 Cohere 的崛起
+分别代表了这条转化路径的两种结局。
+
+\subsection{Cohere：企业 AI 的安静赢家}
+
+Cohere 是当前加拿大 AI 生态中最闪亮的明星。
+由三位前 Google AI 研究员——
+Aidan Gomez（Transformer 论文``Attention Is All You Need''
+的共同作者之一）、Ivan Zhang 和 Nick Frosst
+于 2019 年在多伦多创立。
+
+Cohere 的定位极其清晰：
+\textbf{不做消费级 AI，只做企业级 AI。}
+这意味着不与 OpenAI 的 ChatGPT 或 Google 的 Gemini
+在 C 端争夺用户，
+而是专注于帮助企业客户安全、高效地部署 AI。
+
+\subsubsection{商业表现与 IPO 前景}
+
+2025 年的数据令人印象深刻：
+\begin{itemize}[noitemsep]
+  \item 年化经常性收入（ARR）达到 \$2.4 亿——
+        超过了原定的 \$2 亿目标
+  \item 季度环比增长超过 50\%
+  \item 毛利率平均 70\%，同比扩大 25 个基点
+  \item 超过 30 万企业用户使用 Cohere 的模型和平台
+\end{itemize}
+
+Cohere 的核心产品是 Command 系列生成式 AI 模型，
+以及 2025 年夏季推出的企业级 AI 工作空间 North。
+Command 模型的关键差异化在于
+\textbf{在有限 GPU 资源上高效运行}的能力——
+对于关注成本和资源管理的企业客户而言，
+这是一个极具吸引力的承诺。
+
+Cohere 估值达 \$70 亿，投资者包括 NVIDIA、AMD、Salesforce。
+在 2026 年 2 月的投资者信中，
+公司明确表示``我们的论点正在市场中得到验证''——
+暗示 IPO 已在视野之中。
+如果成功上市，Cohere 将成为
+Transformer 论文共同作者创立的公司中
+第一个 IPO 的（OpenAI 以外）。
+
+\subsubsection{Cohere 的战略差异化}
+
+Cohere 与 OpenAI / Anthropic 的核心区别在于
+三个``不''：
+\begin{enumerate}[noitemsep]
+  \item \textbf{不做消费者产品}：
+        没有 ChatGPT 式的聊天机器人，
+        所有精力集中在企业 API 和平台
+  \item \textbf{不追求最大模型}：
+        不参与``万亿参数''军备竞赛，
+        而是在效率和成本上做文章
+  \item \textbf{不限于美国市场}：
+        积极拓展欧洲和亚洲市场，
+        利用``非美国公司''的身份作为信任优势
+\end{enumerate}
+
+这种``反硅谷''的策略使 Cohere
+在受监管行业（金融、医疗、政府）中
+建立了独特的竞争优势。
+加拿大的身份本身就是一个优势——
+在全球地缘政治紧张的背景下，
+选择一家加拿大公司的 AI 模型
+比选择一家美国或中国公司的模型
+在政治上更``安全''。
+
+\subsubsection{Cohere 的创始人效应}
+
+值得特别提及的是 Aidan Gomez 的独特角色。
+作为 2017 年``Attention Is All You Need''论文的
+共同作者之一（当时他还是 Google 的实习生），
+Gomez 拥有一个
+\textbf{只有极少数创业者才有的品牌资产}——
+他参与发明了 Transformer 架构本身。
+这一背景赋予 Cohere 在企业客户面前
+独特的技术可信度：
+``Transformer 的发明者之一亲自做的企业 AI 产品''
+比任何营销文案都更有说服力。
+
+Gomez 在公司战略上的克制同样引人注目。
+在几乎所有同行都在推出消费级聊天产品的浪潮中，
+他坚持\textbf{``只服务企业，不追逐 hype''}。
+这种克制在短期内可能意味着更低的品牌知名度，
+但在长期可能意味着更健康的商业基础——
+因为企业 AI 的客户留存率和毛利率
+通常远高于消费级 AI。
+
+\subsection{Element AI $\to$ ServiceNow：学术创业的教训}
+
+Element AI 是加拿大 AI 创业史上最重要的
+\textbf{反面教材}。
+
+由``深度学习教父''Yoshua Bengio
+与 JF Gagn\'{e} 等人于 2016 年在蒙特利尔创立，
+Element AI 自诩为``全球 AI 领导者''，
+致力于为传统企业提供 AI 服务。
+公司吸引了 Microsoft、Intel、NVIDIA、Tencent 等
+全球顶级科技公司的投资，
+2019 年 Series B 融资 2 亿加元，
+估值达 6--7 亿加元。
+
+然而，Element AI 在商业化道路上步履维艰：
+运营成本高企、营收微薄、
+两个旗舰产品的开发严重受挫、
+将 AI 研究成果转化为企业可用产品的能力严重不足。
+
+2020 年底，ServiceNow 以约 \$2.3 亿收购 Element AI——
+相比 6--7 亿加元的估值大幅缩水。
+收购后，ServiceNow 保留了部分技术人才
+（包括 Bengio 担任技术顾问），
+但关闭了 Element AI 的原有业务。
+
+Element AI 的失败揭示了一个核心问题：
+\textbf{拥有世界级的 AI 研究能力
+和拥有世界级的产品化、商业化能力
+是完全不同的两件事。}
+Bengio 是深度学习的先驱，
+但学术领袖的光环
+无法自动转化为企业级产品的市场适配能力。
+
+\subsection{Ada：AI 客服的多伦多样本}
+
+Ada 由 Mike Murchison 于 2016 年在多伦多创立，
+是加拿大 AI 创业生态中
+\textbf{产品-市场匹配最成功的案例之一}。
+其 AI 驱动的客户服务自动化平台
+帮助企业自动化客户交互——
+从简单的 FAQ 回答到复杂的多轮对话和工作流执行。
+
+2025 年的数据亮眼：
+\begin{itemize}[noitemsep]
+  \item 营收 \$7,060 万（2024 年，同比增长 22\%）
+  \item 2025 年实现\textbf{超过 100\% 的同比营收增长}
+  \item Agentic AI ARR 增长 108\%，净收入留存率 146\%
+  \item 超过 550 个企业 AI agent 全球部署
+  \item 平台已处理超过 64 亿次交互，
+        驱动近 10 亿次对话
+\end{itemize}
+
+Ada 在 2021 年 Series C 融资中估值达 \$12 亿（独角兽），
+由 Tiger Global 领投。
+其商业模式采用\textbf{按解决量计价}
+（\$0.99--1.50 / 每次解决），
+而非按用户席位收费——
+这大约是人工客服成本的 10\%。
+
+Ada 的成功与 Element AI 的失败
+形成了鲜明对比：
+两者都诞生于多伦多/蒙特利尔的 AI 学术重镇，
+但 Ada 从一开始就聚焦于一个具体的产品场景
+（客户服务自动化），
+而 Element AI 试图做``万金油式 AI 服务''。
+\textbf{垂直聚焦胜过水平扩散}——
+这是加拿大 AI 创业的核心教训。
+
+\begin{table}[htbp]
+\centering
+\caption{加拿大主要 AI 创业公司一览}
+\label{tab:canada-ai}
+\small
+\begin{tabularx}{\textwidth}{l l r l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{成立} & \textbf{融资/估值} & \textbf{领域} & \textbf{状态} \\
+\midrule
+Cohere       & 2019 & \$7B 估值   & 企业 LLM    & IPO 筹备中 \\
+Ada          & 2016 & \$1.2B 估值 & AI 客服     & 高速增长 \\
+Element AI   & 2016 & \$230M 收购 & 企业 AI 服务 & $\to$ ServiceNow (2020) \\
+Wealthsimple & 2014 & —           & AI 金融理财 & 加拿大最大数字券商 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ==================================================================
+\section{印度：十亿人的 AI}
+\label{sec:global-india}
+% ==================================================================
+
+印度的 AI 创业生态呈现出一种
+与全球其他任何市场都截然不同的特征：
+\textbf{规模和语言的复杂性}。
+14 亿人口、22 种官方语言、
+数百种方言、从智能手机到功能机的多层设备生态——
+这些约束条件定义了印度 AI 创业的独特方向。
+
+2026 年 2 月的 India AI Impact Summit 标志着
+印度 AI 生态的一个转折点。
+总理 Narendra Modi 呼吁``AI 民主化''，
+Reliance 集团的 Mukesh Ambani 表示
+``AI 最好的时代尚未到来''。
+更引人注目的是全球科技巨头的承诺：
+Google 宣布 \$150 亿基础设施投资，
+Microsoft 承诺 \$500 亿，
+Sam Altman 和 Emmanuel Macron 亲赴现场。
+这不再是``世界关注印度''——
+而是``世界来到印度''。
+
+但在这些全球巨头的大手笔之下，
+更值得关注的故事是：
+\textbf{印度本土创始人正在为印度的独特约束构建解决方案}——
+不是为了打动沙丘路（Sand Hill Road）的 VC，
+而是为了服务印度的独特需求。
+
+\subsection{Krutrim / Ola：从网约车到 AI 基础设施}
+
+Krutrim（梵语``人工''之意）
+是 Ola 创始人 Bhavish Aggarwal 于 2024 年初推出的
+AI 创业项目，
+也是\textbf{印度第一家 AI 独角兽}。
+
+Krutrim 的野心极大——
+它不只是在做一个语言模型，
+而是试图构建\textbf{完整的 AI 计算栈}：
+从基础模型到 AI 云基础设施再到 AI 芯片。
+
+\begin{itemize}[noitemsep]
+  \item \textbf{基础模型}：
+        训练印度多语言大模型，
+        支持印地语、泰米尔语、泰卢固语等印度主要语言，
+        以及英语。核心挑战在于
+        印度语言的训练数据远不及英语和中文的丰富度
+  \item \textbf{AI 云}：
+        Krutrim Cloud 提供面向印度开发者和企业的
+        AI 计算服务，定价针对印度市场优化
+  \item \textbf{AI 芯片}：
+        长远目标是开发定制 AI 芯片——
+        虽然这一目标在短期内可能过于激进
+\end{itemize}
+
+Krutrim 累计融资约 \$3.04 亿，
+2025 年 3 月完成了最新一轮融资。
+团队规模约 310 人（同比增长 17\%）。
+最近还收购了 BharatSahAIyak——
+进一步深化其在印度语言 AI 领域的能力。
+
+Krutrim 的核心挑战在于：
+\textbf{在没有 NVIDIA 级别的算力资源
+和 OpenAI 级别的研发预算的情况下，
+如何构建一个对印度用户真正有用的 AI 系统？}
+答案可能不在于追赶前沿性能，
+而在于优化印度特定场景的实用性——
+包括多语言混合输入、低带宽环境适配、
+以及与印度数字基础设施（UPI、Aadhaar）的深度集成。
+
+Krutrim 的创始人 Bhavish Aggarwal 本身就是一个
+值得分析的案例。
+作为 Ola（印度最大的网约车平台）的创始人，
+Aggarwal 拥有在印度规模市场中
+构建技术平台的丰富经验。
+但从网约车到 AI 基础设施的跨越
+需要的是完全不同的能力组合——
+算法研发、芯片设计、云基础设施运营。
+Aggarwal 能否成功复制马斯克式的``跨域创业''，
+还是会重蹈 Element AI ``野心大于能力''的覆辙，
+是印度 AI 创业界最大的悬念之一。
+
+值得注意的是，Krutrim 面临的竞争不仅来自全球巨头。
+Google 和 Microsoft 在印度的 AI 投入
+已经远超任何本土公司的能力范围——
+Google 的印度语言 AI 产品
+（包括 Gemini 的印地语和其他印度语言支持）
+正在迅速改善。
+\textbf{Krutrim 的真正竞争对手不是 OpenAI，
+而是 Google India。}
+在这场竞争中，Krutrim 的优势
+不在于模型性能，而在于
+对印度独特使用场景的深度理解
+和对本土生态系统的深度整合。
+
+\subsection{Sarvam AI：印度主权 AI 的技术引擎}
+
+Sarvam AI 是印度 AI 创业生态中
+技术路线最清晰的公司之一。
+总部位于班加罗尔，
+公司的使命是\textbf{构建印度的主权 AI 底座}——
+一个深度理解印度文化和多样性的全栈生成式 AI 平台，
+为政府、企业和非营利组织提供服务。
+
+Sarvam 的旗舰产品 Indus 是一个
+印度语言优先的 AI 平台（目前处于 beta 阶段），
+基于自主训练的主权模型构建。
+与直接使用 GPT-4 或 Llama
+然后在印度语言上微调的方法不同，
+Sarvam 选择了从头构建——
+这意味着更高的前期投入，
+但也意味着对印度语言和文化语境的更深理解。
+
+公司由顶级投资者支持，
+包括 Lightspeed、Peak XV（原 Sequoia India）
+和 Khosla Ventures。
+团队规模约 194 人（同比增长 175\%），
+但年营收仅约 \$100 万，累计融资 \$4,200 万——
+显示公司仍处于\textbf{``重研发、轻变现''的早期阶段}。
+
+\subsection{Yellow.ai 和 Haptik：对话式 AI 的印度力量}
+
+\textbf{Yellow.ai}（2016 年成立于圣马特奥/海得拉巴）
+是全球领先的企业对话式 AI 平台之一。
+其平台基于多 LLM 架构，
+每年处理超过 160 亿次对话，
+支持 85 个以上国家的 1,300 多个全球品牌。
+Yellow.ai 的 AI agent 能够跨语音、聊天和多模态渠道
+自主处理客户交互——
+这对印度市场尤为重要，
+因为印度的客户服务需求
+涉及多语言、多渠道和大规模并发。
+
+Yellow.ai 累计融资约 \$1.02 亿（Series C），
+年营收约 \$1,800 万，
+在全球 17 个国家运营。
+
+\textbf{Haptik}（2013 年成立，后被 Reliance Jio 收购）
+是印度最早的对话式 AI 公司之一，
+专注于企业级聊天商务（Chat Commerce）。
+作为 Reliance 生态的一部分，
+Haptik 能够接触到印度最大的电信和零售网络，
+这是独立创业公司难以匹敌的渠道优势。
+
+\begin{table}[htbp]
+\centering
+\caption{印度主要 AI 创业公司一览}
+\label{tab:india-ai}
+\small
+\begin{tabularx}{\textwidth}{l l r l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{成立} & \textbf{融资} & \textbf{领域} & \textbf{核心特点} \\
+\midrule
+Krutrim/Ola & 2024 & \$304M   & 全栈 AI      & 印度首家 AI 独角兽 \\
+Sarvam AI   & 2023 & \$42M    & 主权 LLM     & 印度语言优先 \\
+Yellow.ai   & 2016 & \$102M   & 对话式 AI    & 85+ 国家部署 \\
+Haptik      & 2013 & 被收购    & 聊天商务     & Reliance 生态 \\
+Qure.ai     & 2016 & —        & 医疗 AI      & AI 医学影像 \\
+Fractal     & 2000 & —        & 决策 AI      & 企业分析平台 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{印度 AI 生态的结构性特征}
+
+印度 AI 生态有三个显著的结构性特征：
+
+\textbf{第一，``为印度约束而设计''的创新方向。}
+与硅谷追求前沿性能不同，
+印度 AI 创业公司更关注的是：
+多语言支持（22 种官方语言）、
+低带宽环境适配（大量 2G/3G 用户）、
+低成本设备兼容（功能机和低端智能机）、
+以及与印度数字公共基础设施（India Stack）的集成。
+这些约束催生了独特的创新方向。
+
+\textbf{第二，人才外溢 vs.\ 本土留存的张力。}
+印度拥有超过 150 万 AI 专业人才，
+但大量顶尖人才流向硅谷（Sundar Pichai、Satya Nadella
+等科技巨头 CEO 都是印度裔）。
+如何让更多顶尖人才留在印度本土创业
+是生态系统面临的核心挑战。
+
+\textbf{第三，全球科技巨头的``筹码''。}
+Google \$150 亿、Microsoft \$500 亿的投资承诺
+意味着印度正成为全球 AI 基础设施建设的关键节点。
+但这也带来了一个问题：
+\textbf{印度的 AI 未来是由本土公司定义，
+还是由全球巨头的印度分部定义？}
+这个问题的答案将决定印度 AI 生态的长期走向。
+
+\textbf{第四，``India Stack''作为 AI 的独特基础设施。}
+印度在过去十年建立的数字公共基础设施——
+Aadhaar（生物识别身份系统，覆盖 13 亿人）、
+UPI（统一支付接口，月交易额超 \$200 亿）、
+DigiLocker（数字文档平台）、
+ONDC（开放网络数字商务）——
+为 AI 应用提供了独一无二的数据层和部署层。
+一个基于 Aadhaar 认证、UPI 支付和
+印度语言 LLM 的 AI agent，
+理论上可以在印度 10 亿+ 用户中
+无缝完成从身份验证到交易执行的全流程。
+这是印度 AI 创业公司相对于全球竞争对手的
+\textbf{结构性护城河}——
+因为硅谷的公司无法复制 India Stack。
+
+\textbf{第五，班加罗尔作为全球 AI 服务中心的双重角色。}
+班加罗尔不仅是印度 AI 创业的中心
+（2023 年 45\% 的获融资 AI 公司在班加罗尔），
+它同时也是全球 AI 公司的``外包研发中心''。
+Google、Microsoft、Amazon、Meta
+在班加罗尔都有数千人规模的 AI 团队。
+这种``全球 AI 研发中心 + 本土 AI 创业中心''的双重角色
+既是优势（人才溢出效应）也是风险（人才被大厂虹吸）。
+印度 AI 创业的未来取决于
+能否将``为全球大厂做 AI 研发''的能力
+转化为``构建面向印度市场的独立 AI 产品''的能力。
+
+% ==================================================================
+\section{东南亚：移动优先 AI}
+\label{sec:global-sea}
+% ==================================================================
+
+东南亚拥有约 6.8 亿人口和全球增长最快的数字经济之一，
+但其 AI 创业生态与硅谷、中国、以色列等
+``AI 原生''区域有着根本性的不同。
+东南亚的 AI 创新不是``从实验室到产品''，
+而是``从超级应用到 AI 赋能''——
+Grab、GoTo、Shopee 等超级应用
+是 AI 技术最大的需求方和部署者，
+独立的 AI 创业公司反而相对稀少。
+
+这一特征源于东南亚数字经济的独特结构：
+超级应用在网约车、外卖、支付、电商等领域
+积累了海量的\textbf{真实世界数据}——
+出行轨迹、消费习惯、支付行为——
+这些数据天然适合用于训练和部署 AI 系统。
+因此，东南亚的 AI 创新更多是
+\textbf{``嵌入式 AI''（Embedded AI）}
+而非``独立 AI''（Standalone AI）。
+
+\subsection{SEA-LION：东南亚的主权 AI 模型}
+
+SEA-LION（Southeast Asian Languages in One Network）
+是新加坡 AI Singapore（AISG）
+主导的国家级多模态 LLM 项目，
+也是新加坡国家多模态 LLM 项目（NMLP）的核心组成部分。
+
+SEA-LION 的诞生背景是一个深刻的认知：
+\textbf{现有 LLM 在东南亚语言和文化上存在严重偏差。}
+主流 LLM 的训练数据主要来自英文互联网内容，
+这些内容反映的是西方、工业化、
+富裕、受教育和民主化（WIRED）社会的价值观。
+东南亚的语言（泰语、越南语、印尼语、他加禄语等）
+在训练数据中严重不足，
+导致模型对这些语言的理解
+不仅在语言层面有缺陷，
+在文化语境层面更是充满偏差。
+
+SEA-LION 系列模型基于大量东南亚语言内容训练，
+包括泰语、越南语、印尼语等，
+已经发布了多个版本和变体，
+包括嵌入模型（Embedding Suite）。
+2026 年 3 月，SEA-LION 还发起了
+Project Aquarium（语言数据映射项目），
+旨在系统性地改善东南亚语言的数据覆盖。
+
+\subsection{Grab AI：超级应用的 AI 引擎}
+
+Grab 是东南亚最大的超级应用之一，
+覆盖网约车、外卖、支付、贷款等多个领域。
+AI 是 Grab 平台的核心驱动力——
+超过 1,000 个 AI 模型在其平台上运行。
+
+2025 年 5 月，Grab 在新加坡成立了
+\textbf{AI 卓越中心}（AI Centre of Excellence），
+获得新加坡数字产业署（DISG）支持。
+这个 AI 中心聚焦三大方向：
+\begin{enumerate}[noitemsep]
+  \item \textbf{AI 无障碍}：
+        与新加坡视障人士协会合作开发语音助手，
+        让残障人士、老年人等群体
+        更便捷地使用数字服务
+  \item \textbf{AI 生产力}：
+        内部工具 GrabGPT 已有约 6,400 月活用户，
+        基于 OpenAI、Anthropic、Meta、Google 等
+        多模型架构，
+        帮助员工进行研究、文本生成、图像创建和数据分析
+  \item \textbf{AI 产品创新}：
+        2025 年 4 月 GrabX 大会发布了
+        一系列 AI 驱动的消费者功能——
+        实时航班监控的预约接机、
+        AI 优化的大订单分配、
+        AudioProtect（生成式 AI 车内安全监测）等
+\end{enumerate}
+
+Grab 的 AI 策略反映了东南亚超级应用的共同特征：
+\textbf{AI 不是独立产品，而是平台能力的升级}。
+1,000 个 AI 模型不是为了展示技术实力，
+而是为了优化匹配算法、定价策略、
+风控模型和用户体验的每一个环节。
+
+\subsection{GoTo AI：印尼市场的 AI 本土化}
+
+GoTo（Gojek + Tokopedia 合并）
+是印尼最大的数字生态系统，
+在网约车、外卖、支付和电商领域占据主导地位。
+GoTo 的 AI 应用同样以嵌入式为主——
+将 AI 融入平台的每个决策节点：
+骑手分配、商品推荐、欺诈检测、动态定价等。
+
+2025 年底，Grab 和 GoTo 之间的合并传闻
+引发了监管层面的审查。
+如果这两家超级应用合并，
+将创造一个覆盖东南亚 6 亿+ 用户的
+\textbf{AI 数据垄断体}——
+这对独立 AI 创业公司意味着
+更高的竞争壁垒和更少的独立空间。
+
+\subsection{WIZ.AI 和其他独立 AI 创业公司}
+
+在超级应用主导的格局下，
+东南亚也有一些值得关注的独立 AI 创业公司：
+
+\textbf{WIZ.AI}（新加坡）开发了``本地口音''的对话式 AI——
+其 Talkbot 产品能在英语、印尼语、
+他加禄语之间自然切换，
+并且语音的韵律和节奏
+听起来像真正的东南亚人在说话，
+而不是通用的美式英语 TTS。
+这个看似微小的差异
+在银行、电信等需要电话沟通的行业中至关重要。
+
+2025 年，20 家东南亚 AI 创业公司
+完成了重要的融资里程碑——
+从工厂自动化到法律科技，
+从农业科技到医疗 AI，
+覆盖了多个垂直领域。
+
+\begin{table}[htbp]
+\centering
+\caption{东南亚 AI 生态格局}
+\label{tab:sea-ai}
+\small
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{类型} & \textbf{代表} & \textbf{AI 策略} \\
+\midrule
+超级应用 AI & Grab, GoTo   & 1000+ 嵌入式 AI 模型，平台能力升级 \\
+国家级 LLM & SEA-LION      & 东南亚语言主权模型，新加坡 AISG 主导 \\
+对话式 AI  & WIZ.AI        & 本地口音语音 AI，银行/电信场景 \\
+电商 AI    & Shopee/Sea    & Sea AI Lab (SAIL) 基础研究 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Sea AI Lab（SAIL）是 Sea Limited（Shopee 母公司）
+旗下的 AI 研究实验室，
+总部位于新加坡。
+SAIL 的研究方向涵盖量子化学、
+机器学习系统优化和可信 AI——
+定位更偏基础研究而非产品开发，
+但其研究成果直接支撑了 Shopee 的搜索推荐、
+Garena 的游戏 AI 和 Monee 的金融风控。
+
+\subsection{东南亚 AI 生态的结构性特征}
+
+东南亚 AI 生态有几个独特的结构性特征：
+
+\textbf{第一，``语言碎片化''既是挑战也是护城河。}
+东南亚涉及至少 10 种主要语言
+（印尼语、泰语、越南语、马来语、他加禄语、缅甸语等），
+加上各种方言和混合语（如 Singlish、Taglish）。
+这种语言碎片化使得
+全球大模型难以``开箱即用''地服务东南亚用户，
+为本土和区域性 AI 解决方案留下了巨大空间。
+SEA-LION 和 WIZ.AI 等项目正在填补这一空白。
+
+\textbf{第二，新加坡作为``AI 枢纽''的特殊角色。}
+新加坡虽然人口仅 600 万，
+但在东南亚 AI 生态中扮演着不成比例的核心角色。
+AI Singapore（AISG）是政府主导的 AI 推进机构，
+GovTech 则将 AI 嵌入公共服务。
+新加坡的优势在于：
+强政府执行力、英语工作环境、
+与美中两方都保持良好关系的外交立场、
+以及对全球 AI 人才的吸引力。
+Grab、Sea 和众多 AI 创业公司选择将总部设在新加坡，
+然后辐射整个东南亚市场。
+
+\textbf{第三，AI 创业的``底层化''趋势。}
+与硅谷追求``改变世界''的叙事不同，
+东南亚的 AI 创业更加务实——
+解决工厂质检、农业病虫害识别、
+中小企业贷款风控等``最后一公里''问题。
+这种``底层化''的 AI 创新
+可能不会产生 Mistral 或 Cohere 级别的独角兽，
+但对提升区域经济效率和普惠性的贡献不可忽视。
+2025 年 20 家获得融资的东南亚 AI 创业公司
+中的大多数都聚焦于这类实际问题。
+
+% ==================================================================
+\section{日本与韩国：工业 AI 强国}
+\label{sec:global-japan-korea}
+% ==================================================================
+
+日本和韩国在全球 AI 版图中占据着一个独特的位置：
+它们既不像硅谷那样以创业公司为主导，
+也不像中国那样以大公司和政府投资为双驱动，
+而是呈现出一种\textbf{``大企业主导 + 学术创业补充''}的格局。
+三星、LG、NAVER、Kakao、Sony、NTT——
+这些巨头的 AI 投资和内部研发
+构成了日韩 AI 生态的主体，
+而独立 AI 创业公司在夹缝中寻找差异化空间。
+
+\subsection{NAVER HyperCLOVA X：韩国的主权 AI 旗舰}
+
+NAVER 是韩国最大的互联网公司
+（类似中国的百度 + 阿里的混合体），
+而 HyperCLOVA X 是其自主研发的大语言模型——
+也是韩国\textbf{主权 AI}战略的技术核心。
+
+HyperCLOVA X 的关键差异化在于
+\textbf{韩语理解能力}：
+在韩语基准测试中，
+NAVER 声称其 3B 参数的轻量模型
+已达到 GPT-3.5 水平的性能，
+并在韩语指标上超过了中美同级别模型。
+
+2025 年 4 月，NAVER 做出了一个重要的战略决策：
+\textbf{将 HyperCLOVA X SEED 系列
+（3B、1.5B、0.5B）开源}，
+允许商业使用。
+这些模型支持文本、图像和视频的多模态任务，
+并且设计为无需高端 GPU 即可运行。
+NAVER Cloud CEO 金有元强调：
+``这不仅仅是技术共享——
+这是关于强化国内 AI 生态系统
+和建设国家技术自立基础的实践。''
+
+2025 年 8 月，NAVER Cloud 被选为
+韩国政府``自主 AI 基础模型项目''的五大精英团队之一，
+与学术界和 Twelve Labs 组成联盟，
+目标是开发``全领域基础模型''（Omni Foundation Model），
+让所有公民都能使用 AI。
+
+更具象征意义的是 2026 年 1 月的事件：
+\textbf{韩国银行（央行）与 NAVER 合作}，
+基于 HyperCLOVA X 构建了名为``BOKI''
+（Bank Of Korea Intelligence）的金融 AI 系统——
+在完全与外网隔离的环境中运行，
+成为全球中央银行中首个投入实际业务使用的生成式 AI 系统。
+这是主权 AI 概念从口号到落地的标志性案例。
+
+NAVER 还积极布局全球市场，
+计划向东南亚和中东北非（MENA）地区
+输出其主权 AI 解决方案。
+2025 年 6 月，NAVER 宣布在硅谷成立 NAVER Ventures，
+投资北美 AI 创业公司——
+首笔投资就瞄准了韩裔创立的视频 AI 公司 Twelve Labs。
+
+\subsection{Kakao Brain $\to$ Kakao：大企业 AI 整合}
+
+Kakao Brain 的命运是韩国 AI 生态结构的缩影。
+
+作为韩国社交和通讯巨头 Kakao 的 AI 子公司，
+Kakao Brain 曾独立运营，
+开发了韩语大模型 Ko-GPT、
+文本生成图像模型 Karlo 等系列产品。
+但在 2024 年 5 月，
+\textbf{Kakao 决定将 Kakao Brain 的核心资产
+——包括语言模型、图像生成模型和相关业务——
+全部并入母公司}。
+
+Kakao CEO 郑新雅表示：
+``AI 已经从技术验证阶段进入实际应用阶段。
+通过整合 Kakao 在用户体验方面的理解力
+和 Kakao Brain 在语言模型方面的能力，
+我们将最大化协同效应。''
+
+这一整合反映了韩国大企业 AI 战略的共同趋势：
+\textbf{AI 不再是可以``放在子公司里实验''的独立业务，
+而是必须深度融入核心产品和服务的基础能力。}
+Kakao Brain 独立运营的终结，
+恰恰标志着 AI 在 Kakao 生态中
+从``实验''升级为``基础设施''。
+
+\subsection{LG AI Research：从家电到 EXAONE}
+
+LG AI Research 成立于 2020 年，
+是 LG 集团的 AI 研发中枢，
+总部位于首尔。
+团队约 245 人（同比增长 22\%），
+研究方向涵盖视觉 AI、语言模型、
+数据智能和材料智能。
+
+LG AI Research 最引人注目的成果是
+\textbf{EXAONE}——LG 自主研发的大语言模型家族。
+EXAONE 的独特之处在于
+其\textbf{``从科学到应用''的全栈定位}：
+不仅面向消费级应用（LG 智能家电生态），
+还深入材料科学、化学工程等
+LG 集团核心的 B2B 领域。
+2026 年初，EXAONE 通过了韩国首个``K-AI''评估——
+LG AI Research 总监林宇亨表示
+将``引领生态系统''建设。
+
+LG AI Research 的人才来源
+反映了韩国 AI 生态的人才流动模式：
+KAIST（13人）、NAVER（18人）、SK Telecom（8人）、
+首尔大学（10人）、LG Electronics（38人）——
+韩国 AI 人才主要在几个大企业和顶尖大学之间流转。
+
+\subsection{Upstage：韩国 AI 创业的出海样本}
+
+Upstage 是韩国独立 AI 创业公司中
+最具代表性的\textbf{出海成功案例}。
+由前 NAVER AI 开发负责人 Sung Kim
+于 2020 年联合创立，
+Upstage 的核心产品包括：
+\begin{itemize}[noitemsep]
+  \item \textbf{Solar LLM}：
+        大语言模型家族，
+        定位为``企业效率提升''工具，
+        强调在有限计算资源下的高效推理
+  \item \textbf{Document AI}：
+        基于 AI OCR 技术的文档处理引擎，
+        在文档自动化领域有广泛的企业采用
+\end{itemize}
+
+2025 年是 Upstage 的突破之年：
+\begin{itemize}[noitemsep]
+  \item 完成 \$4,500 万融资，累计融资约 \$1.7 亿
+  \item 在美国硅谷设立子公司，开启全球扩张
+  \item 进军日本市场，在东京开设办公室，
+        聘用前 Panasonic / AWS 高管 Matsushita Hiroyuki
+        担任日本分公司负责人
+  \item 服务 Fortune 500 企业的保险和金融服务工作流
+\end{itemize}
+
+Upstage 的定位是\textbf{``文档智能 + 语言模型''的双引擎}——
+这个组合在保险、金融、法律等
+文档密集型行业中有巨大的市场空间。
+其从韩国到日本再到美国的出海路径，
+也为其他韩国 AI 创业公司提供了参考模板。
+
+\subsection{Twelve Labs：视频 AI 的韩裔力量}
+
+Twelve Labs 由韩裔创始人 Jae Lee 等人
+于 2021 年在旧金山创立，
+但与韩国 AI 生态保持着紧密的联系——
+SK Telecom 是其重要投资者，
+NAVER Ventures 在 2025 年 6 月
+以 Twelve Labs 作为其首笔北美投资。
+
+Twelve Labs 的核心技术是
+\textbf{AI 视频理解和搜索}——
+让开发者构建能够``看、听、理解''视频内容的应用。
+不同于简单的视频标签或描述搜索，
+Twelve Labs 能够理解视频中的
+特定时刻、场景和语义上下文。
+
+融资方面，Twelve Labs 在 2024 年完成了两轮融资：
+6 月的 \$5,000 万 Series A（NVIDIA NVentures 领投）
+和 12 月的 \$3,000 万战略投资
+（Databricks、SK Telecom、Snowflake、HubSpot Ventures、IQT）。
+累计融资约 \$1.07 亿。
+
+值得关注的是，Twelve Labs 聘用了
+SK Telecom 前 CTO 和 Apple Siri 核心开发者 Yoon Kim
+担任总裁——
+这一高管任命显示出公司
+从纯技术创业向大规模商业化转型的决心。
+
+Twelve Labs 的客户主要集中在
+媒体和娱乐领域（包括职业体育联赛、影视公司），
+这是视频 AI 技术最先落地的应用场景。
+
+除了 Upstage 和 Twelve Labs，
+韩国 AI 创业生态中还值得关注的包括：
+\textbf{Sionic AI}（首尔，企业 AI 平台）
+2025 年底完成约 250 亿韩元（\$1,800 万）融资，
+投资者包括 NAVER Cloud 和 IBK 产业银行等。
+Sionic AI 与 NAVER Cloud 合作，
+正在向东南亚扩展联合企业 AI 业务。
+这种``韩国 AI 创业公司 + 韩国大企业''
+联合出海的模式可能成为韩国 AI 生态的独特路径。
+
+\subsection{日本 AI 创业：静默中的积蓄}
+
+与韩国相比，日本的独立 AI 创业生态明显更加安静。
+这并非因为日本缺乏 AI 技术能力——
+恰恰相反，日本在机器人、计算机视觉和工业 AI 方面
+拥有深厚的积累。
+问题在于日本的\textbf{创业文化}和\textbf{人才流动模式}。
+
+日本最值得关注的 AI 创业公司是
+\textbf{Preferred Networks}（PFN），
+由西川徹和冈野原大辅于 2014 年在东京创立。
+PFN 的 MN-Core 系列 AI 加速器芯片
+是日本唯一的本土 AI 芯片项目——
+虽然规模远不及 NVIDIA 或 Cerebras，
+但代表了日本在 AI 硬件领域的自主尝试。
+PFN 与丰田、FANUC 等制造业巨头深度合作，
+将 AI 技术应用于工业机器人、
+自动驾驶和药物发现等领域。
+估值约 \$2B，是日本 AI 创业公司中的最高。
+
+日本大企业在 AI 领域的布局也不容忽视。
+NTT 的 tsuzumi 大模型瞄准日语优化和企业服务；
+Sony 的 AI 研究团队在生成式 AI 和创意工具方面有深厚积累；
+Toyota 的 Woven Planet 团队
+（现 Woven by Toyota）在自动驾驶和智慧城市 AI 方面持续投入。
+但这些投入大多以内部研发的形式存在，
+极少溢出到独立创业公司生态中。
+
+日本 AI 创业生态的核心瓶颈在于：
+\textbf{终身雇佣文化使得顶尖 AI 人才
+更倾向于留在大企业而非冒险创业。}
+这与以色列（军事退役后自然创业）
+和美国（硅谷创业文化深入骨髓）
+形成了鲜明对比。
+PayPay（SoftBank 旗下支付平台）
+计划以 \$134 亿估值 IPO 的消息
+或许标志着日本金融科技 / AI 领域的转折，
+但距离形成系统性的 AI 创业生态
+仍有相当距离。
+
+\subsection{SoftBank / 孙正义的 AI 帝国}
+
+在全球 AI 版图中，
+没有一个单一个体比孙正义（Masayoshi Son）
+对 AI 投资的格局影响更大。
+虽然 SoftBank 是日本公司，
+但孙正义的 AI 投资触角遍布全球。
+
+2025--2026 年间，孙正义的 AI 布局达到了历史性的高潮：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Stargate 项目}：
+        SoftBank 与 OpenAI 联手发起的
+        \$5,000 亿 AI 基础设施计划——
+        美国历史上最大的基础设施项目。
+        SoftBank 通过 Vision Fund 2
+        向 OpenAI 投入约 \$410 亿，
+        持股约 11\%。
+        2026 年 2 月，OpenAI 的 \$1,100 亿融资中，
+        SoftBank 贡献了 \$300 亿
+  \item \textbf{DigitalBridge 收购}：
+        2025 年底收购数据中心基础设施公司 DigitalBridge，
+        将 Stargate 从``投资倡议''
+        升级为``直接拥有基础设施''的实体
+  \item \textbf{SB Energy}：
+        OpenAI 和 SoftBank 各投资 \$5 亿
+        用于 SB Energy 的数据中心和电力基础设施，
+        为 Stargate 的 1.2 GW 德州数据中心提供电力
+  \item \textbf{AI 芯片合作}：
+        与 SambaNova 达成部署合作，
+        探索非 NVIDIA 的 AI 推理方案
+\end{itemize}
+
+孙正义的策略可以用一句话概括：
+\textbf{``如果 AI 是下一个工业革命，
+那就拥有这个革命的基础设施。''}
+从模型（OpenAI 股权）到计算（Stargate 数据中心）
+到电力（SB Energy）到通信（ARM），
+SoftBank 正在构建一个覆盖 AI 全栈的基础设施帝国。
+
+这对日本 AI 生态的影响是双面的：
+一方面，SoftBank 的全球布局
+为日本在 AI 领域保持了``座位''——
+即使日本本土的 AI 创业生态相对薄弱，
+SoftBank 仍是全球 AI 权力格局中的关键玩家。
+另一方面，SoftBank 的投资几乎全部面向美国公司，
+对日本本土 AI 创业生态的直接拉动有限。
+
+\begin{table}[htbp]
+\centering
+\caption{日本与韩国主要 AI 力量对比}
+\label{tab:japan-korea-ai}
+\small
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{维度} & \textbf{日本} & \textbf{韩国} \\
+\midrule
+主导模式    & 大企业内部 AI + SoftBank 全球投资
+            & 大企业 AI 整合 + 创业公司出海 \\
+代表性 LLM  & 无本土主流 LLM
+            & NAVER HyperCLOVA X, LG EXAONE \\
+芯片能力    & Preferred Networks (MN-Core)
+            & Samsung NPU + NAVER/SK 生态 \\
+创业公司    & 相对稀少
+            & Upstage, Twelve Labs, Sionic AI 等 \\
+全球投资    & SoftBank (OpenAI \$41B+)
+            & NAVER Ventures, SK Telecom 等 \\
+主权 AI     & 政府推进但进展缓慢
+            & NAVER + 央行合作，K-AI 评估体系 \\
+核心优势    & 机器人 + 制造业 AI 场景
+            & 半导体 + 内容/电商 AI 场景 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{日韩 AI 生态的结构性分析}
+
+日韩 AI 生态有三个值得关注的结构性特征：
+
+\textbf{第一，``大企业主导''的双刃剑效应。}
+NAVER、Kakao、Samsung、LG、Sony、NTT 等大企业
+拥有海量数据、充裕资本和广泛的部署渠道——
+这使得它们在 AI 应用层面拥有巨大优势。
+但大企业主导也意味着
+独立创业公司的生存空间被压缩，
+人才被大企业虹吸，
+风险投资生态相对不成熟。
+
+\textbf{第二，``主权 AI''从口号到制度的转化。}
+韩国在``主权 AI''方面的进展最为实质性：
+NAVER HyperCLOVA X 的开源、
+韩国银行的 BOKI 系统、
+政府主导的``自主基础模型项目''——
+这些举措正在将``主权 AI''
+从政策文件转化为实际的技术和制度基础设施。
+
+\textbf{第三，出海作为核心战略。}
+对于人口约 5,200 万的韩国
+和人口老龄化的日本而言，
+本土市场规模是 AI 创业公司增长的天花板。
+因此，从 Day 1 就规划出海
+（Upstage $\to$ 美国 + 日本，
+Twelve Labs $\to$ 旧金山，
+NAVER $\to$ 东南亚 + MENA）
+是日韩 AI 创业公司的核心战略。
+这与中国 AI 公司的``先国内后出海''路径形成对比。
+
+% ==================================================================
+\section{中东：主权 AI 雄心}
+\label{sec:global-middle-east}
+% ==================================================================
+
+中东——特别是阿联酋（UAE）和沙特阿拉伯——
+正在进行一场前所未有的
+\textbf{石油美元向 AI 基础设施的大转型}。
+这不是小规模的风险投资，
+而是以主权财富基金为后盾的
+\textbf{数百亿美元级}的基础设施赌注。
+
+2025 年 5 月，沙特王储 Mohammed bin Salman
+在与美国总统 Trump 会面时，
+将投资承诺从 \$6,000 亿提升到 \$1 万亿——
+其中 AI 基础设施占据核心位置。
+同期，UAE 的 Stargate 项目——
+一个 1 GW 的 AI 计算集群，
+由 G42、OpenAI、Oracle、NVIDIA 和 SoftBank 联合支持——
+代表了该地区最雄心勃勃的单体设施。
+
+\subsection{G42（阿联酋）：中东 AI 的核心枢纽}
+
+G42（Group 42）是阿联酋的``主权 AI 公司''，
+在中东 AI 版图中占据着核心位置。
+由 Peng Xiao 创立，G42 最初因其与中国华为的紧密关系
+而引发美国的安全关切。
+但 2024 年成为 G42 命运的转折点：
+\textbf{Microsoft 以 \$15 亿入股 G42}——
+这笔投资不仅是商业交易，
+更是一次地缘政治重新站位。
+作为交易条件的一部分，
+G42 切断了与华为等中国技术公司的联系。
+Microsoft 副总裁 Brad Smith 加入 G42 董事会，
+进一步强化了 G42 的``亲美''定位。
+
+这笔投资撬动了更大规模的合作：
+Microsoft 承诺在 2023--2029 年间
+向 UAE 投资总计 \$152 亿，
+主要用于 AI 数据中心和云基础设施。
+2025 年 11 月的 Abu Dhabi Global AI Summit 上，
+Microsoft 获得了美国商务部的许可，
+首次向 UAE 出口最先进的 NVIDIA 芯片——
+这标志着 UAE 成为
+美国 AI 出口管制外交的``试验田''。
+
+G42 不仅是投资接受方，
+还是主动的 AI 技术建设者：
+其旗下的 Technology Innovation Institute（TII）
+是 Falcon LLM 系列模型的研发基地（见下节）。
+G42 还与 Microsoft 共同设立了 \$10 亿基金，
+支持新兴市场的 AI 开发者。
+
+\subsection{HUMAIN（沙特阿拉伯）：$\$1,000$ 亿的 AI 赌注}
+
+HUMAIN 是沙特公共投资基金（PIF）
+旗下的 AI 公司，
+成立于 2025 年，
+被赋予了一个宏大的使命：
+\textbf{将沙特打造为全球 AI 基础设施枢纽}。
+
+HUMAIN 获得的资源令人咋舌：
+\begin{itemize}[noitemsep]
+  \item 沙特宣布 \$1,000 亿 AI 基础设施投资承诺——
+        通过 HUMAIN 执行
+  \item 2025 年 11 月，美国商务部批准
+        向 HUMAIN 和 G42 各出口
+        相当于 35,000 颗 NVIDIA Blackwell 芯片——
+        估值约 \$10 亿
+  \item 2026 年 1 月，HUMAIN 从沙特国家基础设施基金
+        获得 \$12 亿融资，
+        用于建设 250 MW 超大规模 AI 数据中心
+  \item HUMAIN 正在利雅得和达曼建设首批数据中心，
+        计划 2026 年上半年投入运营
+  \item 2026 年 2 月，HUMAIN 向 Elon Musk 的 xAI
+        投资 \$30 亿——
+        成为 xAI \$200 亿融资轮中的重要少数股东
+\end{itemize}
+
+HUMAIN 的 CEO Tareq Amin
+正在以惊人的速度执行建设计划。
+但值得注意的是，HUMAIN 目前的角色更多是
+\textbf{``AI 基础设施建设者和投资者''}，
+而非``AI 技术创新者''。
+数据中心、GPU 采购、战略投资——
+这些是资本密集型的基础设施活动，
+需要的是资金和执行力，而非 AI 研发能力。
+沙特能否在基础设施之上
+培育出本土的 AI 研发和创业生态，
+是一个尚未回答的关键问题。
+
+HUMAIN 的发展路径与沙特过去三十年的
+经济多元化战略一脉相承。
+从 NEOM 未来城市到沙特旅游愿景，
+再到如今的 AI 基础设施，
+沙特的策略始终是\textbf{``以超大规模的资本投入
+倒逼产业生态的形成''}。
+这种策略在石化工业中取得过成功
+（SABIC 已成为全球石化巨头），
+但在知识密集型的 AI 领域是否适用，
+还需要更长时间的观察。
+
+一个值得关注的指标是：
+到 2030 年，沙特本土有多少 AI 研究论文
+发表在顶级会议（NeurIPS、ICML、ICLR）上？
+有多少 AI 创业公司是由沙特本土人才创立的？
+这些``软性指标''比数据中心的千兆瓦数
+更能衡量 AI 生态的真正健康度。
+
+\subsection{Falcon 模型：中东的开源 AI 名片}
+
+Falcon LLM 系列是中东在全球 AI 技术领域
+最具影响力的成果。
+由 Abu Dhabi 的 Technology Innovation Institute（TII）
+开发，Falcon 从一开始就选择了\textbf{开源路线}——
+这与 HUMAIN 和 G42 的基础设施投资形成互补：
+硬件靠买，软件靠做。
+
+Falcon 模型的发展历程：
+\begin{itemize}[noitemsep]
+  \item \textbf{Falcon 1}（2023）：
+        首个引起全球关注的中东 AI 模型，
+        在 Hugging Face 排行榜上短暂占据榜首
+  \item \textbf{Falcon 2 11B}（2024 年 5 月）：
+        引入多模态能力（VLM），
+        支持图像到文本转换。
+        在同级别模型中超越了 Meta Llama 3 8B
+  \item \textbf{Falcon 3}（2024 年 12 月）：
+        在 14 万亿 tokens 上训练
+        （是 Falcon 2 的 2.5 倍），
+        在发布时占据 Hugging Face 全球第三方 LLM
+        排行榜首位。
+        特别是 Falcon 3-10B 在所有 13B 以下模型中领先。
+        \textbf{关键创新}：能在单个 GPU 甚至笔记本上运行，
+        将 AI 民主化推向新高度
+  \item \textbf{Falcon H1 Arabic}（2026 年 1 月）：
+        基于全新的 Mamba--Transformer 混合架构——
+        完全不同于之前的纯 Transformer 版本。
+        在 Open Arabic LLM Leaderboard（OALL）上
+        排名第一，超越了参数量大数倍的模型。
+        这标志着 Falcon 从``通用模型''
+        向``阿拉伯语主权模型''的战略延伸
+\end{itemize}
+
+TII 首席研究员 Hakim Hacid 在 2025 年 AI for Good 峰会上
+阐述了 Falcon 的哲学：
+\textbf{AI 的终极挑战不是把模型做得更大，
+而是把模型做得更高效、更可触及}——
+让 AI 从高端数据中心走向日常设备和真实应用。
+
+\subsection{Prosperity7 Ventures：石油巨头的 AI 风投}
+
+Prosperity7 Ventures 是沙特阿美（Saudi Aramco）
+的风险投资部门，
+代表了石油巨头进入 AI 投资领域的新趋势。
+
+Aramco 的 AI 投资策略在 2025 年发生了质变：
+从早期分散的全球投资（韩国 Rebellions、美国 aiXplain）
+转向大规模的基础设施级资本部署。
+2025 年的标志性投资包括：
+向 Groq 投资 \$15 亿用于云计算基础设施、
+通过 Wa'ed Ventures 设立 \$1 亿 AI 专项基金。
+
+2026 年 1 月，Prosperity7 参与了
+美国 AI 网络基础设施公司 Upscale AI 的
+\$2 亿 Series A 融资。
+Upscale AI 统一 GPU、AI 加速器、内存、存储和网络
+成为一个同步的 AI 引擎——
+解决的正是 AI 扩展中最关键的网络瓶颈。
+
+Prosperity7 的投资逻辑清晰：
+\textbf{如果 AI 将消耗越来越多的能源，
+而 Aramco 拥有全球最大的能源基础设施，
+那么从能源到 AI 基础设施的垂直整合
+就是一个天然的战略路径。}
+这不是简单的``跟风投资 AI''，
+而是将 AI 基础设施视为
+石油天然气行业长期转型的核心支柱。
+
+\subsection{SDAIA（沙特阿拉伯）：国家级 AI 治理}
+
+Saudi Data and Artificial Intelligence Authority（SDAIA）
+是沙特的国家级 AI 治理机构，
+负责制定 AI 战略、
+监管数据使用和推动 AI 应用落地。
+
+SDAIA 的角色更偏向``政策制定者''而非``技术建设者''，
+但它在沙特 AI 生态中的协调功能至关重要：
+确保 HUMAIN 的基础设施投资、
+TII 的模型研发和 Prosperity7 的风险投资
+在国家战略层面形成合力。
+
+\begin{table}[htbp]
+\centering
+\caption{中东 AI 生态核心实体}
+\label{tab:middle-east-ai}
+\small
+\begin{tabularx}{\textwidth}{l l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{实体} & \textbf{国家} & \textbf{类型} & \textbf{核心角色} \\
+\midrule
+G42           & UAE   & 主权 AI 公司 & Microsoft \$15B 合作伙伴，TII/Falcon \\
+HUMAIN        & 沙特  & PIF 子公司   & \$100B 基础设施，xAI \$3B 投资 \\
+TII           & UAE   & 研究机构     & Falcon LLM 系列开发 \\
+Prosperity7   & 沙特  & Aramco VC   & AI 基础设施全球投资 \\
+SDAIA         & 沙特  & 政府机构     & 国家 AI 战略和治理 \\
+MGX           & UAE   & 主权基金     & Stargate / OpenAI 投资伙伴 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{中东 AI 生态的结构性分析}
+
+中东 AI 生态有几个关键的结构性特征：
+
+\textbf{第一，资本充裕但人才稀缺。}
+中东不缺资金——沙特和 UAE 的主权财富基金
+合计超过 \$3 万亿。
+但 AI 研发人才极度稀缺，
+导致中东的 AI 战略高度依赖
+外来人才（TII 的研究团队大量招募国际学者）
+和外部投资（向 OpenAI、xAI 等美国公司注资）。
+\textbf{建设 AI 数据中心容易，
+培育 AI 研发文化难}——
+这是中东 AI 转型的核心瓶颈。
+
+\textbf{第二，地缘政治风险的双刃剑。}
+2026 年 3 月的中东局势升级
+（美以伊冲突）再次凸显了一个现实：
+在一个地缘政治不稳定的地区
+进行大规模 AI 基础设施投资
+面临着不可忽视的\textbf{物理安全风险}。
+Reuters 报道指出，
+``不断升级的紧张局势使人们重新审视
+大科技公司在中东的 AI 投资。''
+数据中心不同于软件——
+它们是物理资产，无法在战时搬迁。
+
+\textbf{第三，从基础设施消费者到生产者的转型。}
+中东 AI 生态目前仍以
+``购买 NVIDIA 芯片 + 引进美国技术 + 投资美国公司''为主。
+Falcon 模型是为数不多的本土技术成果。
+长期来看，中东能否从
+\textbf{``AI 基础设施消费者''
+转型为``AI 技术生产者''}，
+取决于能否在未来十年内
+建立起本土的 AI 研发人才管线和创新文化。
+这不是用金钱可以快速购买的——
+它需要时间、教育体系改革和文化转变。
+
+\textbf{第四，UAE vs.\ 沙特的微妙竞争。}
+虽然 UAE 和沙特经常被放在一起讨论，
+但两者的 AI 战略有显著差异。
+UAE（特别是 Abu Dhabi）更注重\textbf{技术研发}——
+TII 开发的 Falcon 模型
+是中东唯一获得全球认可的本土 AI 技术成果；
+G42 在 Microsoft 的支持下
+正在构建区域性的 AI 云平台。
+沙特则更注重\textbf{基础设施规模}——
+HUMAIN 的 \$1,000 亿基建计划
+和向 xAI 的 \$30 亿投资
+体现的是``用资本换入场券''的策略。
+两种路径最终能否殊途同归——
+建立起自主的 AI 能力——
+取决于各自在人才培育和制度建设上的持续投入。
+
+\textbf{第五，``AI 外交''的新维度。}
+中东的 AI 投资已经成为地缘政治的重要工具。
+美国放宽对 UAE 和沙特的 AI 芯片出口限制，
+其背后的考量不仅是商业利益，
+更是\textbf{通过 AI 技术纽带
+加强与海湾国家的战略绑定}——
+作为对中国在该地区影响力的平衡。
+G42 切断与华为的关系，
+HUMAIN 向美国 AI 公司大举投资——
+这些都是``AI 外交''在实际操作层面的体现。
+AI 基础设施正在成为
+继石油和军事之后，
+中东地缘政治博弈的第三大战略资产。
+
+% ==================================================================
+%  §12.8  EMERGING REGIONS
+% ==================================================================
+
+\section{新兴区域：拉美、非洲、澳大利亚、北欧与东欧}
+\label{sec:global-emerging}
+
+上述七大区域之外，全球还有多个正在崛起的 AI 创业热点。
+这些区域规模尚未达到前七者的量级，
+但各自在特定维度上展现出不可忽视的创新活力。
+
+\subsection{拉丁美洲：金融科技驱动的 AI 萌芽}
+
+拉美 AI 创业生态正处于早期爆发阶段。
+Crunchbase 数据显示，2025 年拉美创业投资整体回升至 \$41 亿（+14.3\%），
+其中墨西哥的增长尤为显著，巴西和墨西哥两国贡献了该区域 AI 创业的绝大部分体量。
+
+\textbf{Truora}（哥伦比亚/墨西哥）专注身份验证和电子签名，
+利用 AI 驱动的 OCR、活体检测和语义分析技术，
+帮助拉美企业解决合同管理和身份欺诈问题——
+该区域因合同管理不善造成的年营收损失高达 9\%。
+Truora 近期推出 AI 驱动的电子签名产品，加速数字信任基础设施建设。
+
+\textbf{dLocal}（乌拉圭）是拉美最重要的跨境支付基础设施公司，
+为全球大型商户提供新兴市场支付处理服务。
+2026 年预计支付处理量增长 50--60\%，
+其背后是 AI 驱动的欺诈检测、汇率预测和商户风险评估系统。
+
+\textbf{Cora}（墨西哥，2023 年成立）以 AI 自动化监管合规切入，
+已完成超 7000 个监管流程且客户零处罚记录，
+是拉美 RegTech 赛道的新兴代表。
+
+\textbf{Zonora AI}（墨西哥/乌拉圭/巴西，2024 年成立）提供企业级 AI 语音 Agent 方案，
+聚焦呼叫中心自动化，效率比非自动化方案提升 5 倍，
+且内置数据隐私和反欺诈机制——反映了拉美 AI 创业从"模型层"直接跳到"应用层"的路径特征。
+
+\subsection{非洲：资源受限环境下的 AI 创新}
+
+非洲 AI 创业生态正从"采用 AI"向"拥有 AI"转变。
+据 Afrilabs 统计，非洲已有超 2400 家 AI 相关公司，
+但面临算力稀缺、数据标注成本高、低连接环境等独特挑战。
+
+\textbf{InstaDeep}（突尼斯创立，总部伦敦）是非洲 AI 创业史上最大的成功案例——
+2023 年被德国生物技术巨头 BioNTech 以约 \$6.8 亿收购。
+InstaDeep 专注决策优化 AI（物流、生物信息学、工业排程），
+被收购后继续扩张：2025 年在卢旺达基加利开设新办公室，
+深化在非洲本土的 AI 生态建设。
+CEO Karim Beguir（突尼斯裔）是非洲 AI 创业的标志性人物。
+
+\textbf{Lelapa AI}（南非约翰内斯堡）是以非洲为中心的 AI 研究与产品实验室，
+专注"资源高效型技术"——在低算力环境下构建适配非洲语言和场景的 AI 系统。
+覆盖肯尼亚、乌干达等 8 个国家，强调 AI 应植根于本地社会文化语境。
+
+\textbf{54Gene}（尼日利亚拉各斯）聚焦基因组学和精准医疗 AI，
+旨在填补全球基因组数据中非洲人群严重不足的缺口。
+累计融资 \$9470 万，在尼日利亚、英国、美国等 7 个国家运营。
+虽然近年面临裁员和战略调整的挑战，
+但其"用非洲数据训练非洲 AI"的理念仍具有深远意义。
+
+\textbf{Indigenius AI}（尼日利亚拉各斯）致力于非洲本土语言的数字化和 AI 本地化，
+目标是保护非洲原住民语言并使 10 亿非洲人获得母语数字访问。
+
+\subsection{澳大利亚：应用驱动型 AI 生态}
+
+澳大利亚的 AI 创业生态以"领域知识+AI 应用"为核心特征。
+虽然缺乏基座模型公司，但在医疗 AI、设计工具和安全合规等垂直领域
+涌现出多家全球级公司。
+
+\textbf{Canva AI}（悉尼，估值约 \$400 亿）虽常被归类为设计工具公司，
+但其 Magic Studio 系列 AI 功能——AI 生图、AI 擦除、AI 翻译、AI 视频——
+使其成为全球最大的 AI 设计平台之一。
+Canva 联合创始人 Cam Adams 明确表示"澳大利亚有条件在 AI 领域领先"。
+Canva 的独特之处在于其"民主化设计"定位：
+将 AI 能力以极低门槛提供给非专业用户，全球月活超 2 亿。
+
+\textbf{Harrison.ai}（悉尼，C 轮融资）是澳大利亚最受关注的医疗 AI 公司，
+使命是"用 AI 紧急扩展全球医疗容量"。
+170 名员工，覆盖 17 个国家（包括印度、英国、美国、德国），
+专注医学影像 AI 辅助诊断。
+其产品已在放射学和病理学领域获得多国监管批准。
+
+\textbf{SafetyCulture}（悉尼/堪培拉）从安全检查清单工具起步，
+进化为 AI 驱动的工作场所运营平台，
+覆盖安全合规、培训、资产管理等场景，
+服务全球超 7.5 万家企业。
+
+\textbf{Atlassian AI}（悉尼，NASDAQ 上市，市值约 \$600 亿）
+将 AI 能力深度嵌入 Jira、Confluence 等全球开发者协作工具，
+Atlassian Intelligence 功能覆盖自动化工作流、AI 搜索、智能摘要等，
+是"嵌入式 AI"路线在企业软件领域的典型代表。
+
+\subsection{北欧：信任优势与垂直精品}
+
+北欧 AI 创业生态规模不大，但以高信任度、强监管合规和垂直精品著称。
+2026 年，北欧国家在 AI 治理方面已从"战略规划"转向"实操落地"，
+New Nordics AI（由北欧理事会种子资助的泛北欧倡议）
+推动跨国 AI 合作和负责任 AI 采用。
+
+\textbf{Silo AI}（赫尔辛基，2024 年被 AMD 以约 \$6.65 亿收购）
+曾是欧洲最大的私营 AI 实验室，
+开发了 Viking——首个北欧语言开源大模型，
+在 Google Cloud 上托管并服务于智能设备、自动驾驶和工业 4.0 场景。
+Silo AI 被 AMD 收购后继续运营，
+是"被收购即成功"在北欧 AI 创业中的典型案例——
+AMD 借此获得欧洲 AI 研发能力和客户网络。
+
+\textbf{Corti}（哥本哈根，B 轮 \$6000 万）是丹麦最具代表性的 AI 创业公司，
+为医疗机构提供 AI 基础设施和 API，专注文本和音频数据。
+2026 年 2 月推出 Agentic Framework 和 Agent Library，
+已有超 100 家公司在其基础设施上构建 50+种用例
+（收入周期管理、临床决策支持、护理协调等）。
+CEO Andreas Cleve 表示"一定会上市，但不在 2026 年"。
+
+\textbf{Normative}（斯德哥尔摩）专注 AI 驱动的碳排放核算，
+帮助企业自动计算和报告碳足迹。
+在欧盟 CSRD（企业可持续发展报告指令）合规需求激增的背景下，
+Normative 的"合规即服务"模式具有天然的政策红利。
+
+\textbf{Lovable}（瑞典）和 \textbf{Sana}（瑞典）是北欧新生代 AI 创业的代表——
+Lovable 定位 AI 编程/应用构建（从需求描述直接生成可运行代码），
+被列为 2026 年北欧最酷 AI 创业公司之一；
+Sana 则是 AI 优先的企业学习平台，
+将生成式 AI 融入知识管理和员工培训全流程。
+
+\subsection{东欧：被低估的 AI 人才库}
+
+东欧——特别是乌克兰和波兰——拥有世界级的 AI 工程人才，
+但由于地缘政治风险和资本市场限制，
+其 AI 创业公司往往选择在美国或西欧注册总部，同时保留东欧研发中心。
+
+\textbf{Grammarly}（乌克兰裔创始人，总部旧金山）是东欧 AI 创业最成功的案例。
+由乌克兰企业家 Alex Shevchenko 和 Max Lytvyn 创立，
+从语法检查工具进化为 AI 写作和生产力平台。
+2025 年 5 月获得 General Catalyst \$10 亿融资（乌克兰科技史上最大单笔融资），
+年收入超 \$7 亿，全球用户超 4000 万，估值约 \$130 亿。
+2025 年 1 月收购 Coda 后进一步拓展为"AI 生产力操作系统"。
+Grammarly 是"东欧研发+美国市场"模式的极致样本：
+核心算法团队仍有大量成员在基辅和柏林办公。
+
+\textbf{Respeecher}（基辅，2018 年成立）以 AI 语音克隆技术闻名，
+使用深度学习实现一个人用另一个人的声音说话。
+曾为好莱坞影片（包括《星球大战》系列）提供角色配音还原，
+2025 年 8 月完成种子轮融资，员工 39 人（+24.4\% YoY），年收入 \$770 万。
+2026 年 1 月，MacPaw（乌克兰 macOS 软件公司）宣布与 Respeecher 战略合作，
+将语音能力集成到 AI 助手产品中。
+Respeecher 代表了乌克兰 AI 创业的"精品路线"：
+规模不大，但在声音合成这个垂直领域达到了好莱坞级别的质量标准。
+
+此外，波兰、罗马尼亚、捷克等中东欧国家也在 AI 创业领域快速崛起——
+\textbf{Ovesio}（布加勒斯特）入选 NVIDIA Inception 计划，
+聚焦 AI 驱动的多语言电商内容生成；
+\textbf{Neural Grader}（布加勒斯特）用 AI 视觉技术自动化木材分级，
+员工一年内从 4 人增至 14 人，覆盖波兰和比利时市场——
+这类"传统产业+AI"的创业路径正成为东欧的特色。
+
+% ==================================================================
+% Chapter-level synthesis
+% ==================================================================
+
+\section*{本章小结}
+\addcontentsline{toc}{section}{本章小结}
+
+纵观全球十二个区域的 AI 创业生态（七大核心区域加上拉美、非洲、澳大利亚、北欧与东欧），
+几个跨区域的模式浮现出来：
+
+\textbf{第一，``主权 AI''成为全球性主题。}
+从法国的 Mistral 到韩国的 HyperCLOVA X，
+从沙特的 HUMAIN 到新加坡的 SEA-LION——
+几乎每个区域都在推动
+某种形式的``AI 技术主权''或``数据主权''。
+这不仅仅是政治口号，
+而是反映了一个深层现实：
+\textbf{AI 正在成为与能源、国防同等重要的战略基础设施}，
+任何国家都不愿意在这个维度上完全依赖他国。
+
+\textbf{第二，人才决定上限，资本决定下限。}
+中东有资本但缺人才，以色列有人才但市场有限，
+印度有人才但面临外溢，欧洲有人才和市场但缺资本。
+每个生态系统的``瓶颈资源''不同，
+决定了其 AI 创业的独特路径和上限。
+
+\textbf{第三，被收购不是失败。}
+以色列的 Run:ai、Deci AI，
+加拿大的 Element AI——
+被大公司收购在全球 AI 创业中
+不是例外而是常态。
+关键问题不是``独立还是被收购''，
+而是\textbf{``技术价值是否被充分定价''}。
+Run:ai 的 \$7 亿收购验证了 GPU 编排的价值，
+而 Element AI 的 \$2.3 亿收购则是价值毁灭的案例。
+
+\textbf{第四，``不做美国公司''本身可以是竞争优势。}
+Cohere（加拿大）、Mistral（法国）、NAVER（韩国）
+都在利用其``非美国''身份
+作为在受监管行业和地缘政治敏感市场中的信任优势。
+在 AI 地缘政治化的时代，
+\textbf{公司的国籍和数据驻留地
+正在成为与模型性能同等重要的竞争维度}。
+
+\textbf{第五，``嵌入式 AI'' vs.\ ``独立 AI''的路线分化。}
+东南亚的 Grab/GoTo 代表了``嵌入式 AI''路线——
+AI 是平台能力的一部分，而非独立产品。
+以色列和欧洲则更多产生``独立 AI''公司——
+专注于特定技术（芯片、模型、工具）的垂直创业。
+两种路线没有优劣之分，
+但它们代表了不同生态系统中
+AI 创业的\textbf{不同``原生态位''}。
+在超级应用主导的市场（东南亚、中国），
+独立 AI 创业公司的空间受限；
+在企业软件主导的市场（北美、欧洲），
+独立 AI 公司更容易找到独立的商业空间。
+
+\textbf{第六，全球 AI 投资的``热钱效应''。}
+2025 年全球 AI 创业投资接近 \$2,000 亿，
+超过全球 VC 总投资的 50\%——
+这是历史上第一次一个单一技术方向
+占据了 VC 投资的绝对多数。
+这种资本过度集中带来了泡沫风险：
+不是所有获得巨额融资的 AI 公司
+都能产生与投资相匹配的商业回报。
+Stability AI 的困境（\$1B+ 估值 → 财务危机）
+和 Element AI 的失败（\$700M 估值 → \$230M 被收购）
+是这种风险的真实写照。
+\textbf{区分``被资本催熟的 AI 公司''
+和``有真实商业基础的 AI 公司''
+是未来几年全球 AI 投资者面临的核心挑战。}
+
+\begin{warnbox}[全球 AI 生态的``不可能三角'']
+全球各区域的 AI 创业生态
+似乎都面临一个``不可能三角''：
+\textbf{前沿技术能力}、\textbf{主权自主}和\textbf{规模市场}
+三者很难同时满足。
+\begin{itemize}[noitemsep]
+  \item 以色列有前沿技术但缺规模市场
+  \item 印度有规模市场但缺前沿技术
+  \item 中东试图通过资本同时购买前沿技术和规模市场，
+        但缺乏有机的创新能力
+  \item 欧洲在主权自主上走得最远，
+        但前沿技术能力和统一市场仍是短板
+  \item 只有美国和中国接近同时拥有三者——
+        这也是为什么全球 AI 竞争的核心仍然是中美两极
+\end{itemize}
+理解这个``不可能三角''
+有助于我们更客观地评估每个区域的 AI 战略：
+不是追求全面超越美中，
+而是在某个维度上建立不可替代的优势。
+\end{warnbox}
+
+\begin{table}[htbp]
+\centering
+\caption{全球 AI 创业生态十二大区域对比总览}
+\label{tab:global-ai-comparison}
+\small
+\begin{tabularx}{\textwidth}{l l l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{区域} & \textbf{核心优势} & \textbf{核心短板} & \textbf{旗舰公司} & \textbf{战略定位} \\
+\midrule
+以色列 & 人才密度 + 军事溢出
+       & 本土市场有限
+       & AI21, Hailo
+       & 技术模块供应商 \\
+欧洲   & 监管框架 + 产业资本
+       & 统一市场不足
+       & Mistral, Helsing
+       & 主权 AI 冠军 \\
+加拿大 & 学术管线 + 信任优势
+       & 市场规模受限
+       & Cohere, Ada
+       & 企业 AI 精品 \\
+印度   & 规模市场 + 人才池
+       & 算力资源不足
+       & Krutrim, Sarvam
+       & 普惠 AI \\
+东南亚 & 移动数据 + 语言多样性
+       & 独立创业少
+       & Grab AI, SEA-LION
+       & 嵌入式 AI \\
+日韩   & 产业生态 + 半导体
+       & 创业文化弱
+       & NAVER, Upstage
+       & 工业+主权 AI \\
+中东   & 主权资本充裕
+       & 人才极度稀缺
+       & HUMAIN, TII/Falcon
+       & AI 基建枢纽 \\
+拉美   & 金融科技基础 + 人口规模
+       & AI 基础研究薄弱
+       & Truora, dLocal
+       & 金融/合规 AI \\
+非洲   & 低资源环境创新
+       & 算力与资本稀缺
+       & InstaDeep, Lelapa AI
+       & 普惠 AI 与语言多样性 \\
+澳大利亚 & 领域知识 + 高信任度
+       & 本土市场有限
+       & Canva AI, Harrison.ai
+       & 应用驱动型 AI \\
+北欧   & 高信任 + 合规优势
+       & 规模市场不足
+       & Silo AI, Corti
+       & 垂直精品 AI \\
+东欧   & 工程人才密度高
+       & 地缘政治风险
+       & Grammarly, Respeecher
+       & 技术外包 $\to$ 产品化 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+在接下来的章节中，
+我们将从地理维度转向资本维度——
+分析全球 AI 创业的融资模式、估值逻辑和退出路径
+（第十三章），
+然后提炼跨区域的创业模式和战略范式
+（第十四章），
+最后展望 AI 创业的未来走向
+（第十五章）。

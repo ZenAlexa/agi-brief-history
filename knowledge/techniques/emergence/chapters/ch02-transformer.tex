@@ -438,7 +438,7 @@ $h$ 个头加起来仍然是 $d \times d$。
 
 % Head formula (side annotation)
 \node[lab, right=6mm of hh, text width=36mm, align=left] {%
-  $\displaystyle\text{head}_i = \text{softmax}\!\Bigl(\frac{Q_i K_i^\top}{\sqrt{d_k}}\Bigr)\! V_i$\\[4pt]
+  $\textstyle\text{head}_i = \text{softmax}\!\bigl(\frac{Q_i K_i^\top}{\sqrt{d_k}}\bigr)\! V_i$\\[4pt]
   $d_k = d/h$};
 
 % Split -> Heads (3 clean vertical arrows)
@@ -1537,7 +1537,7 @@ DeepSeek-V2 引入了\textbf{多头潜在注意力}
     minimum height=11mm, font=\scriptsize, inner sep=3pt, line width=0.6pt},
   title/.style={font=\small\bfseries, text=black!80},
   sub/.style={font=\tiny, text=figGray},
-  conn/.style={-{Stealth[length=1.5pt,width=1.5pt]}, line width=0.5pt, figGray!60},
+  conn/.style={-{Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt, figGray!60},
   progression/.style={-{Stealth[length=2.5pt,width=2.5pt]}, line width=0.6pt,
     figGray!40, dashed},
 ]

@@ -141,7 +141,7 @@ Qwen3-Next 将这一逻辑推到了极端：
 \node[expert, above=14mm of topk, xshift=-24mm] (e1) {Expert 1};
 \node[expert, above=14mm of topk] (e2) {Expert $i$};
 \node[expert, above=14mm of topk, xshift=24mm] (eN) {Expert $N$};
-\node[font=\normalsize, text=figGray] at ($(e2.east)!0.5!(eN.west)$) {$\cdots$};
+\node[font=\small, text=figGray] at ($(e2.east)!0.5!(eN.west)$) {$\cdots$};
 
 % Shared expert (same level as experts, further right)
 \node[shared, above=14mm of topk, xshift=54mm] (shared) {Shared\\Expert};

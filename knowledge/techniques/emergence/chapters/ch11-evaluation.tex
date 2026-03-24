@@ -326,6 +326,7 @@ Gemini 3.1 Pro、Qwen 3.5。
 %% --- TikZ: Benchmark Landscape Taxonomy ---
 \begin{figure}[htbp]
 \centering
+\colorlet{figSafe}{figRed!70}% safety category tint — avoids xcolor parse issue in parameterized styles
 \begin{tikzpicture}[
   >={Stealth[length=2.5pt,width=2.5pt]},
   every node/.style={font=\small},
@@ -348,7 +349,7 @@ Gemini 3.1 Pro、Qwen 3.5。
 \node[cat=figRed]    (know)   at (-5.6, -1.6) {知识};
 \node[cat=figOrange] (reason) at (-2.8, -1.6) {推理};
 \node[cat=figGreen]  (code)   at (0, -1.6)    {代码};
-\node[cat=figGreen]  (safe)   at (2.8, -1.6)  {安全};
+\node[cat=figSafe]   (safe)   at (2.8, -1.6)  {安全};
 \node[cat=figBlue]   (agent)  at (5.6, -1.6)  {Agent};
 
 % --- Leaf benchmarks as pills ---
@@ -370,11 +371,11 @@ Gemini 3.1 Pro、Qwen 3.5。
 \node[pill=figGreen] (swe)   at (0.8, -3.0)  {SWE-bench};
 \node[pill=figGreen] (lcb)   at (0.8, -3.7)  {LiveCodeBench};
 
-% Safety (evolving - figGreen)
-\node[pill=figGreen] (tqa)  at (2.0, -3.0) {TruthfulQA};
-\node[pill=figGreen] (bbq)  at (2.0, -3.7) {BBQ};
-\node[pill=figGreen] (harm) at (3.6, -3.0) {HarmBench};
-\node[pill=figGreen] (advb) at (3.6, -3.7) {AdvBench};
+% Safety (evolving - figRed!70)
+\node[pill=figSafe] (tqa)  at (2.0, -3.0) {TruthfulQA};
+\node[pill=figSafe] (bbq)  at (2.0, -3.7) {BBQ};
+\node[pill=figSafe] (harm) at (3.6, -3.0) {HarmBench};
+\node[pill=figSafe] (advb) at (3.6, -3.7) {AdvBench};
 
 % Agent (emerging - figBlue)
 \node[pill=figBlue] (weba) at (4.8, -3.0) {WebArena};
@@ -403,7 +404,7 @@ Gemini 3.1 Pro、Qwen 3.5。
   at (reason.south) [yshift=-0.5mm] {接近饱和};
 \node[font=\tiny, figGreen, anchor=north, fill=white, inner sep=1pt, rounded corners=0.5pt]
   at (code.south)   [yshift=-0.5mm] {区分度高};
-\node[font=\tiny, figGreen, anchor=north, fill=white, inner sep=1pt, rounded corners=0.5pt]
+\node[font=\tiny, figSafe, anchor=north, fill=white, inner sep=1pt, rounded corners=0.5pt]
   at (safe.south)   [yshift=-0.5mm] {持续演进};
 \node[font=\tiny, figBlue, anchor=north, fill=white, inner sep=1pt, rounded corners=0.5pt]
   at (agent.south)  [yshift=-0.5mm] {新兴};
@@ -423,16 +424,20 @@ Gemini 3.1 Pro、Qwen 3.5。
     \draw[figGreen!40] (3.0, 0)   rectangle (3.25, 0.2);
     \node[right=2pt] at (3.25, 0.1) {区分度高};
     %
-    \fill[figBlue!8]   (4.8, 0)   rectangle (5.05, 0.2);
-    \draw[figBlue!40]  (4.8, 0)   rectangle (5.05, 0.2);
-    \node[right=2pt] at (5.05, 0.1) {新兴};
+    \fill[figRed!70!white!8]  (4.6, 0)   rectangle (4.85, 0.2);
+    \draw[figRed!70!white!40](4.6, 0)   rectangle (4.85, 0.2);
+    \node[right=2pt] at (4.85, 0.1) {持续演进};
+    %
+    \fill[figBlue!8]   (6.4, 0)   rectangle (6.65, 0.2);
+    \draw[figBlue!40]  (6.4, 0)   rectangle (6.65, 0.2);
+    \node[right=2pt] at (6.65, 0.1) {新兴};
   \end{tikzpicture}%
 };
 
 \end{tikzpicture}
 \caption{LLM 基准测试全景分类。
 颜色标注反映了各领域基准测试在 2026 年初的饱和状态：
-红色表示已饱和、橙色接近饱和、绿色仍有区分度、蓝色为新兴领域。}
+红色表示已饱和、橙色接近饱和、绿色仍有区分度、浅红色为持续演进、蓝色为新兴领域。}
 \label{fig:benchmark-taxonomy}
 \end{figure}
 
@@ -1667,7 +1672,7 @@ Chatbot Arena 排行榜和独立评测平台。
 数据截止到 2026 年 2 月。
 注意不同来源的评测条件可能存在差异。}。
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering\small
 \renewcommand{\arraystretch}{1.3}
 \caption{2025--2026 年前沿模型基准测试对比}

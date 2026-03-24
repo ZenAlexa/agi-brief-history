@@ -1,0 +1,532 @@
+% =============================================================
+% §2.1  GPU Cloud and Compute-as-a-Service
+% Book: The AI Startup Landscape
+% =============================================================
+
+\section{GPU 云与算力即服务}
+\label{sec:infra-gpu-cloud}
+
+想象这样一个场景：2022年末，一座位于新泽西州的加密货币矿场正在为
+以太坊转向权益证明（Proof-of-Stake）而头疼——数千块高端GPU突然失去
+了工作。矿场老板面临两个选择：以废铁价甩卖硬件，或者赌一把全新的市场。
+他们选择了后者。不到三年，这座矿场变成了市值超过400亿美元的上市公司，
+客户名单上写满了微软、Meta和OpenAI的名字。
+
+这就是CoreWeave的故事，也是整个GPU云（Neocloud）赛道的缩影。当
+ChatGPT点燃了全球对大模型的狂热，算力突然成为比石油更稀缺的资源。
+传统云巨头——AWS、Azure、GCP——虽然拥有海量基础设施，却在GPU供应
+上面临数月的排队周期。一群嗅觉灵敏的创业者迅速填补了这个缺口，用
+各种方式把GPU算力送到饥渴的AI团队手中：有人建造巨型数据中心，有人
+做P2P市场，有人用天然气废气发电，有人把整个流程抽象成一行Python代码。
+
+到2026年，GPUaaS（GPU即服务）市场规模已达73.6亿美元，预计2031年
+将增长至264亿美元，复合年增长率29.1\%（Mordor Intelligence, 2026）。
+全球已涌现100多家Neocloud创业公司，共同构成了AI基础设施层中最资本密集、
+增长最快、竞争最激烈的赛道。
+
+\begin{keybox}[GPU 云赛道：核心融资数据一览]
+\small
+\begin{tabularx}{\textwidth}{l X r r}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{最新融资} & \textbf{总融资/估值} & \textbf{2025营收} \\
+\midrule
+CoreWeave      & IPO 2025/3 (CRWV)          & 市值\$43.5B          & \$5.13B \\
+Lambda Labs    & Series E \$1.5B (2025/11)  & 总融\$2.3B           & $\sim$\$505M \\
+Crusoe Energy  & Series E \$1.375B (2025/10)& 估值\$10B+           & 未披露 \\
+Nebius         & NASDAQ: NBIS               & 市值$\sim$\$23B      & \$529.8M \\
+Together AI    & Series B \$305M (2025)     & \$3.3B$\to$\$7.5B   & ARR$\sim$\$1B \\
+Modal          & Series B \$87M (2025/9)    & \$1.1B$\to$\$2.5B   & 未披露 \\
+RunPod         & 仅融\$22M                   & ARR \$120M           & \$120M+ \\
+Vast.ai        & 仅融\$4M                    & ---                  & 未披露 \\
+SF Compute     & Series A \$40M (2025/12)   & 估值\$300M           & 未披露 \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent 数据来源：Crunchbase, S-1 filing, 公司公告, TechCrunch,
+The Information. 截至2026年3月。
+\end{keybox}
+
+% ===========================================================
+\subsection{CoreWeave：从矿场到华尔街}
+\label{subsec:coreweave}
+% ===========================================================
+
+CoreWeave的创始故事堪称AI时代最传奇的转型叙事。2017年，三位华尔街
+交易员——Michael Intrator、Brian Venturo和Braden Perley——在新泽西
+州创立了一家名为Atlantic Crypto的以太坊挖矿公司。彼时加密市场如火
+如荼，GPU是印钞机的核心零件。
+
+转折发生在2022年9月。以太坊完成"合并"（The Merge），从工作量证明
+切换到权益证明，GPU矿机一夜之间变成了摆设。但这三位创始人看到了一
+个更大的机遇：同样的NVIDIA GPU，在加密矿场中做哈希运算，换一套软件
+栈就能做矩阵乘法——而后者正是大模型训练的核心操作。
+
+\begin{whybox}[为什么加密矿场能转型AI？]
+从技术角度看，加密挖矿和AI训练共享三个关键资源：\textbf{大规模GPU
+集群}、\textbf{低成本电力}、以及\textbf{高密度散热能力}。矿场运营者
+在过去五年中积累了以下AI数据中心同样需要的核心能力：
+\begin{itemize}
+  \item \textbf{GPU采购渠道}：与NVIDIA有成熟的大批量采购关系；
+  \item \textbf{电力谈判}：擅长获取低价电力合约
+    （通常\$0.03--0.05/kWh）；
+  \item \textbf{物理基础设施}：已建成高功率密度的机房和冷却系统；
+  \item \textbf{运维经验}：7\texttimes 24小时管理数千块GPU的经验
+    直接可迁移。
+\end{itemize}
+不同之处在于，AI负载对\textbf{GPU间互联}（InfiniBand/NVLink）和
+\textbf{网络拓扑}的要求远高于挖矿。CoreWeave的关键决策是大幅投资
+网络基础设施，将松散的GPU矿机群升级为真正的HPC集群。
+\end{whybox}
+
+这一战略赌注收获了指数级回报。2023年，CoreWeave从Magnetar Capital
+拿到了23亿美元的债务融资，随后又以NVIDIA提供的GPU作为抵押物获得更多
+信贷额度。到2024年底，公司已签下微软作为锚定客户，合约金额据报道
+超过百亿美元。
+
+2025年3月28日，CoreWeave在纳斯达克上市（CRWV），IPO定价\$40，首日
+微涨后一度跌破发行价。但随后股价一路攀升，在2025年6月触及\$187的
+历史高点，市值一度逼近千亿美元。截至2026年3月，股价在\$80附近波动，
+市值约435亿美元（CNBC, 2026年3月）——虽然从峰值回落了一半多，但这
+依然是AI基础设施领域最大的纯GPU云上市公司。
+
+CoreWeave 2025财年数据令人瞩目：营收51.3亿美元，同比增长730\%
+（S-1 filing）。更惊人的是其\textbf{积压订单}（backlog）高达668亿
+美元，意味着未来数年的收入已基本锁定。公司还以17亿美元收购了AI开发者
+工具公司Weights \& Biases（W\&B），从纯基础设施向平台化演进——这一
+动作表明，单纯卖算力的利润率终究会被压缩，CoreWeave需要沿价值链
+向上攀升。
+
+NVIDIA将CoreWeave列为"Exemplar Cloud Partner"，在GPU分配上给予
+优先地位。这种深度绑定是一把双刃剑：它让CoreWeave在供给端获得了巨大
+优势，但也意味着公司的命运高度依赖于与单一供应商的关系（参见本节末
+的风险分析框）。对推理优化的技术细节感兴趣的读者，可参见
+\textit{Emergence}第九章关于大规模推理系统的讨论。
+
+% ===========================================================
+\subsection{Lambda Labs：学术基因的超级算力云}
+\label{subsec:lambda}
+% ===========================================================
+
+如果说CoreWeave是"矿工转型"，Lambda Labs则代表了另一条路径——从
+深度学习工具起家，逐步扩展到全栈云服务。
+
+Lambda由Stephen Balaban和Michael Balaban兄弟于2012年在硅谷创立，
+最初是一家面向机器学习研究者的GPU工作站供应商。早年的客户以大学实验室
+和研究机构为主，Lambda的品牌在学术圈建立了深厚的信任。随着大模型
+时代来临，Lambda敏锐地将业务重心转向GPU云——不仅卖硬件，更提供按需
+使用的云端A100/H100集群。
+
+2025年11月，Lambda完成了15亿美元的E轮融资，由TWG Global和USIT领投，
+累计融资总额达到23亿美元。公司将自己定位为"超级智能云"
+（Superintelligence Cloud），目标是构建专为最大规模AI训练任务优化
+的基础设施。2025年营收约5.05亿美元，虽然体量不及CoreWeave，但增速
+同样惊人。
+
+Lambda的差异化在于其\textbf{开发者体验}：公司保留了早期做工具的基因，
+提供开箱即用的PyTorch/JAX环境、一键启动的Jupyter Hub、以及与主流
+MLOps工具的深度集成。对于一个刚拿到NeurIPS论文审稿意见、急需跑大规模
+实验的研究团队来说，Lambda的上手成本明显低于在AWS上从零配置。
+
+% ===========================================================
+\subsection{Crusoe Energy：用废气点燃AI}
+\label{subsec:crusoe}
+% ===========================================================
+
+Crusoe Energy Systems的故事从一个环保主义者的洞察开始。2018年，
+Chase Lochmiller和Cully Cavness在科罗拉多州注意到一个矛盾：油田
+每天白白烧掉数百万立方英尺的伴生天然气（flare gas），而数据中心则在
+疯狂寻找低成本电力。他们的解决方案简单而优雅——把移动数据中心搬到
+油田旁边，直接用原本要烧掉的废气发电驱动GPU。
+
+这一模式在ESG投资者中引起了强烈共鸣：减少甲烷排放的同时提供AI算力，
+一举两得。2025年10月，Crusoe完成了13.75亿美元的E轮融资，估值超过
+100亿美元。更引人注目的是，Crusoe是OpenAI/SoftBank发起的"Stargate"
+超级计算项目的联盟成员，在德克萨斯州阿比林（Abilene）规划了一座
+1.2GW的超大规模数据中心园区——一度被视为美国最大的AI基础设施项目
+之一。
+
+然而，2026年3月传来了变数：据报道，Oracle和OpenAI缩减了Abilene旗舰
+Stargate站点的扩张计划，Meta正在NVIDIA的撮合下洽谈接手Crusoe的
+部分产能（DCD, 2026年3月）。这一转折凸显了Neocloud赛道的一个核心
+张力：\textbf{客户集中度风险}。当你的商业模式依赖于少数几个超大客户
+的长期合约时，一个客户的战略调整就可能颠覆整个业务规划。
+
+尽管如此，Crusoe在2025年DCD全球大奖中获得了"北美年度数据中心项目"
+奖项，其废气发电模式作为差异化定位仍具独特价值。
+
+% ===========================================================
+\subsection{Nebius：从Yandex废墟中重生的AI云}
+\label{subsec:nebius}
+% ===========================================================
+
+Nebius的故事是地缘政治重塑科技产业的活教材。2024年，俄罗斯搜索巨头
+Yandex在制裁压力下被迫拆分，其海外AI基础设施业务以"Nebius"的名义
+在阿姆斯特丹独立运营，由Yandex联合创始人Arkady Volozh领导。公司
+继承了Yandex在大规模分布式系统方面的深厚技术积累，以及在芬兰和
+欧洲各地已建成的数据中心。
+
+Nebius以NASDAQ: NBIS在纳斯达克上市交易，2026年3月市值约230亿美元。
+2025年营收5.298亿美元，同比暴增479\%。但真正让市场为之兴奋的是
+2026年3月16日宣布的重磅消息：Nebius与Meta签署了一份五年期AI基础设施
+供应协议，合同总额高达270亿美元（Reuters, 2026年3月16日）。消息
+公布当天，NBIS股价跳涨近15\%。
+
+NVIDIA也以20亿美元投资入股Nebius，进一步巩固了双方的战略绑定。
+Nebius的优势在于其\textbf{欧洲地理位置}——在数据主权日益敏感的监管
+环境下，一个总部位于阿姆斯特丹、数据中心分布在芬兰和欧洲各国的
+AI云提供商，对需要GDPR合规的欧洲客户具有天然吸引力。从Yandex带来的
+工程团队在分布式训练和推理优化方面有着多年积累，这也使得Nebius在技术
+深度上区别于那些单纯"买卡卖时间"的竞争对手。
+
+% ===========================================================
+\subsection{Together AI：学术殿堂走出的推理引擎}
+\label{subsec:together}
+% ===========================================================
+
+Together AI的创始团队阵容堪称AI基础设施领域的"全明星"：CEO Vipul
+Ved Prakash是连续创业者，联合创始人包括斯坦福教授Christopher
+R\'{e}（数据基础设施先驱）和FlashAttention的发明者Tri Dao。这种
+学术-工程的深度融合让Together AI从一开始就在推理效率上拥有技术优势。
+
+公司成立于2022年，在2025年完成了3.05亿美元B轮融资，估值33亿美元。
+到2026年3月，Together AI的年化营收已突破10亿美元（较2025年中增长
+3倍以上），正在洽谈以75亿美元估值融资10亿美元（The Information,
+2026年3月）。平台已服务超过45万开发者。
+
+Together AI的定位介于纯GPU云和模型API之间——它不仅提供裸GPU，更提供
+\textbf{高度优化的推理和微调服务}。凭借FlashAttention等底层优化技术，
+Together AI声称其推理性能在同等硬件上可比竞争对手高出数倍。这种
+"基础设施+优化层"的叠加，使其在开源模型部署领域建立了强大的护城河。
+一个值得注意的信号是：当越来越多的企业选择部署开源模型（如Llama、
+Mistral、DeepSeek）而非调用闭源API时，Together AI这样的"开源友好型"
+推理平台将直接受益于这一结构性趋势。
+
+% ===========================================================
+\subsection{RunPod：资本效率的极致样本}
+\label{subsec:runpod}
+% ===========================================================
+
+在一个充斥着数十亿美元融资的赛道中，RunPod是一个令人惊叹的异类。
+这家2022年成立于新泽西的公司，\textbf{仅融资2200万美元}，却在2026年
+1月宣布年化经常性收入（ARR）突破1.2亿美元，服务超过50万名开发者
+（RunPod, 2026年1月）。
+
+RunPod的起源颇具草根色彩——创始团队最初在Reddit的机器学习社区中建立
+了用户基础。产品定位直指\textbf{个人开发者和小型团队}：无需预约、
+即时可用的GPU实例，价格通常比AWS便宜50--90\%，界面极其简洁。这种
+"开发者优先"的策略让RunPod在社区口碑中获得了远超其规模的影响力。
+
+RunPod在Ramp（企业支出管理平台）2026年3月的趋势榜单中被评为
+AI代理基础设施领域的顶级增长厂商——这意味着不仅个人开发者，越来越多
+的企业客户也在采用其服务。1.2亿美元ARR除以2200万美元总融资，意味着
+每融资1美元产生5.45美元年收入——这在GPU云赛道中是无与伦比的资本效率。
+
+RunPod的故事提出了一个尖锐的问题：在Neocloud赛道中，融资规模到底
+是优势还是负担？CoreWeave融了数十亿美元，但也背上了数十亿美元的
+债务和折旧压力；RunPod轻装上阵，每一块钱都用在了刀刃上。当然，
+RunPod的轻模式也意味着它无法承接超大规模训练任务——\textbf{不同的
+资本结构决定了不同的客户群和天花板}。
+
+% ===========================================================
+\subsection{Vast.ai：GPU市场的"自由贸易区"}
+\label{subsec:vastai}
+% ===========================================================
+
+如果说RunPod是资本效率的冠军，Vast.ai则在更极端的方向上走得更远。
+这家2016年成立于洛杉矶的公司\textbf{仅融资400万美元}，却建立了一个
+真正的GPU P2P市场：任何拥有闲置GPU的数据中心或个人都可以将算力挂到
+平台上出售，价格由\textbf{市场竞价机制}动态决定。
+
+这种"GPU版Airbnb"的模式意味着Vast.ai几乎不需要自己购买和运维硬件
+——它只提供市场基础设施和信任机制。2026年3月，Vast.ai被Ramp和Brex
+两大企业支出平台同时评为增长最快的厂商之一（Vast.ai, 2026年3月），
+表明其市场模式正在从个人开发者向企业客户渗透。
+
+Vast.ai的价格透明度是其最大卖点：用户可以实时看到不同型号GPU在不同
+地区的现货价格，根据成本/性能比自主选择。对于不需要保证SLA的研究和
+实验任务，这种弹性模式极具吸引力。值得注意的是，Vast.ai与VAST Data
+（AI存储公司，2026年估值\$30B）是完全不同的公司，尽管名字容易混淆。
+
+% ===========================================================
+\subsection{Modal：一行代码的Serverless GPU}
+\label{subsec:modal}
+% ===========================================================
+
+Modal Labs代表了GPU云赛道中最"开发者友好"的一极。创始人Erik
+Bernhardsson曾在Spotify担任机器学习负责人，亲历了在传统云上部署
+ML模型的痛苦——配置实例、管理容器、处理自动扩缩容，工程开销常常超过
+模型本身。2021年，他在纽约创立Modal，目标很简单：\textbf{让GPU计算
+像调用函数一样简单}。
+
+Modal的产品体验确实做到了这一点。开发者只需在Python函数上加一个装饰器
+（decorator），就能将计算任务自动调度到GPU集群上执行，按实际使用时间
+计费，空闲时不产生任何费用。这种Serverless GPU的抽象极大地降低了
+使用门槛——它把云GPU从一个"基础设施问题"变成了一个"函数调用问题"。
+
+2025年9月，Modal完成了8700万美元B轮融资，估值11亿美元，正式跻身
+独角兽行列。2026年2月，TechCrunch报道Modal正在洽谈以25亿美元估值
+融资新一轮（TechCrunch, 2026年2月）。估值在不到半年内翻倍，反映了
+市场对Serverless GPU这一范式的强烈看好。
+
+Modal的战略意义在于它预示了GPU云的\textbf{下一阶段}：当底层算力逐渐
+商品化，价值将向更高层的抽象和开发者体验转移。正如AWS S3让开发者不再
+关心磁盘管理，Modal让开发者不再关心GPU编排。对于正在快速增长的
+AI Agent工作负载——需要动态、突发性的GPU推理——Serverless模式有着
+天然的架构优势。
+
+% ===========================================================
+\subsection{其他重要玩家}
+\label{subsec:gpu-cloud-others}
+% ===========================================================
+
+\subsubsection{Voltage Park $\to$ Lightning AI}
+Voltage Park由Stellar/XRP联合创始人Jed McCaleb的家族基金出资5亿美元
+于2023年创立，以"使命驱动"为理念，与NSF等公共机构合作提供低成本学术
+算力。2026年1月，Voltage Park与AI开发平台Lightning AI（由PyTorch
+Lightning创始人William Falcon领导）完成合并，创建了"第一个为AI而生
+的云"。合并后的公司宣称从2024年的1800万美元营收增长至超过5000万美元
+（BusinessWire, 2026年1月）。这一组合将GPU硬件资产与开发者工具整合
+在一起，试图提供从实验到生产的完整闭环——硬件公司和软件公司各取所需，
+是Neocloud整合浪潮的早期范例。
+
+\subsubsection{FluidStack}
+FluidStack成立于2017年伦敦，走的是分布式GPU聚合的路线。公司的关键
+突破在于2025年6月与Macquarie集团签署的100亿美元债务融资协议，用于在
+欧洲部署GPU基础设施。更具战略意义的是，FluidStack成为\textbf{Google
+TPU的首个第三方分销伙伴}——在NVIDIA主导的Neocloud生态中，这是一个
+罕见的差异化选择。2026年2月，Google据报道正在考虑向FluidStack投资
+1亿美元（SiliconANGLE, 2026年2月）。此外，FluidStack参与了法国
+政府100亿欧元AI超级计算项目的竞标，试图在欧洲主权AI基础设施领域
+占据一席之地。然而，2026年3月也传出FluidStack面临资本压力的消息
+（AInvest, 2026年3月），说明在重资产赛道中，即便有百亿美元级的
+债务承诺，现金流管理依然是生死攸关的挑战。
+
+\subsubsection{SF Compute}
+SF Compute成立于2023年旧金山，定位是\textbf{GPU算力交易所}——一个
+标准化的商品市场，买家和卖家可以像交易大宗商品一样交易GPU计算时间。
+2025年12月，公司完成4000万美元A轮融资，估值3亿美元（DCD, 2025年
+12月）。其模式与Vast.ai的P2P市场有相似之处，但更强调机构级的合约
+标准化和价格发现机制，瞄准的是大型企业和GPU持有者之间的批发交易。
+值得关注的还有Compute Exchange，这是一个2026年出现的新玩家，试图
+建立更接近金融交易所的GPU期货/现货市场。
+
+\subsubsection{新进入者：Andromeda AI 与 Hosted.ai}
+2026年3月，GPU云赛道仍在吸引新的融资。Andromeda AI以15亿美元估值
+完成了由Paradigm领投的6000万美元融资，聚焦按需弹性GPU租赁
+（SiliconANGLE, 2026年3月）。同月，Hosted.ai完成了1900万美元种子轮，
+其软件平台旨在帮助现有数据中心运营商更高效地池化和调度GPU资源——
+不是建新的数据中心，而是让已有的数据中心跑得更好。这些新进入者表明，
+尽管头部玩家已经形成了显著的规模优势，Neocloud赛道的\textbf{垂直
+细分机会}仍然在不断涌现。
+
+% ===========================================================
+% Comparison table
+% ===========================================================
+
+\begin{table}[htbp]
+\centering
+\caption{GPU 云创业公司全景对比（截至2026年3月）}
+\label{tab:gpu-cloud-comparison}
+\small
+\begin{tabularx}{\textwidth}{l c r r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{成立} & \textbf{总融资/市值}
+  & \textbf{2025营收} & \textbf{独特角度} \\
+\midrule
+CoreWeave   & 2017 & 市值\$43.5B
+  & \$5.13B & 加密转型; NVIDIA Exemplar; 收购W\&B \\
+Lambda Labs & 2012 & 总融\$2.3B
+  & $\sim$\$505M & 学术根基; ``超级智能云'' \\
+Crusoe      & 2018 & 估值\$10B+
+  & 未披露 & 废气发电; Stargate联盟 \\
+Nebius      & 2024 & 市值$\sim$\$23B
+  & \$529.8M & Yandex分拆; 欧洲GDPR; Meta \$27B \\
+Together AI & 2022 & \$3.3B$\to$\$7.5B
+  & ARR$\sim$\$1B & FlashAttention; 推理优化 \\
+Modal       & 2021 & \$1.1B$\to$\$2.5B
+  & 未披露 & Serverless GPU; 极致DX \\
+RunPod      & 2022 & 仅融\$22M
+  & ARR \$120M & 极致资本效率; 社区驱动 \\
+Vast.ai     & 2016 & 仅融\$4M
+  & 未披露 & P2P市场; 竞价定价 \\
+Lightning/VP& 2023 & 基金\$500M
+  & $\sim$\$50M & 使命驱动; 硬件+软件合并 \\
+FluidStack  & 2017 & 债务\$10B
+  & 未披露 & Google TPU分销; 欧洲布局 \\
+SF Compute  & 2023 & 估值\$300M
+  & 未披露 & 算力交易所; 机构化 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ===========================================================
+% Market structure analysis
+% ===========================================================
+
+\subsection{赛道结构与竞争逻辑}
+\label{subsec:gpu-cloud-landscape}
+
+纵观上述11家公司（及新进入者），GPU云赛道已形成清晰的三层结构：
+
+\textbf{第一层：资本密集型巨头}。CoreWeave和Nebius代表了"自建数据
+中心+长期合约"的重资产模式。这两家公司的共同特征是：融资规模以数十亿
+美元计，客户集中于少数超大型AI实验室，营收增速惊人但资本支出同样惊人。
+CoreWeave的668亿美元积压订单看似令人安心，但其中大部分来自少数几个
+客户，违约风险不可忽视。
+
+\textbf{第二层：差异化中型玩家}。Lambda、Crusoe、Together AI和
+FluidStack各自找到了独特的定位——学术基因、绿色能源、推理优化、
+欧洲市场。这一层的竞争关键在于：\textbf{你的差异化是否足够深，以至于
+客户不会在H100价格下降时简单地切换到更便宜的替代方案？}
+
+\textbf{第三层：轻资产创新者}。RunPod、Vast.ai、Modal和SF Compute
+则代表了另一种哲学——不拥有硬件（或少量拥有），而是在市场机制、
+开发者体验或金融抽象层面创新。这些公司的资本效率远高于前两层，但
+面临的问题是\textbf{规模天花板}和\textbf{企业客户的信任度}。
+
+\begin{corebox}[GPU 云的价值链分层]
+从底层到上层，GPU云赛道的价值链可以这样理解：
+\begin{enumerate}
+  \item \textbf{物理层}：数据中心、电力、冷却（Crusoe、Voltage Park）
+  \item \textbf{硬件层}：GPU/TPU采购与集群化
+    （CoreWeave、Lambda、Nebius）
+  \item \textbf{市场层}：算力的撮合与定价
+    （Vast.ai、SF Compute）
+  \item \textbf{编排层}：Serverless抽象与自动扩缩
+    （Modal、RunPod）
+  \item \textbf{优化层}：推理/训练性能优化
+    （Together AI、FluidStack）
+  \item \textbf{平台层}：MLOps工具与开发者体验
+    （W\&B/CoreWeave、Lightning AI）
+\end{enumerate}
+每家公司都在试图向相邻层扩展——CoreWeave收购W\&B是从硬件层向平台层
+扩展，Lightning AI合并Voltage Park是从编排层向物理层扩展。这种
+\textbf{垂直整合}的趋势将在未来两年加速。
+\end{corebox}
+
+\begin{warnbox}[风险警告：GPU 云赛道的三大结构性风险]
+\begin{enumerate}
+  \item \textbf{NVIDIA 依赖症}。几乎所有Neocloud的核心资产都是
+    NVIDIA GPU。NVIDIA通过Exemplar Cloud、DGX Cloud等项目对算力分配
+    拥有巨大影响力。当NVIDIA自己开始直接向终端客户销售云服务时，
+    Neocloud是合作伙伴还是竞争对手？FluidStack选择Google TPU是对
+    这一风险的有意对冲。
+  \item \textbf{资本消耗的无底洞}。一块H100的采购成本约
+    \$25,000--30,000，一个万卡集群的前期投资就超过3亿美元，还不算
+    电力、冷却和运维。这意味着GPU云公司需要持续进行大规模融资或
+    举债——当利率上升或AI投资情绪降温时，现金流压力将急剧放大。
+    FluidStack 2026年3月的资本压力即为早期警示信号。
+  \item \textbf{客户集中度}。CoreWeave的前五大客户贡献了绝大部分
+    营收；Nebius的270亿美元合同来自单一客户Meta。在超大规模客户
+    拥有极强议价能力的市场中，GPU云提供商本质上是在\textbf{用规模
+    换利润率}。
+\end{enumerate}
+\end{warnbox}
+
+这个赛道最令人着迷的张力在于：GPU算力正在经历\textbf{从稀缺资源到
+基础设施商品}的转变。2023年，一块H100的租赁价格可达每小时\$8--12；
+到2026年初，价格已降至\$2--4/小时。随着NVIDIA B系列GPU和AMD MI300X
+的大规模出货，供给端的瓶颈正在缓解。
+
+这对不同层级的玩家意味着截然不同的未来。对CoreWeave和Nebius来说，
+长期锁定合约提供了缓冲垫，但终究无法逃避\textbf{算力贬值}的趋势。
+对RunPod和Vast.ai这样的市场模式来说，价格下降反而可能扩大需求——当
+GPU足够便宜时，长尾开发者和中小企业将加速上云。对Modal这样的抽象层
+玩家来说，底层硬件的商品化是最大的利好——正如云存储的商品化让S3成为
+基础设施的一部分，GPU的商品化将让Serverless GPU成为默认的计算范式。
+
+未来两三年内，这个赛道几乎必然会经历一轮整合。Lightning AI与
+Voltage Park的合并已经拉开了序幕。那些无法在规模、差异化或资本效率上
+建立护城河的玩家，将面临被收购或淘汰的命运。而最终胜出的公司，很可能
+不是拥有最多GPU的那个，而是\textbf{最懂得如何让开发者忘记GPU存在}
+的那个。
+
+% ===========================================================
+\subsection{长尾玩家：小众与独立 GPU 云}
+\label{subsec:gpu-cloud-longtail}
+% ===========================================================
+
+在头部和中型 GPU 云之外，一批更小、更聚焦的玩家正在覆盖主流服务商忽略
+的缝隙市场。它们的共同特征是：融资规模不大，但在特定地理区域、特定用户
+群或特定技术路线上建立了独特的存在感。
+
+\subsubsection{JarvisLabs.ai}
+JarvisLabs（印度）是面向个人开发者和学生的超低成本 GPU 云，A100 实例
+低至 \$1.29/hr，H100 低至 \$2.99/hr，按分钟计费，90 秒即可启动。
+平台聚焦深度学习实验和 Stable Diffusion 工作负载，
+截至 2026 年初已服务超过 27,000 名 AI 开发者。
+JarvisLabs 以极致的简洁性和低进入门槛吸引了大量 fast.ai 学员和
+独立研究者——对于只需要几小时 GPU 时间跑一次实验的用户来说，
+它比 AWS 和 RunPod 都更轻便。
+
+\subsubsection{TensorDock}
+TensorDock（2019 年，美国）定位为``极致性价比 GPU 云''，
+H100 低至 \$2.25/hr，RTX 4090 低至 \$0.35/hr。
+2025 年被 Voltage Park 收购后纳入 Lightning AI 生态，
+但品牌和平台保持独立运营。TensorDock 的核心优势是
+\textbf{全球分布式 GPU 舰队}——覆盖多个 Tier 3/4 数据中心，
+并提供业界最广的 GPU 型号选择。无需预约、无最低消费、
+最低充值仅 \$5 的模式让它在独立开发者中极具吸引力。
+
+\subsubsection{Hyperbolic}
+Hyperbolic（2024 年，Berkeley）自称``开放访问 AI 云''，
+由 Databricks 联合创始人 Reynold Xin 担任顾问。
+商业模式结合了\textbf{推理 API + GPU 租赁 + 算力供给}三位一体：
+用户既可以调用推理 API，也可以租用裸 GPU，
+还可以将自己的闲置 GPU 接入平台赚取收益。
+这种三面市场的模式试图同时解决供给侧和需求侧的匹配问题，
+定价号称比主流云商低 80\% 以上。
+
+\subsubsection{Salad（SaladCloud）}
+Salad（2018 年，Salt Lake City）是 GPU 云赛道中最另类的存在：
+它将全球\textbf{数十万台游戏 PC 的闲置 GPU} 聚合为一个分布式计算网络。
+玩家在不打游戏时运行 Salad 客户端，将自己的 RTX 显卡算力出租给
+AI 推理任务，按贡献获得报酬。公司累计融资 \$27.5M（Series A），
+2025 年营收据报接近 \$200M 水平。
+这种``消费级 GPU 众包''模式在数据中心 GPU 供不应求的时期提供了
+一个非传统的补充方案，但可靠性和 SLA 保证是其天然劣势。
+
+\subsubsection{Prime Intellect}
+Prime Intellect（San Francisco）聚焦\textbf{去中心化 AI 训练}——
+将全球分散的小型 GPU 集群通过自研的分布式训练协议组织起来，
+使开源社区无需百万美元预算也能训练大模型。
+其技术栈针对跨数据中心、高延迟网络环境下的分布式训练做了深度优化，
+是 DiLoCo（Distributed Low-Communication）等新型分布式算法的
+重要实践者。Prime Intellect 代表了 GPU 云的另一种可能：
+\textbf{不是建数据中心，而是把已有的算力拼起来}。
+
+\subsubsection{Shadeform}
+Shadeform（2023 年，San Francisco，Y Combinator S23）是 GPU 云的
+``聚合搜索引擎''：通过统一 API 接入 20 多家 GPU 云供应商
+（包括 Lambda、Nebius、Crusoe 等），让用户一键比价并跨云部署实例。
+团队仅 5--7 人，融资约 \$500K，但已实现约 \$1M 营收。
+Shadeform 不拥有任何 GPU，其价值完全在于\textbf{抽象层}——
+类似机票比价网站 Kayak 之于航空公司。如果 GPU 云继续碎片化，
+这种聚合器模式将变得更有价值。
+
+\subsubsection{Genesis Cloud}
+Genesis Cloud（2018 年，Munich）是欧洲主权 AI 云的代表之一。
+累计融资仅 \$6.6M，但凭借北欧绿色数据中心和 NVIDIA 参考架构，
+成为欧盟 AI Champions Initiative 的成员，服务于
+对 GDPR 合规和数据主权有严格要求的欧洲企业客户。
+定价较传统云厂商低约 80\%，H100 集群已部署就绪。
+
+\subsubsection{E2E Networks}
+E2E Networks（印度，NSE 上市：E2ENET）是印度本土最大的 AI GPU 云，
+获得 IndiaAI Mission 下 ₹177 亿卢比政府合同，为印度首个主权基础
+AI 模型提供 GPU 算力。2026 年 1 月，E2E 采购了 1024 块 NVIDIA B200
+部署于 Chennai 数据中心。作为印度 AI 基础设施的国家队选手，
+E2E 代表了 GPU 云赛道的\textbf{地理多元化}趋势——
+当每个国家都在追求``AI 主权''时，本土 GPU 云提供商将获得
+政策扶持和数据合规方面的天然优势。
+
+\subsubsection{Oblivus Cloud}
+Oblivus（London）是面向欧洲市场的小众 GPU 云，
+提供 RTX 5090、H100 等多种型号，覆盖 9 个数据中心、
+超过 18,000 块 GPU。号称比主流云商便宜 80\%，
+无配额、无验证流程、按需部署。虽然团队极小
+（LinkedIn 显示仅数人），但其低门槛策略在预算有限的
+欧洲初创公司和独立研究者中找到了用户群。

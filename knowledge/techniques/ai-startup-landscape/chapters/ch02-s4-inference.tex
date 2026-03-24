@@ -1,0 +1,229 @@
+% =============================================================
+% §2.4  Inference Optimization and Serving
+% Book: The AI Startup Landscape
+% =============================================================
+
+\section{推理优化与服务}
+\label{sec:infra-inference}
+
+如果说训练是AI的研发实验室，那么推理就是AI的工厂车间。一个模型训练一次，却要被调用数十亿次。当ChatGPT在2023年创下用户增长纪录时，人们才意识到一个被长期忽视的事实：\textbf{运行模型的成本远超训练模型的成本}。据行业估算，到2025年，全球AI算力中约三分之二用于推理而非训练——而这个比例仍在快速攀升。
+
+推理优化赛道的创业图景由此展开。从2022年到2026年，一系列由顶尖学术人才创立的公司——前Meta PyTorch团队、Caffe发明者、FlashAttention作者、LLVM/Swift之父——围绕一个共同目标展开竞争：\textbf{让每一个token的生成成本趋近于零}。这个赛道在短短三年内上演了万倍定价压缩、史上最大种子轮、NVIDIA系统性收购、以及一年三轮的融资奇观。
+
+\begin{keybox}[推理API定价战：从奢侈品到大宗商品（2022--2026）]
+\small
+\begin{itemize}[noitemsep]
+  \item \textbf{2022年末}：OpenAI GPT-3.5 Turbo 定价 \$2.00/M tokens（输入），推理是少数公司才能负担的奢侈品。
+  \item \textbf{2023年中}：GPT-4 发布，定价 \$30.00/M tokens（输入）。但竞争者开始涌现，开源模型初露锋芒。
+  \item \textbf{2024年初}：Mixtral 8x7B 掀起MoE浪潮，Together AI、Fireworks AI将GPT-3.5等效推理降至 \$0.20/M tokens。
+  \item \textbf{2024年末}：DeepSeek-V2发布，中国市场引爆"百模大战"的定价内卷，\$0.14/M tokens。
+  \item \textbf{2025年中}：GPT-4等效推理（以Llama 3.1 70B为代表）降至 \$0.20--0.40/M tokens，较2023年下降约100倍。
+  \item \textbf{2026年初}：DeepSeek-R1的推理成本进一步被各平台压至 \$0.15/M tokens，小模型（8B）低至 \$0.03/M tokens。\textbf{三年间，同等能力的推理成本下降了约1000倍}。
+\end{itemize}
+\end{keybox}
+
+这场定价战的驱动力来自两端：供给侧是推理引擎（vLLM、SGLang、TensorRT-LLM）的持续优化将硬件利用率提升了5--10倍；需求侧是AI Agent和Agentic Workflow的兴起，使单次用户交互从几十个token暴增至数万个token。推理不再是"调一次API"的事——一个AI Agent完成一项任务可能需要数十次模型调用、数百万token的推理量。推理优化的经济价值从"节省成本"升级为"使新范式成为可能"。
+
+\begin{corebox}[推理优化技术栈：四大支柱]
+现代LLM推理优化的核心技术形成了一个相互叠加的四层栈（详见\textit{Emergence}第九章的技术深度分析）：
+\begin{enumerate}[noitemsep]
+  \item \textbf{PagedAttention 与内存管理}。vLLM团队提出的PagedAttention将操作系统的虚拟内存分页思想引入KV Cache管理，解决了传统推理中因预分配连续内存导致的50--70\%显存浪费问题。这一技术让单GPU能同时服务的并发请求数提升了2--4倍，成为现代推理引擎的标配。
+  \item \textbf{量化（Quantization）}。将模型权重从FP16/BF16压缩至FP8、INT4甚至更低精度。FP8量化在H100/H200上几乎无精度损失，可将推理速度提升近2倍。INT4量化（AWQ/GPTQ）在可接受的精度代价下实现约4倍加速，是成本敏感场景的首选。
+  \item \textbf{Speculative Decoding}。用小模型（draft model）快速生成候选token序列，再用大模型一次性验证。在接受率较高的场景下（如代码补全），可以实现2--3倍的延迟改善，且\textbf{数学上保证输出分布与大模型完全一致}。
+  \item \textbf{前缀缓存（Prefix Caching / RadixAttention）}。对共享系统提示或多轮对话中重复出现的前缀，缓存其KV值以避免重复计算。SGLang的RadixAttention将前缀组织为基数树结构，在多轮Agent场景下可节省30--50\%的计算开销。
+\end{enumerate}
+\end{corebox}
+
+% ===========================================================
+\subsection{Fireworks AI：推理云的企业级野心}
+\label{subsec:fireworks}
+
+Fireworks AI的创始人Lin Qiao是前Meta PyTorch基础设施团队的负责人——正是她的团队让PyTorch从一个研究框架成长为全球最流行的深度学习平台。2022年，她与同样来自Meta的联合创始人在Redwood City创立了Fireworks AI，赌注是：\textbf{训练框架的战争已经结束（PyTorch赢了），推理框架的战争才刚开始}。
+
+这个判断被证明极具前瞻性。Fireworks AI从一开始就瞄准企业级推理市场，定位不是做"更便宜的API"，而是做\textbf{推理云}——一个让企业能在自己的数据安全边界内、以最优性能运行任意模型的平台。这种定位让Fireworks避开了与OpenAI的直接竞争，转而服务那些需要部署开源模型、定制微调、且对延迟和合规有严格要求的企业客户。
+
+2025年10月，Fireworks AI完成了2.5亿美元的C轮融资，估值40亿美元，由Lightspeed和Index Ventures领投。公司披露年化经常性收入（ARR）约1.3亿美元，较前一年增长约20倍——这是推理赛道中罕见的、以实际收入支撑的高估值。客户名单包括Uber、Cursor、Notion、Shopify和Genspark，覆盖了从出行到开发工具到生产力的多个高价值垂直领域。
+
+Fireworks的技术差异化在于其\textbf{复合AI推理引擎}（Compound AI Inference）。在实际的AI Agent应用中，一次用户请求往往需要编排多个模型——路由器模型判断意图、检索模型召回文档、推理模型生成回答、审核模型检查安全性。Fireworks的平台将这种多模型编排的调度、缓存和流量管理抽象为一层统一的基础设施，让企业不需要自己搭建复杂的推理管线。
+
+Lin Qiao在C轮公告中写道："我们的客户告诉我们，他们不只是在买推理，他们在买\textbf{AI运行时}。"这个定位的精妙之处在于：API定价战只能压缩利润，但\textbf{运行时}是一个平台级别的价值主张——一旦企业将其AI基础设施建立在Fireworks上，迁移成本就会很高。
+
+% ===========================================================
+\subsection{Together AI：学术全明星的全栈雄心}
+\label{subsec:together-inference}
+
+Together AI的创始阵容是推理赛道中学术背景最华丽的：CEO Vipul Ved Prakash是连续创业者，联合创始人Tri Dao发明了FlashAttention（可能是2023--2025年间影响最广泛的单一推理优化技术），Christopher Ré和Percy Liang是斯坦福计算机系的知名教授。这支团队不仅理解推理优化的理论极限，更有将学术成果产品化的工程能力。
+
+2022年成立于旧金山的Together AI，在2025年完成了3.05亿美元B轮融资，估值33亿美元。到2026年3月，公司正在洽谈以\textbf{75亿美元估值融资10亿美元}（The Information, 2026年3月5日），估值较B轮翻倍有余。平台已服务超过45万名开发者，年化营收据报突破10亿美元。
+
+Together AI的定位是\textbf{全栈AI云}——覆盖推理、微调、数据处理的完整工作流。与Fireworks侧重企业推理不同，Together更强调对\textbf{开源生态}的深度投入：公司积极参与开源模型的训练和优化（如RedPajama数据集），Tri Dao的FlashAttention本身就是开源贡献，这种"开源优先"的策略为Together在开发者社区中建立了远超商业关系的信任纽带。
+
+Together AI的技术护城河建立在三个层面：首先是\textbf{FlashAttention}的持续演进（从FlashAttention到FlashAttention-2到FlashAttention-3），确保在注意力计算效率上始终领先；其次是与NVIDIA的深度合作关系——NVIDIA是Together的重要投资方和云合作伙伴；最后是其\textbf{推理+微调+训练的闭环}，让企业可以在同一平台上完成从数据准备到模型部署的全流程，降低切换不同供应商的摩擦。
+
+Together AI面临的核心挑战是：当推理成为一个低利润率的基础设施业务时，75亿美元的估值需要什么量级的营收来支撑？答案很可能在于\textbf{向上游延伸}——从卖推理到卖定制模型训练服务，从卖API到卖完整的AI基础设施栈。
+
+% ===========================================================
+\subsection{vLLM / Inferact：开源推理引擎的商业化之路}
+\label{subsec:vllm}
+
+vLLM的故事是开源基础设施如何从学术项目蜕变为数十亿美元商业机会的典型案例。
+
+2023年，UC Berkeley的Woosuk Kwon等人发表了PagedAttention论文，并开源了基于这一技术的推理引擎vLLM。PagedAttention的核心洞察借鉴自操作系统：传统推理框架为每个请求预分配连续的KV Cache内存，导致大量内存碎片和浪费；PagedAttention将KV Cache分割为固定大小的"页"，按需分配和回收，就像操作系统管理虚拟内存一样。这一看似简单的工程抽象，将推理引擎的内存利用率从30--50\%提升至90\%以上。
+
+vLLM迅速成为开源LLM推理的\textbf{事实标准}。截至2026年初，项目已累计超过\textbf{40,000颗GitHub星}，被部署在超过\textbf{40万块GPU}上，几乎所有主流推理服务——Fireworks AI、Together AI、Baseten、Anyscale——都在底层使用vLLM或其衍生版本。
+
+2026年1月，vLLM的核心开发者以\textbf{Inferact}的名义正式成立商业公司，并宣布完成了\textbf{1.5亿美元种子轮融资}，估值8亿美元，由a16z领投、Lightspeed跟投——这是\textbf{史上最大规模的种子轮融资之一}（TechCrunch, 2026年1月22日）。这个数字的震撼之处在于：这不是一个有营收的成熟公司，而是一个刚刚从开源项目"spin out"的初创团队，纯粹凭借技术影响力和市场地位获得了这样的估值。
+
+Inferact面临的核心悖论是"开源商业化困境"：vLLM之所以成功，正是因为它是免费和开源的；但一旦商业化，就必须在开源社区价值和商业收入之间找到平衡。Inferact的策略是效仿Red Hat模式——开源引擎保持免费，围绕其提供企业级的托管服务、技术支持、性能优化和安全审计。关键问题是：当你的竞争对手（Fireworks、Together）也在使用你的开源代码时，你的"企业版"能提供多少额外价值？
+
+\begin{table}[htbp]
+\centering
+\caption{主流推理引擎性能对比（2026年初，Llama 3.1 70B，单节点8$\times$H200）}
+\label{tab:inference-engines}
+\small
+\begin{tabularx}{\textwidth}{l r r r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{引擎} & \textbf{吞吐量 (tok/s)} & \textbf{TTFT (ms)} & \textbf{部署难度} & \textbf{特色} \\
+\midrule
+vLLM 0.7+        & $\sim$5,800 & $\sim$85  & 低   & PagedAttention; 社区最大; 插件生态丰富 \\
+SGLang 0.4+      & $\sim$6,200 & $\sim$78  & 中   & RadixAttention; 多轮Agent场景领先; 结构化输出 \\
+TensorRT-LLM     & $\sim$7,000 & $\sim$70  & 高   & NVIDIA官方; 极致性能; 需手动编译优化 \\
+TGI (HuggingFace) & $\sim$4,200 & $\sim$110 & 低   & 开箱即用; HuggingFace生态集成; 适合快速原型 \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent\small 注：吞吐量为批处理场景下测量值，实际性能因batch size、序列长度、量化策略等因素差异较大。数据综合多个独立基准测试报告（Anyscale, 2025; ArtificialAnalysis, 2026）。
+\end{table}
+
+% ===========================================================
+\subsection{SGLang / RadixArk：Agent推理的另一条路线}
+\label{subsec:sglang}
+
+如果说vLLM代表了"通用推理引擎"的路线，SGLang则选择了一条更垂直的道路——\textbf{为AI Agent和复杂推理工作流优化}。
+
+SGLang同样诞生于UC Berkeley，核心开发者Ying Sheng曾在xAI工作（参与了Grok模型的推理基础设施建设）。SGLang的核心技术是\textbf{RadixAttention}——一种将多轮对话和Agent调用中的前缀KV Cache组织为基数树（Radix Tree）的数据结构。在典型的AI Agent场景中，系统提示和对话历史在多次模型调用中大量重复；RadixAttention自动识别和复用这些重复前缀，避免冗余计算，在多轮Agent场景下可节省30--50\%的推理开销。
+
+2026年1月，SGLang项目以\textbf{RadixArk}的名义成立商业公司，由Accel领投，估值\textbf{4亿美元}（TechCrunch, 2026年1月21日）。虽然估值不及Inferact的8亿美元，但RadixArk的差异化定位——聚焦Agent推理——可能在AI Agent爆发的2026年找到更精准的PMF（Product-Market Fit）。
+
+vLLM与SGLang的竞争正在演变为推理引擎赛道的"Android vs iOS"：vLLM追求通用性和最大社区覆盖，SGLang追求特定场景的极致性能。两个项目的团队都来自同一所大学，私下关系紧密但技术路线日益分化。对行业而言，这种良性竞争正是推动推理成本持续下降的重要动力。
+
+% ===========================================================
+\subsection{Baseten：推理平台的融资奇观}
+\label{subsec:baseten}
+
+Baseten的融资历程本身就是一个值得写进商学院案例的故事。这家2019年成立于旧金山的推理平台公司，在\textbf{不到一年的时间内完成了三轮融资}：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{2025年5月}：Series C，7500万美元，IVP领投。
+  \item \textbf{2025年10月}：Series D，1.5亿美元，估值21.5亿美元，CapitalG领投。
+  \item \textbf{2026年1月}：Series E，3亿美元，估值\textbf{50亿美元}，IVP和CapitalG共同领投——其中\textbf{NVIDIA单独投入1.5亿美元}。
+\end{itemize}
+
+从C轮到E轮，估值在8个月内翻了不止两倍。总融资额5.25亿美元。这种节奏在任何行业都极为罕见。
+
+Baseten的产品定位是\textbf{推理平台}——不像Fireworks或Together那样同时提供模型API，Baseten专注于让企业在自己的基础设施上高效部署和运行模型。其核心产品是一个自动化的推理编排层：开发者上传模型，Baseten自动处理量化、批处理优化、自动扩缩容、GPU调度等所有底层细节。
+
+客户名单的质量解释了投资人的狂热：Cursor（AI代码编辑器，估值90亿美元的现象级产品）和Notion（估值100亿美元的生产力平台）都是Baseten的核心客户。当你的推理平台在支撑着2026年最热门的AI产品时，投资人很难不掏出支票。
+
+NVIDIA在E轮中投入1.5亿美元（占轮次的50\%）具有深层战略含义。NVIDIA正在构建一个围绕其GPU生态的"推理联盟"——通过投资Baseten、Together AI等推理平台，确保这些平台深度绑定NVIDIA硬件和软件栈（CUDA、TensorRT-LLM），从而巩固GPU在推理市场的主导地位。对Baseten而言，NVIDIA的背书不仅是资金支持，更是销售渠道的加持——NVIDIA的企业客户天然成为Baseten的潜在用户。
+
+\begin{whybox}[为什么NVIDIA要系统性收购推理创业公司？]
+NVIDIA在2024--2025年间连续收购了OctoAI（\textasciitilde\$165M, 2024年9月）和Lepton AI（"数亿美元", 2025年4月），并大额投资了Baseten、Together AI等公司。这背后的逻辑清晰而冷酷：
+
+\textbf{控制推理软件栈}。NVIDIA的利润来源是GPU硬件，但推理软件栈决定了哪些GPU被使用、如何被使用。如果vLLM等开源引擎在AMD MI300X上跑得同样好，企业就可能转向更便宜的替代硬件。通过收购推理公司并将其技术整合到NVIDIA自有生态（NIM, TensorRT-LLM），NVIDIA确保推理优化与CUDA深度绑定。
+
+\textbf{获取人才}。OctoAI的创始人Luis Ceze是Apache TVM（编译器框架）的核心开发者，Lepton AI的创始人Yangqing Jia是Caffe和ONNX的创始人。这些人是全球顶尖的AI系统工程师——收购公司的本质是收购大脑。
+
+\textbf{防御AMD的追赶}。AMD的ROCm软件栈正在快速成熟，MI300X的性价比在某些推理场景下已经追平H100。NVIDIA通过掌控推理软件层来制造额外的迁移壁垒——即使硬件可以替换，被NVIDIA优化过的推理栈也很难一夜之间移植到AMD上。
+\end{whybox}
+
+% ===========================================================
+\subsection{被收购与消亡：推理赛道的另一面}
+\label{subsec:inference-exits}
+
+并非每个推理创业公司都能走向IPO。事实上，这个赛道更常见的结局是被收购或关停。
+
+\textbf{Lepton AI}的故事极其浓缩。2023年由Caffe创始人、前阿里巴巴副总裁Yangqing Jia在Cupertino创立，仅融资1100万美元，就在2025年4月被NVIDIA以"数亿美元"收购。从成立到退出不到两年，Jia的个人品牌和技术能力使得Lepton AI本质上是一个"人才收购"案例——NVIDIA买的是Jia本人及其团队，而非商业规模。
+
+\textbf{OctoAI}走了更长的路。2019年由华盛顿大学教授Luis Ceze在西雅图创立，基于Apache TVM编译器技术构建推理优化平台，累计融资1.32亿美元。2024年9月被NVIDIA以约1.65亿美元收购——这对投资人而言几乎是平本退出（总融资1.32亿美元 vs.收购价1.65亿美元）。OctoAI的教训在于：\textbf{编译器层面的优化虽然技术含金量极高，但距离客户太远，难以独立建立商业规模}。
+
+\textbf{Replicate}代表了又一种退出路径。2019年在Berkeley成立，累计上架超过50,000个开源模型，打造了一个"模型一键部署"的开发者平台。2025年11月，Cloudflare宣布收购Replicate（Cloudflare Press Release, 2025年11月17日）。这次收购的逻辑是互补的：Cloudflare拥有全球最大的CDN网络但缺乏AI推理能力；Replicate拥有成熟的模型部署平台但缺乏底层基础设施和企业客户渠道。
+
+\textbf{BentoML}走的是"被生态整合"的路线。2018年成立，是最早的开源ML Serving框架之一，在Docker-style的模型打包和部署方面有深厚积累。2026年2月，BentoML被Modular收购。Modular的创始人Chris Lattner是LLVM和Swift编程语言的创始人，正在用Mojo语言构建下一代AI计算基础设施。BentoML的部署能力与Modular的编译优化能力组合，意在打造一个从模型编译到生产部署的端到端平台。
+
+\begin{warnbox}[Banana之死：AI Wrapper的教训]
+在所有推理创业故事中，Banana的结局最具警示意义。
+
+Banana成立于2021年旧金山，定位是Serverless GPU推理平台，在Stable Diffusion爆发期吸引了超过3000个开发团队。但2024年初，创始人Erik Dunteman宣布停止运营，并在社交媒体上坦诚分享了原因：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{PMF从未真正建立}：Banana服务的客户大多是"AI wrapper"——在别人模型上加一层界面的轻应用。这些客户自身的商业模式脆弱，付费意愿和能力都不稳定。
+  \item \textbf{技术护城河不足}：随着vLLM、TGI等开源推理引擎成熟，Banana的核心价值——"简化GPU推理部署"——被开源工具和更大的竞争对手（Modal, RunPod, Replicate）快速复制。
+  \item \textbf{创始人倦怠}：Dunteman在告别文中写道："我意识到我已经没有新的想法了，在勉强维持一个我内心不再相信的东西。"
+\end{itemize}
+
+Banana的教训是：在AI基础设施赛道，\textbf{仅靠开发者体验的差异化是不够的}——你需要要么有底层技术壁垒（如vLLM的PagedAttention），要么有规模效应（如Baseten的企业客户），要么有生态位优势（如Replicate被Cloudflare收购后获得的分发网络）。否则，当更大的玩家决定进入你的领域时，你的护城河将在几个月内消失。
+\end{warnbox}
+
+% ===========================================================
+\subsection{赛道格局与前瞻}
+\label{subsec:inference-landscape}
+
+\begin{table}[htbp]
+\centering
+\caption{推理优化赛道创业公司全景（截至2026年3月）}
+\label{tab:inference-landscape}
+\small
+\begin{tabularx}{\textwidth}{l c r r X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{公司} & \textbf{成立} & \textbf{估值/退出} & \textbf{总融资} & \textbf{结局} \\
+\midrule
+Fireworks AI      & 2022 & \$4B & \$327M & 独立; ARR$\sim$\$130M; 企业推理云 \\
+Together AI       & 2022 & \$3.3B$\to$\$7.5B & \$305M+ & 独立; 洽谈\$1B融资; 全栈AI云 \\
+Inferact (vLLM)   & 2023 & \$800M & \$150M & 独立; 史上最大种子轮; 开源商业化 \\
+RadixArk (SGLang) & 2023 & \$400M & 未披露 & 独立; Agent推理; Accel领投 \\
+Baseten           & 2019 & \$5B & \$525M & 独立; 一年三轮; NVIDIA \$150M \\
+Lepton AI         & 2023 & 数亿美元 & \$11M & $\to$ NVIDIA (2025/4) \\
+OctoAI            & 2019 & $\sim$\$165M & \$132M & $\to$ NVIDIA (2024/9) \\
+Replicate         & 2019 & 未披露 & 未披露 & $\to$ Cloudflare (2025/11) \\
+BentoML           & 2018 & 未披露 & 未披露 & $\to$ Modular (2026/2) \\
+Banana            & 2021 & --- & 少量 & 关停 (2024/3) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+纵观整个推理优化赛道，一个清晰的分层格局已经形成。
+
+\textbf{第一梯队}是Fireworks AI、Together AI和Baseten——估值40亿美元以上、拥有规模化收入和优质企业客户的推理平台。它们的竞争焦点正从"谁的推理更便宜"转向"谁的平台更完整"——推理只是起点，微调、Agent编排、数据管线才是锁定客户的关键。
+
+\textbf{第二梯队}是Inferact和RadixArk——开源推理引擎的商业化探索者。它们拥有最强的技术影响力（vLLM和SGLang合计服务了行业绝大多数推理需求），但商业模式仍在验证中。成功与否取决于一个关键问题：企业愿不愿意为开源软件的"企业版"付费？
+
+\textbf{退出层}——Lepton AI、OctoAI、Replicate、BentoML——被大公司收购，说明推理赛道的技术人才和垂直能力具有很高的并购价值，但独立建立大规模商业体的难度极高。
+
+\textbf{消亡层}——Banana的关停提醒我们，在基础设施赛道，没有技术护城河的"体验层"创业极其脆弱。
+
+展望2026年下半年及更远的未来，推理赛道的演进方向将沿三条主线展开。第一，\textbf{推理与训练的融合}：随着Test-Time Compute（推理时计算）范式的成熟，推理不再是简单的"前向传播"，而是包含搜索、验证、自我修正等复杂计算——推理平台需要越来越接近训练平台的能力。第二，\textbf{硬件异构化}：NVIDIA之外，AMD MI300X、Google TPU v6、AWS Trainium3都在推理市场发力——跨硬件的推理编排将成为新的差异化方向。第三，\textbf{边缘推理的崛起}：随着Llama 3.2 1B/3B、Gemma 3等小模型的成熟，手机和笔记本端的本地推理正在从实验走向主流，这将创造一个完全不同的推理基础设施市场。
+
+这个赛道最深层的洞察或许是：\textbf{推理优化的终极目标不是让推理更便宜，而是让推理便宜到"免费"——从而释放出一个远比今天大得多的AI应用市场}。当每一次模型调用的边际成本趋近于零，AI Agent才能真正无处不在，AI才能从一项昂贵的技术服务变成像电力一样的基础设施。推理创业公司正在竞争的，不仅是一个数十亿美元的市场，更是定义这个"AI电力"时代基础设施标准的权利。
+
+% ===========================================================
+\subsection{小众推理服务：长尾生态}
+\label{subsec:inference-longtail}
+% ===========================================================
+
+在Fireworks、Together、Baseten三强之外，一批更小的推理API提供商正在覆盖不同的价格点和用户群。它们共同构成了推理赛道的长尾生态。
+
+\subsubsection{DeepInfra}
+DeepInfra（2022 年，Palo Alto）是一家精简高效的推理API平台，团队仅约10人，却服务着大量中小开发者。2025年完成\$1800万Series A融资，随后又完成\$5400万Series B，累计融资约\$7200万。DeepInfra以\textbf{极致性价比}著称——在OpenRouter等推理聚合平台的比价中，DeepInfra的定价通常是最低之列，DeepSeek-R1等热门模型的推理成本比官方API低30--50\%。DeepInfra的策略很清晰：不做平台，不做微调，只做一件事——\textbf{把开源模型的推理做到最便宜}。
+
+\subsubsection{Novita AI}
+Novita AI（2023 年，Singapore）提供覆盖LLM、图像生成、语音、视频的\textbf{多模态推理API}，号称接入超过100个模型和10,000个图像模型。2025年与SGLang达成战略合作，采用其推理引擎优化后端性能。团队约10人，年营收约\$110万。Novita AI的差异化在于其多模态广度——当大多数推理平台聚焦文本LLM时，Novita同时覆盖了Stable Diffusion、语音合成等长尾AI应用场景，服务于图像/视频生成领域的开发者。
+
+\subsubsection{SiliconFlow（硅基流动）}
+SiliconFlow（2023 年，Singapore/中国）是中国推理加速赛道的代表性创业公司。自研推理加速引擎支持NVIDIA H100/H200和AMD MI系列，提供Serverless端点、专用GPU实例和BYOC（自带集群）三种部署模式，API兼容OpenAI格式。2025年7月完成\$2080万Series A融资。SiliconFlow的定位是\textbf{高性能推理基础设施}——不是简单的API转售，而是在底层做算子优化和推理调度，目标客户是需要大规模生产级推理的中国和全球AI企业。
+
+\subsubsection{芯片厂商的推理云服务}
+一个值得关注的趋势是AI芯片创业公司纷纷推出自营推理API，从``卖芯片''转向``卖推理''。\textbf{GroqCloud}在被NVIDIA收购前已积累超过250万开发者，以LPU的确定性低延迟推理著称；\textbf{Cerebras Inference}基于WSE-3芯片提供云端推理，在Llama 3.1 405B上实现超过1000 tok/s的吞吐，是GPU方案的数倍；\textbf{SambaNova Cloud}基于SN50 RDU芯片提供推理API，在agentic AI场景下号称比B200快5倍。这些芯片厂商的推理服务本质上是\textbf{用自研硅片的性能优势补贴推理定价}，以获取开发者生态和商业验证。对于用户而言，它们提供了GPU之外的另一个选择；对于芯片厂商自身，推理云是最直接的商业化路径——比卖硬件更快地产生收入和用户反馈。

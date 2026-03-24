@@ -1,0 +1,2006 @@
+% =============================================================
+% Chapter 1: 2022--2026 AI Startup Landscape Overview
+% Book: The AI Startup Landscape
+% =============================================================
+
+\chapter{2022--2026 AI 创业全景：一场前所未有的技术创业浪潮}
+\label{ch:overview}
+
+% Chapter overview: The unprecedented technology startup wave triggered by
+% ChatGPT and the broader LLM revolution. Establishes the 6-tier ecosystem
+% framework used throughout the book.
+
+2022年11月30日，人类历史上最大规模的技术创业浪潮悄然启动。
+
+那一天，OpenAI发布了ChatGPT——一个基于GPT-3.5的对话式AI系统。
+没有盛大的发布会，没有铺天盖地的广告，甚至连OpenAI的内部团队也没有
+预料到接下来会发生什么。两个月后，ChatGPT的月活跃用户突破1亿，成为
+人类历史上增长速度最快的消费级应用——Instagram花了两年半，TikTok花了
+九个月，而ChatGPT只用了六十天（UBS, 2023年2月）。到2026年2月，
+ChatGPT的周活跃用户已达9亿，付费订阅用户5000万，距离10亿周活用户
+仅一步之遥（TechCrunch, 2026年2月27日）。
+
+这不仅仅是一个产品的成功，而是一个信号弹——它照亮了一片巨大的
+商业无人区，告诉全世界的创业者、投资人和企业家：大语言模型（LLM）
+不是实验室里的玩具，而是一种可以立即转化为产品和收入的通用技术。
+在此后的三年半里，全球涌现了数千家AI创业公司，累计吸引了超过5000亿
+美元的风险投资，重塑了从芯片设计到客户服务的几乎每一个行业。
+
+要理解这场浪潮的规模，不妨做几个类比。20世纪90年代末的互联网泡沫，
+从Netscape上市（1995年）到泡沫破裂（2000年），全球互联网公司累计
+融资约1060亿美元。2022--2025年间，仅AI领域的VC投资就超过5800亿美元
+——是整个互联网泡沫时期的五倍多。移动互联网时代从iPhone发布（2007年）
+到Instagram被Facebook收购（2012年），全球移动应用公司的VC融资约
+400亿美元。而OpenAI在2026年2月的\textbf{单轮}融资（1100亿美元）就
+超过了整个移动互联网早期五年的总和。
+
+我们不是在做简单的数字对比来证明"AI更大"——规模本身不等于价值。
+但这些数字确实表明：\textbf{全球资本市场对AI的押注力度，在人类科技
+商业史上没有先例}。理解这场押注的逻辑、参与者和潜在风险，正是本书
+的核心使命。
+
+本章是这场浪潮的全景鸟瞰。我们将从ChatGPT的发布时刻出发，回溯
+推动这场浪潮的技术驱动力，建立一个贯穿全书的六层生态模型，审视
+空前的资本注入规模和全球地理分布，最后阐明本书与姊妹篇
+\textit{Emergence}的关系以及推荐的阅读路径。
+
+
+% =============================================================
+\section{ChatGPT 时刻：创业浪潮的起点}
+\label{sec:overview-chatgpt}
+% =============================================================
+
+\subsection{六十天改变世界}
+
+2022年11月30日的ChatGPT发布，从技术角度看并不是一个巨大的飞跃。
+GPT-3.5本质上是GPT-3经过指令微调（Instruction Tuning）和基于人类
+反馈的强化学习（RLHF）之后的优化版本。模型的参数量没有数量级的
+提升，训练数据集没有革命性的变化，架构上也没有突破性的创新。真正
+的革命性在于\textbf{用户界面的选择}——OpenAI没有像之前那样只提供
+API，而是构建了一个任何人都可以免费使用的对话网页。这个看似简单
+的产品决策，将一项原本只有开发者才能触及的技术，瞬间推到了全人类
+面前。
+
+UBS在2023年2月的分析报告中指出："在追踪互联网行业二十年的历程中，
+我们从未见过任何消费级互联网应用有如此快速的增长曲线。"ChatGPT
+在2023年1月的日均访问量约为1300万，月独立访客1.23亿——相当于
+已经运营14年的Bing搜索引擎。Similarweb的数据显示，ChatGPT发布
+以来的总用户数在两个月内达到了2.66亿。
+
+这一数据让所有人意识到：大语言模型不是下一个区块链式的技术泡沫，
+而是一种真正触及主流用户需求的技术。更重要的是，用户在使用ChatGPT
+时展现出的多样性令人震惊——学生用它写论文，程序员用它调试代码，
+律师用它起草合同，医生用它查阅文献，家长用它辅导孩子做作业，
+作家用它构思故事。没有任何一项此前的技术能够在如此广泛的场景中
+同时展现出"足够好"的能力。这种\textbf{通用性}——而非在任何单一
+任务上的极致表现——正是ChatGPT时刻最核心的启示。
+
+从创业者的视角看，这种通用性意味着一个前所未有的机遇：
+\textbf{几乎任何一个现有的软件品类都可以被"AI化"重塑}。
+搜索引擎可以变成对话式的（Perplexity），写作工具可以变成AI
+协作的（Jasper, Copy.ai），代码编辑器可以变成AI对编程的
+（Cursor, GitHub Copilot），客服系统可以变成AI驱动的（Sierra,
+Decagon）。这就是为什么ChatGPT发布后的12个月内，Y Combinator
+的申请数量暴增40\%，其中超过一半与AI相关。
+
+\subsection{连锁反应：模型军备竞赛}
+
+ChatGPT的成功如同一颗丢入科技行业池塘的巨石，激起的涟漪在此后
+三年多持续扩散，催生了一场史无前例的模型军备竞赛。
+
+\subsubsection{2023：GPT-4冲击与开源觉醒}
+2023年3月，两件事几乎同时发生。OpenAI发布了GPT-4——第一个真正
+展现"涌现能力"（Emergent Abilities）的大模型。GPT-4在律师资格
+考试（Uniform Bar Exam）中排名前10\%，在SAT数学中得分700+，在
+医学执照考试（USMLE）中达到专业水准。这些不是刻意训练的结果，
+而是规模带来的"免费附赠"——关于涌现能力的理论基础，读者可参见
+\textit{Emergence}第五章的深入讨论。GPT-4的另一个里程碑是引入了
+图像理解能力，开启了多模态模型的商业化序幕。
+
+同月，Anthropic发布了Claude 1.0——一个以"安全"为核心差异化的
+竞品。Anthropic由OpenAI前研究副总裁Dario Amodei和姐姐Daniela
+Amodei于2021年创立，其Constitutional AI方法论代表了一种与OpenAI
+不同的对齐路径。Claude的出现标志着前沿模型市场从OpenAI的一家独大，
+转向了双雄甚至多雄竞争的格局。
+
+同样在2023年2--3月，Meta"意外泄露"了LLaMA的权重文件。无论这次
+泄露是否有意为之（Meta内部对此众说纷纭），它的效果是确定的：
+开源社区获得了第一个可以自由研究和修改的高质量大模型。在数周内，
+斯坦福大学基于LLaMA构建了Alpaca（仅花费\$600），UC Berkeley的
+团队推出了Vicuna——这些衍生模型证明了一个惊人的事实：通过指令微调
+（Instruction Tuning），一个小团队可以用极低成本获得接近ChatGPT
+水平的对话能力。开源模型的潘多拉盒子就此打开。
+
+2023年7月，Meta正式开源Llama~2，并附带了商用许可。这是"大厂
+主动开源前沿模型"的先例。Meta的战略意图很清楚：与其与OpenAI和
+Google在闭源API市场上正面对抗，不如通过开源来建立生态控制权——
+类似于Google在移动时代通过开源Android来对抗Apple的iOS。这一决策
+直接催生了数百家基于开源模型的创业公司。
+
+2023年9月，Mistral在巴黎用一条torrent链接发布了Mistral~7B——
+没有网站，没有论文，只有一个种子文件。以一个73亿参数的小模型展现了
+惊人的效率，在多项基准上击败了参数量大数倍的对手，证明了"小而美"
+的路线同样可行。Mistral的出现打破了"越大越好"的简单叙事，为
+资源有限的创业团队提供了一个可行的技术路径。
+
+2023年12月，Google终于拿出了自己的回应——Gemini 1.0。作为由
+Google Brain和DeepMind合并后的产物，Gemini采用了原生多模态设计，
+从一开始就同时训练文本、图像、音频和视频。虽然首次发布时的
+演示视频引发了"作假"争议，但Gemini确实标志着Google在大模型
+竞赛中从落后追赶转向正面竞争。
+
+\subsubsection{2024：多模态元年与推理革命}
+2024年是多模态和效率的年份。2月，Google发布Gemini 1.5 Pro，
+首次将上下文窗口扩展到100万token——相当于约1500页文档或数小时
+的视频。这一数量级的提升不仅仅是"更多文本"，而是开启了全新
+的应用范式：你可以将整本书、整个代码库或一段完整的会议录音
+作为上下文输入，让模型在完整背景下进行推理。对于RAG
+（检索增强生成）和企业知识管理等应用场景，长上下文窗口带来了
+范式级的改变。
+
+4月，Meta发布Llama~3，以8B和70B双规格覆盖从边缘设备到服务器
+的全场景。Llama~3在同等参数量上达到了新标杆，但更重要的是
+Meta在配套工具上的投入——包括安全防护工具、微调脚本和部署指南
+——让开源模型第一次具备了"开箱即用"的产品化水准。
+
+5月，OpenAI发布GPT-4o（"o"代表"omni"）——第一个真正的原生
+多模态模型，能够同时理解和生成文本、图像和音频，端到端延迟降至
+亚秒级。GPT-4o的语音交互体验惊艳了整个行业——它能够感知语调变化、
+理解停顿和犹豫、甚至在对话中展现幽默感。这不再是简单的
+"语音转文字→文字处理→文字转语音"的管道式架构，而是真正的
+端到端多模态推理。
+
+6月，Anthropic发布Claude~3.5~Sonnet。这个版本在代码生成和复杂
+推理能力上达到新高度，迅速成为开发者社区最受欢迎的编程助手。
+Claude 3.5 Sonnet的重要性不仅在于其绝对性能，更在于它证明了
+一个商业逻辑：\textbf{在开发者工具这个特定赛道上，模型的"氛围感"
+（vibe）——即与开发者工作流的契合度——比纯粹的基准测试分数更重要}。
+很多开发者在基准测试上选不出明显胜者时，因为"Claude更懂我想要
+什么"而选择了Anthropic。
+
+7月，Meta发布Llama~3.1~405B——开源社区第一个参数量突破4000亿
+的模型。在多项基准上逼近GPT-4的水平。这是一个具有里程碑意义
+的时刻：它意味着\textbf{开源模型与闭源前沿之间的性能差距，
+已经缩小到了普通用户难以感知的程度}。
+
+9月，OpenAI发布了o1系列——一个全新的"推理模型"品类。与传统
+的大语言模型不同，o1在生成最终回答之前会进行显式的
+Chain-of-Thought推理（参见\textit{Emergence}第十章）。这种
+"先想后说"的范式在数学、编程和科学推理等任务上带来了质的飞跃，
+但也引发了关于推理成本和延迟的新挑战。o1的出现开启了"推理模型"
+这一全新赛道，直接催生了DeepSeek R1等后来者。
+
+12月，Google发布Gemini 2.0 Flash Thinking——将推理能力与
+多模态融合，并首次展现了强大的Agent能力（自主执行多步骤任务）。
+
+\subsubsection{2025：DeepSeek震荡与AI Agent元年}
+2025年1月20日，一家大多数西方观察者闻所未闻的中国公司——DeepSeek
+——发布了R1推理模型。DeepSeek声称仅用约560万美元的训练成本和
+2048块H800 GPU就达到了与OpenAI o1相当的推理能力。这则消息
+如同一颗炸弹投入华尔街：英伟达股价单日暴跌17\%，市值蒸发近
+6000亿美元；整个科技板块血流成河，S\&P 500指数单日下跌约
+1.5\%。
+
+DeepSeek动摇的不是某一家公司的地位，而是整个"算力即一切"
+（Compute is All You Need）的叙事逻辑。如果一家中国创业公司
+能用少两个数量级的成本达到前沿水平，那些斥资数百亿美元建造
+超级数据中心的决策是否还站得住脚？DeepSeek R1的关键技术创新
+——包括混合专家（MoE）架构、多头潜在注意力（MLA）和高效的
+强化学习方法——在\textit{Emergence}第六章（MoE架构）和第八章（后训练）中有详细讨论。
+从商业角度看，DeepSeek最深远的影响是：它\textbf{打破了"只有
+烧够多的钱才能做出好模型"的信念}，为资源有限的团队（尤其是
+中国在美国芯片出口限制下的团队）提供了一条替代路径。
+
+一年后的2026年1月，DeepSeek的影响仍在持续发酵。CNBC、ITPro
+等多家媒体在DeepSeek R1一周年之际回顾其冲击波，指出这家
+中国公司"在AI发展模式上提供了一个根本性的替代叙事"。
+与此同时，DeepSeek即将发布的新一代模型再次引发市场关注——
+用ITPro的话说，"它看起来将再次撼动一切"。
+
+此后，模型发布的节奏进一步加速。2025年全年：OpenAI连续推出
+GPT-4.5（2月）、o3系列（5月）和GPT-5（6月）；Anthropic发布
+Claude~3.7~Sonnet（3月，引入混合推理和扩展思维）和Claude~4
+系列（7月，Opus和Sonnet双版本）；Google DeepMind发布
+Gemini~3（12月，被Sundar Pichai称为"我们最智能的模型"）；
+Meta发布Llama~4系列（4月，Scout 109B MoE和Maverick 400B MoE），
+开源MoE架构成为标配。
+
+2025年还是\textbf{AI Agent元年}。从OpenAI的Computer Use到
+Anthropic的Claude Code，从Google的Project Mariner到众多创业
+公司的Agent产品，AI从"回答问题"进化为"执行任务"。Agent
+范式意味着AI不再只是对话的参与者，而是可以自主操作计算机、
+调用工具、编写和执行代码的自主行动者。这一转变对创业生态
+产生了深远影响：许多原本被认为"过于复杂"的企业工作流
+自动化场景，突然变得可行。
+
+\subsubsection{2026：月度迭代成为常态}
+到2026年3月，大模型已然从"年度大事件"变成了"月度例行升级"。
+GPT-5.4已迭代至第四个小版本（2026年3月5日发布），Gemini 3.1
+Pro在2月推出，Claude系列持续更新。模型发布不再是震撼行业的
+爆炸性事件，而是基础设施级的持续改进——就像云服务商每周推出
+新功能一样平淡。
+
+这种"常态化"本身就是一个重要的信号：
+\textbf{大模型能力已经进入了持续渐进提升的成熟期}，创业公司
+不能再寄希望于某一次模型突破来颠覆竞争格局，而必须在模型能力
+持续可用的前提下，构建自己的产品壁垒和用户价值。
+
+\begin{table}[htbp]
+\centering
+\caption{AI 大模型里程碑时间线（2022年11月 -- 2026年3月）}
+\label{tab:milestone-timeline}
+\small
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{时间} & \textbf{事件} & \textbf{意义} \\
+\midrule
+2022/11 & ChatGPT 发布
+  & GPT-3.5 + RLHF；2个月达1亿用户；消费级AI元年 \\
+\rowcolor{figLightGray}
+2023/02 & Meta LLaMA 泄露
+  & 开源社区获得首个高质量大模型权重 \\
+2023/03 & GPT-4 发布
+  & 首个展现大规模涌现能力的模型；多模态输入 \\
+\rowcolor{figLightGray}
+2023/03 & Claude 1.0 发布
+  & Anthropic 进入市场；Constitutional AI 差异化 \\
+2023/07 & Llama 2 开源
+  & 首个附带商用许可的大厂开源模型 \\
+\rowcolor{figLightGray}
+2023/09 & Mistral 7B 发布
+  & 证明小模型可与大模型竞争；``小而美''路线 \\
+2023/12 & Gemini 1.0 发布
+  & Google 反击；原生多模态设计 \\
+\rowcolor{figLightGray}
+2024/02 & Gemini 1.5 Pro
+  & 100万token上下文窗口；长文本新范式 \\
+2024/04 & Llama 3 发布
+  & 开源前沿再推进；8B/70B 双规格 \\
+\rowcolor{figLightGray}
+2024/05 & GPT-4o 发布
+  & 原生多模态；端到端亚秒延迟；``omni''范式 \\
+2024/06 & Claude 3.5 Sonnet
+  & 代码生成新标杆；开发者社区最受欢迎 \\
+\rowcolor{figLightGray}
+2024/07 & Llama 3.1 405B
+  & 开源首个400B+模型；逼近GPT-4 \\
+2024/09 & OpenAI o1 发布
+  & ``推理模型''新品类；Chain-of-Thought 内化 \\
+\rowcolor{figLightGray}
+2024/12 & Gemini 2.0 Flash
+  & 推理+多模态融合；Agent 能力前沿 \\
+2025/01 & DeepSeek R1
+  & 中国开源推理模型；训练成本降低两个数量级 \\
+\rowcolor{figLightGray}
+2025/03 & Claude 3.7 Sonnet
+  & 混合推理；扩展思维（Extended Thinking） \\
+2025/04 & Llama 4 发布
+  & Scout (109B MoE) + Maverick (400B MoE)；开源MoE \\
+\rowcolor{figLightGray}
+2025/06 & GPT-5 发布
+  & 统一推理与对话；前沿能力新高度 \\
+2025/07 & Claude 4 系列
+  & Opus/Sonnet 双版本；agentic coding 标杆 \\
+\rowcolor{figLightGray}
+2025/09 & OpenAI o3-pro
+  & 最强推理模型；超人类级数学/编程 \\
+2025/12 & Gemini 3 发布
+  & ``最智能''Google模型；全模态融合 \\
+\rowcolor{figLightGray}
+2026/02 & Gemini 3.1 Pro
+  & 复杂推理新水平 \\
+2026/03 & GPT-5.4 发布
+  & 推理+编码+Agent 统一前沿模型 \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent\textit{数据来源：OpenAI, Anthropic, Google DeepMind, Meta AI, DeepSeek,
+Mistral AI 官方公告；TechCrunch, The Verge, ArsTechnica 报道汇编。
+完整的融资时间线参见第~\ref{ch:funding}~章。}
+\end{table}
+
+\subsection{ChatGPT时刻的深层含义}
+
+ChatGPT时刻的真正意义不在于它是"最好的模型"——事实上，2022年11月
+的GPT-3.5在纯粹的基准测试上并不优于当时的一些竞品（Google的PaLM
+在多项任务上得分更高）。它的意义在于三重验证：
+
+\begin{enumerate}
+  \item \textbf{技术可及性验证}：证明了大模型可以通过简单的对话界面
+    直接服务于非技术用户，不需要API密钥、Python脚本或机器学习知识。
+    这打破了一个长期以来的假设——即AI是"专家才能使用的工具"。
+    ChatGPT之后，任何能打字的人都是AI用户；
+  \item \textbf{市场需求验证}：1亿用户的爆发式增长证明了潜在市场
+    的规模远超所有人的预期——不仅是开发者和企业，普通消费者也对AI
+    有强烈且持续的需求。更关键的是，这种需求是\textbf{跨行业、
+    跨人群、跨地域}的，不局限于任何一个垂直领域；
+  \item \textbf{商业模式验证}：ChatGPT Plus（\$20/月）的推出和
+    迅速增长到5000万付费用户（截至2026年2月），证明了消费者愿意
+    为AI能力付费——这是支撑整个创业生态的商业基础。\$20/月的
+    订阅价格看似不高，但5000万用户意味着仅订阅收入就达到约
+    \$12B的年化水平，还不包括API收入和企业合同。
+\end{enumerate}
+
+这三重验证共同构成了一个清晰的信号：\textbf{AI不再是"等待爆发的
+技术"，而是"已经爆发的市场"}。全球的创业者、投资人和企业决策者
+几乎同时读到了这个信号，由此触发的资本和人才涌入构成了本书记录
+的核心故事。
+
+\subsection{与历史上技术浪潮的对比}
+
+将ChatGPT时刻与历史上的技术"引爆点"对比，有助于我们校准对当前
+浪潮的预期。
+
+\textbf{iPhone时刻（2007年）}：Steve Jobs在Macworld上展示iPhone，
+标志着移动互联网时代的开端。但iPhone在第一年只卖出了600万部，
+App Store在一年后才上线。移动生态的成熟花了大约5年时间。相比之下，
+ChatGPT在发布两个月后就拥有了1亿用户，AI开发者生态在一年内就已经
+相当繁荣——\textbf{AI浪潮的起步速度比移动互联网快了至少一个
+数量级}。
+
+\textbf{Amazon AWS时刻（2006年）}：AWS的S3和EC2服务标志着云计算
+时代的开端。云计算用了约10年时间（2006--2016）才成为企业IT的主流
+选择。AI的基础设施建设（GPU云、推理API等）虽然也在快速发展中，
+但\textbf{AI不需要等待基础设施成熟}——它可以直接利用已经成熟的
+云计算基础设施，在其上叠加AI特定的功能层。这种"站在云计算肩膀上"
+的优势，让AI创业的基础设施就绪时间从年缩短到了月。
+
+\textbf{互联网泡沫时刻（1995--2000年）}：Netscape的IPO引爆了
+互联网投资狂潮，但最终在2000年泡沫破裂，大量公司消亡。当前AI浪潮
+与互联网泡沫有一个关键差异：\textbf{互联网时代的公司大多在追求
+用户增长但没有收入}，而AI时代的头部公司（OpenAI、Anthropic等）
+已经拥有数十亿甚至上百亿美元的实际营收。当然，营收不等于盈利，
+许多AI公司仍在亏损，但至少"有人愿意付钱"这一点已经得到了验证。
+
+这些对比的共同启示是：\textbf{AI浪潮在采用速度和市场验证速度上
+远超历史上的任何技术浪潮，但这并不意味着所有参与者都会成功}。
+历史表明，即使在最终证明具有变革性的技术浪潮中，也会有大量的
+早期参与者被淘汰。理解哪些公司能够生存——以及为什么——是本书
+在第~\ref{ch:patterns}~章集中探讨的核心问题。
+
+
+% =============================================================
+\section{技术驱动力：为什么是现在？}
+\label{sec:overview-why-now}
+% =============================================================
+
+ChatGPT的成功并非凭空而降。在那个十一月之夜之前，多条技术曲线
+已经悄然交汇到了一个临界点。理解这些驱动力，对于判断当前创业浪潮
+是泡沫还是结构性变革至关重要。一个常见的质疑是："AI研究从1956年
+就开始了，为什么创业浪潮等了66年才爆发？"答案在于：
+\textbf{不是一个条件，而是五个条件需要同时满足}。
+
+\begin{whybox}[为什么是2022--2026？三大技术拐点]
+AI创业浪潮的爆发并非偶然，它是三条独立技术曲线在2022年前后
+同时到达拐点的结果：
+\begin{enumerate}
+  \item \textbf{Scaling Laws的实证验证}（2020--2022）：Kaplan
+    等人在2020年发现，模型性能随参数量、数据量和计算量呈幂律提升，
+    且这一规律在多个数量级上保持稳定。这意味着
+    \textbf{只要投入更多计算，就能获得可预测的性能提升}——
+    这是一个前所未有的"确定性"信号，让投资者敢于押注数十亿美元。
+  \item \textbf{推理成本的指数级下降}（2022--2025）：从2022年底
+    的\$20/百万token降至2025年底的\$0.40/百万token，三年内降低
+    约50倍。如果算上DeepSeek等低价竞争者，实际可用成本降低超过
+    1000倍。这使得原本不可行的应用场景（如实时客服、逐句翻译、
+    代码补全）变得经济可行。
+  \item \textbf{开源模型的民主化}（2023--2025）：从LLaMA泄露到
+    Llama~4正式开源，从Mistral~7B到DeepSeek~R1，开源模型的能力
+    从"落后前沿两年"缩短到"落后前沿两个月"。这让任何一个小团队
+    都能以几千美元的成本获得接近GPT-4水平的基础能力。
+\end{enumerate}
+这三条曲线的交汇，创造了一个独特的创业窗口：技术足够强大、成本
+足够低廉、工具足够民主——历史上还从未有过一种技术同时满足这三个
+条件。
+\end{whybox}
+
+\subsection{Scaling Laws：从学术发现到投资信仰}
+
+2020年1月，OpenAI的Jared Kaplan等人发表了一篇名为``Scaling Laws
+for Neural Language Models''的论文，揭示了一个惊人的规律：
+大语言模型的损失函数（loss）与模型参数量（$N$）、训练数据量
+（$D$）和计算量（$C$）之间存在稳定的幂律关系。更重要的是，
+这一关系在跨越多个数量级后依然成立——没有出现饱和或突变。
+数学上可以简洁地表示为：
+\[
+  L(N) \propto N^{-\alpha_N}, \quad
+  L(D) \propto D^{-\alpha_D}, \quad
+  L(C) \propto C^{-\alpha_C}
+\]
+其中$\alpha_N \approx 0.076$, $\alpha_D \approx 0.095$,
+$\alpha_C \approx 0.050$。这些指数意味着：每将计算量增加10倍，
+模型损失可预测地下降一个固定比例。
+
+2022年3月，DeepMind的Jordan Hoffmann等人发表了``Chinchilla''论文
+（Training Compute-Optimal Large Language Models），修正了Kaplan
+的最优分配比例。Kaplan的分析暗示应当优先增大模型参数
+（$N_\text{optimal} \propto C^{0.73}$），而Chinchilla发现
+模型大小和训练数据量应当\textbf{同比例扩展}
+（$N_\text{optimal} \propto C^{0.50}$）。2024年6月，微软和MIT
+的Pearce与Song在TMLR期刊上发表了``Reconciling Kaplan and
+Chinchilla Scaling Laws''一文，确认Chinchilla的系数更为准确
+——Kaplan的偏差主要来自于在小规模下的分析以及对非嵌入参数
+（而非总参数）的计数方式。
+
+这一修正直接导致了更高效的训练策略：用70B参数+更多数据训练
+的Chinchilla，超越了5300亿参数的Gopher。后续的实践证实了
+这一洞察——Llama系列模型（7B到405B）通过大幅增加训练数据量
+（而非单纯堆砌参数），在同等参数量下持续刷新性能标杆。
+关于Scaling Laws的深入技术讨论，读者可参见\textit{Emergence}
+第五章。
+
+从创业和投资的角度看，Scaling Laws的最大意义在于它
+\textbf{将AI研究从"炼金术"变成了"工程学"}。在Scaling Laws
+被发现之前，训练一个更大的模型能否带来更好的性能是不确定的——
+你可能花了数亿美元却得到一个失败的模型。Scaling Laws给出的
+承诺是：\textbf{投入是可预测的，回报也是可预测的}。这种确定性
+对于风险投资来说如同一块磁石——它让投资者可以用一种近乎"资本开支"
+（CapEx）而非"风险投资"（Venture）的框架来理解AI公司：更多的
+计算=更好的模型=更多的收入。
+
+当然，这一简化逻辑在实践中并不总是成立。DeepSeek R1的效率革命
+表明，\textbf{算法创新可以在很大程度上替代规模暴力}。2025年之后
+的趋势表明，单纯依赖Scaling Laws的"大力出奇迹"路线正在让位于
+更精细的效率优化——MoE架构、蒸馏、强化学习等技术使得同等算力
+可以产出更好的模型。但在2023--2024年的关键窗口期，Scaling Laws
+为AI基础模型公司吸引了天文数字的融资——这些资金构成了整个
+创业生态的"第一桶金"。
+
+\subsection{开源模型爆发：从禁区到常态}
+
+开源模型的爆发是这场创业浪潮中最重要的结构性变量之一。在2023年2月
+LLaMA泄露之前，高质量的大语言模型是少数几家实验室的专属领地。
+OpenAI的GPT系列、Google的PaLM、Anthropic的Claude——这些模型
+的权重被严密保护，外界只能通过API访问。这意味着任何想要基于大模型
+构建产品的创业者，都必须依赖这些实验室的API——受制于价格、配额、
+使用条款甚至政策变化。
+
+LLaMA的泄露打破了这个格局。虽然Meta最初并未打算完全公开模型权重，
+但泄露事件让全球的研究者和开发者第一次有机会自由探索、修改和优化
+一个真正的大模型。开源社区在数周内就基于LLaMA构建了Alpaca、
+Vicuna等衍生模型，证明了通过指令微调可以用极低成本获得接近
+ChatGPT水平的对话能力。
+
+此后，开源模型的进化速度令人目眩：
+
+\begin{itemize}
+  \item \textbf{2023/07}：Llama~2发布，附带商用许可，开源模型
+    正式进入商业领域；
+  \item \textbf{2023/09}：Mistral~7B横空出世，证明精心设计的
+    小模型可以匹敌参数量大数倍的对手；
+  \item \textbf{2024/01}：DeepSeek发布早期开源模型，数据与
+    token比例达到约30:1的新Scaling Laws；
+  \item \textbf{2024/04}：Llama~3以8B和70B双规格发布，Meta同时
+    发布的技术报告揭示其数据与token比例达到1875:1——远超
+    Chinchilla的20:1建议，引发关于"过度训练"
+    （over-training）策略的广泛讨论；
+  \item \textbf{2024/07}：Llama~3.1~405B——开源首个400B+参数模型，
+    多项基准逼近GPT-4；
+  \item \textbf{2025/01}：DeepSeek~R1以开放权重发布，推理能力
+    媲美OpenAI~o1，训练成本却低两个数量级——这是开源模型
+    首次在"推理"这一新品类上达到闭源前沿水平；
+  \item \textbf{2025/04}：Llama~4发布Scout（109B MoE）和
+    Maverick（400B MoE），开源MoE架构成为标配。
+\end{itemize}
+
+CNBC在2025年3月的专题报道中指出，中国公司对开源的拥抱——从
+DeepSeek到百度再到ManusAI——正在创造"AI的Android时刻"。
+开源不仅仅是一种技术选择，更是一种\textbf{生态战略}：当你的
+模型被成千上万的开发者使用和改进时，你就建立了一种强大的网络
+效应。Meta通过Llama，DeepSeek通过R1，都在这一逻辑上取得了
+成功。
+
+这一进程的创业含义是深远的：当基础模型能力变成"公共品"时，
+\textbf{差异化竞争的焦点就从"谁有最强的模型"转移到"谁能
+最好地将模型能力转化为产品价值"}。这直接解释了为什么2024--2025年
+出现了大量的"应用层"创业公司——它们不需要训练自己的基础模型，
+只需要在开源模型之上构建垂直场景的解决方案。同时，它也解释了
+为什么"AI Wrapper"（简单包装API的薄层应用）成为2024年最常见
+的创业失败模式之一——当每个人都能获得同样的基础模型能力时，
+仅仅做一层包装是不够的。
+
+\subsection{API经济的成熟}
+
+如果说开源模型为"自建"提供了可能，那么API经济的成熟则为"调用"
+提供了便利。2020年6月，OpenAI发布了GPT-3 API——大模型作为
+云服务（Model-as-a-Service, MaaS）的开端。但早期的API生态
+还很原始：只有一家供应商、一种模型、有限的文档和工具。真正推动
+API经济成熟的是2023年之后的竞争格局变化。
+
+到2026年3月，全球已有超过100家推理服务商提供大模型API。供应商
+可以分为四大类：
+
+\begin{enumerate}
+  \item \textbf{前沿实验室}：OpenAI、Anthropic、Google——提供
+    最强但价格最高的模型API；
+  \item \textbf{专业推理平台}：Together~AI、Fireworks~AI、Groq、
+    Cerebras——通过硬件和算法优化提供高性能、低价格的推理服务，
+    尤其擅长部署开源模型；
+  \item \textbf{云巨头模型市场}：AWS Bedrock、Azure AI Studio、
+    Google Vertex AI——在自家云平台上聚合多个模型供应商，提供
+    一站式选型和部署体验；
+  \item \textbf{区域/垂直供应商}：百度智能云（中国）、阿里云
+    百炼（中国）、Mistral La Plateforme（欧洲）——服务特定
+    地理或行业需求。
+\end{enumerate}
+
+这种供给端的爆发带来了两个关键后果：
+
+\begin{enumerate}
+  \item \textbf{价格竞争}：多家供应商的激烈竞争推动了API价格
+    的持续下降。GPT-4级别的推理能力，从2023年初的\$60/百万
+    token降至2026年初的不到\$1/百万token——部分供应商甚至提供
+    免费额度来获取开发者。一位LinkedIn评论者形象地将其描述为
+    "OpenAI、Anthropic和Google正在打一场通往零的价格战"；
+  \item \textbf{标准化}：OpenAI的Chat Completions API格式已
+    成为事实标准，绝大多数推理服务商都提供兼容接口。对于
+    应用层开发者来说，切换底层模型供应商只需修改一行代码中的
+    endpoint和model参数——这种"可替换性"极大降低了创业门槛，
+    但也意味着\textbf{模型本身正在商品化}。
+\end{enumerate}
+
+API经济成熟的一个重要副作用是催生了\textbf{AI中间件}这一新赛道。
+当开发者需要在100多个模型之间选择、在不同场景下路由到不同模型、
+并管理成本和延迟时，就需要一个抽象层来简化这些复杂性。LangChain、
+LlamaIndex、Portkey等公司正是在这一需求中诞生的
+（详见第~\ref{ch:platform}~章）。
+
+\subsection{推理成本的千倍降低}
+
+推理成本的降低是这场创业浪潮最重要的经济学基础。没有它，再强大的
+模型也无法转化为可持续的商业产品。
+
+2022年底，使用GPT-4级别的模型处理100万个token需要花费约\$20。
+到2025年底，同等性能的推理成本已降至约\$0.40/百万token——三年内
+降低了约50倍（Introl, 2025年12月）。如果将DeepSeek等激进定价的
+服务商纳入考虑（DeepSeek的API价格比同等性能的OpenAI模型低90\%），
+部分场景的实际成本降低幅度超过1000倍。
+
+Stanford大学2025年AI指数报告中引用了一个引人注目的对比：
+\textbf{AI推理成本的年化下降速度约为10倍}——这超过了PC时代
+微处理器性能的年化提升速度（摩尔定律约为1.5倍/年），也超过了
+互联网泡沫时期带宽成本的年化下降速度（约3--4倍/年）。换言之，
+我们正在经历的是一场\textbf{比摩尔定律更快的成本革命}。同一份
+报告指出，AI成本的下降在各领域中降低了280倍——尽管这一数字
+包含了硬件和软件效率的综合改进。
+
+成本下降的驱动力来自多个层面：
+
+\begin{itemize}
+  \item \textbf{硬件层面}：NVIDIA H100的推理吞吐量约为A100的
+    3倍，H200进一步提升50\%，B200又在此基础上翻倍。每一代GPU
+    的"每token成本"都大幅低于前一代；
+  \item \textbf{算法层面}：FlashAttention（将注意力计算的内存
+    使用降低5--20倍）、投机解码（Speculative Decoding，将延迟
+    降低2--3倍）、量化（Quantization，将运营成本降低60--70\%）
+    等技术将单位硬件的效率提升了3--10倍。关于这些技术的原理，
+    读者可参见\textit{Emergence}第九章；
+  \item \textbf{架构层面}：MoE（混合专家）架构让模型在推理时
+    只激活一小部分参数，大幅降低每次推理的实际计算量。DeepSeek
+    和Llama~4都采用了这一架构；
+  \item \textbf{竞争层面}：100多家推理服务商的价格战进一步压缩
+    了利润空间。Groq通过自研LPU芯片实现了极低延迟的推理，
+    Together AI通过FlashAttention优化在同等硬件上获得数倍的
+    吞吐量提升。
+\end{itemize}
+
+对创业者而言，推理成本的千倍降低意味着：\textbf{三年前因为成本
+不可行而放弃的产品创意，今天可能已经具备商业可行性}。一个每日
+处理1000万次对话的客服AI，三年前的推理成本是每天\$200,000；
+今天可能不到\$200。一个为每份法律合同提供AI审阅的服务，三年前
+每份合同的AI成本可能是\$50；今天降至\$0.05。这种经济学的剧变
+是AI应用层创业公司大量涌现的直接原因。
+
+Introl在2025年12月的分析中指出，当自托管（self-hosted）推理的
+GPU利用率超过50\%时，7B参数模型的自托管成本就低于API调用；
+对于13B参数模型，这一阈值降至10\%。这意味着即使是中小型创业
+公司，在业务达到一定规模后也可以考虑自建推理基础设施——进一步
+压缩成本。
+
+\subsection{基础设施就绪：GPU云的崛起}
+
+技术驱动力的最后一块拼图是基础设施。2022年底ChatGPT发布后，
+GPU突然成为全球最稀缺的资源之一。传统云巨头——AWS、Azure、
+GCP——虽然拥有海量基础设施，但在专用AI算力方面面临数月的
+排队周期。一位创业者回忆道："2023年初，我们在AWS上申请
+8块A100的实例，被告知需要等待4个月。这对一个种子轮创业公司
+来说几乎是致命的。"
+
+这一缺口催生了一个全新的赛道：GPU云（Neocloud）。从加密矿场
+转型的CoreWeave（2025年IPO，市值435亿美元）到用油田废气发电的
+Crusoe Energy（估值100亿美元+），从学术基因的Lambda Labs
+（融资23亿美元）到极致资本效率的RunPod（仅融资2200万美元，
+ARR~1.2亿美元），从GPU P2P市场Vast.ai（仅融资400万美元）到
+专注于Serverless GPU的Modal——一批创业公司迅速填补了算力供给
+的缺口。第~\ref{ch:infrastructure}~章将详细展开这一赛道的
+完整图景。
+
+到2026年初，全球已涌现100多家Neocloud创业公司。GPUaaS（GPU
+即服务）市场规模在2026年已达73.6亿美元，预计2031年将增长至
+264亿美元，复合年增长率29.1\%（Mordor Intelligence, 2026）。
+OECD的数据进一步确认了这一趋势：2025年AI基础设施和托管领域
+的VC投资高达1093亿美元——超过了AI VC总额的40\%。
+
+基础设施的就绪产生了两个重要效果：第一，AI创业者——无论是训练
+一个垂直领域的微调模型，还是部署一个高并发的推理服务——都能在
+数小时而非数月内获得所需的算力。第二，算力获取方式的多样化
+（按需租用、竞价实例、P2P市场、Serverless等）让不同阶段和
+不同需求的创业公司都能找到合适的方案，而不是被迫采用"一刀切"
+的大云商方案。
+
+\subsection{被低估的第六个驱动力：对齐技术的突破}
+
+在前述五个驱动力（Scaling Laws、开源模型、API经济、成本下降、
+GPU云崛起）之外，还有一个经常被低估的技术突破：
+\textbf{对齐技术（Alignment）}的实用化。
+
+ChatGPT之所以能够让非技术用户使用，不仅仅是因为它有一个网页
+界面，更因为它经过RLHF（基于人类反馈的强化学习）训练后，能够
+\textbf{理解用户的意图并给出有用的回答}。原始的GPT-3虽然拥有
+强大的语言能力，但它的输出是不可预测的——有时候它会无视你的
+指令，有时候会生成有害内容，有时候会"胡说八道"。RLHF将一个
+"强大但不可控"的语言模型变成了一个"强大且基本可控"的对话
+助手。
+
+从创业的角度看，对齐技术的重要性怎么强调都不为过。一个会
+随机生成有害内容的模型，无论多么强大，都无法被嵌入到面向
+消费者的产品中——监管风险和品牌风险会让任何企业客户望而却步。
+正是RLHF（以及后来的DPO、Constitutional AI等改进方法）将
+大模型从"实验室好奇心"变成了"可商业化的技术"。关于对齐
+技术的详细讨论，读者可参见\textit{Emergence}第八章。
+
+\subsection{通用目的技术：为什么AI不同于区块链}
+
+五（或六）个技术驱动力的汇合，使得大语言模型成为经济学家
+所称的\textbf{通用目的技术}（General Purpose Technology, GPT
+——一个巧合的缩写）。通用目的技术的定义特征是：它可以被应用于
+几乎所有行业和所有工作流，而非仅限于特定领域。历史上的通用
+目的技术包括蒸汽机、电力、半导体和互联网。
+
+大语言模型符合通用目的技术的所有标准：
+\begin{itemize}
+  \item \textbf{广泛的应用场景}：从写代码到写诗，从法律审查到
+    医学诊断，从客户服务到科学研究——几乎没有哪个知识工作领域
+    不能从LLM中受益；
+  \item \textbf{持续的改进空间}：Scaling Laws保证了模型能力
+    可以持续提升，且每次提升都会解锁新的应用场景；
+  \item \textbf{互补性创新}：LLM的出现催生了RAG、Agent、
+    长上下文等大量互补性技术创新，这些创新反过来又扩展了LLM
+    的适用范围；
+  \item \textbf{正外部性}：一家公司开发的LLM应用（如代码助手），
+    其产生的方法论和最佳实践可以被其他领域的开发者借鉴。
+\end{itemize}
+
+这也解释了为什么AI创业浪潮与2017--2018年的区块链热潮有本质
+区别。区块链虽然也引发了大量创业和投资热情，但它\textbf{不是}
+通用目的技术——它的核心优势（去中心化、不可篡改）仅在特定
+场景中有价值，且在大多数传统商业场景中，中心化的解决方案更
+高效、更便宜。大语言模型则相反：\textbf{几乎在所有涉及语言
+和推理的场景中，AI都能提供明确的效率提升或能力扩展}。这种
+通用性是支撑当前投资规模的根本理由——也是我们认为当前浪潮
+的"技术底座"远比区块链时代坚实的核心论据。
+
+当然，通用目的技术的历史也告诉我们：从技术出现到全面渗透，
+通常需要20--30年（电力从1882年到1920年代，互联网从1993年到
+2010年代）。我们可能正处在AI作为通用目的技术渗透进程的早期
+阶段——这意味着当前的创业浪潮既不是"结局"，也不是"顶峰"，
+而是一个漫长旅程的开端。
+
+
+% =============================================================
+\section{创业生态的六层模型}
+\label{sec:overview-six-tier}
+% =============================================================
+
+面对一个涉及数千家公司、数十个子赛道的庞大生态，我们需要一个
+清晰的分析框架。试图用一句话概括"AI创业"是不可能的——做GPU芯片
+的Cerebras和做AI法律助手的Harvey虽然都被贴上"AI公司"的标签，
+但它们的商业模式、客户群、资本需求和竞争逻辑几乎没有任何共通之处。
+
+本书采用\textbf{六层生态模型}（Six-Tier Ecosystem Model）来组织
+全部内容。这一模型将AI创业生态自下而上分为六个层次，每一层都有
+其独特的竞争逻辑、商业模式和代表公司。这一分层的灵感来自多个
+框架的综合：Matt Turck的MAD Landscape、a16z的AI层级模型、
+以及经典的计算机系统分层（硬件→操作系统→中间件→应用），但
+针对2022--2026年的AI创业生态进行了重新定义和细化。
+
+% === Six-Tier Ecosystem TikZ Figure ===
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  % Layer style: rounded rectangle for each tier
+  layer/.style={
+    draw=#1, fill=#1!8, line width=1pt,
+    rounded corners=4pt, minimum height=1.5cm,
+    text width=14cm, align=center,
+    font=\small,
+  },
+  % Label style for tier number
+  tierlabel/.style={
+    font=\footnotesize\bfseries, text=white,
+    fill=#1, rounded corners=2pt,
+    minimum width=1.8cm, minimum height=0.6cm,
+    align=center,
+  },
+  % Arrow style
+  uparrow/.style={
+    -{Stealth[length=4pt]}, line width=0.8pt, figGray,
+  },
+  % Chapter reference style
+  chapref/.style={
+    font=\scriptsize\itshape, text=figGray,
+  },
+]
+
+% === Layer 1: Infrastructure ===
+\node[layer=figBlue] (t1) at (0, 0) {
+  \textbf{GPU云} (CoreWeave, Lambda, Nebius)
+  \quad\textbf{AI芯片} (Cerebras, Groq, 寒武纪)
+  \quad\textbf{训练/推理集群}
+};
+\node[tierlabel=figBlue, anchor=east] at ([xshift=-0.3cm]t1.west) {Tier 1};
+\node[chapref, anchor=west] at ([xshift=0.3cm]t1.east) {Ch.\,2};
+
+% === Layer 2: Models ===
+\node[layer=figRed, above=0.35cm of t1] (t2) {
+  \textbf{闭源前沿} (OpenAI, Anthropic, Google)
+  \quad\textbf{开源生态} (Meta Llama, DeepSeek, Mistral)
+  \quad\textbf{垂直模型}
+};
+\node[tierlabel=figRed, anchor=east] at ([xshift=-0.3cm]t2.west) {Tier 2};
+\node[chapref, anchor=west] at ([xshift=0.3cm]t2.east) {Ch.\,3};
+
+% === Layer 3: Platform & Middleware ===
+\node[layer=figGreen, above=0.35cm of t2] (t3) {
+  \textbf{LLMOps} (LangChain, LlamaIndex)
+  \quad\textbf{向量数据库} (Pinecone, Weaviate)
+  \quad\textbf{AI安全} (Patronus, Galileo)
+};
+\node[tierlabel=figGreen, anchor=east] at ([xshift=-0.3cm]t3.west) {Tier 3};
+\node[chapref, anchor=west] at ([xshift=0.3cm]t3.east) {Ch.\,4};
+
+% === Layer 4: Developer Tools ===
+\node[layer=figOrange, above=0.35cm of t3] (t4) {
+  \textbf{代码助手} (Cursor, GitHub Copilot, Claude Code)
+  \quad\textbf{AI Agent框架}
+  \quad\textbf{测试/部署}
+};
+\node[tierlabel=figOrange, anchor=east] at ([xshift=-0.3cm]t4.west) {Tier 4};
+\node[chapref, anchor=west] at ([xshift=0.3cm]t4.east) {Ch.\,5};
+
+% === Layer 5: Consumer Applications ===
+\node[layer=figRed!70!figOrange, above=0.35cm of t4] (t5) {
+  \textbf{生产力} (Notion AI, Jasper)
+  \quad\textbf{创意} (Midjourney, Runway, Suno)
+  \quad\textbf{生活} (Character.ai)
+  \quad\textbf{社交}
+};
+\node[tierlabel=figRed!70!figOrange, anchor=east] at ([xshift=-0.3cm]t5.west) {Tier 5};
+\node[chapref, anchor=west] at ([xshift=0.3cm]t5.east) {Ch.\,6--9};
+
+% === Layer 6: Enterprise Applications ===
+\node[layer=figGray, above=0.35cm of t5] (t6) {
+  \textbf{法律} (Harvey)
+  \quad\textbf{医疗} (Hippocratic AI)
+  \quad\textbf{金融} (AlphaSense)
+  \quad\textbf{客服} (Sierra, Decagon)
+  \quad\textbf{销售} (11x)
+};
+\node[tierlabel=figGray, anchor=east] at ([xshift=-0.3cm]t6.west) {Tier 6};
+\node[chapref, anchor=west] at ([xshift=0.3cm]t6.east) {Ch.\,10};
+
+% === Upward arrows (value flow) ===
+\draw[uparrow] ([yshift=0.05cm]t1.north) -- ([yshift=-0.05cm]t2.south);
+\draw[uparrow] ([yshift=0.05cm]t2.north) -- ([yshift=-0.05cm]t3.south);
+\draw[uparrow] ([yshift=0.05cm]t3.north) -- ([yshift=-0.05cm]t4.south);
+\draw[uparrow] ([yshift=0.05cm]t4.north) -- ([yshift=-0.05cm]t5.south);
+\draw[uparrow] ([yshift=0.05cm]t5.north) -- ([yshift=-0.05cm]t6.south);
+
+% === Side annotations ===
+% Left: resource flow
+\draw[{Stealth[length=3pt]}-{Stealth[length=3pt]}, figBlue!60, line width=0.6pt]
+  ([xshift=-2.5cm]t1.west) -- ([xshift=-2.5cm]t6.west)
+  node[midway, left, font=\scriptsize, text=figBlue!80, text width=1.8cm, align=center]
+  {算力/模型能力\\向上流动};
+
+% Right: revenue flow
+\draw[{Stealth[length=3pt]}-{Stealth[length=3pt]}, figRed!60, line width=0.6pt]
+  ([xshift=2.5cm]t6.east) -- ([xshift=2.5cm]t1.east)
+  node[midway, right, font=\scriptsize, text=figRed!80, text width=1.8cm, align=center]
+  {收入/数据\\向下流动};
+
+% === Title ===
+\node[above=0.6cm of t6, font=\bfseries\small, text=figGray]
+  {AI 创业生态六层模型};
+
+\end{tikzpicture}
+\caption{AI创业生态的六层架构。算力和模型能力自下而上流动，收入和
+  用户数据自上而下回流。每一层都有独特的竞争逻辑和商业模式。括号内
+  为该层代表性创业公司。右侧标注对应本书章节。}
+\label{fig:six-tier-model}
+\end{figure}
+
+\begin{corebox}[六层生态模型：全书核心分析框架]
+\small
+本书采用六层模型来组织AI创业生态的全部内容。每层的核心特征如下：
+
+\begin{enumerate}
+  \item \textbf{Tier 1 -- 基础设施层}（第~\ref{ch:infrastructure}~章）：
+    提供算力、芯片和网络的底层"原材料"。特征：极度资本密集
+    （单轮融资动辄10亿美元+）、规模效应显著、与NVIDIA深度绑定。
+    代表公司：CoreWeave（市值\$43.5B）、Lambda Labs、Cerebras、
+    Groq。市场规模：2025年AI基础设施VC投资\$109.3B。
+
+  \item \textbf{Tier 2 -- 模型层}（第~\ref{ch:models}~章）：
+    训练和提供基础模型的能力引擎。特征：研发投入极高、赢者通吃
+    倾向强、开源vs闭源的路线之争。代表公司：OpenAI（估值\$840B）、
+    Anthropic（估值\$380B）、Mistral、DeepSeek。
+
+  \item \textbf{Tier 3 -- 平台与中间件层}（第~\ref{ch:platform}~章）：
+    连接模型能力与应用需求的"胶水层"。包括LLMOps框架、向量数据库、
+    RAG（检索增强生成）、AI安全与评估工具。特征：开源工具主导、
+    商业化路径模糊、平台锁定效应弱。代表公司：LangChain、
+    LlamaIndex、Pinecone、Weaviate。
+
+  \item \textbf{Tier 4 -- 开发者工具层}（第~\ref{ch:devtools}~章）：
+    直接提升软件开发效率的AI工具。特征：PMF（产品-市场契合）信号
+    最强、用户增长最快、商业模式清晰（SaaS订阅）。代表公司：
+    Cursor、Windsurf、Replit、Claude Code（ARR~\$2.5B）。
+
+  \item \textbf{Tier 5 -- C端应用层}（第~\ref{ch:consumer-prod}--\ref{ch:consumer-social}~章）：
+    面向消费者的AI产品，覆盖生产力、创意、生活和社交四大类。
+    特征：市场巨大但竞争激烈、``AI Wrapper''困境突出、品牌和分发
+    渠道是核心壁垒。代表公司：Midjourney、Runway、Character.ai、
+    Perplexity、Suno。
+
+  \item \textbf{Tier 6 -- B端应用层}（第~\ref{ch:enterprise}~章）：
+    面向企业客户的AI解决方案。特征：客单价高、销售周期长、行业
+    know-how是核心壁垒。代表公司：Harvey（法律）、Sierra AI
+    （客服）、Glean（企业搜索）、Writer（企业内容）。
+\end{enumerate}
+
+\medskip
+\noindent\textbf{关键洞察}：越靠近底层，资本密集度越高，竞争壁垒越深，
+但市场集中度也越高（赢者通吃）。越靠近上层，创业门槛越低，公司数量
+越多，但差异化和留存率是核心挑战。\textbf{最大的价值创造往往发生在
+相邻层次的交界处}——例如模型层公司向平台层延伸（OpenAI的Assistants
+API），或开发者工具公司向应用层延伸（Cursor的Agent模式）。
+\end{corebox}
+
+\subsection{每层的竞争逻辑}
+
+为了让六层模型不仅仅是一个分类标签，而是一个真正有分析力的框架，
+我们需要理解每一层独特的竞争逻辑。
+
+\textbf{Tier 1（基础设施层）}的竞争逻辑是\textbf{规模和成本}。
+GPU云是一个典型的规模经济行业——你的数据中心越大，每块GPU的平均
+成本越低（电力谈判、散热效率、维护人员共享等都受益于规模）。
+同时，AI算力需求的爆发式增长意味着"供给侧的确定性"极高——
+不管哪个模型公司或应用公司胜出，它们都需要GPU。这种确定性
+吸引了大量资本涌入，但也导致了对NVIDIA的高度依赖。
+
+\textbf{Tier 2（模型层）}的竞争逻辑是\textbf{能力前沿和生态}。
+在这一层，"谁的模型最好"仍然重要，但已经不是唯一的维度。
+OpenAI的竞争优势越来越多地来自ChatGPT的用户基础（9亿周活）和
+API生态（数百万开发者），而非GPT-5相对Claude~4的微小性能差距。
+开源模型的崛起进一步改变了竞争格局：当Llama~4的性能逼近GPT-5时，
+"最好的模型"与"第二好的模型"之间的差距变得越来越难以商业化。
+
+\textbf{Tier 3（平台层）}的竞争逻辑是\textbf{开发者心智和标准}。
+LangChain的成功不在于它的代码有多精妙，而在于它最早定义了
+LLM应用的构建范式（Chain-of-Thought, RAG pipeline, Agent loop），
+占据了开发者的第一印象。但这一层的护城河极浅——开源工具可以被
+轻易替换，新框架的出现可以在数周内改变开发者偏好。
+
+\textbf{Tier 4（开发者工具层）}的竞争逻辑是\textbf{开发者体验
+（DX）和工作流集成}。Cursor的成功不是因为它使用了"更好的模型"
+（它同时支持OpenAI、Anthropic和开源模型），而是因为它将AI能力
+深度集成到了代码编辑的每一个环节——从代码补全到重构到调试。
+这种产品层面的差异化，比底层模型的选择更能决定胜负。
+
+\textbf{Tier 5（C端应用层）}的竞争逻辑是\textbf{品牌、分发和
+用户体验}。Midjourney没有自己的基础模型，但它通过独特的Discord
+社区文化和精心调教的审美风格，建立了一个AI图像生成领域最强的
+消费者品牌。在这一层，技术壁垒相对较低（每个人都能调用同样的
+API），但产品壁垒可以很高。
+
+\textbf{Tier 6（B端应用层）}的竞争逻辑是\textbf{行业知识和
+客户关系}。Harvey之所以能在AI法律赛道上领先，不是因为它的
+模型比竞争对手强多少，而是因为它积累了数百家律所的使用数据、
+建立了深入的法律行业知识，并且通过PwC等战略合作伙伴获得了
+难以复制的分发渠道。在B端，"会卖"和"懂行业"往往比
+"模型好"更重要。
+
+\begin{table}[htbp]
+\centering
+\caption{六层生态模型：经济特征对比}
+\label{tab:tier-economics}
+\small
+\begin{tabularx}{\textwidth}{l l l l l l}
+\toprule
+\rowcolor{figLightGray}
+ & \textbf{Tier 1} & \textbf{Tier 2} & \textbf{Tier 3}
+ & \textbf{Tier 4} & \textbf{Tier 5--6} \\
+\rowcolor{figLightGray}
+ & \textbf{基础设施} & \textbf{模型} & \textbf{平台}
+ & \textbf{开发工具} & \textbf{应用} \\
+\midrule
+典型融资规模 & \$1B+ & \$1B--100B & \$50--500M
+  & \$50--500M & \$10M--1B \\
+\rowcolor{figLightGray}
+毛利率 & 30--50\% & 50--70\% & 60--80\%
+  & 70--85\% & 60--90\% \\
+核心成本 & GPU+电力 & 训练算力 & 工程人员
+  & 工程+模型API & 获客+模型API \\
+\rowcolor{figLightGray}
+收入模式 & 按时/按量 & API调用 & 开源+企业版
+  & SaaS订阅 & 订阅/按次 \\
+市场集中度 & 高 & 极高 & 中等
+  & 高 & 低--中等 \\
+\rowcolor{figLightGray}
+护城河类型 & 资本+供应链 & 技术+生态 & 社区+标准
+  & 产品体验 & 品牌+数据 \\
+公司数量 & $\sim$100 & $\sim$30 & $\sim$200
+  & $\sim$100 & $\sim$3000+ \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent\textit{毛利率为作者基于公开数据的估算范围。
+公司数量指具有显著融资或用户规模的活跃创业公司，不含大厂内部项目。}
+\end{table}
+
+表~\ref{tab:tier-economics}~揭示了一个重要的结构性特征：
+\textbf{越靠近底层，资本需求越大但公司数量越少；越靠近上层，
+创业门槛越低但竞争越激烈}。Tier 1和Tier 2形成了一个"金字塔
+底部的寡头格局"——少数几家公司控制了大部分市场份额；Tier 5
+和Tier 6则形成了一个"长尾竞争格局"——数千家公司在各自的
+垂直领域激烈厮杀，但每家的市场份额都很小。
+
+另一个值得关注的维度是\textbf{毛利率的分布}。基础设施层的毛利率
+最低（30--50\%），因为其成本结构以硬件折旧和电力为主，难以压缩。
+应用层的毛利率最高（部分纯SaaS产品可达90\%），因为其边际成本
+主要是API调用费——而API价格的持续下降意味着应用层公司的毛利率
+还在改善中。这种利润率结构解释了为什么许多投资者更青睐应用层
+投资——\textbf{同样1美元的收入，应用层公司可能留下0.80美元的
+毛利，而基础设施层公司可能只留下0.35美元}。但应用层的风险在于
+更高的客户获取成本和更低的留存率。
+
+\subsection{层间动力学：价值如何流动}
+
+六层模型不是静态的分类学，而是一个动态系统。理解层间的互动关系，
+对于把握整个生态的演化方向至关重要。
+
+\textbf{向上的能力流}：基础设施层提供的算力，被模型层消耗来训练
+基础模型；模型层的能力通过API和开源权重传递给平台层和开发者工具层；
+平台层和工具层进一步将模型能力包装成易用的接口，最终流向C端和B端
+应用。在这条链路上，\textbf{能力逐层增值}——一块H100 GPU的裸租价
+约\$3/小时，经过模型层、平台层和应用层的层层加工后，最终客户
+支付的可能是\$200/月的SaaS订阅。从\$3/小时的GPU到\$200/月的SaaS，
+中间的价值增值来自模型训练的智力投入、产品设计的用户洞察和行业
+知识的积累。
+
+\textbf{向下的收入流}：收入沿着相反的方向流动。C端和B端用户
+支付的订阅费和使用费，被应用层公司截留一部分后，以API调用费的
+形式流向模型层和平台层，最终以GPU租金和电费的形式流向基础设施层。
+在这条链路上，\textbf{每一层都在争夺利润池}——这是AI行业最核心
+的战略张力之一。当模型层公司直接推出C端产品（如ChatGPT），它
+实质上是在"跳过"中间层来截获更多价值；当应用层公司切换到开源
+模型自建推理，它则是在"绕过"模型层来压缩成本。
+
+\textbf{数据反馈环}：用户产生的数据向下流动，成为模型改进和
+基础设施优化的燃料。ChatGPT积累的数十亿次对话，让OpenAI能够
+持续改进模型的对齐效果和用户体验；企业客户的使用数据，让垂直
+应用公司建立起竞争对手难以复制的行业知识壁垒。这一反馈环意味着
+\textbf{先发优势在AI行业具有特殊的重要性}——越早获得用户，
+越快积累数据飞轮。
+
+\subsection{层间边界的模糊化}
+
+需要特别指出的是，六层模型的边界在实践中正在变得模糊。这种模糊化
+主要体现在三个方向：
+
+\begin{itemize}
+  \item \textbf{垂直整合}：OpenAI从模型层向上延伸到应用层
+    （ChatGPT）、向下延伸到基础设施层（Stargate项目，与SoftBank
+    和Oracle合作建设AI超级数据中心）；CoreWeave从基础设施层
+    向上延伸到平台层（以17亿美元收购Weights \& Biases）；
+  \item \textbf{水平扩展}：Anthropic同时提供基础模型（Claude）、
+    开发者工具（Claude Code）和API平台，横跨Tier 2--4。
+    Constellation Research在2026年2月报道，Claude Code单一
+    产品线的ARR已达约25亿美元——这意味着Anthropic不仅是模型
+    公司，也已经是最大的AI开发者工具公司之一；
+  \item \textbf{新兴中间层}：AI Agent框架的兴起正在Tier 3和
+    Tier 4之间创造一个新的子层级。Agent不是简单的模型调用，
+    也不是传统意义上的开发者工具，而是一种新的计算范式——
+    它需要编排（Orchestration）、记忆（Memory）、工具使用
+    （Tool Use）和安全防护（Guardrails）等组件的协同工作。
+\end{itemize}
+
+尽管如此，六层框架作为分析工具仍然有效——它提供了一个理解生态
+全貌的"脚手架"，即使实际的公司往往跨越多层。在阅读后续章节时，
+读者可以随时回到图~\ref{fig:six-tier-model}~来定位当前讨论的
+公司在生态中的位置。
+
+\subsection{与其他分析框架的对比}
+
+我们的六层模型并非唯一的分析框架。a16z（Andreessen Horowitz）
+在2023年提出了三层模型（基础设施→模型→应用），Sequoia的
+``Generative AI Market Map''使用了类似但更细分的分类。James
+Fahey在2026年3月的分析文章中提出了五层模型（能源→计算→
+软件框架→模型→应用），而另一位分析师Paduma在同月提出了与
+我们类似的六层全栈框架。
+
+我们选择六层而非三层或五层，是因为：
+
+\begin{itemize}
+  \item 三层模型（基础设施/模型/应用）\textbf{过于粗糙}——
+    它将LangChain（平台框架）和Cursor（代码编辑器）归为同一层，
+    但两者的商业模式和竞争逻辑完全不同；
+  \item 将C端和B端应用合并为一层\textbf{掩盖了关键差异}——
+    Midjourney和Harvey的客户获取方式、收入模型和增长路径
+    几乎没有任何共通之处；
+  \item 平台层和开发者工具层的分离\textbf{反映了实际的产业
+    分工}——做向量数据库（Pinecone）和做代码助手（Cursor）的
+    创业者面对的是不同的客户需求、不同的竞争格局和不同的
+    技术挑战。
+\end{itemize}
+
+\subsection{核心争议：``AI Wrapper''困境与护城河问题}
+
+理解六层模型后，一个自然的问题浮现出来——也是2024--2025年AI
+创业界争论最激烈的话题：\textbf{在基础模型能力高度民主化的
+时代，应用层公司还能建立持久的护城河吗？}
+
+``AI Wrapper''一词最早由风投社区用来描述那些"仅仅在OpenAI或
+Anthropic的API上加了一层UI"的创业公司。批评者认为，这些公司
+没有真正的技术壁垒——当底层模型升级时（例如ChatGPT直接添加了
+你的产品功能），你的整个商业价值就蒸发了。最典型的例子是
+2023年的写作助手赛道：数十家基于GPT-3/4 API的写作工具（Jasper,
+Copy.ai, Writesonic等）在ChatGPT添加了长文本写作功能后，面临
+用户流失和增长停滞。
+
+但"AI Wrapper = 没有价值"的论断过于简单化。反驳者指出了几个
+重要的反例：
+
+\begin{itemize}
+  \item \textbf{Cursor}本质上也是"API之上的一层UI"，但它通过
+    深度集成到代码编辑工作流中，创造了极高的用户粘性——开发者
+    一旦习惯了Cursor的Tab补全和Agent模式，就很难切换回去。
+    Cursor的护城河不是模型，而是\textbf{产品体验}；
+  \item \textbf{Midjourney}使用的基础模型是自研的（但并非前沿级），
+    真正的差异化来自对审美风格的精心调教和Discord社区文化。
+    Midjourney的护城河不是模型能力，而是\textbf{品牌和社区}；
+  \item \textbf{Harvey}调用的模型API和任何人都一样，但它在律所
+    客户中建立了深厚的行业信任、积累了大量的法律领域使用数据、
+    并通过PwC等渠道获得了难以复制的分发。Harvey的护城河是
+    \textbf{行业知识和客户关系}；
+  \item \textbf{Perplexity}本质上是"LLM + 搜索"的组合，但它
+    通过持续优化搜索结果的准确性、引用的可信度和用户体验，
+    正在建立自己的搜索索引和数据飞轮。Perplexity的护城河是
+    \textbf{数据资产和用户习惯}。
+\end{itemize}
+
+这些案例的共同启示是：\textbf{在模型能力民主化的时代，护城河
+必须建立在模型之外}——产品体验、品牌认知、行业专精、数据飞轮、
+分发渠道、用户习惯，这些传统软件行业的竞争要素在AI时代不仅
+没有过时，反而因为模型层的同质化而变得更加重要。
+
+更深层的洞察是：\textbf{``AI Wrapper''与``AI产品''之间的区别，
+不在于技术架构（是否调用了API），而在于价值创造的厚度}。如果
+你的产品只是换了一种方式呈现模型输出，那你就是一个Wrapper；
+如果你的产品在模型输出的基础上叠加了工作流自动化、行业知识、
+数据反馈和用户体验的多层价值，那你就是一个产品——即使底层
+调用的是同样的API。
+
+第~\ref{ch:patterns}~章将对这一主题进行更深入的分析，包括
+对AI公司护城河的量化评估框架和历史对比。
+
+
+% =============================================================
+\section{资本注入规模}
+\label{sec:overview-capital}
+% =============================================================
+
+如果ChatGPT是这场浪潮的引信，那么资本就是炸药。2022--2025年间
+流入AI领域的风险投资总量，无论从绝对金额还是占全球VC的比例来看，
+都是科技产业史上前所未有的。
+
+\begin{keybox}[2022--2026 AI 投融资数据汇总]
+\small
+\begin{tabularx}{\textwidth}{l r r r l}
+\toprule
+\rowcolor{figLightGray}
+\textbf{年份} & \textbf{AI VC总额} & \textbf{全球VC总额}
+  & \textbf{AI占比} & \textbf{关键事件} \\
+\midrule
+2022 & \$85.4B  & \$285B  & 30\%
+  & ChatGPT发布；AI VC刚起步 \\
+\rowcolor{figLightGray}
+2023 & \$107B   & \$304B  & 35\%
+  & GPT-4震撼；AI成为VC唯一增长赛道 \\
+2024 & \$131.5B & \$314B  & 42\%
+  & AI融资规模超越2021年总VC的40\% \\
+\rowcolor{figLightGray}
+2025 & \$258.7B & \$427.1B & 61\%
+  & AI吞噬全球VC；OECD历史性数据 \\
+2026H1 & 预计\$150B+ & ---   & 65\%+
+  & OpenAI \$110B、Anthropic \$30B \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent 数据来源：OECD AI Policy Observatory (2026/2); Crunchbase EOY
+2024, 2025 Reports; PitchBook 2024 Global VC Report.
+2026H1为作者基于Q1趋势的估算。
+\end{keybox}
+
+\subsection{数据解读：三个惊人事实}
+
+\textbf{第一，AI VC从30\%到61\%——三年翻倍}。根据OECD在2026年
+2月17日发布的分析报告，AI公司在2025年获得了2587亿美元的风险投资，
+占全球VC总额的61\%。这意味着\textbf{全球每10块风投的美元中，
+有6块流向了AI}。仅仅三年前（2022年），这个比例还只有30\%。
+这种速度的结构性转移在风投历史上绝无仅有——即使是1999年的互联网
+泡沫时期，互联网公司占全球VC的比例也从未超过50\%。
+
+值得注意的是，Crunchbase的数据口径与OECD略有不同——Crunchbase
+在2025年底的报告中统计AI VC约为\$202.3B，占全球的近50\%。差异
+主要来自对"AI公司"的定义范围和数据截止时间的不同。但无论
+使用哪个口径，结论是一致的：\textbf{AI已经成为全球风险投资的
+绝对主导赛道}。
+
+\textbf{第二，基础设施投资独占鳌头}。OECD数据显示，自2023年
+以来，AI基础设施和托管领域持续吸引最大份额的VC资金，2025年
+单年达到1093亿美元，几乎占AI VC总额的一半。自2012年以来，该
+领域的累计投资达到2561亿美元。这反映了一个清晰的资本逻辑：
+在AI产业链中，\textbf{算力是确定性最高、可扩展性最强的环节}
+——你不需要猜测哪个AI应用会胜出，只需要确保它们都需要GPU。
+这是经典的"卖铲子给淘金者"策略，但在AI时代的规模前所未有。
+
+\textbf{第三，美国吸收了75\%的全球AI资本}。美国AI公司在2025年
+获得了约1940亿美元的VC投资，占全球的75\%。紧随其后的是欧盟27国
+（6\%，\$15.8B）、中国（5\%，\$13.9B）和英国（5\%，\$13.8B）。
+从投资者来源看，美国投资者贡献了全球AI VC出资额的56\%（\$124B），
+其次是英国（9\%，\$20.7B）和中国（8\%，\$17.2B）。
+
+美国的主导地位反映了多个结构性优势：最大规模的VC生态、最密集的
+AI人才库（尤其是硅谷/旧金山）、最活跃的IPO和并购退出市场、以及
+最大的本土市场。但75\%的集中度也意味着：\textbf{全球AI创业
+生态的健康度高度依赖于美国资本市场的状态}——如果美国VC进入
+寒冬或科技股经历重大回调，其影响将传导至全球每一个AI创业中心。
+
+\subsection{生成式AI的细分数据}
+
+OECD的报告还提供了专门针对"生成式AI"公司的细分数据。2022年，
+生成式AI公司的VC融资约为28亿美元，仅占AI VC总额的约2\%。到2023年，
+这一数字飙升至153亿美元（占12\%），此后持续增长至2025年的
+353亿美元（占14\%）。
+
+这一数据初看可能令人困惑——生成式AI在2023年后获得了如此多的
+关注，为什么只占AI VC的14\%？答案在于\textbf{定义的宽窄}。
+OECD对"生成式AI公司"的定义较为严格，仅包括直接开发生成式
+模型或以生成式AI为核心产品的公司。而很多AI基础设施公司
+（如CoreWeave）和AI应用公司（如Harvey）虽然深度依赖生成式AI
+技术，但其主营业务并非"生成"本身，因此被归入更广泛的AI类别。
+如果采用更宽泛的定义（"因ChatGPT/大模型浪潮而受益的所有公司"），
+比例将显著更高。
+
+\subsection{超级轮次：十亿美元俱乐部}
+
+AI投融资的另一个显著特征是"超级轮次"（Mega-round）的激增。
+OECD报告指出，自2023年以来，超过1亿美元的"超级交易"占AI VC
+总额的比例持续攀升。到2025--2026年，十亿美元量级的融资轮次已
+不再是新闻，而是常态：
+
+\begin{itemize}
+  \item \textbf{OpenAI}：2026年2月，\$110B融资（由Amazon \$50B +
+    NVIDIA \$30B + SoftBank \$30B构成），估值\$730B pre-money/\$840B
+    post-money——人类历史上最大的私募融资交易；
+  \item \textbf{Anthropic}：2026年2月，\$30B Series G，估值\$380B，
+    由GIC和Coatue领投，微软和NVIDIA参投——科技史上第二大
+    私募融资；
+  \item \textbf{xAI}：2024--2025年累计融资超\$20B，估值\$80B+，
+    由Elon Musk创立，Grok系列模型；
+  \item \textbf{CoreWeave}：2025年3月IPO后市值\$43.5B，此前
+    通过债务+股权融资累计超\$100B——GPU云赛道最大的上市事件；
+  \item \textbf{Databricks}：2024年12月，\$10B Series J，
+    估值\$62B——数据分析平台全面拥抱AI；
+  \item \textbf{Nscale}：2026年3月，\$2B Series C——欧洲AI
+    基础设施新秀。
+\end{itemize}
+
+仅OpenAI和Anthropic两家公司，在2026年前两个月的融资总额就
+达到了\$140B——这个数字超过了大多数国家的年度科技研发预算。
+一个鲜活的对比：日本2025年的全部科技研发预算约为\$140B，
+中国约为\$550B。两家AI创业公司在两个月内的融资，相当于日本
+一年的研发支出。
+
+第~\ref{ch:funding}~章将对融资格局、顶级投资者、YC AI批次
+和退出路径进行详细分析。
+
+\subsection{资本集中度的隐忧}
+
+资本的极度集中引发了两个值得关注的问题。
+
+第一是\textbf{生态健康度}。当2--3家公司吸走了AI VC的大部分
+资金时，其余数千家创业公司实际上在争夺一个相对缩小的资金池。
+Crunchbase在2025年底的分析中指出，排除前10大交易后，AI领域
+的中早期投资增速实际上在放缓——许多投资人将资金向头部集中，
+而非分散到更多早期创业公司。一位不愿具名的VC合伙人在2025年
+TechCrunch的采访中表示："问题不是太多资本流入AI，而是太多
+资本流入\textbf{同样的}AI公司。种子轮和A轮的创业者实际上
+比两年前更难融资。"
+
+第二是\textbf{估值合理性}。OpenAI 8400亿美元的估值意味着市场
+期望它成为一家"AI时代的Google+AWS"。但OpenAI 2025年的营收
+约85亿美元，仍处于亏损状态——8400亿美元估值对应约100倍的
+市销率（PS ratio）。即使以科技行业的标准，这一估值也需要
+极其激进的增长假设才能支撑。同样，Anthropic的3800亿美元估值
+对应约27倍的ARR倍数（基于\$14B ARR）——虽然比OpenAI更"合理"，
+但仍然远高于传统SaaS公司6--12倍ARR的估值范围。
+
+PitchBook的分析师在2025年初观察到，部分VC认为AI投资中的
+资本过度集中"正在对市场产生扭曲效应"。当少数超级融资轮
+占据了大部分头条和LP注意力时，整个生态的多样性和创新密度
+可能会受到影响。
+
+这并不意味着这些公司一定被高估——AI可能确实是一个万亿美元级的
+市场机遇。但历史告诉我们，\textbf{当资本集中度超过技术不确定性
+能够支撑的范围时，周期性调整几乎是不可避免的}。1999年的
+互联网泡沫中，Amazon和Google最终证明了自己的价值，但数百家
+同时期的互联网公司消失了。AI时代的OpenAI和Anthropic可能
+就是下一个Amazon和Google——但这不意味着沿途不会有剧烈的波动
+和大量的淘汰。
+
+\subsection{资本在六层模型中的分布}
+
+将融资数据映射到六层模型，可以揭示资本流向的结构性偏好：
+
+\textbf{Tier 1（基础设施层）}在2025年吸引了最大份额的AI VC——
+OECD数据显示约\$109.3B。CoreWeave的IPO、Lambda的E轮、Crusoe的
+E轮，每一笔都是数十亿美元量级。基础设施层的资本密集度是由物理
+现实决定的：一座1GW的数据中心园区的建设成本在\$10--20B之间，
+你不可能用种子轮的资金来建数据中心。
+
+\textbf{Tier 2（模型层）}的融资集中度最高——OpenAI和Anthropic
+两家公司就占据了该层90\%以上的资金。其余模型层公司（Mistral、
+Cohere、AI21 Labs等）虽然也获得了可观的融资，但与头部两家的
+差距是数量级的。这种极端的集中度反映了模型层"赢者通吃"的
+竞争特征。
+
+\textbf{Tier 3--4（平台和开发工具层）}的融资规模相对较小——
+大多数公司的融资在\$50M--500M区间。这一层的资本需求较低
+（主要是工程人才成本），但竞争激烈且护城河不确定，因此
+投资者的单笔投入更为谨慎。
+
+\textbf{Tier 5--6（应用层）}的融资呈现"长尾分布"：少数头部
+公司（如Perplexity估值\$20B、Glean估值\$4.6B）获得了大额
+融资，但绝大多数应用层公司仍处于种子轮到B轮阶段，融资在
+\$5M--50M区间。PitchBook在2024年底的分析中指出，AI应用层的
+种子轮融资中位数约为\$4M——虽然比传统SaaS高50\%，但与基础
+设施层和模型层的资金规模相比仍然很小。
+
+这种分层的融资结构有一个直觉上的解释：\textbf{越靠近底层，
+资本需求越可预测（你知道你需要多少块GPU），投资回报也越可
+预测（你知道GPU云的毛利率大概是多少）；越靠近上层，产品-市场
+契合的不确定性越高，因此投资者倾向于投入更小的金额来分散风险}。
+这也解释了为什么许多投资者选择"投基础设施"而非"投应用"
+——前者的确定性更高，即使回报率的天花板可能更低。
+
+
+% =============================================================
+\section{地理分布}
+\label{sec:overview-geography}
+% =============================================================
+
+AI创业浪潮虽然是全球性的，但其地理分布高度不均衡。不同城市和
+国家在创业密度、融资规模和技术专长方面呈现出鲜明的差异化格局。
+一份AI Funding Weekly在2026年3月的分析覆盖了122轮融资、98家
+公司、总计\$65.3B的公开融资数据——结果显示市场"仍然绝对性地
+由旧金山湾区主导，但资本正在有意义地流向纽约、巴黎、伦敦和
+其他新兴中心"。
+
+\subsection{美国：硅谷独大，但纽约崛起}
+
+美国毫无悬念地是全球AI创业的绝对中心。2025年，美国AI公司获得了
+全球75\%的AI VC投资（\$194B），遥遥领先于任何其他国家。这种
+主导地位的根源是多方面的：全球最大的VC基金池、最密集的AI研究
+人才（斯坦福、MIT、Berkeley等顶尖高校持续输出）、最活跃的
+科技人才流动市场、以及美国本土企业对AI采购的巨大需求。
+
+在美国内部，\textbf{旧金山/硅谷}仍然是AI创业密度最高的区域。
+OpenAI、Anthropic、Meta AI、Cursor、Midjourney、Sierra AI等
+最具影响力的AI公司几乎全部总部设在旧金山或硅谷。Startup Genome
+的2024年数据显示，硅谷的风投资金中有62.4\%流向了AI原生公司——
+仅次于北京的66.2\%。更重要的是，旧金山的AI创业生态拥有无与伦比
+的\textbf{网络密度}：创始人、投资人、工程师和潜在客户在同一个
+城市中频繁互动，信息传播速度极快，人才流动极为便利。一位创始人
+在Hayes Valley的咖啡馆遇到一位前OpenAI工程师，下午就可以在
+South Park的投资人办公室做pitch——这种物理层面的网络效应是远程
+协作无法替代的。
+
+但\textbf{纽约}正在崛起为美国的第二大AI创业中心。2026年初的
+分析显示，纽约在AI融资总额上位居全球第二。Harvey（AI法律）、
+Perplexity（AI搜索）等标志性公司选择纽约作为总部，反映了
+应用层AI公司对金融、法律、媒体等行业人才的需求。纽约的优势
+在于它是\textbf{B端AI应用的天然市场}——全球最大的金融机构、
+律所、媒体公司和咨询公司都聚集于此，AI公司可以在"隔壁"
+找到最挑剔、最愿意付费的企业客户。
+
+\textbf{西雅图}（紧邻微软和亚马逊总部）发展出了独特的AI+云计算
+创业集群。\textbf{洛杉矶}凭借其好莱坞和创意产业的传统，成为
+AI视频/影视/音乐赛道的重要创业地点（Runway的部分团队、Stability
+AI的前总部都在此）。\textbf{奥斯汀}和\textbf{迈阿密}则作为
+硅谷的"溢出区"，吸引了一些追求更低生活成本和更友好税收政策
+的AI创业者。
+
+\subsection{中国：北京为核心的多极格局}
+
+中国是全球第二大AI创业市场，但其在全球AI VC中的份额（5\%，
+\$13.9B）可能显著低估了实际规模——许多中国AI公司的融资通过
+非传统渠道（如政府引导基金、国企战略投资、地方产业基金）进行，
+并不完全反映在全球VC数据中。此外，中国的AI研发在很大程度上
+由大型科技公司（百度、阿里、腾讯、字节跳动、华为）内部驱动，
+这些投入不计入VC统计。
+
+\textbf{北京}是无可争议的中国AI创业中心。Startup Genome的
+数据显示，北京的风投资金中有66.2\%流向AI原生公司——
+这一比例全球第一，超过了硅谷。北京的优势是高度集中的
+\textbf{产学研一体化生态}：清华大学的NLP实验室输出了智谱AI
+和月之暗面的核心团队；北大、中科院计算所等机构同样是AI人才
+的摇篮。中关村和海淀区形成了类似硅谷沙丘路的AI创业集群——
+从基础模型公司（智谱、月之暗面、百川）到应用层公司（百度
+文心一言、Kimi）再到AI芯片公司（寒武纪、地平线），全产业链
+一应俱全。
+
+\textbf{上海}是中国AI创业的第二极。MiniMax（已在港交所上市，
+市值一度突破千亿港元）和阶跃星辰（Step Fun）等公司总部位于此。
+上海的优势在于其国际化程度和金融资源——上海是中国与全球资本
+市场连接最紧密的城市，港交所上市的便利性吸引了越来越多的
+AI公司将总部设在上海或至少在此设立融资团队。
+
+\textbf{深圳}依托硬件供应链优势（华强北和珠三角的制造业集群），
+在AI终端设备和边缘计算方面形成了独特的创业集群。\textbf{杭州}
+以阿里巴巴为核心，在电商AI和企业服务AI方面有较强的生态。
+\textbf{武汉}和\textbf{成都}等二线城市也在地方政府的大力支持
+下发展出了各自的AI创业集群。
+
+中国AI创业的独特性——从DeepSeek的效率革命到智谱和MiniMax的
+港交所上市潮，从开源拥抱到美国芯片限制下的自主创新——将在
+第~\ref{ch:china}~章详细展开。
+
+\subsection{欧洲：巴黎和伦敦的双雄争霸}
+
+欧洲AI创业生态的发展在2023--2025年间经历了质的飞跃。长期以来，
+欧洲被认为是AI研究的温床但创业的荒漠——DeepMind（伦敦）、
+Hugging Face（巴黎）等标志性公司的存在证明了欧洲的研究实力，
+但缺少真正的"超级独角兽"让欧洲在全球AI商业版图上显得力不从心。
+Mistral AI的出现改变了这一叙事。
+
+\textbf{巴黎}凭借Mistral AI的横空出世一举成为欧洲AI的旗帜城市。
+Mistral由前DeepMind研究员Arthur Mensch和前Meta研究员Guillaume
+Lample、Timoth\'{e}e Lacroix于2023年在巴黎创立，仅两年时间就
+成长为估值超过60亿美元的欧洲最大AI独角兽。Startup Genome数据
+显示，巴黎43.2\%的风投资金流向AI原生公司——这一比例在欧洲城市
+中遥遥领先。法国政府的"AI先锋"（AI Champions）战略和相对
+宽松的AI监管环境（与欧盟AI Act的谨慎立场形成有趣的对比）是
+重要的推动力。巴黎还拥有世界级的AI研究生态：INRIA、
+\'{E}cole Polytechnique、ENS等机构培养的研究人才构成了创业
+公司的核心团队。
+
+\textbf{伦敦}作为传统的欧洲科技重镇，在AI领域同样表现出色。
+Google DeepMind的总部位于伦敦，拥有超过3000名研究人员——这是
+全球最大的AI研究机构之一。Stability AI（虽然经历了管理层动荡）、
+Synthesia（AI视频生成）、Wayve（自动驾驶）等知名AI公司也以
+伦敦为基地。英国在2025年吸引了\$13.8B的AI VC投资，占全球的
+5\%——考虑到英国的经济体量（全球第六），这一份额相当可观。
+伦敦的优势在于其作为\textbf{全球金融中心}的地位——金融AI和
+合规AI是伦敦AI创业的特色赛道。
+
+\textbf{柏林}以其强大的企业SaaS生态为基础，发展出了独特的B2B
+AI创业集群。\textbf{海德堡}的Aleph Alpha是德国政府力推的
+"国家冠军"AI公司。\textbf{阿姆斯特丹}成为AI基础设施公司的
+欧洲基地——Nebius（前Yandex海外业务）就将总部设在此处。
+
+\subsection{以色列：人均密度第一}
+
+\textbf{特拉维夫}在Startup Genome 2025年的全球创业生态排名中
+位列第四——对于一个人口不到1000万的国家来说，这一排名意味着
+以色列的人均AI创业密度可能是全球最高的。
+
+以色列的AI创业优势源于其独特的"军事-学术-创业"三角循环。
+"8200部队"（Unit 8200）等精英军事情报单位在服役期间培养的
+信号处理、数据分析和网络安全技术人才，退伍后大量流入创业
+生态。这种独特的人才管道在全球AI竞争中提供了差异化优势——
+\textbf{AI安全、AI网络防御和AI情报分析}是以色列AI创业者
+最擅长的领域。AI21 Labs（大模型）、Run:ai（被NVIDIA收购的
+GPU编排软件）等公司代表了以色列AI生态的实力。
+
+\subsection{亚太新兴力量}
+
+\textbf{新加坡}正在打造自己的"亚太AI枢纽"地位。GIC
+（新加坡主权财富基金）是Anthropic等顶级AI公司的主要投资者；
+Temasek同样在AI领域大量布局。新加坡政府通过AI Singapore等
+国家级项目积极吸引AI人才和公司，并通过优惠的税收政策和签证
+制度降低AI创业者的准入门槛。Startup Genome数据显示，新加坡
+17.1\%的风投资金流向AI原生公司。新加坡的独特优势在于其作为
+东南亚（7亿人口市场）\textbf{门户}的地位——许多面向东南亚
+市场的AI公司选择新加坡作为总部。
+
+\textbf{班加罗尔}是印度AI创业的中心。印度拥有全球最大的软件
+工程师人才库之一，大量AI公司（尤其是B2B AI应用和AI外包）从
+班加罗尔起步。Krutrim（由Ola创始人创立的AI基础模型公司）和
+Sarvam AI等公司代表了印度AI创业的新方向——从纯粹的AI应用
+开发转向基础模型研发。
+
+\textbf{首尔}和\textbf{东京}分别依托韩国和日本的大型科技
+集团（三星、Naver、索尼、NTT）发展AI创业生态。东京在Startup
+Genome的数据中以16.2\%的AI融资占比位列全球前十。值得注意的是
+东京的Sakana AI——由前Google Brain研究主管David Ha和前Google
+研究员Llion Jones（Transformer论文"Attention is All You Need"
+的共同作者）在东京创立——代表了一种新的AI创业模式：全球顶尖
+人才选择在非传统AI中心城市创业。
+
+\subsection{中东：新兴的AI野心}
+
+\textbf{利雅得}和\textbf{阿布扎比}正在以主权财富基金为杠杆
+强势进入AI领域。阿布扎比的Technology Innovation Institute（TII）
+发布了Falcon系列开源大模型；沙特的NEOM项目将AI基础设施作为
+核心组件；沙特数据和人工智能管理局（SDAIA）正在推动全国范围
+的AI采用战略。
+
+中东国家的优势在于两点：\textbf{充裕的资本}和\textbf{低成本
+能源}。AI数据中心是能源密集型产业——一座1GW的数据中心园区
+每年的电力成本可达数亿美元。中东拥有全球最低的发电成本之一
+（沙特的太阳能电价已低至\$0.01/kWh），这为建设大规模AI算力
+设施提供了天然的经济优势。
+
+这些国家的AI野心从"被动投资"（通过主权基金投资硅谷AI公司）
+转向"主动建设"（自建AI基础设施、培养本土AI人才、发展本土AI
+公司），正在重塑全球AI基础设施的地理版图。2026年初的一个
+标志性信号是：多家美国AI公司开始在中东设立研发中心或数据中心
+节点，以获取当地的资本和能源资源。
+
+\begin{table}[htbp]
+\centering
+\caption{全球主要AI创业城市一览（2025--2026年）}
+\label{tab:geo-overview}
+\small
+\begin{tabularx}{\textwidth}{l l X l}
+\toprule
+\rowcolor{figLightGray}
+\textbf{城市/区域} & \textbf{AI融资占比} & \textbf{代表公司}
+  & \textbf{核心优势} \\
+\midrule
+旧金山/硅谷 & 62.4\%
+  & OpenAI, Anthropic, Cursor, Midjourney
+  & 人才+资本+生态密度 \\
+\rowcolor{figLightGray}
+北京 & 66.2\%
+  & 智谱AI, 月之暗面, 百川, DeepSeek
+  & 高校集群+政府支持 \\
+纽约 & 14.2\%
+  & Harvey, Perplexity
+  & 金融/法律行业人才 \\
+\rowcolor{figLightGray}
+巴黎 & 43.2\%
+  & Mistral AI, H (ex-Hugging Face)
+  & 研究人才+政策支持 \\
+伦敦 & ---
+  & DeepMind, Stability AI, Synthesia
+  & 研究传统+欧洲门户 \\
+\rowcolor{figLightGray}
+特拉维夫 & ---
+  & AI21 Labs, Run:ai (NVIDIA收购)
+  & 人均密度第一+军事背景 \\
+上海 & 21.5\%
+  & MiniMax, 阶跃星辰
+  & 国际化+金融资源 \\
+\rowcolor{figLightGray}
+新加坡 & 17.1\%
+  & ---
+  & 亚太枢纽+主权基金 \\
+东京 & 16.2\%
+  & Sakana AI, Preferred Networks
+  & 科技集团生态 \\
+\rowcolor{figLightGray}
+班加罗尔 & ---
+  & Krutrim, Sarvam AI
+  & 工程师人才库 \\
+利雅得/阿布扎比 & ---
+  & TII (Falcon), SDAIA
+  & 资本+能源成本 \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\noindent\textit{``AI融资占比''指该区域风投资金中流向AI原生公司的比例。
+数据来源：Startup Genome 2024--2025; OECD AI Policy Observatory;
+Visual Capitalist 2025; 各公司公开信息。
+``---''表示该城市未进入Startup Genome前十排名或数据不可得。}
+\end{table}
+
+\subsection{地缘政治对地理分布的影响}
+
+AI创业的地理分布不仅受市场力量驱动，也深受地缘政治的塑造。
+两个最突出的因素是：
+
+\textbf{美国对华芯片出口管制}。自2022年10月美国商务部发布
+首批AI芯片出口限制以来，中国AI公司获取最先进NVIDIA GPU的
+渠道被大幅收窄。这一政策产生了双重效果：一方面，它限制了
+中国AI公司训练超大规模模型的能力（虽然DeepSeek R1证明了
+效率路线可以部分弥补这一限制）；另一方面，它加速了中国
+本土AI芯片（寒武纪、华为昇腾、壁仞科技等）和替代架构
+的研发——参见第~\ref{ch:infrastructure}~章中国芯片部分。
+
+\textbf{欧盟AI法案}。2024年通过的《欧盟人工智能法案》
+（EU AI Act）是全球首部全面的AI监管法规。虽然其最严格的
+条款主要针对"高风险AI系统"，但其合规要求对AI创业公司的
+运营成本和产品设计产生了实质性影响。一些分析师认为，这一
+法规可能加速AI创业从欧洲向美国和亚洲的"搬迁"——但也有人
+指出，合规要求反而可能催生一批专注于"可信AI"的欧洲创业
+公司，类似于GDPR催生了隐私科技赛道。
+
+\textbf{AI人才的跨境流动}。AI创业的地理分布在很大程度上追随
+顶尖AI人才的流动。一个引人注目的现象是：大量中国、印度和欧洲
+的AI研究人才在完成博士学位后留在美国工作和创业。OpenAI、Google
+DeepMind和Anthropic的研究团队中，超过一半的成员出生在美国以外。
+这种人才虹吸效应是美国AI主导地位的重要支柱——但也意味着，如果
+签证政策收紧或其他国家提供更有吸引力的条件，美国的优势可能
+被削弱。
+
+反向流动同样值得关注。近年来，越来越多的在美华人AI研究者选择
+回国创业——智谱AI（清华系）、月之暗面（Moonshot AI）和阶跃星辰
+的核心团队中都有大量海归。DeepSeek的核心研发团队也包含多位在
+Google和Meta有过经验的研究者。这种人才回流正在加速中国AI创业
+生态的技术积累，并产生独特的"融合创新"——将硅谷的工程文化
+与中国的市场规模和执行速度相结合。
+
+\textbf{数据主权和本地化要求}。越来越多的国家和地区要求AI系统
+在本地处理用户数据，不得跨境传输。这一趋势正在催生"本地化AI
+基础设施"的需求——每个主要市场都需要自己的数据中心、自己的
+模型服务节点，甚至自己版本的微调模型。对于创业公司来说，这既
+是挑战（增加了运营复杂性），也是机遇（在特定市场创造了本地
+竞争者的空间）。第~\ref{ch:global}~章将更详细地讨论全球AI
+治理格局对创业的影响。
+
+\subsection{未来的地理演化趋势}
+
+综合以上分析，我们预期AI创业的地理版图将沿以下方向演化：
+
+\begin{enumerate}
+  \item \textbf{美国的主导地位会持续，但份额会缓慢下降}——从
+    2025年的75\%可能降至2028年的65--70\%，随着欧洲和亚洲
+    生态的成熟；
+  \item \textbf{中国将发展出自给自足的平行生态}——在芯片限制
+    的推动下，从基础设施到应用的完整自主链条正在形成，
+    但与全球（尤其是美国）生态的技术交流将受限；
+  \item \textbf{中东将成为AI基础设施的重要增量来源}——廉价
+    能源和充裕资本的组合，使其成为大规模AI数据中心建设的
+    天然选址；
+  \item \textbf{应用层创业的地理分布将更加分散}——模型能力的
+    民主化意味着任何城市的创业者都可以获得世界级的AI能力，
+    差异化将越来越多地来自对本地市场需求的理解。
+\end{enumerate}
+
+
+% =============================================================
+\section{本书与 \textit{Emergence} 的关系}
+\label{sec:overview-emergence}
+% =============================================================
+
+\textit{The AI Startup Landscape}是\textit{Emergence: A Survey
+of Emerging Capabilities in Large Language Models}的姊妹篇。
+两本书共同构成了理解当代AI革命的完整图景，但各自的视角和
+目标截然不同。
+
+\subsection{两本书回答的不同问题}
+
+\textit{Emergence}回答的核心问题是：\textbf{大语言模型如何工作？}
+它从Transformer架构出发，依次深入预训练、对齐、推理、多模态、
+Agent等技术维度，构建了一个完整的LLM技术栈。读完\textit{Emergence}
+的15章，读者应当能够理解从注意力机制到RLHF、从Scaling Laws到
+Chain-of-Thought的全部关键技术概念。
+
+本书回答的核心问题是：\textbf{谁在用这些技术做什么？}它从商业
+和创业的视角出发，依次审视基础设施、模型公司、平台工具、消费者
+应用、企业应用等每一个赛道的创业公司、商业模式、融资数据和
+竞争格局。读完本书，读者应当能够绘制出整个AI创业生态的完整地图。
+
+用一个类比来说：如果\textit{Emergence}是一本关于发动机原理的
+工程手册，那么本书就是一本关于汽车产业的商业调查报告——从整车
+制造商到零部件供应商，从经销商到售后服务，从融资结构到地缘竞争。
+一个好的汽车分析师需要理解发动机是怎么工作的，但他的核心关注点
+是市场份额、定价策略和竞争格局——而不是活塞的材料学。同理，
+一个好的AI创业分析需要理解Transformer是怎么工作的，但核心关注点
+是商业模式、护城河和市场机遇。
+
+\subsection{读者假设}
+
+本书假设读者已经阅读过\textit{Emergence}的全部15章，或至少
+对以下概念有基本了解：
+
+\begin{itemize}
+  \item Transformer架构和自注意力机制（\textit{Emergence} Ch.1--2）
+  \item 分词与数据工程（Ch.3--4）
+  \item 预训练、Scaling Laws和涌现能力（Ch.5）
+  \item MoE架构（Ch.6）和长上下文技术（Ch.7）
+  \item 后训练：微调与对齐（RLHF/DPO）（Ch.8）
+  \item 推理优化和模型量化（Ch.9）
+  \item 推理时计算缩放和思维链（Chain-of-Thought）（Ch.10）
+  \item 评估与安全（Ch.11）
+  \item AI Agent和工具使用（Ch.15）
+  \item 前沿实验室的技术路线（Ch.12）
+\end{itemize}
+
+对于未读过\textit{Emergence}的读者，本书也并非完全不可读——
+我们在每个涉及技术概念的地方都会给出足够的上下文。但深度理解
+某些战略讨论（例如为什么MoE架构对模型层的竞争格局如此重要，
+或者为什么FlashAttention是推理成本下降的关键驱动力）确实需要
+\textit{Emergence}提供的技术背景。
+
+\subsection{交叉引用约定与关键映射}
+
+本书中对\textit{Emergence}的引用采用以下格式：
+\begin{itemize}
+  \item ``参见\textit{Emergence} Ch.5''表示参考\textit{Emergence}
+    第五章的完整内容；
+  \item ``参见\textit{Emergence} \S9.3''表示参考第九章第三节的
+    具体讨论。
+\end{itemize}
+
+以下是两本书之间最重要的内容映射：
+
+\begin{table}[htbp]
+\centering
+\caption{本书与\textit{Emergence}的交叉引用指南}
+\label{tab:cross-reference}
+\small
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+\rowcolor{figLightGray}
+\textbf{本书章节} & \textbf{讨论主题}
+  & \textbf{\textit{Emergence}对应章节} \\
+\midrule
+Ch.2 基础设施
+  & GPU架构、训练并行策略
+  & Ch.5 预训练; Ch.9 推理优化 \\
+\rowcolor{figLightGray}
+Ch.3 模型层
+  & 模型架构选择、开源vs闭源
+  & Ch.5 预训练; Ch.12 团队与组织 \\
+Ch.4 平台层
+  & RAG、向量搜索、对齐技术
+  & Ch.7 长上下文; Ch.8 后训练（对齐） \\
+\rowcolor{figLightGray}
+Ch.5 开发者工具
+  & 代码生成、Agent编程
+  & Ch.10 推理时计算; Ch.15 Agent大战 \\
+Ch.6--9 C端应用
+  & 多模态生成、对话系统
+  & Ch.7 长上下文; Ch.8 后训练 \\
+\rowcolor{figLightGray}
+Ch.10 企业应用
+  & 企业RAG、领域微调
+  & Ch.7 长上下文; Ch.8 后训练 \\
+Ch.11 中国
+  & DeepSeek技术路线、MoE架构
+  & Ch.5 预训练; Ch.6 MoE \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+本书内部的交叉引用使用标准的 \LaTeX{} 引用格式（如
+``第~\ref{ch:infrastructure}~章''）。
+
+\subsection{从技术到商业：翻译的艺术}
+
+本书试图在\textit{Emergence}的技术叙事和商业现实之间搭建一座
+桥梁。这种"翻译"并非简单的对应关系，而涉及一种根本性的视角
+转换：
+
+\textit{Emergence}中讨论的技术概念，在本书中往往以完全不同的
+面貌出现。例如：
+\begin{itemize}
+  \item \textit{Emergence}第五章讨论的Scaling Laws，在本书中
+    体现为模型公司的\textbf{融资逻辑}——投资者用Scaling Laws
+    来合理化天文数字的投入；
+  \item \textit{Emergence}第九章讨论的推理优化技术，在本书中
+    体现为推理平台的\textbf{竞争差异化}——FlashAttention不只是
+    一个算法，而是Together AI的核心商业壁垒；
+  \item \textit{Emergence}第十五章讨论的AI Agent架构，在本书中
+    体现为一个全新的\textbf{创业赛道}——Agent框架公司、Agent
+    编程工具、Agent安全监控等数百家创业公司正在围绕这一技术
+    概念构建商业价值；
+  \item \textit{Emergence}第八章讨论的RLHF对齐技术，在本书中
+    体现为Anthropic的\textbf{品牌战略}——"最安全的AI"不只是
+    技术描述，而是价值数千亿美元的商业定位。
+\end{itemize}
+
+理解这种"技术-商业翻译"的能力，对于在AI领域做出明智决策
+至关重要——无论你是投资者、创业者还是技术从业者。
+
+
+% =============================================================
+\section{阅读指南}
+\label{sec:overview-reading-guide}
+% =============================================================
+
+本书共16章（含附录），总计约20万字。虽然章节按照六层模型的
+逻辑顺序排列，但读者完全可以根据自己的兴趣和需求跳读。
+以下是几条推荐的阅读路径：
+
+\subsection{按兴趣跳读}
+
+\textbf{路径A：投资者视角}——如果你是风险投资人或关注AI
+投资机会的读者，建议按以下顺序阅读：
+\begin{enumerate}
+  \item 第1章（本章）：全景概览，建立六层框架认知
+  \item 第~\ref{ch:funding}~章：融资全景与投资者分析——了解
+    谁在投资什么、超级轮次的逻辑、YC AI批次的全貌
+  \item 第~\ref{ch:patterns}~章：成功与失败模式——哪些创业
+    模式有效、哪些是陷阱、如何评估AI公司的护城河
+  \item 然后按兴趣选读具体赛道章节——每个赛道章节都包含
+    详细的公司分析、融资数据和竞争格局
+  \item 第~\ref{ch:outlook}~章：未来展望——判断接下来的投资机遇
+\end{enumerate}
+
+\textbf{路径B：创业者视角}——如果你正在或即将在AI领域创业，
+建议按以下顺序阅读：
+\begin{enumerate}
+  \item 第1章（本章）：定位你的创业方向在六层模型中的位置
+  \item 你所在赛道对应的章节（如开发者工具→第~\ref{ch:devtools}~章）
+    ——深入了解你的直接竞争对手和市场格局
+  \item 上下游相邻层的章节：了解你的供应商和客户——例如做应用层
+    的创业者需要理解模型层（你的供应商）和企业客户（你的买家）
+  \item 第~\ref{ch:patterns}~章：成功与失败模式——从前人的经验
+    和教训中学习
+  \item 第~\ref{ch:outlook}~章：未来展望——评估你的赛道的
+    长期方向
+\end{enumerate}
+
+\textbf{路径C：技术从业者视角}——如果你是AI工程师或研究员，
+对商业生态感到好奇：
+\begin{enumerate}
+  \item 第1章（本章）：建立全景认知——理解你的技术工作在
+    整个商业生态中的位置
+  \item 第~\ref{ch:infrastructure}~章：理解你工作的基础设施
+    ——GPU云、训练集群和推理优化的商业逻辑
+  \item 第~\ref{ch:models}~章：了解模型公司的战略选择——
+    开源vs闭源、通用vs垂直、效率vs规模
+  \item 第~\ref{ch:devtools}~章：评估开发者工具的演化方向——
+    作为AI工具的"超级用户"，你的选择直接影响市场格局
+\end{enumerate}
+
+\textbf{路径D：中国生态深潜}——如果你特别关注中国AI创业生态：
+\begin{enumerate}
+  \item 第1章（本章）：全球背景——理解中国AI创业在全球版图
+    中的位置
+  \item 第~\ref{ch:china}~章：中国AI创业全景——从百模大战到
+    DeepSeek震荡到港交所上市潮
+  \item 第~\ref{ch:global}~章：全球格局中的中国定位——中美
+    竞争、芯片限制和自主创新
+  \item 各赛道章节中的中国公司部分——每个赛道章节都包含
+    中国市场的专门讨论
+\end{enumerate}
+
+\textbf{路径E：快速浏览}——如果你时间有限，只想用最短的时间
+获得全局认知：
+\begin{enumerate}
+  \item 第1章（本章）：全景概览
+  \item 每个赛道章节的开头部分和corebox/keybox——这些高亮框
+    包含了每个赛道最核心的框架和数据
+  \item 第~\ref{ch:outlook}~章：未来展望
+\end{enumerate}
+
+\textbf{路径F：产品经理视角}——如果你是产品经理或产品设计师，
+想理解AI产品的设计空间：
+\begin{enumerate}
+  \item 第1章（本章）：建立对全生态的理解
+  \item 第~\ref{ch:devtools}~章：开发者工具——AI产品设计的
+    最前沿，Cursor、Claude Code等产品如何重新定义人机交互
+  \item 第~\ref{ch:consumer-prod}~章：消费者生产力应用——
+    AI如何嵌入日常工作流，从Notion AI到Gamma
+  \item 第~\ref{ch:consumer-create}~章：消费者创意应用——
+    Midjourney、Runway如何改变创意工作的范式
+  \item 第~\ref{ch:patterns}~章：成功与失败模式——什么样的
+    AI产品设计有效，什么样的是陷阱
+\end{enumerate}
+
+\medskip
+
+无论你选择哪条路径，请记住本章建立的六层模型是全书的导航系统。
+当你在某个具体赛道的细节中迷失方向时，回到图~\ref{fig:six-tier-model}
+——它会帮助你将局部的分析重新放入全局的框架中。
+
+\subsection{章节依赖关系}
+
+% === Chapter Dependency TikZ Figure ===
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  chnode/.style={
+    draw=figGray!60, fill=figLightGray, rounded corners=3pt,
+    font=\scriptsize, minimum height=0.7cm, minimum width=2.2cm,
+    align=center, line width=0.5pt,
+  },
+  depedge/.style={
+    -{Stealth[length=3pt]}, figGray!60, line width=0.5pt,
+  },
+  strongedge/.style={
+    -{Stealth[length=3pt]}, figBlue, line width=0.8pt,
+  },
+]
+
+% Row 1: Foundation
+\node[chnode, fill=figBlue!12, draw=figBlue!50] (ch1) at (0, 0) {Ch.1 全景};
+
+% Row 2: Core layers
+\node[chnode, fill=figBlue!12, draw=figBlue!50] (ch2) at (-4.5, -1.5) {Ch.2 基础设施};
+\node[chnode, fill=figRed!12, draw=figRed!50] (ch3) at (-1.5, -1.5) {Ch.3 模型层};
+\node[chnode, fill=figGreen!12, draw=figGreen!50] (ch4) at (1.5, -1.5) {Ch.4 平台层};
+\node[chnode, fill=figOrange!12, draw=figOrange!50] (ch5) at (4.5, -1.5) {Ch.5 开发工具};
+
+% Row 3: Applications
+\node[chnode] (ch6) at (-4.5, -3) {Ch.6 生产力};
+\node[chnode] (ch7) at (-1.5, -3) {Ch.7 创意};
+\node[chnode] (ch8) at (1.5, -3) {Ch.8 生活};
+\node[chnode] (ch9) at (4.5, -3) {Ch.9 社交};
+\node[chnode] (ch10) at (7, -3) {Ch.10 企业};
+
+% Row 4: Cross-cutting
+\node[chnode, fill=figRed!8, draw=figRed!40] (ch11) at (-3, -4.5) {Ch.11 中国};
+\node[chnode, fill=figRed!8, draw=figRed!40] (ch12) at (0, -4.5) {Ch.12 全球};
+\node[chnode, fill=figGreen!8, draw=figGreen!40] (ch13) at (3, -4.5) {Ch.13 融资};
+\node[chnode, fill=figOrange!8, draw=figOrange!40] (ch14) at (6, -4.5) {Ch.14 模式};
+
+% Row 5: Conclusion
+\node[chnode, fill=figGray!15, draw=figGray] (ch15) at (1.5, -6) {Ch.15 展望};
+
+% Strong dependencies from Ch.1
+\foreach \target in {ch2, ch3, ch4, ch5}
+  \draw[strongedge] (ch1) -- (\target);
+
+% Moderate dependencies
+\draw[depedge] (ch2) -- (ch3);
+\draw[depedge] (ch3) -- (ch4);
+\draw[depedge] (ch4) -- (ch5);
+
+% Application dependencies
+\draw[depedge] (ch4) -- (ch6);
+\draw[depedge] (ch4) -- (ch7);
+\draw[depedge] (ch4) -- (ch8);
+\draw[depedge] (ch4) -- (ch9);
+\draw[depedge] (ch3) -- (ch10);
+
+% Cross-cutting
+\draw[depedge] (ch3) -- (ch11);
+\draw[depedge] (ch11) -- (ch12);
+\draw[depedge] (ch2) -- (ch13);
+\draw[depedge] (ch3) -- (ch13);
+\draw[depedge] (ch6) -- (ch14);
+\draw[depedge] (ch10) -- (ch14);
+
+% Conclusion
+\draw[depedge] (ch13) -- (ch15);
+\draw[depedge] (ch14) -- (ch15);
+
+\end{tikzpicture}
+\caption{章节依赖关系图。蓝色粗线表示强依赖（建议先读），灰色细线表示
+  弱依赖（有助于理解但非必须）。第1章是全书唯一的必读前置章节。}
+\label{fig:chapter-deps}
+\end{figure}
+
+如图~\ref{fig:chapter-deps}~所示，本书的章节依赖关系呈现
+"伞形结构"：
+
+\begin{itemize}
+  \item \textbf{第1章（本章）}是全书唯一的强前置依赖——所有
+    后续章节都假设读者已读过本章建立的六层模型框架；
+  \item \textbf{第2--5章}（基础设施→模型→平台→开发者工具）
+    构成"技术栈"主线，按顺序阅读效果最佳（后一章经常引用前一章
+    的公司和概念），但也可以独立阅读——每章开头都有足够的
+    上下文说明；
+  \item \textbf{第6--10章}（四类C端应用+B端应用）彼此基本
+    独立，可按兴趣选读。唯一的软依赖是：理解模型层和平台层
+    （Ch.3--4）会帮助你更好地理解应用层公司的技术选择；
+  \item \textbf{第11--14章}（中国、全球、融资、模式）是
+    跨领域分析章节，建议在读完至少两个赛道章节之后再阅读
+    ——这些章节经常引用具体赛道中的案例作为论据；
+  \item \textbf{第15章}（展望）是全书总结和前瞻，建议最后阅读
+    ——它综合了前14章的所有分析来推断未来趋势。
+\end{itemize}
+
+\subsection{需要警惕的三个陷阱}
+
+\begin{warnbox}[阅读本书时需要警惕的三个认知陷阱]
+\begin{enumerate}
+  \item \textbf{幸存者偏差}：本书讨论的大多是成功的或至少获得了
+    显著融资的公司。但在每一个成功案例背后，都有数十个甚至数百个
+    失败的创业尝试。我们在第~\ref{ch:patterns}~章专门分析失败
+    模式，但读者在阅读每个赛道章节时也应主动思考：为什么\textbf{这些}
+    公司而不是其他公司走到了今天？
+  \item \textbf{线性外推陷阱}：AI技术和市场的发展充满非线性——
+    DeepSeek R1在一夜之间改变了整个行业的成本假设，EU AI Act
+    可能在一纸法令中改变合规要求。过去三年的增长曲线不一定能够
+    直接外推到未来三年。当本书引用市场规模预测和增长率时，
+    请将其视为参考而非确定性预言。
+  \item \textbf{估值等于价值的错觉}：本书频繁引用公司的估值和
+    融资数据。但估值反映的是投资者对未来的预期，而非当前的实际
+    价值。历史上，许多高估值的科技公司最终未能兑现承诺。当我们
+    说一家公司"估值\$10B"时，这并不意味着该公司"值\$10B"——
+    它意味着有投资者\textbf{愿意按照}\$10B的价格投入资金，
+    这两件事有本质区别。
+\end{enumerate}
+\end{warnbox}
+
+\subsection{本书的方法论说明}
+
+在结束开篇之前，有必要说明本书的研究方法和数据来源。
+
+\textbf{数据来源}：本书的公司融资和估值数据主要来自Crunchbase、
+PitchBook、OECD AI Policy Observatory、公司S-1/F-1文件（IPO
+招股书）、以及各公司的官方公告。市场规模数据来自Mordor
+Intelligence、Grand View Research、Gartner和IDC等机构。新闻
+报道来自TechCrunch, The Information, CNBC, Bloomberg等主流
+科技/财经媒体。
+
+\textbf{时间截止}：除非另有说明，本书中的所有数据截止至
+\textbf{2026年3月}。AI创业领域的变化速度意味着，读者在阅读
+本书时，部分数据（尤其是估值和融资轮次）可能已经过时。我们
+建议读者关注本书的在线勘误和更新页面，以获取最新数据的修正。
+
+\textbf{分析框架}：本书的分析以六层生态模型（本章建立）为基本
+框架，结合Porter五力模型（分析竞争格局）、TAM/SAM/SOM（评估
+市场规模）和平台经济学（分析网络效应和多边市场）等经典商业
+分析工具。对于中国市场，我们补充了基于田野调查和一手访谈的
+定性分析。
+
+\textbf{局限性}：本书的一个显著局限是：\textbf{许多最关键的
+公司数据是非公开的}。OpenAI的详细财务数据、Anthropic的用户增长
+曲线、各公司的真实利润率——这些信息要么尚未披露，要么仅在受NDA
+保护的投资人材料中流通。本书尽可能使用公开可验证的数据源，对于
+需要估算的数据（如非上市公司的营收）会明确标注数据来源和估算
+方法。
+
+\textbf{观点立场}：本书力求保持分析的客观性，但不回避提出作者
+的判断和观点。当我们认为某家公司被高估或某个赛道存在泡沫时，
+我们会直接说出来——同时说明我们的推理依据，让读者可以自行
+判断。我们相信，\textbf{有立场的分析比假装中立的描述更有
+价值}，只要这些立场是基于数据和逻辑而非偏见。在每个赛道章节
+的末尾，我们都会给出一个简短的"作者评估"，总结我们对该赛道
+的核心判断和关键风险。
+
+\bigskip
+
+\noindent\rule{\textwidth}{0.4pt}
+
+\medskip
+
+{\small 写到这里，我们已经完成了对2022--2026年AI创业全景的
+高空鸟瞰。ChatGPT引爆了这场浪潮，Scaling Laws和成本下降
+提供了技术基础，开源模型和API经济降低了创业门槛，超过5000亿
+美元的资本涌入放大了一切。六层生态模型为我们提供了一个理解
+这个复杂世界的分析框架——从芯片和数据中心的物理层，到基础模型
+的智力层，到平台和工具的中间层，再到面向消费者和企业的应用层。
+
+资本的地理分布揭示了一个高度不均衡但快速演化的全球格局：美国
+（尤其是硅谷）仍然是绝对中心，但北京、巴黎、伦敦和新兴的中东
+城市正在各自的优势领域建立独特的AI创业生态。
+
+在接下来的章节中，我们将从30,000英尺的高度下降到每一层生态的
+地面，走近那些正在定义AI时代的创业公司、创始人和他们的故事。
+每一家公司的成功和失败，都是这场前所未有的技术创业浪潮中的
+一个数据点。当我们将所有数据点连接在一起时，一幅完整的图景
+就会浮现。
+
+让我们从最底层开始——那些为整个AI大厦浇筑地基的基础设施公司。
+
+\bigskip
+
+\noindent\textit{注：本章所引用的所有融资数据、公司估值和市场
+规模数字截止至2026年3月21日。鉴于AI领域极快的变化速度，部分
+数据在读者阅读时可能已有更新。}}

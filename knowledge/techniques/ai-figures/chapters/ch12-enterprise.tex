@@ -1,0 +1,1599 @@
+\chapter{Enterprise AI, Vertical AI 与机器人革命}
+\label{ch:enterprise}
+
+%% ============================================================
+%% Chapter 12: Enterprise AI, Vertical AI & Robotics Founders
+%% Covers ~70 key figures across horizontal AI platforms,
+%% vertical AI (legal, healthcare, finance, security, education,
+%% sales, customer service), AI infrastructure/MLOps, and robotics.
+%% ============================================================
+
+当 ChatGPT 在 2022 年末引爆全球想象力时，
+硅谷的一批创业者已经在思考一个更加务实的问题：
+AI 如何真正改变每一个行业的工作方式？
+消费级 AI 产品——聊天机器人、图像生成器、AI 伴侣——
+吸引了绝大多数的公众注意力，
+但在这道聚光灯之外，
+一场规模更为宏大的变革正在企业世界的每一个角落悄然展开。
+
+从华尔街的量化交易大厅到休斯顿的律师事务所，
+从波士顿的肿瘤科诊室到匹兹堡的机器人实验室，
+从旧金山的 MLOps 工具链到杭州的人形机器人工厂——
+一群背景迥异的创始人正在将大语言模型、
+计算机视觉和强化学习的前沿能力，
+转化为解决特定行业痛点的商业产品。
+
+他们中有 19 岁从 MIT 辍学创业的数据标注天才（Alexandr Wang），
+有在 Google 管理百亿美元广告业务后转身投入 AI 搜索的高管（Sridhar Ramaswamy），
+有在旧金山合租公寓里用 GPT-4 API 构建法律 AI 的室友搭档（Winston Weinberg 与 Gabriel Pereyra），
+有在 CMU 机器人实验室里梦想``通用物理智能''的印度裔教授（Deepak Pathak 与 Abhinav Gupta），
+有在华为``天才少年''计划中年薪百万后毅然辞职创业的 B 站 UP 主（彭志辉），
+还有在 MIT 人工智能实验室完成博士论文后用四十年时间让机器人学会奔跑的传奇工程师（Marc Raibert）。
+
+这些人的共同特征是：
+他们不满足于 AI 作为一种``通用工具''的存在，
+而是要将其深深嵌入特定行业的工作流、知识体系和决策链条之中。
+这种``从通用到垂直''的转化能力，
+正是当前 AI 产业最稀缺、也最具商业价值的能力。
+
+\begin{keybox}[Enterprise AI 的核心公式：通用模型能力 $\times$ 行业知识深度 $\times$ 工作流嵌入度]
+企业 AI 产品的成败取决于三个维度的乘积：
+\begin{itemize}[noitemsep]
+  \item \textbf{通用模型能力}——底层 LLM/视觉模型的推理、生成和理解能力。
+        这是``地基''，决定了 AI 能做什么。
+        GPT-4、Claude、Gemini 等模型的能力跃升，
+        为所有企业 AI 应用提供了共同的技术底盘。
+  \item \textbf{行业知识深度}——对特定领域术语、流程、合规要求和隐性知识的理解。
+        这是``护城河''，决定了 AI 能做得多好。
+        Harvey 理解判例法，Hippocratic AI 理解临床指南，
+        CrowdStrike 理解 MITRE ATT\&CK 框架——
+        这些行业知识无法通过简单的 prompt engineering 获得。
+  \item \textbf{工作流嵌入度}——AI 是否真正嵌入了用户的日常工作流程，
+        而非一个需要``额外切换''才能使用的独立工具。
+        Gong 将 AI 嵌入销售团队的每一通电话，
+        Viz.ai 将 AI 嵌入放射科医生的 CT 阅片流程，
+        Scale AI 将数据标注嵌入 ML 团队的训练管线——
+        这种``无缝嵌入''是 Enterprise AI 获得持续黏性的关键。
+\end{itemize}
+只有三者的乘积达到阈值，企业客户才会从``试用''走向``采购''，
+从``单点部署''走向``全面推广''。
+\end{keybox}
+
+本章将按照``横向平台→垂直行业→基础设施→机器人''的逻辑，
+系统介绍企业 AI 与机器人领域最具影响力的创始人群像。
+
+
+%% ============================================================
+\section{横向 AI 平台：数据、标注与企业智能}
+\label{sec:ent-horizontal}
+%% ============================================================
+
+在企业 AI 生态系统中，
+横向平台公司扮演着``基础设施供应商''的角色——
+它们提供的不是面向某个特定行业的解决方案，
+而是所有 AI 应用都需要的通用能力：
+数据标注、模型训练基础设施、实验追踪、数据仓库、可观测性。
+这些公司的创始人往往具有深厚的系统工程或分布式计算背景，
+他们构建的是 AI 产业的``水和电''。
+
+%% ------------------------------------------------------------
+\subsection{Alexandr Wang 与 Scale AI：数据基础设施的定义者}
+\label{subsec:alexandr-wang}
+%% ------------------------------------------------------------
+
+在整个 AI 产业的价值链中，
+有一个环节长期被低估却又不可或缺——\textbf{数据标注}。
+每一个让人惊叹的 AI 模型背后，
+都有海量的人工标注数据作为训练的燃料。
+识别这个机会并将其转化为一家市值数百亿美元公司的人，
+是一个 1997 年出生在新墨西哥州 Los Alamos 的华裔美国人——
+Alexandr Wang（汪滔）。
+
+\begin{corebox}[Alexandr Wang：从物理学家之子到 AI 时代的数据之王]
+\textbf{出生}：1997 年 1 月，美国新墨西哥州 Los Alamos\\
+\textbf{教育}：MIT（辍学）\\
+\textbf{父母}：均为 Los Alamos 国家实验室核物理学家（中国移民）\\
+\textbf{早期经历}：2012 年 USACO 决赛选手，2013 年数学奥林匹克项目，
+2014 年美国物理代表队；高中时期在 Quora 担任技术负责人\\
+\textbf{创业}：2016 年从 MIT 辍学，经 Y Combinator 孵化，
+与 Lucy Guo 共同创立 Scale AI\\
+\textbf{里程碑}：2021 年以 24 岁成为世界最年轻白手起家亿万富翁（Forbes 估值 36 亿美元，2025 年 4 月）\\
+\textbf{现职}：2025 年起担任 Meta Platforms 首席 AI 官，
+领导其 Superintelligence Labs
+\end{corebox}
+
+Wang 的创业故事始于一个看似``无聊''却无比关键的洞察：
+AI 模型的质量上限由训练数据的质量决定，
+而高质量数据标注是整个 AI 产业链中最大的瓶颈。
+2016 年，当大多数 AI 创业者都在追逐``模型创新''时，
+19 岁的 Wang 选择了一条截然不同的路径——
+成为 AI 时代的``数据基础设施供应商''。
+
+Scale AI 最初的产品极其朴素：
+通过 API 接口接受客户的数据标注任务（图像分类、物体检测、语义分割等），
+再将任务分发给全球的标注员完成。
+但 Wang 的野心远不止于``众包标注''——
+他要构建的是一个\textbf{数据质量控制的技术栈}，
+通过算法辅助、多轮审核、标注员能力建模等手段，
+确保标注数据的准确率和一致性达到机器学习研究级别的标准。
+
+这个战略定位在 2020--2023 年的 AI 军备竞赛中被证明极具前瞻性。
+当 OpenAI、Anthropic、Google、Meta 等公司竞相训练更大的模型时，
+它们都需要 Scale AI 提供的高质量标注数据——
+特别是在 RLHF（基于人类反馈的强化学习）这一关键训练范式中，
+Scale AI 的标注质量直接影响模型的对齐效果。
+
+\begin{whybox}[为什么 Scale AI 能成为 AI 产业的``隐形冠军''？]
+Scale AI 的竞争优势建立在三个飞轮之上：
+\begin{enumerate}[noitemsep]
+  \item \textbf{客户网络效应}：服务 OpenAI、Meta、美国国防部等顶级客户，
+        积累了对最前沿 AI 训练需求的第一手理解，
+        反过来驱动产品迭代。
+  \item \textbf{标注员生态}：建立了全球最大的高质量标注员网络，
+        涵盖从通用任务到专业领域（医学影像、法律文本、代码）的多层次人才池。
+  \item \textbf{从标注到评估的扩展}：随着模型能力提升，
+        ``评估模型输出质量''（evaluation）成为新的刚需，
+        Scale AI 从数据标注自然延伸到 LLM 评估（benchmarking），
+        推出了广受行业认可的 SEAL Leaderboard。
+\end{enumerate}
+\end{whybox}
+
+Wang 的政策影响力同样不容忽视。
+2025 年 1 月，Scale AI 在《华盛顿邮报》刊登整版广告，
+发表致 Trump 总统的公开信：``America must win the AI War''。
+同月，Wang 在国会作证，
+警告中国 AI 公司已经在多个领域追平美国竞争对手，
+呼吁政府加大对 AI 产业的支持力度。
+这种``技术创业者+政策倡导者''的双重身份，
+使 Wang 成为 AI 时代华裔创业者中最具公共影响力的面孔之一。
+
+2025 年，Wang 做出了一个令人意外的职业转向——
+加入 Meta Platforms 担任首席 AI 官，
+领导新成立的 Superintelligence Labs。
+这一任命的信号意义在于：
+连 Zuckerberg 都认为，
+在 AI 竞赛的下一个阶段，
+\textbf{数据}和\textbf{评估}的重要性不亚于模型本身。
+
+
+%% ------------------------------------------------------------
+\subsection{Ali Ghodsi 与 Databricks：从学术论文到 620 亿美元帝国}
+\label{subsec:ali-ghodsi}
+%% ------------------------------------------------------------
+
+如果说 Scale AI 定义了``AI 的数据标注层''，
+那么 \textbf{Databricks} 则定义了``AI 的数据处理层''。
+这家公司的故事，是学术研究如何转化为商业帝国的经典范本——
+也是一个``意外创业''的传奇。
+
+\begin{corebox}[Ali Ghodsi：从伊朗到伯克利，从教授到 CEO]
+\textbf{出生}：1978 年，伊朗\\
+\textbf{国籍}：瑞典-美国双重国籍\\
+\textbf{教育}：KTH 皇家理工学院（博士，分布式系统），Mid Sweden University（硕士+MBA）\\
+\textbf{学术经历}：KTH 助理教授（2008--2009），
+UC Berkeley 访问学者（2009 年起），
+与 Scott Shenker、Ion Stoica、Michael Franklin、Matei Zaharia 合作\\
+\textbf{核心贡献}：参与创建 Apache Mesos、Apache Spark 项目；
+共同发明 Dominant Resource Fairness 资源调度算法\\
+\textbf{创业}：2013 年共同创立 Databricks，2016 年出任 CEO\\
+\textbf{估值}：2025 年 620 亿美元（私有公司）
+\end{corebox}
+
+Databricks 的创立故事堪称硅谷``学术创业''的典范。
+2009 年，Ghodsi 从瑞典来到 UC Berkeley 做访问学者，
+与 Ion Stoica 实验室的一群博士生——
+包括 Matei Zaharia（Apache Spark 的发明人）——
+一起研究分布式计算系统。
+Spark 最初只是一篇学术论文中的原型系统，
+用于解决 Hadoop MapReduce 在迭代计算中的性能瓶颈。
+
+2013 年，七位 Berkeley 研究者联合创立了 Databricks，
+试图将 Spark 商业化。
+但早期发展异常艰难——
+用 Forbes 的话说，这是一家``long on buzz but short on revenue''的公司。
+到 2015 年 11 月，公司已经花了五个月时间试图融资却处处碰壁，
+投资人对其微薄的营收心存疑虑。
+NEA 合伙人 Pete Sonsini 不得不以紧急注资 3000 万美元的方式拯救公司。
+
+转折出现在 Ghodsi 接任 CEO 之后。
+不同于竞争对手 Snowflake 两次引入硅谷职业经理人的做法，
+Databricks 选择了``学术创始人自己来''的道路。
+Ghodsi 展现出了罕见的``学者型 CEO''能力——
+既能理解分布式系统的深层技术，
+又能将其翻译为企业客户听得懂的商业语言。
+在他的领导下，Databricks 从一个``Spark 商业化''公司
+转型为统一的``数据+AI 平台''（Data Intelligence Platform），
+将数据仓库、数据湖、机器学习、实时分析整合在一个平台上。
+
+到 2025 年，Databricks 的估值已达 620 亿美元，
+成为全球估值最高的 AI 基础设施私有公司之一。
+
+\begin{whybox}[Databricks 的七位联合创始人与伯克利 AMPLab 传奇]
+Databricks 的七位联合创始人全部来自 UC Berkeley 的 AMPLab，
+这是硅谷历史上最成功的大学实验室创业案例之一：
+\begin{itemize}[noitemsep]
+  \item \textbf{Ion Stoica}——教授，初任 CEO（后回到 Berkeley），同时也是 Anyscale 联合创始人
+  \item \textbf{Matei Zaharia}——Apache Spark 发明人，CTO
+  \item \textbf{Ali Ghodsi}——现任 CEO
+  \item \textbf{Patrick Wendell}——Spark 核心贡献者
+  \item \textbf{Reynold Xin}——Spark SQL 主要作者
+  \item \textbf{Andy Konwinski}——Mesos 贡献者
+  \item \textbf{Arsalan Tavakoli}——基础设施专家
+\end{itemize}
+这种``整个实验室集体创业''的模式，
+确保了公司在技术深度上的绝对优势——
+七位创始人是 Spark、Mesos、Delta Lake 等核心技术的原始发明人，
+没有任何竞争对手能复制这种``从论文到产品''的技术纵深。
+\end{whybox}
+
+
+%% ------------------------------------------------------------
+\subsection{Sridhar Ramaswamy 与 Snowflake：Google 高管的 AI 转身}
+\label{subsec:sridhar-ramaswamy}
+%% ------------------------------------------------------------
+
+如果 Ali Ghodsi 代表的是``学术创始人''路径，
+那么 \textbf{Sridhar Ramaswamy} 则代表了另一种创业轨迹——
+\textbf{大公司高管的``二次创业''转型}。
+
+Ramaswamy 在 Google 工作了 15 年（2003--2018），
+最终升至 Google 广告业务的高级副总裁，
+直接管理着年收入超过 1000 亿美元的广告帝国。
+2018 年，他离开 Google，
+原因据他自己所说是对广告业务模式产生了``道德上的不安''——
+他开始质疑``以用户注意力为商品''的商业逻辑是否可持续。
+
+离开 Google 后，Ramaswamy 创立了 \textbf{Neeva}，
+一个无广告的 AI 驱动搜索引擎。
+Neeva 的愿景很美好——
+用订阅制替代广告模式，用 AI 替代传统搜索排名——
+但在 Google 搜索的垄断面前，
+一个付费搜索引擎实在难以获得大规模用户。
+2023 年 5 月，Neeva 宣布关闭消费者搜索业务。
+
+然而，失败的 Neeva 意外地成为了通往更大舞台的跳板。
+2023 年，Snowflake 以未披露的价格收购了 Neeva 的团队和技术，
+Ramaswamy 加入 Snowflake 担任 AI 高级副总裁。
+仅仅几个月后的 2024 年 2 月 28 日，
+传奇 CEO Frank Slootman 宣布退休，
+Ramaswamy 被任命为 Snowflake 新任 CEO。
+
+这一任命的信号极为明确：
+Snowflake 的董事会认为，在 AI 重塑数据产业的关键时刻，
+公司需要一位\textbf{深度理解 AI 技术}的领导者，
+而非传统的企业软件销售型 CEO。
+Ramaswamy 上任后，迅速将 Snowflake 从``云数据仓库''
+重新定位为``AI 数据云''（AI Data Cloud），
+推出了 Cortex AI（企业级 AI/ML 平台）、
+Arctic（Snowflake 自研的开源 LLM）等一系列 AI 产品。
+
+
+%% ------------------------------------------------------------
+\subsection{Lukas Biewald 与 Weights \& Biases：ML 实验的``版本控制''}
+\label{subsec:lukas-biewald}
+%% ------------------------------------------------------------
+
+在机器学习的日常工作中，
+有一个痛点长期被忽视：\textbf{实验管理}。
+一个 ML 工程师在一天之内可能训练数十个模型变体，
+每个变体的超参数、数据集、指标、模型权重都不同。
+如何系统地追踪、比较和复现这些实验？
+
+\textbf{Lukas Biewald} 正是解决这个问题的人。
+Biewald 的创业生涯始于 2007 年创立的 Figure Eight（前身为 CrowdFlower），
+一家众包数据标注公司——
+比 Scale AI 早了近十年。
+Figure Eight 在 2019 年被 Appen 收购后，
+Biewald 在 2018 年联合创立了 \textbf{Weights \& Biases}（简称 W\&B/wandb），
+专注于 ML 实验追踪和模型管理。
+
+W\&B 的核心产品看似简单——
+在训练脚本中加几行代码，
+就能自动记录每次实验的所有元数据（超参数、损失曲线、GPU 利用率、模型权重），
+并提供直观的 Web 界面进行可视化和比较。
+但正是这种``简单到令人上瘾''的开发者体验，
+使 W\&B 成为了 ML 社区中渗透率最高的工具之一——
+从 OpenAI 到 DeepMind，从学术实验室到初创公司，
+几乎所有认真做 ML 的团队都在使用 W\&B。
+
+2025 年 10 月，W\&B 被 CoreWeave 收购，
+Biewald 继续担任 W\&B 的总经理。
+这笔收购的逻辑在于：
+CoreWeave 作为 GPU 云计算提供商，
+通过收购 W\&B 可以为客户提供``从计算到实验管理''的端到端体验。
+
+
+%% ------------------------------------------------------------
+\subsection{Alex Karp 与 Palantir：从反恐到 AI 平台}
+\label{subsec:alex-karp}
+%% ------------------------------------------------------------
+
+在企业 AI 的版图中，
+\textbf{Palantir} 是一个极其特殊的存在——
+它既不是典型的 SaaS 公司，也不是纯粹的 AI 初创企业，
+而是一家拥有二十余年历史、
+从反恐情报分析起家的数据分析公司，
+在 AI 时代完成了一次令人瞩目的``蜕变''。
+
+\textbf{Alex Karp}，Palantir 的联合创始人兼 CEO，
+是硅谷最不像 CEO 的 CEO。
+他是哲学博士（法兰克福大学，师从 Jürgen Habermas），
+没有工程背景，性格古怪，
+曾公开承认自己``不会写代码''。
+但正是这个``哲学家 CEO''，
+带领 Palantir 完成了 AI 时代最成功的战略转型之一。
+
+2023 年，Palantir 推出了 \textbf{AIP}（Artificial Intelligence Platform），
+将大语言模型的能力直接嵌入其 Foundry 和 Gotham 平台。
+AIP 的核心创新在于``本体论驱动的 AI 部署''——
+企业无需从零构建 AI 应用，
+而是将 LLM 的能力``绑定''到已有的数据模型和业务逻辑之上。
+这种方法极大地降低了企业部署 AI 的门槛和风险。
+
+AIP 的推出引发了 Palantir 股价的爆发性增长。
+2025 年第四季度，Palantir 报告了 70\% 的同比收入增长，
+达到 14.07 亿美元；
+美国业务更是增长了 93\%。
+Karp 在财报电话会上说了一句令人印象深刻的话：
+``AI has just put gasoline on all the tribal knowledge we have in our products.''
+
+\begin{whybox}[Palantir 的 AI 转型为何如此成功？]
+Palantir 的 AI 转型成功有三个结构性原因：
+\begin{enumerate}[noitemsep]
+  \item \textbf{数据层的先发优势}：二十年来，Palantir 一直在帮助政府和企业
+        整理、清洗和结构化它们最混乱的数据。当 LLM 需要结构化数据才能发挥最大价值时，
+        Palantir 的客户已经拥有了``AI-ready''的数据基础。
+  \item \textbf{安全与合规的护城河}：Palantir 拥有最高级别的政府安全认证，
+        能在 classified 环境中部署 AI——这是 OpenAI 和 Google 都难以进入的领域。
+  \item \textbf{收入质量的跃升}：Karp 指出，增长主要来自现有客户的支出增加，
+        而非新客户数量的增长。这意味着 AI 功能使 Palantir
+        从``nice-to-have''变成了``mission-critical''。
+\end{enumerate}
+\end{whybox}
+
+
+%% ------------------------------------------------------------
+\subsection{Olivier Pomel 与 Datadog：可观测性遇上 AI}
+\label{subsec:olivier-pomel}
+%% ------------------------------------------------------------
+
+在 AI 应用爆炸式增长的时代，
+一个容易被忽视但至关重要的问题是：
+\textbf{如何监控和调试 AI 系统？}
+传统的软件监控工具是为确定性系统设计的——
+服务器要么正常运行，要么宕机。
+但 AI 系统的``故障''模式完全不同——
+模型可能在运行，但输出质量在悄然退化（model drift）；
+LLM 可能在响应，但成本在不知不觉中飙升。
+
+\textbf{Datadog} 的联合创始人兼 CEO \textbf{Olivier Pomel}
+正在将公司从传统的``云基础设施可观测性''
+扩展为``AI 时代的全栈可观测性''。
+Pomel 是法国裔美国人，
+在创立 Datadog 之前曾在几家纽约科技公司工作。
+2010 年，他与 Alexis Lê-Quôc 共同创立 Datadog，
+最初专注于云基础设施监控。
+
+到 2025--2026 年，Datadog 已经推出了一整套 AI 监控产品：
+\textbf{LLM Observability}（追踪 LLM 调用的延迟、成本、token 使用量和输出质量）、
+\textbf{Bits AI}（AI 驱动的运维助手，能自动分析告警并提供修复建议）、
+以及 \textbf{Toto}（Datadog 自研的基础模型，专门用于理解运维数据）。
+Pomel 将公司的长期战略描述为``race against complexity''——
+AI 正在使软件系统变得更复杂、更快速地变化，
+而 Datadog 要确保企业能够``看清''这些变化。
+
+
+%% ============================================================
+\section{垂直 AI：行业深水区的变革者}
+\label{sec:ent-vertical}
+%% ============================================================
+
+如果说横向平台公司是 AI 时代的``水和电''，
+那么垂直 AI 公司就是将这些基础能力转化为
+行业特定价值的``应用工厂''。
+这些公司的创始人通常具有双重背景——
+既懂 AI 技术，又深谙目标行业的痛点和工作流。
+这种``跨界能力''是垂直 AI 创业最稀缺的资源。
+
+
+%% ============================================================
+\subsection{AI for Legal：当 GPT-4 遇见判例法}
+\label{subsec:legal-ai}
+%% ============================================================
+
+法律行业是企业 AI 渗透最快、商业化最成功的垂直领域之一。
+原因很简单：法律工作的核心是处理文本——
+合同、判例、法规、诉讼文书——
+而这正是大语言模型最擅长的领域。
+同时，法律服务的定价极高（大型律所合伙人时薪可达 1000--2000 美元），
+任何能提高效率的工具都有立竿见影的 ROI。
+
+\subsubsection{Harvey AI：从合租室友到 80 亿美元法律帝国}
+
+在所有法律 AI 公司中，
+\textbf{Harvey} 的崛起速度最为惊人——
+从 2022 年创立到 2025 年估值 80 亿美元，只用了三年。
+更令人惊叹的是它的收入增长轨迹：
+2025 年 8 月，Harvey 宣布其年化经常性收入（ARR）突破 1 亿美元，
+创立仅 36 个月便达到这一里程碑——
+作为对比，Salesforce 花了 7 年，Slack 花了 4 年，
+甚至 Zoom 也用了 42 个月。
+
+Harvey 的两位创始人——\textbf{Gabriel Pereyra} 和 \textbf{Winston Weinberg}——
+是一对极为互补的搭档。
+
+\begin{corebox}[Harvey AI 的``室友创始人''组合]
+\textbf{Gabriel Pereyra}（总裁，31 岁）：
+AI 研究科学家，曾在 DeepMind 和 Meta 从事 AI 研究。
+关键优势是在 ChatGPT 公开发布前六个月，
+就获得了 GPT-4 的早期访问权限——
+这使他比几乎所有竞争对手都更早看到了 LLM 在法律场景中的潜力。
+
+\textbf{Winston Weinberg}（CEO，28 岁）：
+Kenyon College 本科，USC Gould 法学院 JD。
+曾在 O'Melveny \& Myers 律所担任一年级诉讼律师——
+这段短暂的 BigLaw 经历使他深刻理解了
+法律工作中哪些痛点是 AI 可以真正解决的。
+
+两人在旧金山合租公寓时决定一起创业。
+截至 2026 年初，尽管公司估值已达 80 亿美元，
+两人仍然住在同一间公寓里。
+\end{corebox}
+
+Harvey 的成功有一个关键转折点：
+2023 年初，全球``魔法圈''律所 \textbf{Allen \& Overy}
+成为 Harvey 的第一个大型客户。
+这一合作在极度保守的法律行业引发了多米诺效应——
+当 Allen \& Overy 这样的顶级律所都开始使用 AI 时，
+其他律所面临着``不用就落后''的竞争压力。
+到 2025 年底，Harvey 已服务超过 1000 家律所和企业法务部门，
+覆盖 63 个国家，包括 42\% 的 AmLaw 100 律所。
+
+Harvey 的技术策略也值得关注：
+它不是一个简单的``GPT-4 套壳''产品，
+而是构建了一个完整的法律 AI 基础设施——
+从合同起草到监管分析，从尽职调查到诉讼准备，
+覆盖法律工作的全流程。
+Pereyra 将 Harvey 定位为法律行业的``AI 操作系统''，
+而非单一功能工具。
+
+\subsubsection{Jake Heller 与 Casetext：被收购的先驱}
+
+在 Harvey 之前，\textbf{Casetext} 是法律 AI 领域最重要的先行者。
+2013 年由 \textbf{Jake Heller} 创立的 Casetext，
+早在 GPT-4 发布之前就开始探索如何将 AI 应用于法律研究。
+2023 年初，Casetext 成为最早基于 GPT-4 构建产品的公司之一，
+推出了 \textbf{CoCounsel}——一个能在几分钟内完成
+文档审查、法律研究备忘录、证词准备和合同分析的 AI 法律助手。
+
+CoCounsel 的产品质量引起了 Thomson Reuters 的注意。
+2023 年 6 月，Thomson Reuters 宣布以 6.5 亿美元收购 Casetext——
+这是生成式 AI 时代法律科技领域最大的收购案之一。
+到 2026 年 2 月，CoCounsel 已拥有超过 100 万专业用户，
+标志着法律 AI 从``试点''阶段正式进入``大规模生产''阶段。
+
+\subsubsection{EvenUp：AI 赋能人身伤害诉讼}
+
+与 Harvey 专注大型律所不同，
+\textbf{EvenUp} 瞄准的是一个更``接地气''的市场——\textbf{人身伤害诉讼}。
+联合创始人 \textbf{Raymond Mieszaniec} 的背景颇为独特：
+他曾在 PwC 香港和中国的风险咨询部门工作，
+涉及分析、网络安全、金融犯罪和合规领域，
+之后联合创立了 EquitySim（一个 AI 驱动的模拟招聘平台）。
+
+EvenUp 的核心产品是利用机器学习自动生成``索赔要求书''（demand package）——
+在人身伤害案件中，这是律师向保险公司提出赔偿要求的关键文档。
+传统上，一份高质量的索赔要求书需要律师花费数小时甚至数天来整理
+医疗记录、评估案件价值、撰写论证。
+EvenUp 将这个过程压缩到分钟级别。
+
+2025 年 10 月，EvenUp 完成了 1.5 亿美元的 E 轮融资，
+估值突破 20 亿美元。
+
+
+%% ============================================================
+\subsection{AI for Healthcare：生死攸关的精准医疗}
+\label{subsec:healthcare-ai}
+%% ============================================================
+
+医疗健康是 AI 应用最具社会影响力、
+但也最难商业化的垂直领域。
+监管壁垒（FDA 审批）、数据隐私（HIPAA）、
+临床验证要求和极高的安全标准，
+共同构成了一道``护城河''——
+既保护了先行者，也阻挡了后来者。
+
+\subsubsection{Munjal Shah 与 Hippocratic AI：让 AI 说``首先，不要伤害''}
+
+\textbf{Munjal Shah} 是一位连续创业者中的``老将''。
+在创立 Hippocratic AI 之前，
+他已经成功创立并出售了三家公司：
+\textbf{Andale}（被 Vendio 收购）、
+\textbf{Riya}（人脸识别先驱，技术转型为 Like.com），
+以及 \textbf{Like.com}（视觉搜索引擎，2010 年被 Google 以超过 1 亿美元收购）。
+Like.com 的收购尤为值得一提——
+它证明了 Shah 在 AI 领域的直觉：
+当面部识别的消费者市场时机不成熟时，
+他果断将同一技术转向了电商视觉搜索。
+
+2023 年，Shah 创立了 \textbf{Hippocratic AI}，
+公司名称直接取自希波克拉底誓言——
+``首先，不要伤害''（First, do no harm）。
+Hippocratic AI 的定位极为精准：
+不做诊断（这是监管雷区），
+而是专注于\textbf{非诊断性}的医疗任务——
+慢性病管理、出院后随访、药物提醒、营养咨询、患者导航。
+
+其核心技术是 \textbf{Polaris} 架构——
+一个多智能体 LLM 系统，
+专门优化用于实时医疗对话。
+每个 AI Agent 在发布前都经过与美国执业护士和患者演员的
+大规模模拟对话测试，确保临床安全性。
+
+Hippocratic AI 的融资轨迹极其陡峭：
+2024 年 4 月 A 轮 5300 万美元（估值 5 亿），
+2025 年 1 月 B 轮 1.41 亿美元（估值 16.4 亿），
+2025 年 11 月 C 轮 1.26 亿美元（估值 35 亿），
+总融资额达 4.04 亿美元。
+投资人包括 a16z、Kleiner Perkins、NVIDIA、General Catalyst、
+Google CapitalG 等顶级机构。
+
+\subsubsection{Thomas Fuchs 与 Paige AI：计算病理学的先驱}
+
+\textbf{Thomas Fuchs} 的人生轨迹跨越了太空与医学。
+在进入医疗 AI 领域之前，
+他曾在 NASA 的喷气推进实验室（JPL）担任工程师，
+参与火星探测相关的计算机视觉研究。
+这段在太空领域的经历塑造了他处理高风险、
+高精度视觉任务的方法论。
+
+2017 年，Fuchs 联合创立了 \textbf{Paige}，
+专注于\textbf{计算病理学}——
+利用 AI 分析组织切片的数字化图像来辅助癌症诊断。
+Paige 创造了历史：它是\textbf{第一家获得 FDA 批准}
+用于癌症诊断的 AI 工具的公司。
+Fuchs 同时担任 Icahn School of Medicine at Mount Sinai
+的人工智能和人类健康学院院长，
+这种``学术+工业''的双重身份使 Paige
+能够持续获取最新的临床研究成果。
+
+\subsubsection{Eric Lefkofsky 与 Tempus AI：从 Groupon 到精准医疗}
+
+\textbf{Eric Lefkofsky} 可能是本章中背景最``反差''的创始人之一。
+他最广为人知的身份是 \textbf{Groupon} 的联合创始人——
+那个 2010 年代初期红极一时、
+后来却成为``团购泡沫''代名词的公司。
+
+但 Lefkofsky 的第二次创业却完全不同。
+2015 年，他创立了 \textbf{Tempus AI}，
+目标是构建\textbf{世界上最大的分子和临床数据库}，
+以及一个使这些数据可访问、可用于精准医疗的操作系统。
+Tempus 的核心价值在于：
+它将基因组测序数据与临床治疗结果关联起来，
+帮助医生根据每个患者的分子特征做出最优的治疗决策。
+
+2024 年 6 月，Tempus AI 成功 IPO，
+以每股 37 美元的价格筹集了 4.11 亿美元，
+完全稀释后市值超过 60 亿美元。
+
+\subsubsection{Chris Mansi 与 Viz.ai：每一分钟都是生命}
+
+对于中风患者来说，\textbf{时间就是大脑}——
+每延误一分钟治疗，患者平均损失 190 万个神经元和 140 亿个突触；
+每延误 10 分钟，等于失去 8 周的寿命。
+
+\textbf{Chris Mansi} 博士曾是英国的一名神经外科医生，
+亲身经历过中风治疗中每一分钟浪费在低效流程上
+带来的灾难性后果。
+2016 年，他创立了 \textbf{Viz.ai}，
+利用 AI 实时分析 CT 扫描图像，
+检测大血管闭塞（LVO）中风的早期迹象，
+并立即通过手机通知主治医生——
+将诊断时间从数小时缩短到数分钟。
+
+2024 年，Mansi 被 TIME 杂志评为
+``TIME100 AI''——全球 100 位最具影响力的 AI 人物之一。
+
+\subsubsection{Chris Gibson 与 Recursion Pharmaceuticals：AI 驱动的新药发现}
+
+\textbf{Chris Gibson} 博士在 2013 年联合创立了 \textbf{Recursion Pharmaceuticals}，
+带着一个大胆的承诺：``用 10 年时间开发 100 种药物。''
+Recursion 的方法是将高通量实验与 AI 结合——
+自动化地对大量细胞进行药物处理，
+用显微镜捕捉细胞形态变化的图像，
+再用 AI 从海量图像中发现人类肉眼无法识别的规律。
+
+12 年过去了，Recursion 尚未将任何药物推向市场，
+也在 2025 年砍掉了近一半的产品管线。
+但公司仍然签下了价值超过 200 亿美元的大药企合作协议
+（包括 Roche、Bayer、Sanofi、Merck KGaA），
+产生了 5 亿美元的合作收入。
+2024 年，Recursion 以 6.88 亿美元收购了英国 AI 制药公司 Exscientia，
+巩固了其在 TechBio 领域的领先地位。
+2025 年 11 月，Gibson 宣布卸任 CEO，转任董事长，
+将日常运营交给新任 CEO Najat Khan。
+
+
+%% ============================================================
+\subsection{AI for Finance：华尔街的算法革命}
+\label{subsec:finance-ai}
+%% ============================================================
+
+华尔街对 AI 的拥抱比大多数行业更早、更深。
+量化交易基金从 1990 年代就开始使用统计模型和机器学习，
+而 LLM 的出现又打开了新的可能性——
+从自动化研究报告生成到实时市场情绪分析。
+
+\subsubsection{David Siegel 与 Two Sigma：量化投资的 AI 先驱}
+
+\textbf{David Siegel}（1961 年生，纽约布朗克斯）
+是一位早慧的计算机科学家。
+12 岁时，他就在纽约大学 Courant 数学研究所的超级计算机上学习编程。
+在 Princeton 大学获得电气工程学位后，
+他在 MIT 人工智能实验室完成了计算机科学博士学位。
+
+2001 年，Siegel 与 John Overdeck 联合创立了 \textbf{Two Sigma}，
+核心理念是：``通过创新技术和数据科学发现世界数据中的价值。''
+这在 2001 年是一个极具前瞻性的愿景——
+当时``大数据''这个词还不存在，
+``机器学习''还是学术论文中的术语。
+
+二十多年后，Two Sigma 管理着约 580 亿美元的资产，
+是全球最大的量化对冲基金之一。
+在 AI 时代，Two Sigma 进一步加大了对 LLM 的投入——
+利用 LLM 分析财报电话会议、SEC 文件、新闻报道和社交媒体，
+提取交易信号。
+公司的数据科学团队正在探索如何将
+Alternative Data（另类数据）与 LLM 结合，
+为量化策略和主观投资都创造超额收益（alpha）。
+
+
+%% ============================================================
+\subsection{AI for Customer Service：客服行业的``iPhone 时刻''}
+\label{subsec:customer-service-ai}
+%% ============================================================
+
+客户服务是 AI 最早、最成功地实现商业化的垂直领域。
+原因很直观：客服工作的核心是``理解问题+给出答案''，
+这正是 LLM 最擅长的任务模式。
+2024--2025 年，AI 客服从``辅助人类客服''
+迅速演进为``自主解决问题的 AI Agent''，
+掀起了一场深刻的行业变革。
+
+\subsubsection{Bret Taylor 与 Clay Bavor：Sierra AI 的``梦之队''}
+
+在 AI 客服领域，\textbf{Sierra AI} 的两位联合创始人
+可能拥有科技行业中最耀眼的简历组合。
+
+\begin{corebox}[Sierra AI：硅谷``全明星''的再次出发]
+\textbf{Bret Taylor}（联合创始人兼 CEO）：
+\begin{itemize}[noitemsep]
+  \item Google Maps 的共同创造者（Google 最早一批 APM）
+  \item FriendFeed 创始人（被 Facebook 收购，Taylor 出任 Facebook CTO）
+  \item Quip 创始人（被 Salesforce 以 7.5 亿美元收购）
+  \item Salesforce Co-CEO（2021--2023）
+  \item Twitter/X 董事会主席（2022）
+  \item \textbf{OpenAI 董事会主席}（现任）
+\end{itemize}
+
+\textbf{Clay Bavor}（联合创始人兼总裁）：
+\begin{itemize}[noitemsep]
+  \item 在 Google 工作超过 18 年
+  \item 与 Taylor 同期加入 Google APM 项目
+  \item 先后负责 Gmail、Google Drive、Google Docs 等核心产品
+  \item 领导 Google Labs 和 AR/VR 团队
+\end{itemize}
+\end{corebox}
+
+Sierra 的创立故事颇为浪漫。
+2023 年 1 月，Taylor 从 Salesforce Co-CEO 的职位辞职。
+``辞职消息发出的那一刻，''Taylor 回忆道，
+``我就接到了一个老朋友的电话，邀我出去吃午饭。''
+这个老朋友就是 Bavor。
+两人在 Palo Alto 一家地中海餐厅里
+一边喝草本茶一边聊了几个小时——
+出门时，他们已经决定一起创业。
+
+Sierra 专注于帮助企业构建客户服务 AI Agent。
+与通用聊天机器人不同，Sierra 的 Agent 被设计为
+能够理解每个企业的特定业务逻辑、产品目录和服务政策，
+并能够在对话中\textbf{执行实际操作}——
+处理退款、修改订单、更新账户信息——
+而不仅仅是``回答问题''。
+
+2025 年 9 月，Sierra 完成了 3.5 亿美元的融资，
+估值达到 100 亿美元。
+公司声称已拥有数百家客户，
+包括 SoFi、Ramp、Brex 等知名金融科技公司。
+截至目前，Sierra 的总融资额已达 6.35 亿美元。
+
+\subsubsection{Eoghan McCabe 与 Intercom：传统客服软件的 AI 重生}
+
+如果 Sierra 代表的是``AI 原生''的新进入者，
+那么 \textbf{Intercom} 则代表了``传统客服软件公司的 AI 转型''路径。
+
+\textbf{Eoghan McCabe}，Intercom 的联合创始人兼 CEO，
+是爱尔兰裔连续创业者。
+Intercom 成立于 2011 年，最初是一个面向互联网企业的
+客户沟通平台——在线聊天、产品内消息、帮助中心。
+在 AI 浪潮到来之前，
+Intercom 已经是 SaaS 客服领域的头部玩家。
+
+2023 年，McCabe 做出了一个大胆的决定：
+将 Intercom 的整个产品战略围绕 AI 进行重构。
+公司推出了 \textbf{Fin}——一个基于 LLM 的 AI 客服 Agent。
+Fin 的表现超出了几乎所有人的预期：
+平均解决率达到 67\%（即三分之二的客户问题由 AI 自主解决），
+每周解决近 200 万个客户问题。
+
+到 2026 年初，Fin 已拥有 8000 个客户，
+收入接近 1 亿美元。
+更令人印象深刻的是其客户名单——
+包括 Anthropic、Snowflake 和 Polymarket。
+2026 年 3 月，Intercom 从 Hercules Capital 获得了 2.5 亿美元的债务融资，
+McCabe 选择债务而非股权融资的原因是``避免对股东的稀释''——
+这一融资策略本身就说明了 Fin 的收入质量之高。
+
+\subsubsection{Jesse Zhang 与 Ashwin Sreenivas：Decagon 的年轻挑战者}
+
+在 Sierra 和 Intercom 之间，
+一家更年轻的公司正在快速崛起——
+\textbf{Decagon}，由 28 岁的 \textbf{Jesse Zhang}
+和 \textbf{Ashwin Sreenivas} 联合创立。
+
+Decagon 的差异化在于其对``企业级''的执着追求——
+它不仅是一个聊天机器人，
+而是一个能够横跨语音、聊天、邮件、短信等所有客户渠道的
+AI Agent 平台。
+客户包括 Avis Budget Group、Chime、Oura Health、1-800-FLOWERS 和 Hunter Douglas
+等知名企业。
+
+2024 年 10 月，Decagon 完成了 6500 万美元的 B 轮融资
+（由 Bain Capital Ventures 领投），
+总融资额达到 1 亿美元，估值在几个月内翻了四倍。
+
+\subsubsection{Deon Nicholas 与 Forethought：加拿大天才的 AI 客服梦}
+
+\textbf{Deon Nicholas} 是一位加拿大裔创业者，
+曾在 Facebook、Palantir、Dropbox 和 Pure Storage 等公司工作，
+持有机器学习相关专利，
+曾是 ACM 国际大学生编程竞赛（ICPC）的全球总决赛选手。
+
+2017 年，Nicholas 创立了 \textbf{Forethought}，
+专注于利用 AI 自动化客户支持。
+在 LLM 爆发之前，
+Forethought 就已经在用自然语言处理技术
+实现工单分类、知识库搜索和自动回复。
+LLM 的出现为其产品能力带来了质的飞跃——
+Forethought 的 AI Agent 不仅能回答问题，
+还能自动执行操作（如退款、密码重置）和跟进未解决的工单。
+Nicholas 被 Forbes 评为``30 Under 30''，
+公司累计融资超过 9200 万美元。
+
+
+%% ============================================================
+\subsection{AI for Sales \& Marketing：收入增长的 AI 引擎}
+\label{subsec:sales-ai}
+%% ============================================================
+
+\subsubsection{Amit Bendov 与 Gong：从会议录音到收入智能}
+
+\textbf{Amit Bendov} 拥有超过 20 年的企业软件管理经验。
+2015 年，他创立了 \textbf{Gong}，
+初衷是解决一个他在销售管理中反复遇到的痛点：
+销售团队每天产生大量客户对话，
+但这些对话中的信息被白白浪费了——
+没有被系统化地记录、分析和利用。
+
+Gong 的起步很简单：录制销售会议并生成文字记录。
+但 Bendov 的愿景远不止于此——
+他要将对话数据转化为\textbf{结构化的销售洞察}。
+随着 NLP 和 AI 技术的进步，
+Gong 从``会议录音工具''演进为``收入智能平台''——
+能够分析客户的语气变化和情感信号，
+预测交易的胜率，
+识别销售流程中的关键转折点，
+甚至在 AI 时代提供实时的对话辅导。
+
+Gong 2024 年的年度报告显示，
+使用 AI 的收入团队实现了比同行高 29\% 的销售增长。
+一些客户报告称，Gong 的 AI 功能
+使销售团队的产能提升了高达 60\%。
+
+\subsubsection{Clay：GTM Engineering 的新范式}
+
+\textbf{Clay} 由 \textbf{Kareem Amin} 和 \textbf{Nicolae Rusan}
+于 2017 年共同创立，
+最初的愿景是``让编程更加普及''。
+但在 AI 时代，Clay 找到了一个更加精确的定位——
+\textbf{GTM Engineering}（Go-to-Market 工程）。
+
+Clay 的核心产品是一个数据富化和工作流自动化平台，
+使销售和市场团队能够以``工程化''的方式
+自动获取、清洗和丰富潜在客户数据。
+它的增长速度令人咋舌——
+2023 年收入 1600 万美元，
+之后连续两年实现 10 倍增长。
+客户包括 Anthropic、Intercom、Notion、Vanta 等知名科技公司。
+2025 年 8 月，Clay 完成了 1 亿美元的 C 轮融资，
+估值达到 31 亿美元。
+
+
+%% ============================================================
+\subsection{AI for Security：安全领域的 AI 竞赛}
+\label{subsec:security-ai}
+%% ============================================================
+
+网络安全可能是最早将 AI 作为核心技术（而非``附加功能''）的行业之一。
+原因很直觉：网络攻击的速度和复杂度已经远远超出了人类分析师的处理能力，
+AI 不是``锦上添花''，而是``生存必需''。
+
+\subsubsection{George Kurtz 与 CrowdStrike：从端点安全到``安全 AGI''}
+
+\textbf{George Kurtz} 是 CrowdStrike 的联合创始人兼 CEO，
+也是网络安全行业最具影响力的人物之一。
+在创立 CrowdStrike 之前，
+他曾担任 McAfee 的 CTO，
+亲眼目睹了传统``基于签名''的安全防御方式在高级持续性威胁（APT）面前的无力。
+
+2011 年，Kurtz 创立 CrowdStrike，
+核心理念是用\textbf{云原生+AI 驱动}的方式重新定义端点安全。
+CrowdStrike 的 Falcon 平台不依赖预设的病毒签名库，
+而是通过 AI 实时分析端点行为，
+检测从未见过的新型威胁。
+
+在 AI 时代，CrowdStrike 推出了 \textbf{Charlotte AI}——
+一个安全分析 AI 助手，
+能够用自然语言回答安全团队的查询，
+将原本需要数小时的威胁调查压缩到分钟级别。
+
+2025 年 9 月的 Fal.Con 大会上，
+Kurtz 发布了更加激进的愿景——
+\textbf{Agentic SOC}（AI Agent 驱动的安全运营中心）。
+他宣称 CrowdStrike 正在``开创 AI 检测和响应''这一新品类，
+并将最终目标定为``Security AGI''——
+完全自主的 AI 安全分析和响应系统。
+这一愿景的大胆程度在安全行业前所未有。
+
+2026 年第四财季，CrowdStrike 报告了创纪录的业绩，
+证明了 AI 安全产品的商业可行性。
+
+\subsubsection{Tomer Weingarten 与 SentinelOne：自主 AI 安全}
+
+\textbf{Tomer Weingarten} 是 SentinelOne 的联合创始人兼 CEO，
+CrowdStrike 在 AI 安全领域最直接的竞争对手。
+
+SentinelOne 的差异化在于其更加激进的``自主化''理念——
+公司的 \textbf{Purple AI}（``紫色 AI''）被设计为一个
+``AI 安全分析师''，
+不仅能回答问题，还能自主执行检测、调查和响应的完整流程。
+2025 年 4 月的 RSA 大会上，
+SentinelOne 发布了 Purple AI 的``Athena''版本，
+展示了业界首个端到端的 Agentic AI 网络安全能力。
+
+Weingarten 在公司季度财报中表示，
+Purple AI 正在驱动``显著的超额增长''——
+新兴产品（超出核心端点安全范畴的产品，包括 AI SIEM 和 Purple AI）
+已占公司订单量的约 50\%。
+
+
+%% ============================================================
+\subsection{AI for Education：让知识触手可及}
+\label{subsec:education-ai}
+%% ============================================================
+
+\subsubsection{Sal Khan 与 Khanmigo：AI 时代的苏格拉底}
+
+\textbf{Sal Khan}——Khan Academy 的创始人，
+可能是全球教育领域最具影响力的非营利组织创始人——
+在 2023 年做出了一个极具远见的决定：
+成为 OpenAI 最早的 GPT-4 合作伙伴之一，
+共同开发教育 AI 产品 \textbf{Khanmigo}。
+
+Khanmigo 的设计哲学与大多数 AI 聊天机器人截然不同：
+它\textbf{不会直接给出答案}。
+相反，它采用苏格拉底式教学法——
+通过提问引导学生一步步自己找到答案，
+培养批判性思维和问题解决能力。
+
+Khan 在他的同名书中描绘了一个``AI 时代教育''的图景：
+每个学生都拥有一个``永不疲倦、永远耐心、
+完全了解你的学习进度''的 AI 导师。
+到 2025 年，Khanmigo 已拥有 4 星级评分（AI 教育工具中的最高之一），
+且 Khan Academy 与 Microsoft 建立了合作关系，
+进一步扩大 AI 教育工具的覆盖范围。
+
+\subsubsection{Connor Zwick 与 Speak：AI 口语教师的韩国奇迹}
+
+\textbf{Connor Zwick} 是 \textbf{Speak} 的联合创始人兼 CEO，
+Speak 是一款 AI 驱动的语言学习应用，
+其独特之处在于以\textbf{口语对话}为核心——
+用户不是在做选择题或填空，
+而是真正和 AI 说话来练习语言。
+
+Speak 的战略选择极为精准：
+2019 年，它选择\textbf{韩国}作为首发市场——
+一个英语学习需求极大、付费意愿极高的市场。
+这一决策被证明极为正确：
+到 2025 年，Speak 在韩国的品牌认知度达到 65\%，
+全国近 10\% 的人口使用过 Speak 来提高英语流利度。
+公司已拓展至 40 多个国家，用户超过 1000 万。
+
+Speak 获得了 OpenAI 的投资，
+最近一轮融资的估值达到 5 亿美元。
+Forbes 在 2025 年 11 月的封面故事中将 Speak
+定位为 Duolingo 的 AI 原生挑战者。
+
+
+%% ============================================================
+\section{AI 基础设施与 MLOps：构建 AI 的``开发者工具链''}
+\label{sec:ent-infra}
+%% ============================================================
+
+如果将 AI 产业比作一座金字塔，
+最顶层是面向终端用户的 AI 应用，
+中间层是通用的基础模型（GPT-4、Claude、Gemini 等），
+而最底层——也是最容易被忽视的一层——
+是让 AI 开发者能够高效训练、部署和运维模型的\textbf{基础设施工具链}。
+这个领域的创始人大多是``开发者中的开发者''——
+他们自己在做 AI 研究或工程时遇到了痛点，
+于是决定将解决方案产品化。
+
+
+%% ------------------------------------------------------------
+\subsection{Ion Stoica、Robert Nishihara 与 Anyscale：Ray 的分布式计算帝国}
+\label{subsec:anyscale-ray}
+%% ------------------------------------------------------------
+
+\textbf{Ion Stoica} 教授是 UC Berkeley 计算机系的传奇人物——
+他同时是 Databricks、Anyscale 和 Conviva Networks 三家公司的联合创始人，
+每一家都围绕着一篇影响力巨大的学术论文而建。
+
+\textbf{Anyscale} 围绕的是 \textbf{Ray}——
+一个分布式计算框架，
+最初由 Stoica 的博士生 \textbf{Robert Nishihara}
+和 Philipp Moritz 在 2016 年开发。
+
+\begin{whybox}[为什么 Ray 在 AI 时代变得如此重要？]
+Ray 解决了一个看似简单却极其棘手的问题：
+如何让 AI 研究者在不成为分布式系统专家的前提下，
+将他们的算法扩展到数百甚至数千个 GPU 上？
+
+Nishihara 回忆说：
+``我们在做 AI 研究，但大部分时间都花在了管理集群、整理数据、
+解决分布式系统挑战上。''
+
+Ray 的关键洞察是将分布式计算的复杂性抽象化——
+开发者只需用普通的 Python 代码编写逻辑，
+Ray 自动处理任务调度、容错、资源管理等分布式挑战。
+\end{whybox}
+
+在 AI 时代，Ray 的重要性呈指数级增长。
+过去一年，Ray 的下载量增长了近 10 倍。
+它的用户涵盖了 AI 产业的每一个角落：
+\textbf{AI 初创公司}（xAI、Thinking Machines、Perplexity）、
+\textbf{科技巨头}（Netflix、ByteDance、Apple、Tencent、Alibaba）、
+\textbf{传统企业}（JPMorgan、BMW、Bridgewater、Workday）。
+
+2025 年 10 月，Ray 正式加入 PyTorch Foundation（Linux Foundation 旗下），
+标志着它从一个``UC Berkeley 的研究项目''
+成长为 AI 产业的核心基础设施。
+
+
+%% ------------------------------------------------------------
+\subsection{Erik Bernhardsson 与 Modal：无服务器 AI 计算}
+\label{subsec:erik-bernhardsson}
+%% ------------------------------------------------------------
+
+\textbf{Erik Bernhardsson} 是一个在多个领域留下深刻印记的工程师。
+在创立 Modal 之前，
+他在 \textbf{Spotify} 工作了七年（约 2013--2019），
+从第 40 号员工成长为构建音乐推荐系统的核心人物。
+在 Spotify 期间，他还创建了开源工作流引擎 \textbf{Luigi}——
+一个广泛用于数据管线调度的工具。
+
+之后，他在 Better.com 担任 CTO（2015--2020），
+将工程团队从 1 人扩大到 300 人。
+他还是一位国际信息学奥林匹克（IOI）金牌得主，
+体现了他在算法和系统设计方面的深厚功底。
+
+2021 年，Bernhardsson 创立了 \textbf{Modal}——
+一个专为 AI、数据和 ML 团队设计的无服务器（serverless）计算平台。
+Modal 的核心理念是：
+AI 开发者不应该需要了解 Kubernetes、Docker
+或任何底层基础设施细节，
+就能在数千个 CPU 和 GPU 上运行训练任务和推理服务。
+
+Modal 的独特之处在于它是``从零构建''的新型云——
+拥有自定义的文件系统、自研的调度器、
+专门为 AI 工作负载优化的网络栈。
+其``按使用付费''（精确到每个 CPU 周期）的计价模型
+消除了 GPU 空闲时的浪费成本。
+
+
+%% ------------------------------------------------------------
+\subsection{Ben Firshman 与 Replicate：开源 AI 模型的一键部署}
+\label{subsec:ben-firshman}
+%% ------------------------------------------------------------
+
+\textbf{Ben Firshman} 最为人知的身份是 \textbf{Docker Compose} 的创造者——
+那个让数百万开发者能够用简单的 YAML 文件
+定义和运行多容器 Docker 应用的工具。
+在 Docker 的产品负责人经历之后，
+Firshman 将容器化的思想延伸到了 AI 模型部署领域。
+
+2019 年，他联合创立了 \textbf{Replicate}——
+一个让开发者能够通过简单的 API 调用
+运行数千种开源和专有 AI 模型的云平台。
+Replicate 的核心价值是\textbf{极致简化}——
+即使没有深度 AI 背景的软件工程师，
+也能在几分钟内将一个开源模型集成到自己的应用中。
+
+Replicate 在 2023--2024 年经历了爆发式增长，
+特别是在图像生成（Stable Diffusion、Flux）
+和音乐生成模型领域获得了大量开发者社区的青睐。
+Firshman 从 Docker 到 Replicate 的转变，
+体现了``开发者工具''领域的一个重要趋势：
+容器化改变了软件部署方式，
+而 Replicate 正在试图改变 AI 模型的部署方式。
+
+
+%% ============================================================
+\section{机器人与具身智能：从数字世界走向物理世界}
+\label{sec:robotics}
+%% ============================================================
+
+如果说大语言模型是``数字世界的 AI''——
+它们在虚拟的文本、代码和图像空间中运作——
+那么\textbf{机器人}就是``物理世界的 AI''——
+它们需要在混乱、不确定、充满意外的真实环境中
+感知、决策和行动。
+
+2024--2025 年，机器人行业经历了一次前所未有的资本涌入。
+这背后的核心推动力是一个关键的技术突破：
+\textbf{基础模型范式正在从语言/视觉扩展到物理世界}。
+正如 GPT-4 可以处理任意文本任务一样，
+研究者开始相信，可以训练一个``通用机器人大脑''，
+使其能够控制任意机器人完成任意物理任务。
+
+\begin{keybox}[机器人革命的``三波浪潮''与``三大流派'']
+\textbf{第一波（2010--2019）：专用机器人}。
+以 Boston Dynamics（四足、双足）、Kiva Systems（仓储物流）为代表。
+每种机器人针对一个特定场景设计，
+依赖精心调试的控制算法而非学习方法。
+
+\textbf{第二波（2019--2023）：深度强化学习}。
+以 Covariant（仓储分拣）、自动驾驶公司为代表。
+使用 RL/模仿学习训练策略，
+但仍然是``一个任务一个模型''。
+
+\textbf{第三波（2024 年至今）：通用机器人基础模型}。
+以 Physical Intelligence、Skild AI、Figure AI 为代表。
+核心理念是训练一个跨机器人、跨任务的通用模型——
+正如 LLM 是``语言的基础模型''，
+这些公司要建的是``物理世界的基础模型''。
+
+当前三大技术流派：
+\begin{enumerate}[noitemsep]
+  \item \textbf{端到端学习}（Physical Intelligence、Covariant）：
+        从原始传感器输入直接学习到电机控制输出，
+        最大限度减少人工设计的模块。
+  \item \textbf{大规模模仿学习}（Figure AI、1X）：
+        通过远程操控（teleoperation）收集大量人类演示数据，
+        训练模型模仿人类行为。
+  \item \textbf{世界模型+规划}（Skild AI、Tesla Optimus）：
+        先学习环境的物理规律（世界模型），
+        再在世界模型中进行规划和决策。
+\end{enumerate}
+\end{keybox}
+
+
+%% ------------------------------------------------------------
+\subsection{Marc Raibert 与 Boston Dynamics：四十年的机器人梦}
+\label{subsec:marc-raibert}
+%% ------------------------------------------------------------
+
+任何关于机器人的讨论，都绕不开一个名字——\textbf{Marc Raibert}。
+
+\begin{corebox}[Marc Raibert：现代动态机器人学之父]
+\textbf{出生}：1949 年 12 月 22 日\\
+\textbf{教育}：Northeastern University（BSEE，1973），MIT（PhD，1977）\\
+\textbf{学术生涯}：Carnegie Mellon University 副教授，1980 年创建 Leg Laboratory；
+MIT 电气工程与计算机科学教授\\
+\textbf{核心成就}：发明了世界上第一批自平衡跳跃机器人——
+这是机器人学历史上的里程碑，
+证明了动态稳定的腿式运动是可能的\\
+\textbf{荣誉}：2008 年当选美国国家工程院院士；
+2025 年 IEEE 机器人与自动化奖\\
+\textbf{公司}：1992 年创立 Boston Dynamics（先后被 Google、SoftBank、Hyundai 收购）\\
+\textbf{现职}：Boston Dynamics AI Institute 执行总监（Hyundai Motor Group）
+\end{corebox}
+
+Raibert 的贡献可以用一句话概括：
+他用四十年的时间，
+\textbf{让机器人学会了奔跑、跳跃和翻跟头}。
+
+1980 年，Raibert 在 CMU 创建了 Leg Laboratory，
+致力于一个在当时被认为``不可能''或``不实用''的问题：
+让腿式机器人实现\textbf{动态稳定}——
+即通过持续的动态调整（而非静态平衡）来保持运动。
+传统观点认为轮式机器人更实用、更可靠，
+但 Raibert 坚信腿式运动才是应对复杂地形的终极方案。
+
+1992 年，他创立了 Boston Dynamics，
+开始了将实验室研究转化为产品的漫长旅程。
+BigDog（2005 年，为美国军方开发的四足负重机器人）、
+Atlas（2013 年，能够行走、奔跑甚至做后空翻的人形机器人）、
+Spot（2016 年，商业化的四足机器人）——
+每一代产品都将动态运动能力推向新的极限。
+
+Boston Dynamics 的命运也经历了戏剧性的变化：
+2013 年被 Google 收购，2017 年被卖给 SoftBank，
+2021 年又被 Hyundai 以约 11 亿美元收购。
+这三次转手反映了大公司对``何时才能商业化''的焦虑。
+但在 Raibert 的坚持下，Spot 机器人终于实现了大规模商业部署——
+被用于建筑工地巡检、石油天然气设施监控和公共安全等场景。
+
+2022 年，Raibert 从 Boston Dynamics CEO 的位置退下来，
+转而领导新成立的 \textbf{Boston Dynamics AI Institute}，
+推动 AI 与机器人技术的更深层融合。
+
+
+%% ------------------------------------------------------------
+\subsection{Brett Adcock 与 Figure AI：人形机器人的硅谷赌注}
+\label{subsec:brett-adcock}
+%% ------------------------------------------------------------
+
+如果说 Raibert 代表的是``四十年磨一剑''的学术工程师路径，
+那么 \textbf{Brett Adcock} 则代表了一种完全不同的创业风格——
+\textbf{连续创业者的``速度至上''方法论}。
+
+\begin{corebox}[Brett Adcock：从招聘网站到人形机器人]
+\textbf{出生}：约 1986 年，美国佛罗里达州\\
+\textbf{教育}：University of Florida（金融与房地产学位）\\
+\textbf{第一次创业}：Vettery（在线招聘平台），
+以 1.1 亿美元出售给 Adecco\\
+\textbf{第二次创业}：Archer Aviation（eVTOL 飞行汽车），
+2021 年在纽约证券交易所上市，
+估值 27 亿美元\\
+\textbf{第三次创业}：\textbf{Figure AI}（2022 年创立），
+开发人形机器人\\
+\textbf{估值}：2025 年 390 亿美元（融资超过 10 亿美元）；
+Forbes 估计 Adcock 个人净值约 190 亿美元（2026 年 3 月）
+\end{corebox}
+
+Adcock 的创业轨迹呈现出一个清晰的模式：
+每一次创业都比上一次更``疯狂''——
+从在线招聘到飞行汽车到人形机器人。
+Figure AI 成立于 2022 年，
+迅速组建了一支包括 Boston Dynamics、Tesla、Google DeepMind
+和 Apple 特别项目组前员工的精英团队。
+
+Figure AI 的核心产品是 Figure 01 和 Figure 02 人形机器人，
+目标是让机器人能够在工厂、仓库和其他工作环境中
+替代人类完成危险或重复的劳动。
+公司在 2024--2025 年获得了 OpenAI 的投资和技术合作，
+将语言模型能力集成到机器人系统中——
+使机器人能够理解自然语言指令并做出相应动作。
+
+2025 年，Figure AI 的估值飙升至 390 亿美元，
+成为人形机器人领域估值最高的公司。
+在 2025 年的 Dreamforce 大会上，
+Adcock 将公司的使命描述为``building a new species''。
+更令人关注的是，2025 年底，
+Adcock 据报道用个人资金 1 亿美元创立了一个新的 AI 实验室 \textbf{Hark}，
+专注于``以人为中心''的 AI 系统——
+能够``主动思考、递归改进并深切关心人类''。
+
+
+%% ------------------------------------------------------------
+\subsection{Physical Intelligence（$\pi$）：通用物理智能的追求}
+\label{subsec:physical-intelligence}
+%% ------------------------------------------------------------
+
+在所有机器人初创公司中，
+\textbf{Physical Intelligence}（简称 $\pi$）
+可能是学术阵容最豪华的一家。
+
+$\pi$ 的核心团队汇集了机器人学习领域的多位顶尖研究者：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Karol Hausman}（CEO）——
+        前 Google 机器人科学家，
+        在将机器学习方法应用于机器人控制方面有大量开创性工作。
+  \item \textbf{Sergey Levine}——
+        UC Berkeley 教授，
+        深度强化学习用于机器人控制的奠基人之一。
+  \item \textbf{Chelsea Finn}——
+        Stanford 大学助理教授，
+        Pieter Abbeel 的博士生，
+        Meta-Learning（元学习）领域的开拓者，
+        提出了 MAML 等影响深远的算法。
+  \item \textbf{Lachy Groom}——
+        前 Stripe 高管，负责商业运营和融资。
+\end{itemize}
+
+$\pi$ 的技术愿景极其宏大：
+构建一个``能为任何机器人、任何物理设备、
+任何应用场景提供动力的大脑''。
+这个``通用物理大脑''的理念直接借鉴了 LLM 的成功经验——
+正如 GPT-4 是一个通用的``语言大脑''，
+$\pi$ 要训练一个通用的``物理大脑''。
+
+$\pi$ 的融资速度同样惊人：
+2024 年 3 月种子轮 7000 万美元（估值 4 亿），
+2024 年 11 月 A 轮 4 亿美元（估值 24 亿），
+2025 年 11 月 B 轮 6 亿美元（估值 56 亿）。
+投资人包括 Jeff Bezos、OpenAI、Thrive Capital 和 Lux Capital。
+
+
+%% ------------------------------------------------------------
+\subsection{Pieter Abbeel 与 Covariant：从伯克利到仓库}
+\label{subsec:pieter-abbeel}
+%% ------------------------------------------------------------
+
+\textbf{Pieter Abbeel}（1977 年生于比利时安特卫普）
+是 UC Berkeley 机器人学习实验室的灵魂人物。
+
+\begin{corebox}[Pieter Abbeel：机器人学习的``教父''级人物]
+\textbf{教育}：KU Leuven（学士、硕士），Stanford University（PhD，导师 Andrew Ng）\\
+\textbf{学术成就}：UC Berkeley EECS 教授，
+Berkeley Robot Learning Lab 主任，
+BAIR Lab 联合主任\\
+\textbf{博士生中的明星}：Chelsea Finn、John Schulman（OpenAI PPO 算法发明者）、
+Aravind Srinivas（Perplexity 创始人）\\
+\textbf{荣誉}：PECASE、NSF-CAREER、ONR-YIP、IEEE Fellow、TR35\\
+\textbf{创业}：Gradescope（2014 年创立，被 Turnitin 收购）；
+Covariant（2017 年联合创立）
+\end{corebox}
+
+Abbeel 的学术影响力远超出他的个人研究。
+他的博士生群体堪称 AI 产业的``黄埔军校''——
+John Schulman 成为 OpenAI 的核心研究者（PPO 算法的发明者），
+Chelsea Finn 成为 Stanford 教授和 Physical Intelligence 的联合创始人，
+Aravind Srinivas 成为 Perplexity 的创始人。
+很少有一位教授的学术谱系能够如此直接地塑造 AI 产业的格局。
+
+\textbf{Covariant} 是 Abbeel 在机器人商业化方面的主要赌注。
+2017 年，他与前学生 Peter Chen 和 Rocky Duan 共同创立 Covariant，
+专注于仓储物流机器人的 AI 系统——
+让机器人能够识别、抓取和分拣数以万计不同种类的物品。
+Covariant 的技术核心是端到端学习——
+从原始图像直接学习到机械臂的运动控制，
+无需传统机器人学中复杂的感知-规划-执行管线。
+
+
+%% ------------------------------------------------------------
+\subsection{Deepak Pathak 与 Abhinav Gupta：Skild AI 的``全身智能''野心}
+\label{subsec:skild-ai}
+%% ------------------------------------------------------------
+
+\textbf{Skild AI} 是机器人基础模型领域融资规模最大的公司之一，
+其两位创始人都来自 Carnegie Mellon University 的机器人研究所——
+美国最顶尖的机器人研究机构。
+
+\textbf{Deepak Pathak}（CEO）在 UC Berkeley 获得 AI 博士学位后，
+曾在 Facebook AI Research（FAIR）担任研究员，
+之后在 CMU 机器人研究所成为助理教授。
+他还曾联合创立了 VisageMap（一家面部识别初创公司，后被 FaceFirst 收购）。
+两人均毕业于印度理工学院坎普尔分校（IIT Kanpur）。
+
+\textbf{Abhinav Gupta}（总裁）在 CMU 机器人研究所工作了超过 16 年，
+同时在 Meta、Google 和 Allen Institute for AI（AI2）担任过研究职位。
+
+Skild AI 的核心产品 \textbf{Skild Brain} 于 2025 年 7 月正式发布，
+号称是业界第一个\textbf{统一的机器人基础模型}——
+能够泛化到它从未见过的硬件上，
+从四足机器人到人形机器人，从机械臂到移动操作平台，
+一个模型控制所有。
+
+Pathak 在发布会上说了一句颇具哲学意味的话：
+``机器人学被 Moravec 悖论所困扰：
+困难的问题很容易，容易的问题很难。
+很多现有的机器人模型专注于对人类来说很难、
+对机器人来说很容易的任务——跳舞、功夫——
+因为这些是自由空间运动，不需要泛化。
+Skild AI 的模型不仅能解决这些简单任务，
+还能解决日常生活中那些真正困难的任务。''
+
+2026 年 1 月，Skild AI 完成了 14 亿美元的 C 轮融资
+（由 SoftBank 领投，NVIDIA、Bezos Expeditions、
+Samsung、LG、Schneider Electric 等跟投），
+估值超过 140 亿美元。
+
+
+%% ------------------------------------------------------------
+\subsection{中国机器人双星：彭志辉与王兴兴}
+\label{subsec:china-robotics}
+%% ------------------------------------------------------------
+
+在全球机器人竞赛中，
+中国正以惊人的速度崛起为一支不可忽视的力量。
+两位年轻创始人——\textbf{彭志辉}和\textbf{王兴兴}——
+代表了中国机器人创业的两种路径。
+
+\subsubsection{彭志辉（稚晖君）与智元机器人 AgiBot：从``天才少年''到``具身智能''}
+
+\textbf{彭志辉}（1993 年生，江西吉安），
+在创业之前就已是中国互联网的传奇人物。
+他以``稚晖君''的网名在 B 站发布硬核 DIY 技术视频——
+自平衡机器人、微型电视机、能缝合葡萄皮的机械臂``Dummy''、
+自动驾驶自行车——每个作品都展示了惊人的工程能力，
+吸引了数百万粉丝，被网友称为``野生钢铁侠''。
+
+\begin{corebox}[彭志辉：中国``天才少年''的机器人之路]
+\textbf{出生}：1993 年，江西吉安（农村出身）\\
+\textbf{教育}：电子科技大学（本科），信息与通信工程硕士（2018）\\
+\textbf{职业经历}：OPPO AI 实验室 → 2020 年通过华为``天才少年''计划加入华为
+（年薪约 200 万人民币档位）\\
+\textbf{创业}：2022 年 12 月辞职，在社交媒体上写道：
+``我的青春热血在沸腾，我对世间的无知无畏，
+或许是我最后的执拗。''\\
+2023 年初创立\textbf{智元机器人}（AgiBot / Zhiyuan Innovation）\\
+\textbf{估值}：2025 年 8 月约 150 亿元人民币（约 21 亿美元），
+完成 11 轮融资，投资方包括腾讯、京东、BYD、LG 等\\
+\textbf{标志性事件}：2025 年 4 月，作为最年轻代表参加李强总理主持的企业家座谈会
+\end{corebox}
+
+AgiBot 的发展速度令全球同行侧目。
+从创立到实现人形机器人``量产''仅用了不到两年时间。
+2025 年 7 月，AgiBot 通过反向收购在上海科创板上市——
+母公司 Swancor Advanced Materials 的股价在消息公布后暴涨 10.83 倍。
+
+更令人关注的是 AgiBot 的``量产化''能力——
+不同于大多数人形机器人公司仍停留在实验室原型阶段，
+AgiBot 已开始交付能在汽车工厂装配线上工作的人形机器人。
+其中一款机器人能举起 40 公斤重物；
+另一款在公开活动中与足球明星 David Beckham 握手，
+展示了精细的操作能力。
+
+\subsubsection{王兴兴与宇树科技 Unitree：让机器人``飞入寻常百姓家''}
+
+如果说彭志辉代表的是``互联网名人转型创业''的路径，
+那么 \textbf{王兴兴}（1990 年生，浙江宁波）
+则代表了更加``技术极客''的路线。
+
+\begin{corebox}[王兴兴：从 200 元零件到全球机器人领导者]
+\textbf{出生}：1990 年，浙江宁波\\
+\textbf{教育}：浙江理工大学（机电一体化，本科）；
+上海大学（机电一体化，硕士）\\
+\textbf{关键时刻}：大一时用仅约 200 元（约 30 美元）的零件和手工部件
+制作了他的第一台双足机器人\\
+\textbf{硕士研究}：2015 年，用约 2 万元开发了 XDog 四足机器人原型——
+开创了低成本高性能足式机器人的技术路线\\
+\textbf{创业}：毕业后短暂加入 DJI，随即于 2016 年 8 月在杭州创立\textbf{宇树科技}\\
+\textbf{成就}：全球第一家公开零售高性能四足机器人的公司；
+Go1 机器狗定价低于 3000 美元，
+打破了``高性能机器人 = 天价''的传统认知\\
+\textbf{里程碑}：2025 年春节联欢晚会——
+16 台 Unitree 人形机器人在数亿观众面前表演武术和翻跟头
+\end{corebox}
+
+王兴兴的核心哲学是\textbf{``极致性价比''}。
+在他之前，高性能四足机器人（如 Boston Dynamics 的 Spot）
+定价在 7.5 万美元以上，远非普通消费者或中小企业能够承受。
+Unitree 的 Go1 以不到 3000 美元的价格
+提供了相当可观的动态运动能力，
+彻底改变了市场格局。
+
+Unitree 还在人形机器人领域取得了令人印象深刻的突破。
+其 H1 人形机器人创造了超过 3 米/秒的冲刺速度记录，
+展示了出色的动态运动能力。
+2025 年 2 月的春节联欢晚会上，
+Unitree 的人形机器人在数亿观众面前完成了
+720 度旋转飞踢等高难度动作——
+这不仅是技术展示，更是一次面向全中国乃至全球的``品牌事件''。
+
+王兴兴多年来连续受邀在 ICRA（国际机器人与自动化顶级会议）
+的足式机器人论坛上发表演讲（2018--2022），
+申请了超过 150 项国内外专利，
+被称为``技术至上主义者''。
+
+
+%% ------------------------------------------------------------
+\subsection{自动驾驶：从 Waymo 到 Nuro}
+\label{subsec:autonomous-driving}
+%% ------------------------------------------------------------
+
+自动驾驶是``具身 AI''最早也最成熟的商业化领域。
+经过十余年的发展，
+这个领域已经从``群雄并起''进入了``赢家初现''的阶段。
+
+\subsubsection{Dmitri Dolgov 与 Waymo：十七年的耐心}
+
+\textbf{Dmitri Dolgov} 的故事始于 2009 年——
+当时，约十几名 Google 工程师在一辆 Toyota Prius 上
+装上了现成的传感器和一台 PC，
+试图看看``让汽车自己开有多难''。
+Dolgov 是这个名为``Project Chauffeur''的 Google 自动驾驶项目的联合创始人之一。
+
+此前，Dolgov 在 Stanford 参加了 DARPA Urban Challenge
+（2007 年美国军方组织的自动驾驶城市挑战赛），
+获得了宝贵的自动驾驶实战经验。
+他在 University of Michigan 获得计算机科学与工程博士学位（2008 年）。
+
+从 2009 年到 2026 年——整整 17 年——
+Dolgov 一直在同一家公司（从 Google 自动驾驶项目到独立的 Waymo）
+专注于同一个问题。
+这种``耐心''在快节奏的硅谷极为罕见，
+Fast Company 在将 Waymo 评为 2025 年全球最创新公司第一名时，
+特别用了``prescience and patience''（远见与耐心）来形容它的成功。
+
+到 2025 年，Waymo 已在旧金山、洛杉矶、凤凰城和奥斯汀运营公共 Robotaxi 服务，
+每周完成超过 25 万次乘车——
+这是全球自动驾驶行业唯一达到这一规模的商业运营。
+
+\subsubsection{Kyle Vogt 与 Cruise：从巅峰到坠落}
+
+\textbf{Kyle Vogt} 的故事则是一个令人扼腕的``反面案例''。
+
+Vogt 是一位连续创业者，
+与 Dan Kan 在 2013 年共同创立了 \textbf{Cruise}，
+后被 General Motors 收购。
+在 GM 的支持下，Cruise 迅速成长为 Waymo 最有力的竞争对手——
+2023 年 8 月，Cruise 获得了在旧金山 24 小时运营无人驾驶出租车的许可，
+并宣布了与 Honda 合作将 Robotaxi 带到日本的计划。
+
+然而，仅仅两个月后，
+一切在一夜之间崩塌。
+2023 年 10 月 2 日晚，一辆 Cruise 自动驾驶汽车在旧金山
+卷入了一起涉及行人受伤的事故，
+加州监管机构随后吊销了 Cruise 的运营许可。
+更糟糕的是，Cruise 被指控在事故后未能及时向监管机构
+完整报告事故的全部细节。
+
+2023 年 11 月 19 日，Vogt 宣布辞职。
+Dan Kan 同时辞职。
+这个从车库起步、历经十年发展的自动驾驶梦想，
+因为一个夜晚的事故和随后的信任危机而戛然而止。
+Cruise 的教训清楚地说明了一个事实：
+在涉及公共安全的 AI 系统中，
+\textbf{信任一旦失去，几乎不可能恢复}。
+
+\subsubsection{Jiajun Zhu 与 Dave Ferguson：Nuro 的``自主配送''第三条路}
+
+\textbf{Jiajun Zhu}（朱佳俊）和 \textbf{Dave Ferguson}
+都是 Waymo（当时的 Google 自动驾驶项目）的早期核心工程师——
+Zhu 担任首席软件工程师，
+Ferguson 于 2011 年加入担任首席机器学习工程师。
+
+2016 年，两人离开 Waymo，共同创立了 \textbf{Nuro}，
+选择了一条与 Waymo 和 Cruise 不同的道路：
+\textbf{不载人，只载物}。
+Nuro 开发的是小型无人配送车——
+没有窗户、没有方向盘、没有座位，
+专门设计用于最后一公里的货物配送。
+
+这一策略选择背后有深刻的逻辑：
+如果自动驾驶汽车只运送货物而不载人，
+其安全标准可以设定得不同——
+车辆的优先级始终是保护行人和其他道路使用者，
+而车内没有需要保护的乘客。
+Nuro 因此成为\textbf{第一家获得 NHTSA
+（美国国家公路交通安全管理局）自动驾驶豁免}的公司。
+
+2024 年 9 月，Nuro 进行了战略转型——
+从自主运营配送车转向\textbf{授权其 Nuro Driver 自动驾驶系统}
+给汽车制造商和出行服务商。
+这一转型使 Nuro 从``运营商''变为``技术供应商''，
+极大地扩展了其潜在市场规模。
+
+
+%% ------------------------------------------------------------
+\subsection{1X Technologies：来自挪威的人形机器人先驱}
+\label{subsec:1x-technologies}
+%% ------------------------------------------------------------
+
+在以硅谷和中国为主导的机器人竞赛中，
+来自挪威的 \textbf{1X Technologies}
+（前身为 Halodi Robotics）是一个引人注目的``异类''。
+
+其创始人兼 CEO \textbf{Bernt Børnich} 从小就喜欢拆解厨房小电器，
+对机械和电子有着天然的热情。
+他创立 1X 的愿景是：
+制造安全、柔顺的人形机器人，
+能够在家庭环境中与人类一起工作和生活。
+
+1X 的旗舰产品 \textbf{NEO} 于 2025 年 10 月正式发布，
+被称为``世界上第一款面向消费者的人形机器人''——
+能够自动完成家务劳动并提供个性化的家庭辅助。
+
+Børnich 在 TED 演讲中形容 NEO 为
+``你的机器人管家学徒''（your robot butler in training）。
+他的设计哲学与许多竞争对手不同——
+1X 强调``安全''和``柔顺''（compliance），
+而非``力量''和``速度''——
+因为在家庭环境中，
+机器人必须能够安全地与儿童和老人互动。
+
+1X 的战略布局也颇具特色：
+AI 研发中心设在旧金山湾区，
+而制造工厂设在挪威——
+利用挪威的自动化制造传统和高技能工人优势。
+据报道，1X 正在寻求高达 10 亿美元的新一轮融资。
+
+
+%% ============================================================
+\section{下一波浪潮：企业 AI Agent}
+\label{sec:enterprise-agents}
+%% ============================================================
+
+纵观本章介绍的创始人群像，
+一个清晰的趋势正在浮现：
+\textbf{企业 AI 正在从``工具''进化为``Agent''——
+从``人类使用 AI''进化为``AI 自主工作''}。
+
+\begin{keybox}[企业 AI 的进化阶梯：从 Copilot 到 Agent 到 Colleague]
+\textbf{第一阶段——Copilot（副驾驶，2023--2024 年）}：
+AI 作为人类的``助手''，只能在人类的显式请求下执行单一任务。
+Microsoft Copilot、GitHub Copilot 是典型代表。
+特征：人类发起 → AI 执行一步 → 人类验证。
+
+\textbf{第二阶段——Agent（代理，2024--2026 年）}：
+AI 能够自主执行多步骤任务，在多个系统之间导航，
+基于情境做出决策。Sierra、Harvey、Intercom Fin 是典型代表。
+特征：人类发起 → AI 自主规划和执行多步 → 人类监督结果。
+
+\textbf{第三阶段——Colleague（同事，2026+ 年）}：
+AI 成为组织中的``数字员工''，
+拥有自己的``任务清单''、``工作目标''和``绩效指标''，
+能主动发起工作，而非被动等待指令。
+特征：AI 主动发现问题 → 提出方案 → 征求人类许可 → 自主执行。
+\end{keybox}
+
+本章介绍的许多创始人——
+Bret Taylor（Sierra）、Eoghan McCabe（Intercom）、
+George Kurtz（CrowdStrike）、Deepak Pathak（Skild AI）——
+都在各自的领域推动着这一进化。
+
+这场进化的终极问题不是技术性的，而是\textbf{组织性的}：
+当 AI Agent 能够完成越来越多以前由人类完成的工作时，
+企业的组织架构、绩效评估和文化将如何适应？
+当一个 AI Agent 能够处理 67\% 的客户请求
+（如 Intercom 的 Fin 已经做到的那样），
+客服团队的 KPI 应该怎么设？
+剩余 33\% 的``困难案例''需要什么样的人才？
+
+这些问题没有现成的答案。
+但有一点是确定的：
+本章介绍的创始人们——
+从 19 岁辍学的数据标注天才到 75 岁的机器人教父，
+从旧金山的法律 AI 室友到杭州的机器人极客——
+正在集体定义这场变革的方向和速度。
+
+他们的共同信念可以用 Alex Karp 的话来概括：
+\textbf{``AI has just put gasoline on all the tribal knowledge we have.''}
+AI 没有创造新的行业知识——
+它点燃了人类几十年甚至几百年积累的行业知识，
+让这些知识以前所未有的速度和规模释放价值。
+
+\begin{whybox}[Enterprise AI 的``终局''猜想]
+回顾本章涵盖的 70 余位创始人和数十家公司，
+一个关于企业 AI ``终局''的图景正在浮现：
+
+\textbf{在数据层}，
+Databricks + Snowflake 将成为``AI 时代的 Oracle + SAP''——
+每家大型企业都需要一个统一的数据+AI 平台。
+
+\textbf{在垂直应用层}，
+每个行业都将出现一到两家主导的``AI 原生''公司——
+法律有 Harvey，医疗有 Hippocratic AI，安全有 CrowdStrike，
+客服有 Sierra/Intercom——
+它们的共同特点是：\textbf{没有 AI，这些公司就不会存在}。
+
+\textbf{在物理世界}，
+通用机器人基础模型（Physical Intelligence、Skild AI）
+将使机器人从``专用工具''变为``通用劳动力''——
+正如 LLM 使 AI 从``专用系统''变为``通用助手''。
+中国的 AgiBot 和 Unitree 将在成本和量产能力上形成独特优势。
+
+\textbf{在基础设施层}，
+Ray（Anyscale）、Modal、Replicate 等工具
+将使 AI 开发和部署变得像编写 Web 应用一样简单——
+极大地降低 AI 创业的技术门槛，
+催生新一波更加多样化的 AI 应用。
+
+这个``终局''可能需要 5--10 年才能完全实现。
+但竞赛已经开始——
+而本章介绍的创始人们，正是这场竞赛的领跑者。
+\end{whybox}

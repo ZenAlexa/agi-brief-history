@@ -1,0 +1,1470 @@
+% =============================================================
+% Chapter 3: OpenAI and the GPT Revolution
+% Book: AI Figures — Who's Who in the Age of AI
+% =============================================================
+
+\chapter{OpenAI 与 GPT 革命}
+\label{ch:openai}
+
+2015年12月11日，一群硅谷最具影响力的技术人物宣布成立一个名为 OpenAI 的非营利人工智能研究实验室，
+承诺投入10亿美元，使命是``确保通用人工智能（AGI）惠及全人类''。
+不到十年后，这个曾经理想主义的研究实验室已经蜕变为估值5000亿美元的商业巨头，
+其产品 ChatGPT 在两个月内吸引了1亿用户，彻底改变了公众对人工智能的认知，
+并引发了一场席卷全球的技术革命。
+
+然而，OpenAI 的故事远非一帆风顺。它经历了从非营利到营利的痛苦转型，
+见证了创始团队的大规模出走，承受了2023年11月震惊世界的``宫廷政变''，
+并在安全与商业化之间不断寻找平衡。
+在这个过程中，超过50位关键人物的命运交织在一起，
+构成了AI时代最引人入胜的人物群像。
+
+\begin{corebox}[OpenAI 关键时间线]
+\begin{itemize}[noitemsep]
+  \item \textbf{2015.12}：OpenAI 作为非营利组织成立，承诺10亿美元资金
+  \item \textbf{2018.02}：Elon Musk 离开董事会
+  \item \textbf{2018.06}：GPT-1 发布，Alec Radford 开创 generative pre-training 范式
+  \item \textbf{2019.02}：GPT-2 发布，因``太危险''而延迟开源
+  \item \textbf{2019.03}：创建 OpenAI LP（有限营利子公司），Sam Altman 出任 CEO
+  \item \textbf{2019.07}：Microsoft 投资10亿美元
+  \item \textbf{2020.06}：GPT-3 发布，175B 参数震惊学界
+  \item \textbf{2021.01}：DALL$\cdot$E 发布；同年 Dario Amodei 等人出走创立 Anthropic
+  \item \textbf{2022.11}：ChatGPT 发布，两个月破1亿用户
+  \item \textbf{2023.03}：GPT-4 发布；Microsoft 追加投资至130亿美元
+  \item \textbf{2023.11}：董事会危机——Sam Altman 被解雇又复职的五天
+  \item \textbf{2024.05}：Ilya Sutskever 离职，Superalignment 团队解散
+  \item \textbf{2024.09}：Mira Murati、Bob McGrew、Barret Zoph 集体离职
+  \item \textbf{2024.09}：o1 推理模型发布，开启 test-time compute 新范式
+  \item \textbf{2025.10}：完成营利化重组，估值达5000亿美元，Microsoft 持股27\%
+\end{itemize}
+\end{corebox}
+
+
+% ============================================================
+\section{创始人与使命}
+\label{sec:openai-founders}
+% ============================================================
+
+\subsection{Sam Altman —— 从 Y Combinator 到 AGI 之路}
+\label{subsec:sam-altman}
+
+Samuel Harris Altman，1985年4月22日出生于芝加哥，
+在圣路易斯郊区长大。他的母亲 Connie Gibstine 是一名皮肤科医生，
+父亲是一位商人。Altman 有两个弟弟——Jack 和 Max——
+两人后来也进入了科技创业领域。
+8岁时，Altman 收到人生第一台 Macintosh 电脑，
+他不满足于使用，而是动手将它拆解并重新组装——
+这种对理解事物``内部运作''的执念贯穿了他的整个职业生涯。
+他很快自学了编程，并在少年时期就开始探索互联网的早期世界。
+
+Altman 就读于圣路易斯的 John Burroughs School——
+一所以学术卓越著称的私立学校——
+并以毕业生代表（valedictorian）身份毕业。
+在高中时期，他公开了自己的同性恋身份，
+后来回忆说这一经历教会了他``保持真实的勇气，
+即使周围的人不一定理解''。
+随后他进入 Stanford 大学学习计算机科学，
+但与许多硅谷传奇一样，他在大二时辍学，
+投入了自己的第一个创业项目。
+
+2005年，年仅19岁的 Altman 联合创立了移动地理位置社交应用 Loopt
+（最初名为 Radiate），
+成为 Y Combinator（YC）第一批（S05）入选的创业公司之一。
+Loopt 是硅谷最早看到 GPS 智能手机位置数据价值的创业公司之一——
+用户可以通过手机与朋友分享实时位置，这在2005年是一个极为超前的概念。
+尽管 Loopt 最终在2012年以4340万美元被 Green Dot Corporation 收购——
+在硅谷标准下只能算是``体面退出''——但这段经历让 Altman 深入了解了创业生态系统，
+也让他获得了 Paul Graham 的高度赏识。
+Graham 将这位年轻的创业者视为YC最具潜力的校友之一，
+称他为``我见过的最出色的年轻创始人之一''。
+
+2014年，年仅28岁的 Altman 接替 Paul Graham 出任 Y Combinator 总裁
+——这个年龄担任硅谷最具影响力孵化器掌门人的任命震惊了整个创投圈。
+在他的领导下，YC 的规模和野心急剧扩张——每期孵化的公司从数十家增至数百家，
+同时 Altman 推动 YC 投资了 Stripe、Airbnb、Reddit 等后来成长为巨头的公司。
+他还成为多家公司的天使投资人，据估计其个人投资组合涵盖了超过400家初创企业。
+
+但 Altman 的野心远不止于孵化器。他对人工智能的潜力——以及潜在风险——有着深刻的直觉。
+2015年底，他与 Elon Musk 共同发起了 OpenAI 项目。
+Altman 最初担任 OpenAI 的联合主席（Co-Chair），
+直到2019年正式辞去 YC 总裁职务，全职出任 OpenAI CEO。
+
+作为 CEO，Altman 做出了几个定义 OpenAI 命运的关键决策。
+首先，他推动了2019年从纯非营利到``有限营利''（capped-profit）模式的转型，
+创建了 OpenAI LP 子公司，使公司能够吸引外部投资和人才。
+这一决策在内部引发了激烈争论——也直接导致了 Dario Amodei 等人的不满和后来的出走——
+但从商业角度看，它使 OpenAI 获得了 Microsoft 的130亿美元投资，
+为训练 GPT-4 等大规模模型提供了必要的算力资源。
+
+其次，Altman 敏锐地捕捉到了将研究成果转化为产品的时机。
+2022年11月30日，ChatGPT 作为一个``低调的研究预览''发布，
+却在五天内获得了100万用户，两个月内突破1亿用户——
+这是互联网历史上增长最快的消费级应用。
+ChatGPT 的成功不仅验证了 Altman 的商业直觉，
+更从根本上改变了公众对AI的认知，开启了所谓的``AI时代''。
+
+\begin{whybox}[2023年11月危机：五天改变 OpenAI]
+2023年11月17日星期五下午，OpenAI 董事会在一份简短声明中宣布
+解除 Sam Altman 的 CEO 职务，理由是他``在与董事会的沟通中缺乏一贯的坦诚''。
+CTO Mira Murati 被任命为临时 CEO。当晚，Greg Brockman 宣布辞去董事会主席并离职。
+这一决定震惊了整个科技界——而它的伏笔早已埋下。
+
+\paragraph{导火索}
+事后来看，至少有三条导火索交织在一起：
+第一，董事会成员 Helen Toner 在2023年10月合著了一篇学术论文，
+比较了 OpenAI 和 Anthropic 的安全实践——对 Anthropic 的评价更为正面。
+Altman 据称向其他董事会成员施压要求将 Toner 移除，
+而当 Toner 了解到这一点后，信任关系进一步恶化。
+第二，两名 OpenAI 高管向董事会报告了 Altman 的``心理虐待''行为，
+并提供了截图和文件作为证据。
+第三，也是最核心的问题——Toner 后来在 TED AI Show 播客中透露：
+``我们就是无法相信 Sam 告诉我们的话。''
+她举了一个惊人的例子：\textbf{董事会是通过 Twitter 才知道
+OpenAI 在2022年11月发布了 ChatGPT 的}——
+这款后来改变世界的产品，公司自己的治理机构事先完全不知情。
+此外，Altman 未向董事会披露他拥有 OpenAI 创业基金的所有权，
+也在安全流程的正式审查中提供了``不准确的信息''。
+
+\paragraph{五天的剧变}
+接下来的五天堪称硅谷历史上最戏剧性的公司治理危机：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{11月16日（周四晚）}：
+        Altman 收到联合创始人的短信，邀请他在周五加入一个 Google Meet 通话。
+        同时，OpenAI 已经联系 CTO Mira Murati，征询她担任下一任 CEO 的意愿
+  \item \textbf{11月17日（周五）}：董事会在 Google Meet 上通知 Altman 被解雇。
+        Microsoft CEO Satya Nadella 在全世界知道之前``一分钟''才被告知。
+        当天下午，声明发布；当晚，Brockman 辞职。
+        整个科技界措手不及
+  \item \textbf{11月18日（周六）}：投资人和员工开始向董事会施压要求恢复 Altman；
+        Nadella 迅速宣布欢迎 Altman 和 Brockman 加入 Microsoft，
+        领导一个新的``先进AI研究''团队——这一招将巨大的压力转向了 OpenAI 董事会
+  \item \textbf{11月19日（周日）}：Murati 被撤换临时 CEO 职位，
+        董事会任命 Twitch 联合创始人 Emmett Shear 为第三任临时 CEO——
+        这是五天内的第三位 CEO。
+        更致命的一击来自员工：
+        770名 OpenAI 员工中有743人签署联名信，
+        威胁如果 Altman 不复职就集体辞职加入 Microsoft。
+        签名者中包括首席科学家 Ilya Sutskever 本人——
+        他是投票解雇 Altman 的四位董事会成员之一
+  \item \textbf{11月20日（周一）}：谈判陷入僵局。
+        Sutskever 在 X 上公开发帖：``我对参与董事会的行动深感后悔。
+        我从来不想伤害 OpenAI。我热爱我们一起建设的一切。''
+        这条推文成为了整场危机中最令人心碎的时刻之一
+  \item \textbf{11月22日（周三）}：协议达成——Altman 重返 CEO 职位，
+        原董事会成员 Helen Toner、Tasha McCauley 和 Ilya Sutskever 离开，
+        Adam D'Angelo 留任，Bret Taylor（新任主席）和 Larry Summers 加入新董事会。
+        OpenAI 同意委托一家律师事务所对事件进行独立调查
+\end{itemize}
+
+\paragraph{Helen Toner 的辩护}
+2024年5月，在独立调查结束后，Toner 在 TED AI Show 播客中首次详细阐述了她的视角。
+她描述了一个``有毒的氛围''：Altman 对不同的人说不同的话，
+``操纵性地''管理信息流向董事会。
+她坚称解雇的决定不是关于任何单一事件，
+而是``经过深思熟虑的结论——
+我们无法有效地监督一个我们不能信任其言行的 CEO''。
+董事会之所以选择突然行动而非提前沟通，
+是因为``非常清楚，如果他提前知道，他会操纵整个过程''。
+Toner 的叙述引发了更深层次的争论：
+在一家使命是``确保 AGI 惠及全人类''的公司中，
+非营利董事会的监督权限应该有多大？
+当安全使命和商业利益发生冲突时，谁应该拥有最终决定权？
+
+这场危机的根源在于 OpenAI 独特的治理结构：
+一个非营利董事会控制着一家价值数百亿美元的公司，
+而董事会成员对公司的商业化速度和安全承诺之间的平衡存在根本分歧。
+危机的结果清晰地表明了一个残酷的现实：
+在资本和人才的压力下，非营利治理结构几乎无法约束一家超级增长的科技公司。
+\end{whybox}
+
+Altman 在危机后迅速巩固了自己的地位。2024年，
+他首次获得了 OpenAI 的股权（此前他一直声称不持有公司股份）。
+2025年10月，OpenAI 完成了里程碑式的营利化重组：
+非营利组织更名为 OpenAI Foundation，持有营利性公益公司 OpenAI Group PBC 约26\%的股权，
+Microsoft 持有约27\%，整体估值达到约5000亿美元。
+
+\begin{keybox}[Altman 的领导哲学]
+Altman 曾在多个场合表达他对 AGI 的信念：
+``我认为我异常擅长将多个事物投射到未来数年甚至数十年，
+并理解它们将如何相互作用。''他将自己比作``项目经理''——
+不是最深的技术专家，但擅长组织资源、招募人才和设定方向。
+\emph{Time} 杂志在2025年将他列入``AI 架构师''年度人物。
+\end{keybox}
+
+截至2026年初，Altman 继续领导 OpenAI，推动 Stargate 项目——
+一个与 SoftBank 合资、投资5000亿美元建设AI数据中心基础设施的宏大计划。
+2025年1月，Stargate 由 Trump 总统在白宫亲自宣布，
+Altman、SoftBank CEO Masayoshi Son 和 Oracle CTO Larry Ellison 出席。
+Elon Musk 立即在 X 上质疑 Stargate ``没有足够的资金''，
+Altman 罕见地公开反击：``我真诚地尊重你的成就，
+认为你是我们这个时代最鼓舞人心的企业家，
+但你说的是错的。''这场公开争论是两位前盟友长期恩怨的又一章节——
+从2015年共同创立 OpenAI 到2024年 Musk 起诉 Altman，
+他们的关系已从合作彻底转变为对抗。
+
+Altman 的野心远不止AI。他的个人投资组合横跨多个``文明级''技术领域：
+核聚变公司 Helion Energy（他曾是董事会主席，
+在2025年初的 Bloomberg 采访中自信地宣称``聚变将会成功''）、
+核裂变公司 Oklo、超高速旅行项目，
+以及在 Reddit、Stripe 等公司的早期投资。
+尽管他在2025年4月辞去了 Helion 和 Oklo 的董事会职务以减少利益冲突，
+但这些投资反映了他对``AI时代将需要全新能源基础设施''的判断。
+他曾表示：``我相信AI和能源是21世纪最重要的两个变量，
+而且它们是深度耦合的。''
+
+在个人层面，Altman 于2024年与长期伴侣 Oliver Mulherin 结婚，
+两人在2025年迎来了他们的第一个孩子。
+
+
+\subsection{Greg Brockman —— OpenAI 的技术建筑师}
+\label{subsec:greg-brockman}
+
+Greg Brockman，生于1988年左右，来自美国北达科他州。
+他在高中时期就展现了非凡的数学天赋，
+曾在2006年的 USA Math Olympiad 中获得前12名的成绩。
+他先后就读于 Harvard 大学和 MIT，但在大一结束后辍学。
+
+辍学后的 Brockman 加入了支付公司 Stripe，
+迅速从第一批工程师成长为 CTO。
+在 Stripe 的四年间（2010--2015），
+他帮助构建了支撑数十亿美元交易的基础设施，
+积累了领导大型工程团队的宝贵经验。
+
+2015年底，Brockman 离开 Stripe，成为 OpenAI 的联合创始人和 CTO。
+他的角色是将 OpenAI 从一个松散的研究实验室打造为一个高效运转的工程组织。
+在早期，Brockman 亲自负责招募核心团队、搭建计算基础设施，
+并建立了研究与工程之间的紧密协作文化。
+后来他担任 OpenAI 的总裁（President），
+在公司的战略方向和外部合作（尤其是与 Microsoft 的伙伴关系）中发挥了关键作用。
+
+在2023年11月的董事会危机中，Brockman 与 Altman 一同被解除职务。
+危机解决后，他重返公司。但2024年8月，Brockman 宣布休假，
+表示这是他``自联合创立 OpenAI 九年来第一次放松''。
+这一休假引发了外界对 OpenAI 内部权力格局变化的猜测——
+特别是在 John Schulman 同日宣布离职加入 Anthropic 的背景下。
+
+2024年11月，Brockman 结束了为期三个月的假期返回 OpenAI，
+并与 Altman 合作确定了一个新的角色定位——
+聚焦于重要的技术挑战，而非日常管理。他在 X 上写道：
+``我这辈子最长的假期结束了。回来继续建设 @OpenAI。''
+截至2026年初，Brockman 仍是 OpenAI 仅存的三位联合创始人之一
+（另外两位是 Altman 和 Wojciech Zaremba）。
+
+
+\subsection{Elon Musk —— 从联合创始人到原告}
+\label{subsec:elon-musk}
+
+Elon Musk 是 OpenAI 最引人注目也最具争议的联合创始人。
+2015年12月，Musk 与 Altman 共同担任 OpenAI 的联合主席，
+并承诺提供10亿美元的资金支持（实际贡献约1亿美元）。
+Musk 参与 OpenAI 的动机是双重的：
+一方面是对 Google 在AI领域日益增长的主导地位的担忧
+（他曾公开表示担心 Google 联合创始人 Larry Page ``不够重视AI安全''），
+另一方面是他本人对 AGI 带来的生存风险的深切忧虑。
+
+然而，Musk 与 OpenAI 的蜜月期并不长。
+2018年2月，他辞去了 OpenAI 董事会的职务。
+官方的解释是为了避免与 Tesla 自动驾驶AI业务的潜在利益冲突，
+但多方报道指出，真正的原因是他与 Altman 在 OpenAI 的方向上产生了根本分歧——
+Musk 曾试图亲自接管 OpenAI 的控制权但遭到拒绝。
+
+2019年，当 OpenAI 创建营利性子公司 OpenAI LP 并接受 Microsoft 的10亿美元投资时，
+Musk 开始公开批评 OpenAI 背离了其开源、非营利的创始使命。
+他在 Twitter 上多次抨击 OpenAI 已经变成了``Microsoft 的附属盈利机构''。
+
+2023年7月，Musk 创立了自己的AI公司 xAI，
+招募了包括前 Google DeepMind 研究员在内的顶尖人才。
+xAI 的旗舰产品 Grok 集成在 Musk 的社交平台 X（前 Twitter）中。
+
+2024年3月，Musk 正式对 OpenAI、Altman 和 Brockman 提起诉讼，
+指控他们违反了 OpenAI 的创始协议——
+具体来说，OpenAI 从非营利转向与 Microsoft 深度绑定的营利模式，
+违反了其原始使命。诉讼要求返还利润并恢复开源承诺。
+这一诉讼引发了科技界的广泛关注和激烈辩论。
+
+2025年初，SpaceX 以2500亿美元收购 xAI，
+使其成为全球估值最高的私人公司的一部分。
+然而，xAI 的发展并不顺利：到2026年初，
+12位联合创始人中已有至少6位离开，
+包括 Greg Yang（因健康原因）、Jimmy Ba 和 Tony Wu 等人。
+Musk 本人承认 xAI ``在构建初期存在问题''，并进行了大规模重组。
+
+
+% ============================================================
+\section{科学引擎：首席科学家与研究领袖}
+\label{sec:openai-research}
+% ============================================================
+
+\subsection{Ilya Sutskever —— 深度学习的布道者}
+\label{subsec:ilya-sutskever}
+
+如果说 Sam Altman 是 OpenAI 的商业大脑，
+那么 Ilya Sutskever 就是它的科学灵魂。
+在 OpenAI 的前九年里，
+Sutskever 作为首席科学家（Chief Scientist）
+定义了公司的技术路线图——从 GPT 系列的诞生到 scaling laws 的发现，
+几乎每一个里程碑式的技术突破都有他的身影。
+
+Sutskever 1986年出生于俄罗斯（当时的苏联），
+5岁时随家人移居以色列耶路撒冷，
+16岁时又移民到加拿大。
+他在 University of Toronto 获得了数学学士学位（2005年）、
+计算机科学硕士学位（2007年）和博士学位，
+导师正是``深度学习教父'' Geoffrey Hinton。
+
+2012年，Sutskever 与同门 Alex Krizhevsky 和导师 Hinton 共同创造了 AlexNet——
+这个在 ImageNet 挑战赛上以巨大优势（15.3\% vs.\ 第二名的26.2\% 错误率）
+击败所有对手的卷积神经网络，
+标志着深度学习革命的正式开始。
+``Ilya 认为我们应该做这件事，Alex 让它运行起来，
+而我得了 Nobel Prize，'' Hinton 后来开玩笑说。
+
+Sutskever 的核心直觉——\emph{neural networks 的性能会随数据量的增加而 scale}——
+在2011年还不是共识，但被 AlexNet 的成功彻底验证。
+毕业后，他先后在 Stanford 担任博士后、在 Google Brain 工作两年
+（与 Jeff Dean、Oriol Vinyals 等人合作开发 sequence-to-sequence 模型），
+然后在2015年被 Brockman 和 Altman 招募，成为 OpenAI 的联合创始人和研究总监。
+
+在 OpenAI，Sutskever 的贡献是全方位的：
+\begin{itemize}[noitemsep]
+  \item 确立了``大力出奇迹''的 scaling 路线——
+        坚信更大的模型、更多的数据、更强的算力会产生涌现能力
+  \item 指导了 GPT 系列（GPT-1 到 GPT-4）的架构和训练策略
+  \item 推动了 RLHF（从人类反馈中学习）的应用
+  \item 2023年6月，与 Jan Leike 共同领导了 Superalignment 项目——
+        OpenAI 最雄心勃勃的安全计划，
+        宣布投入公司20\%的计算资源来``在四年内解决超级智能对齐问题''
+\end{itemize}
+
+然而，Sutskever 与 Altman 之间的张力最终在2023年11月的董事会危机中爆发。
+作为董事会成员之一，Sutskever 投票支持解雇 Altman。
+他后来公开表示``对参与董事会的行动深感后悔''，
+但这一事件不可逆转地改变了他在 OpenAI 的处境。
+
+2024年5月14日，Sutskever 宣布离开 OpenAI，
+结束了他长达近九年的首席科学家任期。
+同月，他联合 Daniel Gross（前 Apple AI 负责人、知名投资人）
+和 Daniel Levy 创立了 Safe Superintelligence Inc.（SSI），
+一家``只有一个目标、一个产品、没有收入压力''的AI安全公司。
+SSI 在2024年9月筹集了10亿美元，估值50亿美元，
+投资方包括 Andreessen Horowitz 和 Sequoia Capital。
+
+\begin{whybox}[SSI 的独特定位]
+SSI 代表了 Sutskever 对AI安全的终极赌注。与其他AI实验室不同，
+SSI 没有产品、没有收入目标、没有分心的商业压力——
+它的全部使命就是在构建任何东西之前先解决安全问题。
+Sutskever 在2025年的一次采访中首次公开谈论离开 OpenAI 的原因：
+``我有了一个重大的新愿景。''他表示，
+对 Altman 领导力的质疑和对 OpenAI 安全文化退化的担忧
+是他最终决定离开的根本原因。
+
+2025年7月，SSI 联合创始人 Daniel Gross 离开
+（被 Meta CEO Mark Zuckerberg 挖走），
+Sutskever 本人接任 CEO，Daniel Levy 升任总裁。
+到2026年初，SSI 估值已达320亿美元——尽管它仍然没有发布任何产品。
+\end{whybox}
+
+
+\subsection{Jakub Pachocki —— 新一代首席科学家}
+\label{subsec:jakub-pachocki}
+
+Sutskever 离开后，接替他成为 OpenAI 首席科学家的是
+波兰计算机科学家 Jakub Pachocki。
+Altman 称 Pachocki 为``我们这一代最伟大的头脑之一''。
+
+Pachocki 1991年出生于波兰格但斯克（Gda\'{n}sk）。
+他的竞赛经历令人叹为观止：
+高中时期，他六次入围 International Olympiad in Informatics（IOI）决赛，
+2009年获得银牌；
+2012年，他代表华沙大学参加 International Collegiate Programming Contest（ICPC），
+团队获得金牌并位列全球第二；同年，他还赢得了 Google Code Jam 冠军。
+
+Pachocki 在华沙大学获得计算机科学本科学位后，
+前往 Carnegie Mellon University 攻读博士学位，
+导师为 Gary Miller。毕业后在 Harvard 和 Simons Institute 做博士后研究。
+
+2017年，Pachocki 加入 OpenAI。
+他最初参与了 OpenAI Five 项目——
+训练AI在复杂电子竞技游戏 Dota 2 中击败人类世界冠军。
+2019年，OpenAI Five 成功击败了 Dota 2 世界冠军团队 OG，
+这一经历深刻塑造了 Pachocki 对 scaling 的信念：
+``一个相对简单的算法，配合巨大的计算力，就能实现奇迹。''
+
+2021年，Pachocki 晋升为研究总监（Research Director），
+直接领导了 GPT-4 的开发和训练。
+到2023年中期，他已经开始推动 OpenAI 转向推理模型（reasoning models）——
+即``先思考再回答''的系统。这条路线最终产出了 o1 模型。
+
+2024年5月，在 Sutskever 离开后，Pachocki 正式接任首席科学家。
+\emph{TIME} 杂志在2025年将他评为``AI领域100位最具影响力人物''之一。
+Pachocki 强调``追求对深度学习工作原理的理解''——
+他认为尽管AI看起来只是数学，但实际上更像一门自然科学，
+研究者需要去理解这个``现象''而非仅仅工程化地堆叠规模。
+
+
+\subsection{Mark Chen —— 从华尔街到 AGI 前线}
+\label{subsec:mark-chen}
+
+Mark Chen 的职业轨迹是AI领域最不寻常的跨界故事之一：
+他从量化交易员转型为 OpenAI 的首席研究官（Chief Research Officer）。
+
+在加入 OpenAI 之前，Chen 在华尔街度过了六年。
+他先后在 Tech Square Trading、Integral Technology LLC 以及
+Jane Street Capital——世界上最顶尖的自营交易公司之一——从事量化研究。
+这段经历训练了他在高维数据中发现模式的能力，
+也让他养成了严格的实验思维。
+
+2018年10月，Chen 加入 OpenAI，最初负责 Frontiers Research。
+他领导了多个标志性项目的开发：
+\begin{itemize}[noitemsep]
+  \item \textbf{DALL$\cdot$E}：开创性的 text-to-image 生成模型
+  \item \textbf{Codex \& GitHub Copilot}：将大语言模型应用于代码生成，
+        直接创造了数十亿美元的收入
+  \item \textbf{o1 推理模型}：推动 test-time compute scaling 范式
+\end{itemize}
+
+2024年9月，在 Mira Murati、Bob McGrew 和 Barret Zoph 集体离职后，
+Altman 将 Chen 提升为研究副总裁（SVP of Research）。
+2025年初，他进一步晋升为首席研究官，
+与 Pachocki 搭档领导整个 OpenAI 研究组织。
+Chen 在 X 上写道：``我真心相信 OpenAI 是从事AI研究的最佳场所，
+我经历过足够多的起起落落，知道押注我们是明智的。''
+
+
+\subsection{Lilian Weng —— 安全研究的守护者}
+\label{subsec:lilian-weng}
+
+Lilian Weng 是AI研究社区中一个独特的存在——
+她既是顶尖的研究领导者，也是最受欢迎的AI知识传播者之一。
+她的个人博客 \texttt{lilianweng.github.io} 上的技术文章
+被全球数十万研究者和工程师视为学习深度学习的``必读教材''。
+
+Weng 出生于中国，在北京大学获得本科学位后，
+前往 Indiana University Bloomington 攻读计算机科学博士学位。
+2017年，她加入 OpenAI，最初从事机器人学研究。
+
+在 OpenAI 的七年间，Weng 的角色不断扩展：
+从机器人团队的研究者成长为安全研究副总裁（VP of Research, Safety），
+管理多个关键团队。她领导了 OpenAI 的``hand manipulation''机器人项目——
+训练机械手解魔方等复杂操作任务。
+后来她的工作重心转向AI安全，负责将安全理念整合到 OpenAI 的研究流程中。
+
+2024年秋季，在 OpenAI 的高管出走潮中，Weng 也离开了公司。
+她加入了 Fellows Fund 担任 Distinguished Fellow，
+同时联合创立了 Thinking Machines Lab——
+一家由多位前 OpenAI 核心人员组建的新型AI公司。
+
+
+\subsection{Alec Radford —— GPT 的隐形缔造者}
+\label{subsec:alec-radford}
+
+在AI的万神殿中，很少有人的影响力与知名度如此不成比例：
+Alec Radford 可能是塑造现代AI最关键的研究者，
+但他的名字远不如那些CEO和公众人物为人所知。
+
+Radford 的学术背景颇为非传统。
+他在 University of Texas 学习数学，
+后转入 Franklin W. Olin College of Engineering，
+2016年获得本科学位——没有攻读博士学位。
+据记载，他在孩提时期就对计算和模式识别产生了浓厚兴趣——
+父亲在他5岁时帮他组装了第一台电脑。
+
+约2016年，Radford 加入 OpenAI，
+之后的创造力输出令人目眩：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{GPT-1}（2018.06）：论文 ``Improving Language Understanding by
+        Generative Pre-Training'' 开创了 generative pre-training 范式——
+        在大规模无标注文本上预训练，再在具体任务上 fine-tune。
+        这篇论文在12个基准测试中的9个上达到了 state-of-the-art
+  \item \textbf{GPT-2}（2019.02）：将模型扩展到15亿参数，
+        生成质量之高引发了``AI是否太危险''的公共讨论，OpenAI 延迟了模型的完整发布
+  \item \textbf{GPT-3}（2020.06）：1750亿参数，Radford 是核心作者之一
+  \item \textbf{CLIP}（2021.01）：
+        Learning Transferable Visual Models from Natural Language Supervision——
+        将文本和图像在同一语义空间中对齐，
+        成为后来 DALL$\cdot$E 和无数多模态模型的基础
+  \item \textbf{Whisper}（2022.09）：通用语音识别模型，
+        在多个语言的语音识别任务上达到接近人类的准确度
+\end{itemize}
+
+Radford 以极低的公众曝光度著称——他几乎不接受采访，
+自2019年4月后就再未在 X 上发帖。
+2024年12月，Radford 悄然离开了 OpenAI，
+告诉同事他计划``独立进行研究，并与 OpenAI 和其他AI开发者合作''。
+2025年初，他以顾问身份加入了由前 OpenAI 同事创立的 Thinking Machines Lab。
+
+\begin{keybox}[一个没有博士学位的革命者]
+Radford 的故事挑战了AI领域的一个常见假设：
+顶级研究需要顶级学术血统。
+他没有 PhD，没有发表过机器学习方面的博士论文，
+但他通过自学和实验驱动的方法，
+创造了过去十年中最具影响力的数个AI系统。
+Hinton 有 Nobel Prize，Sutskever 有 AlexNet，
+但 Radford 有 GPT、CLIP 和 Whisper——
+这些构成了当今AI产业数千亿美元价值的技术基础。
+\end{keybox}
+
+
+% ============================================================
+\section{ChatGPT 的幕后英雄}
+\label{sec:openai-key-researchers}
+% ============================================================
+
+\subsection{John Schulman —— PPO、ChatGPT 与对齐之路}
+\label{subsec:john-schulman}
+
+John Schulman 1987年或1988年出生，
+是 OpenAI 的11位联合创始人之一，
+也是 ChatGPT 背后最重要的技术缔造者。
+
+Schulman 在 Great Neck South High School 就读时就展现了理工天赋，
+2005年入选美国物理奥林匹克队。
+他在 California Institute of Technology（Caltech）获得物理学学位（2010年），
+随后在 UC Berkeley 攻读电气工程与计算机科学博士学位，
+导师为机器人学家 Pieter Abbeel。
+
+2015年12月，在博士论文即将完成之际，
+Schulman 成为 OpenAI 的联合创始人之一。
+他的贡献覆盖了 OpenAI 技术栈的核心层：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Proximal Policy Optimization (PPO)}（2017年）：
+        这一强化学习算法成为了训练大语言模型的标准工具。
+        PPO 的简洁性和稳定性使其成为 RLHF 流程中的默认选择，
+        被 OpenAI、Anthropic、Google 等几乎所有主要AI实验室采用
+  \item \textbf{ChatGPT}：Schulman 领导了 ChatGPT 的创建，
+        并在2022--2024年间共同领导了 post-training 团队——
+        负责开发 ChatGPT 和 OpenAI API 使用的模型
+  \item \textbf{RLHF 实践}：将强化学习从人类反馈（Reinforcement Learning from
+        Human Feedback）从理论概念转化为大规模工程实践
+\end{itemize}
+
+2024年8月，Schulman 宣布离开 OpenAI 加入 Anthropic，
+表示希望``深化对AI对齐的研究，进入职业生涯的新篇章''。
+他特别澄清：``这并非因为 OpenAI 对对齐研究缺乏支持。
+相反，公司领导层一直非常致力于投资这一领域。
+我的决定是个人性质的。''
+
+然而，Schulman 在 Anthropic 仅待了五个月就再次离开——
+2025年2月，他加入了由前 OpenAI CTO Mira Murati 创立的 Thinking Machines Lab，
+担任首席科学家（Chief Scientist）。
+这一连串的职业变动反映了顶级AI研究者在快速变化的行业格局中不断寻找最佳定位。
+
+
+\subsection{Tom Brown —— GPT-3 的工程领袖}
+\label{subsec:tom-brown}
+
+Tom B. Brown 的职业故事是AI领域最戏剧性的``逆袭''之一。
+他在大学期间线性代数只拿了 B-，
+后来却成为 GPT-3 的工程负责人和 Anthropic 的联合创始人。
+
+约1988年出生的 Brown 在 Carnegie Mellon University 获得计算机科学学士学位。
+毕业后，他辗转于多家由 Y Combinator 孵化的创业公司之间。
+2015年前后，他做出了一个当时看似冒险的决定：
+完全放弃现有职业轨道，用六个月时间全职自学人工智能。
+
+这一策略奏效了。约2016年，Brown 以一个自学者的身份
+加入了仅有约20人的 OpenAI，成为最早期的员工之一。
+他在 Google DeepMind 短暂工作一年多后（2017--2018），
+于2018年底回到 OpenAI 担任 Research Engineering Lead。
+
+在 OpenAI，Brown 负责了从 GPT-2（15亿参数）到 GPT-3（1750亿参数）
+的规模跃迁中最关键的工程挑战——构建 model-parallel 分布式训练基础设施。
+GPT-3 论文 ``Language Models are Few-Shot Learners''（2020年5月发布于 arXiv）
+成为了AI历史上被引用最多的论文之一，Brown 是第一作者。
+
+2020年底，Brown 与 Dario Amodei、Daniela Amodei 等人一起离开 OpenAI，
+于2021年1月联合创立了 Anthropic。他目前担任 Anthropic 联合创始人，
+专注于AI安全和大规模模型训练的技术工作。
+
+
+\subsection{Noam Brown —— 从扑克AI到推理革命}
+\label{subsec:noam-brown}
+
+Noam Brown 的加入标志着 OpenAI 推理能力研究的一个转折点。
+
+Brown 在 Rutgers University 获得数学和计算机科学学士学位（2008年，
+以 Summa Cum Laude 毕业），之后在联邦储备委员会做了两年研究助理、
+在 MJM Trading Group 做了四年算法交易工程师。
+2012年，他进入 Carnegie Mellon University 攻读机器人学硕士和计算机科学博士，
+导师为 Tuomas Sandholm。
+
+在 CMU，Brown 创造了AI博弈论领域的多个里程碑：
+\begin{itemize}[noitemsep]
+  \item \textbf{Libratus}（2017年）：首个在无限注德州扑克中击败人类顶级玩家的AI
+  \item \textbf{Pluribus}（2019年）：首个在多人无限注扑克中超越人类的AI，
+        论文发表在 \emph{Science} 杂志封面
+\end{itemize}
+
+博士毕业后，Brown 加入 Meta（当时的 Facebook）FAIR 实验室，
+共同开发了 \textbf{CICERO}——首个在复杂策略外交游戏 Diplomacy 中
+达到人类水平的AI，同样发表在 \emph{Science} 上。
+
+2023年6月，Brown 加入 OpenAI，并发表了一段广为流传的入职宣言：
+``多年来我一直在研究AI自我博弈和推理……
+如果我们能发现一个通用版本，收益将是巨大的。
+是的，推理可能慢1000倍、贵1000倍，
+但我们愿意为一种新的癌症药物支付什么样的推理成本？''
+
+Brown 成为 OpenAI \textbf{o1 推理模型}的核心贡献者。
+o1 于2024年9月发布，是首个将 test-time compute scaling
+系统性应用于大语言模型的产品——
+让模型在回答之前进行``深度思考''，
+在数学、编程和科学推理任务上实现了质的飞跃。
+
+\begin{corebox}[o1 团队的关键人物]
+根据 OpenAI 的官方致谢，o1 模型的基础贡献者（Foundational Contributors）包括：
+Ahmed El-Kishky、Daniel Selsam、Francis Song、
+\textbf{Hongyu Ren}、\textbf{Hunter Lightman}、
+\textbf{Hyung Won Chung}、\textbf{Ilge Akkaya}、Ilya Sutskever、
+\textbf{Jason Wei}、\textbf{Karl Cobbe}、Lukas Kondraciuk、
+Max Schwarzer、Mostafa Rohaninejad、\textbf{Noam Brown}、
+Shengjia Zhao、Trapit Bansal、Vineet Kosaraju、Wenda Zhou 等。
+
+领导团队包括 Jakub Pachocki、\textbf{Jerry Tworek}（Overall Lead）、
+Liam Fedus、\textbf{Lukasz Kaiser}、Mark Chen、Szymon Sidor 和 Wojciech Zaremba。
+\end{corebox}
+
+
+\subsection{Hyung Won Chung —— ``Don't Teach, Incentivize''}
+\label{subsec:hyung-won-chung}
+
+韩国裔研究者 Hyung Won Chung 是 o1 推理模型的核心理论贡献者之一。
+他此前在 Google Brain/DeepMind 工作，
+参与了 Flan-T5 和 PaLM 等大型语言模型的开发。
+
+Chung 加入 OpenAI 后，
+提出了关于语言模型推理能力的一个关键范式转换思想：
+``不要教模型，而要激励模型。''
+他的核心论点是：我们不可能枚举 AGI 系统需要的每一项技能，
+唯一可行的方式是建立一种\emph{激励结构}（incentive structure），
+使通用技能自然涌现。
+
+在2024年9月 MIT 的一次演讲中，Chung 将下一词预测（next token prediction）
+解释为一种``弱激励结构''——一种大规模多任务学习，
+激励模型学习少量通用技能来解决数万亿个任务，
+而不是逐一处理每个任务。
+他将此比喻为一个扩展的古语：
+``给人一条鱼，养活他一天；教他钓鱼，养活他一生；
+激励他成为一个解决问题的人，他会自己发明钓鱼竿。''
+
+o1 模型正是这一哲学的实践——通过强化学习激励模型发展出推理能力，
+而非直接教授推理步骤。
+
+
+\subsection{Prafulla Dhariwal —— GPT-4o 背后的印度天才}
+\label{subsec:prafulla-dhariwal}
+
+Prafulla Dhariwal 来自印度浦那（Pune），
+是 OpenAI 最核心也最低调的技术贡献者之一。
+Sam Altman 在 GPT-4o 发布时公开表示，
+如果没有 Dhariwal 的``愿景、才华、信念和决心''，
+GPT-4o 不可能实现。
+
+Dhariwal 的学术背景极为亮眼：
+他2009年获得印度国家人才搜索奖学金（National Talent Search Scholarship），
+在多项国际奥林匹克竞赛中获得金牌，
+随后进入 MIT 攻读本科学位。
+
+2016年夏天，Dhariwal 以实习生身份加入 OpenAI，
+2017年正式成为研究科学家（Research Scientist）。
+在接下来的近十年中，他参与了 OpenAI 几乎所有重大项目：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{PPO}：与 Schulman 共同作者
+  \item \textbf{GPT-3}：核心贡献者
+  \item \textbf{Diffusion Models Beat GANs on Image Synthesis}（2021年）：
+        证明扩散模型可以超越 GAN 的图像生成质量
+  \item \textbf{DALL$\cdot$E 2}：核心开发者
+  \item \textbf{GPT-4o}：作为 Head of Multimodal（2023--2025），
+        领导了 OpenAI 第一个原生多模态模型的开发
+\end{itemize}
+
+2024年8月，Dhariwal 晋升为 OpenAI 的 Technical Fellow——
+公司的最高技术职级之一——
+继续专注于多模态AI的前沿研究。
+
+
+\subsection{Aditya Ramesh —— DALL$\cdot$E 的创造者}
+\label{subsec:aditya-ramesh}
+
+Aditya Ramesh 是 DALL$\cdot$E 系列的发明者和首席研究者，
+将 text-to-image 生成从科幻概念变为现实。
+
+Ramesh 具有印度血统，
+2019年1月以研究科学家身份加入 OpenAI。
+他的工作建立在 Image GPT（OpenAI 2020年6月发布的图像生成概念验证）之上。
+
+2021年1月5日，OpenAI 发布了 DALL$\cdot$E——
+一个120亿参数的 Transformer 语言模型，
+能够从自然语言描述中生成图像。
+名字是对艺术家 Salvador Dal\'{i} 和机器人 WALL-E 的致敬。
+
+2022年4月，DALL$\cdot$E 2 发布，采用了扩散模型架构，
+图像质量和多样性实现了质的飞跃，引发了全球范围的生成式AI热潮。
+
+在 OpenAI 的 Sora 项目（text-to-video 生成）中，
+Ramesh 承担了团队领导角色，
+在2024年3月的采访中以``team lead''身份出现。
+根据其 LinkedIn 档案，他的职衔包括``VP Worldsim''——
+暗示 OpenAI 正在将视频生成技术视为
+``世界模拟器''（world simulator）的一部分。
+
+
+% ============================================================
+\section{Sora 团队：视频生成的先锋}
+\label{sec:sora-team}
+% ============================================================
+
+\subsection{Tim Brooks —— 从 Berkeley 到视频AI的未来}
+\label{subsec:tim-brooks}
+
+Tim Brooks，生于约1993--1994年，
+是 OpenAI Sora 视频生成模型的联合领导者之一。
+
+2022年12月，Brooks 在 UC Berkeley 完成了AI方向的博士学位
+（导师为 Alyosha Efros），恰逢 ChatGPT 发布引爆了生成式AI的热潮。
+他敏锐地意识到，AI视频生成的时机已经成熟，
+随即加入 OpenAI。
+
+在 OpenAI，Brooks 与同为 Berkeley 校友的 Bill Peebles 搭档，
+领导了 Sora 的开发。他们的关键技术创新包括：
+将图像和视频分解为更小的信息单元（``patches''）的新方法，
+使模型能够在更广泛的视觉数据上训练；
+以及采用类似于 ChatGPT 的 Transformer 架构，
+使模型性能随规模增长而持续提升。
+
+Sora 于2024年2月首次公开展示，
+能够生成长达一分钟的高清视频，
+展现了令人震惊的物理一致性和视觉质量。
+
+然而，2024年10月，Brooks 宣布离开 OpenAI 加入 Google DeepMind，
+从事视频生成和``世界模拟器''的研究。
+Google DeepMind CEO Demis Hassabis 欢迎他的加入时表示，
+Brooks 将帮助``让世界模拟器的长期梦想成为现实''。
+
+MIT Technology Review 在2025年将 Brooks
+评为35 Innovators Under 35 之一。
+
+
+\subsection{Bill Peebles —— Sora 的另一半}
+\label{subsec:bill-peebles}
+
+William (Bill) Peebles 是 Sora 的另一位研究领导者。
+他在 MIT 获得本科学位（导师 Antonio Torralba），
+随后在 UC Berkeley AI Research（BAIR）获得博士学位
+（导师 Alyosha Efros，与 Tim Brooks 同门）。
+
+Peebles 的博士研究聚焦于扩散模型，
+他在2023年发表的 Scalable Diffusion Models with Transformers（DiT）论文
+获得了 ICCV 2023 Oral 和 Best Paper Finalist 的殊荣。
+这篇论文提出了将 Transformer 架构应用于扩散模型的方法——
+正是 Sora 技术架构的理论基础。
+
+在 Brooks 离开后，Peebles 成为 Sora 的 Head，
+继续推动视频生成技术的发展。
+Sora 于2024年12月正式向公众发布，
+随后在2025年推出了 Sora 2 版本。
+
+
+% ============================================================
+\section{OpenAI 的出走者：通往 Anthropic 之路}
+\label{sec:openai-exodus-anthropic}
+% ============================================================
+
+OpenAI 的历史上有一个反复出现的主题：
+它最优秀的人才不断流向竞争对手，
+而其中最大的受益者是 Anthropic。
+
+\subsection{Dario Amodei —— 从 VP Research 到 Anthropic CEO}
+\label{subsec:dario-amodei}
+
+Dario Amodei 1983年出生于旧金山，
+是意大利裔美国工匠 Riccardo Amodei 和犹太裔美国人 Elena Engel 的长子。
+他的父亲来自意大利托斯卡纳的 Massa Marittima，
+是一位皮革工匠。Riccardo 在 Dario 二十多岁时因长期疾病去世，
+这一经历深刻地影响了 Dario 的人生方向——
+他后来回忆说，正是父亲的疾病和科学进步的紧迫性
+驱动了他从物理学转向计算神经科学，再到人工智能。
+
+Dario 的学术路径极为扎实：
+他在 Caltech 修读本科（但未获得学位，转学至 Stanford），
+在 Stanford 获得物理学学士学位，
+然后在 Princeton University 获得生物物理学博士学位，
+导师为 Michael J. Berry 和 William Bialek，
+论文题目是 ``Network-Scale Electrophysiology: Measuring and Understanding
+the Collective Behavior of Neural Circuits''（2011年）。
+
+博士后阶段，Dario 在 Stanford 医学院继续神经科学研究。
+2014年，他加入百度硅谷AI实验室，
+在 Andrew Ng 的领导下参与了 Deep Speech 2 的开发——
+一个端到端的语音识别神经网络。
+
+2016年，Dario 加入 OpenAI，很快晋升为研究副总裁（VP of Research）。
+在 OpenAI 的四年多时间里，他参与领导了 GPT-2 和 GPT-3 的开发，
+是 GPT-3 论文的共同作者。但随着 OpenAI 在2019年创建营利性子公司
+并与 Microsoft 深度绑定，Dario 对公司方向的担忧与日俱增。
+
+2020年底，Dario 带领约12名顶尖研究人员悄然离开 OpenAI。
+2021年1月，他们创立了 Anthropic——
+一家以AI安全为核心使命的新型AI实验室。
+这批``叛离者''包括他的妹妹 Daniela Amodei、
+Tom Brown（GPT-3 第一作者）、Sam McCandlish（scaling laws 研究负责人）、
+Jared Kaplan（scaling laws 论文共同作者）、Jack Clark（政策总监）、
+Chris Olah（可解释性研究先驱）和 Benjamin Mann 等人。
+
+截至2026年初，Anthropic 的估值已超过1830亿美元，
+其 Claude 系列模型在多个基准上与 OpenAI 的 GPT-4 和 o1 分庭抗礼。
+Dario 被 \emph{Time} 杂志评为2025年 Time 100 人物。
+
+\begin{whybox}[``Anthropic 大出走''的根源]
+为什么12位世界顶级AI研究者会在2020年底集体离开
+全球最负盛名的AI实验室？根源在于三个层面的分歧：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{安全 vs.\ 商业化}：Dario 等人认为 OpenAI 在 GPT-3 的巨大成功后
+        正加速转向商业化，而安全研究的优先级相对下降
+  \item \textbf{治理结构}：从非营利到``有限营利''的转型改变了组织的权力结构，
+        研究者在战略决策中的话语权被削弱
+  \item \textbf{对 scaling 的分歧}：Dario 等人认为在 scaling 到更大模型之前，
+        必须先解决安全和对齐问题——而 OpenAI 的路线是``先 scale，后解决安全''
+\end{enumerate}
+
+有趣的是，截至2026年初，Anthropic 是唯一一家
+保留了全部七位联合创始人的主要AI实验室。
+\end{whybox}
+
+
+\subsection{Daniela Amodei —— Anthropic 的运营大脑}
+\label{subsec:daniela-amodei}
+
+Daniela Amodei 1987年出生，是 Dario 的妹妹。
+与哥哥的理工科路径不同，
+Daniela 在旧金山的 Lowell High School 毕业后，
+获得奖学金进入 University of California, Santa Cruz，
+主修英国文学，辅修古典长笛——看似与AI毫无关系的背景。
+
+她的早期职业生涯同样跨越了多个领域：
+她参与了宾夕法尼亚州的一次国会竞选，
+短暂担任过众议员 Matt Cartwright 的通讯主管，
+然后进入支付公司 Stripe 成为早期员工。
+在 Stripe 的经历让她获得了在快速增长的科技公司中管理运营的技能。
+
+2018年，Daniela 加入 OpenAI 担任安全与政策副总裁（VP of Safety and Policy），
+负责公司的政策制定和安全部署流程。
+2021年，她与哥哥一起创立 Anthropic，担任总裁。
+
+在 Anthropic，Daniela 负责商业运营、筹款、政策和合规等所有非技术层面。
+她的贡献对 Anthropic 的成功至关重要——
+正是在她的领导下，Anthropic 成功获得了 Amazon 40亿美元的投资
+以及 Google 的20亿美元投资。
+2023年，\emph{Time} 杂志将她列入 ``100 Most Influential People in AI''。
+她的丈夫 Holden Karnofsky 是有效利他主义运动的核心人物之一，
+曾联合创立 GiveWell 和 Open Philanthropy。
+
+
+\subsection{Jared Kaplan —— 从弦理论到 Scaling Laws}
+\label{subsec:jared-kaplan}
+
+Jared Daniel Kaplan 可能是AI领域最不可能的跨界者之一：
+一位研究量子引力和全息原理的理论物理学家，
+却发现了定义大语言模型时代的最重要经验法则。
+
+Kaplan 在 Stanford University 获得物理学和数学双学士学位（2005年），
+在 Harvard University 获得物理学博士学位（2009年），
+导师为传奇物理学家 Nima Arkani-Hamed，
+论文题目为 ``Aspects of Holography''。
+博士后在 SLAC 和 Stanford 从事粒子物理和宇宙学研究。
+2012年，他成为 Johns Hopkins University 物理与天文系的终身教授。
+
+2019年，Kaplan 以研究顾问的身份加入 OpenAI。
+在那里，他与 Sam McCandlish 等人共同发表了
+开创性论文 ``Scaling Laws for Neural Language Models''（2020年1月）。
+这篇论文揭示了一个惊人的规律：
+模型性能可以通过三个变量——模型大小、数据量和计算量——进行精确预测，
+而且这些变量之间存在幂律关系。
+
+这一发现的意义是革命性的：
+它将大语言模型的训练从``碰运气的炼金术''
+转变为可以精确规划的``工程科学''。
+它直接指导了 GPT-3 和后续模型的训练资源分配策略，
+也影响了整个AI行业的研发方向。
+
+2020年底，Kaplan 与 Dario Amodei 等人一起离开 OpenAI，
+共同创立 Anthropic，担任首席科学官（Chief Science Officer）。
+在 Anthropic，他发展了 Constitutional AI（宪法AI）的方法论，
+并建立了 Responsible Scaling Policy（负责任规模化政策）——
+一个根据模型能力水平设定安全措施的框架。
+2025年，\emph{TIME} 杂志将他评为AI领域100位最具影响力人物之一。
+
+
+\subsection{Sam McCandlish —— Scaling Laws 的工程实践者}
+\label{subsec:sam-mccandlish}
+
+Sam McCandlish 是 OpenAI 的 Scaling Laws 研究的另一位核心推动者。
+他在 Boston University 做了博士后研究后，
+2018年5月加入 OpenAI 的AI安全团队进行学术交流。
+在 OpenAI，他组建了一个专门研究``机器学习的科学和规模''的团队，
+主导了 Scaling Laws 的实验验证工作。
+
+McCandlish 是 GPT-3 论文和多篇 Scaling Laws 论文的核心作者。
+2020年底，他随 Dario Amodei 离开 OpenAI，
+成为 Anthropic 的七位联合创始人之一，担任 CTO。
+
+2025年10月，Anthropic 进行了领导层调整：
+McCandlish 从 CTO 转任首席架构师（Chief Architect），
+专注于预训练和大规模模型训练，
+CTO 职位则由前 Stripe CTO Rahul Patil 接任。
+
+
+\subsection{Jack Clark —— 政策与传播的桥梁}
+\label{subsec:jack-clark}
+
+Jack Clark 在 OpenAI 担任政策总监（Policy Director，2018--2020年），
+负责将AI技术的影响传达给全球政策制定者。
+在此之前和之后，他一直运营着广受欢迎的AI周报 \emph{Import AI}——
+被数千名AI专家订阅。
+
+2021年1月，Clark 与 Dario Amodei 等人共同创立 Anthropic。
+他曾在美国国会作证，就AI评估、测量和分析等问题提供专家意见。
+
+
+% ============================================================
+\section{其他出走者与关键离职}
+\label{sec:openai-other-departures}
+% ============================================================
+
+\subsection{Jan Leike —— 超级对齐的殉道者}
+\label{subsec:jan-leike}
+
+Jan Leike 1986年或1987年出生于德国，
+是AI对齐（AI alignment）领域最重要的研究者之一。
+他在 University of Freiburg 获得本科学位，
+随后获得计算机科学硕士学位，
+并在澳大利亚国立大学（Australian National University）
+在 Marcus Hutter 的指导下获得机器学习博士学位。
+
+博士后阶段，Leike 在 Oxford 的 Future of Humanity Institute 短暂停留，
+然后加入 Google DeepMind，在 Shane Legg 的团队从事
+经验性AI安全研究。
+
+2021年，Leike 加入 OpenAI。
+2023年6月，他与 Ilya Sutskever 共同领导了新成立的 Superalignment 项目——
+OpenAI 最具雄心的安全计划，目标是``在四年内解决超级智能的对齐问题''，
+并承诺投入公司20\%的计算资源。
+
+然而，理想与现实之间的鸿沟越来越大。
+2024年5月，在 Sutskever 宣布离开后数天，
+Leike 也宣布辞职，并在 X 上发表了一份措辞严厉的声明：
+``在过去几年中，安全文化和流程已经让位于光鲜的产品……
+我逐渐失去了对 OpenAI 领导层的信任。''
+
+他特别指出，Superalignment 团队在获取承诺的计算资源方面一直面临困难——
+尽管 OpenAI 官方承诺了20\%的计算资源用于安全研究，
+但这些资源在实践中并未得到充分分配。
+
+不到两周后，Leike 宣布加入 Anthropic，
+领导一个新的``超级对齐''团队，直接向首席科学官 Jared Kaplan 汇报。
+\emph{TIME} 杂志连续两年（2023年和2024年）
+将他列入``AI领域100位最具影响力人物''。
+
+\begin{warnbox}[Superalignment 团队的解散]
+Leike 和 Sutskever 的离开标志着 OpenAI Superalignment 项目的事实终结。
+在他们之前和之后，Daniel Kokotajlo 等多位AI安全研究员也相继离开 OpenAI。
+这一系列离职引发了对 OpenAI 安全承诺的广泛质疑——
+OpenAI 随后成立了由董事会成员 Bret Taylor、Sam Altman、
+Nicole Seligman 和 Adam D'Angelo 监督的安全委员会，
+并承诺将``至少20\%的计算资源用于全公司范围的安全工作''。
+但批评者指出，这一改革更多是公关姿态而非实质性变化。
+\end{warnbox}
+
+
+\subsection{Mira Murati —— 从临时 CEO 到 Thinking Machines}
+\label{subsec:mira-murati}
+
+Ermira ``Mira'' Murati，1988年12月16日出生于阿尔巴尼亚发罗拉（Vlor\"{e}）——
+一个位于亚得里亚海沿岸的港口城市。
+她的童年正值阿尔巴尼亚从共产主义政权过渡到民主制度的动荡时期：
+1990年代的经济崩溃、1997年的内战，
+以及邻国科索沃战争的余波笼罩着整个巴尔干半岛。
+Murati 精通意大利语——反映了阿尔巴尼亚与意大利之间深厚的文化纽带。
+这段在不确定性中成长的经历塑造了她后来的韧性和适应力。
+
+16岁时，Murati 凭借优异的学术成绩赢得了
+United World Colleges（UWC）奖学金，
+前往加拿大温哥华岛的 Pearson College UWC 就读，
+2007年获得国际文凭（International Baccalaureate）毕业。
+随后她通过一个双学位项目继续深造：
+2011年在 Colby College 获得文学学士学位，
+2012年在 Dartmouth College Thayer School of Engineering
+获得工程学学士学位——
+这种人文与工程的双重训练赋予了她在技术和产品思维之间架设桥梁的能力。
+
+Murati 的早期职业生涯跨越了令人眼花缭乱的多个领域：
+2011年在 Goldman Sachs 东京办公室实习（金融），
+之后在 Zodiac Aerospace 从事航空工程（实习），
+2013年加入 Tesla 担任 Model X 的产品经理（电动汽车），
+2016--2018年在增强现实初创公司 Leap Motion
+（后更名为 Ultraleap）担任产品与工程负责人。
+这段履历看似跳跃，实则有一条清晰的线索：
+她始终在寻找能将前沿技术转化为用户体验的角色。
+
+2018年，Murati 加入 OpenAI，迅速晋升为工程和产品管理方面的领导者。
+她在 ChatGPT、DALL$\cdot$E 和 GPT-4 的开发和部署中发挥了核心作用——
+据多方报道，正是 Murati 推动了将 GPT-3.5 以``聊天''形式发布给公众的决策，
+这个产品策略直接创造了 ChatGPT 的现象级传播。
+2022年，她被任命为 CTO。
+
+2023年11月17日，当董事会解雇 Altman 时，
+Murati 被任命为 OpenAI 的临时 CEO——
+但这个角色仅持续了大约两天。
+在这短暂而混乱的时间里，Murati 面临着一个不可能的处境：
+她既需要稳定一家失去了 CEO 的公司，
+又需要在董事会和员工之间斡旋，
+而她自己也是被事件裹挟的参与者。
+之后董事会任命 Emmett Shear 取代她，
+但五天后 Altman 复职，Murati 恢复了 CTO 职务。
+
+2024年9月25日，Murati 宣布辞职，
+结束了她在 OpenAI 六年半的任期。
+她在给团队的信中写道：
+``从来没有一个理想的时间离开一个你珍视的地方，
+但这个时刻感觉是对的。''
+同日，首席研究官 Bob McGrew 和研究副总裁 Barret Zoph 也宣布离职。
+Altman 表示这三人的决定``相互独立，但和平友好''——
+但三位高管同日离职的巧合仍然引发了外界对 OpenAI 内部状况的广泛猜测。
+
+2025年2月，Murati 揭开了她新公司的面纱——\textbf{Thinking Machines Lab}。
+该公司的使命是``构建更容易被广泛理解、可定制且通用的AI系统''，
+强调人类与AI的协作而非完全自主的AI代理。
+Murati 成功地从 OpenAI、Meta、Mistral 等竞争对手处招募了约30名顶尖研究者和工程师。
+前 OpenAI 联合创始人 John Schulman 担任研究主管，
+Barret Zoph 担任 CTO 兼联合创始人，
+Alec Radford 和 Bob McGrew 以顾问身份加入。
+
+2025年7月，Thinking Machines Lab 宣布完成了由 a16z 领投的20亿美元融资，
+投资方还包括 Nvidia、AMD、Accel、ServiceNow 等。
+2025年10月，公司发布了第一个产品 \textbf{Tinker}——
+一个帮助研究者和开发者微调AI模型的工具，
+有意识地避免与 ChatGPT 直接竞争，
+而是选择了``赋能开发者''的差异化路线。
+到2025年底，Thinking Machines Lab 的估值已达到约120亿美元——
+从一个阿尔巴尼亚小城走出的工程师，
+正在塑造AI产业的下一个篇章。
+
+\begin{keybox}[三条离开 OpenAI 的路]
+从 OpenAI 离开的顶级人才大致走向了三个方向：
+\begin{enumerate}[noitemsep]
+  \item \textbf{Anthropic 路线}：以安全为核心使命的直接竞争者
+        （Dario Amodei、Tom Brown、Jared Kaplan、Jan Leike 等）
+  \item \textbf{独立创业路线}：创立新的AI公司
+        （Ilya Sutskever → SSI, Mira Murati → Thinking Machines Lab）
+  \item \textbf{大公司路线}：加入 Google、Microsoft 或 Meta
+        （Tim Brooks → Google DeepMind, Rewon Child → Microsoft AI）
+\end{enumerate}
+\end{keybox}
+
+
+\subsection{Bob McGrew —— 工程基石}
+\label{subsec:bob-mcgrew}
+
+Bob McGrew 在 OpenAI 担任工程领导多年，
+最终晋升为首席研究官（Chief Research Officer）。
+他在 OpenAI 的核心贡献是建立和管理支撑大规模模型训练的工程基础设施。
+他参与了多个 DALL$\cdot$E 和 GLIDE 相关项目的开发。
+
+2024年9月25日，McGrew 与 Murati 和 Zoph 同日宣布离职。
+之后，他以顾问身份加入了 Thinking Machines Lab。
+
+
+\subsection{Barret Zoph —— Post-Training 的先驱}
+\label{subsec:barret-zoph}
+
+Barret Zoph 在 University of Southern California 获得计算机科学学士学位后，
+在 Google Brain（2016--2019年）从事研究。
+他在 Google 的工作包括神经架构搜索（Neural Architecture Search）等开创性研究。
+
+2019年前后加入 OpenAI，后来担任研究副总裁（VP Research, Post-Training），
+负责 OpenAI 模型的后训练（post-training）流程——
+包括 RLHF、instruction tuning 等将预训练模型转化为
+可用产品的关键技术环节。
+
+2024年9月离开后，Zoph 成为 Thinking Machines Lab 的 CTO 和联合创始人。
+
+
+\subsection{Andrej Karpathy —— AI教育者与多面手}
+\label{subsec:andrej-karpathy}
+
+Andrej Karpathy 可能是 OpenAI 联合创始人中公众认知度仅次于 Altman 的人。
+他的特殊之处在于将顶级研究能力与卓越的教育传播天赋结合在一起。
+
+Karpathy 出生于斯洛伐克（当时的捷克斯洛伐克），
+在加拿大长大，在 University of Toronto 获得计算机科学本科学位，
+然后在 Stanford University 师从 Fei-Fei Li 攻读博士学位，
+研究方向为计算机视觉和自然语言处理的交叉领域。
+2015年，他与 Fei-Fei Li 共同设计了 Stanford 第一门深度学习课程 CS231n，
+并担任主讲教师——课程视频在网上被观看超过80万次。
+
+2015年，Karpathy 成为 OpenAI 的联合创始人和研究科学家。
+2017年，他被 Elon Musk 亲自挖角到 Tesla 担任
+AI和自动驾驶高级总监（Senior Director of AI），
+负责构建 Tesla Autopilot 和 Full Self-Driving 的视觉系统团队和技术。
+
+2022年，Karpathy 离开 Tesla。2023年，他短暂回到 OpenAI，
+参与了 GPT-4 的改进工作。但2024年2月，他再次离开，
+表示计划``从事个人项目''。
+
+此后，Karpathy 全身心投入AI教育：
+他的 YouTube 频道已拥有数百万订阅者，
+他的``from scratch''系列教程——
+从零开始构建 GPT、Tokenizer 和其他AI组件——
+被广泛认为是学习现代AI最好的免费资源。
+2026年初，他专注于利用AI改善教育的项目。
+
+\emph{TIME} 杂志在2024年将 Karpathy 评为
+``AI领域100位最具影响力人物''之一。
+
+
+% ============================================================
+\section{OpenAI 的其他核心贡献者}
+\label{sec:openai-others}
+% ============================================================
+
+\subsection{Wojciech Zaremba —— 最后的联合创始人}
+\label{subsec:wojciech-zaremba}
+
+Wojciech Zaremba 1988年11月30日出生于波兰克卢茨堡克（Kluczbork），
+是 OpenAI 仅存的三位联合创始人之一（与 Altman 和 Brockman 并列）。
+
+Zaremba 的数学天赋从小就显现：
+他在2007年代表波兰参加国际数学奥林匹克竞赛，获得银牌。
+他在华沙大学和\'{E}cole Polytechnique 获得了两个数学硕士学位（2013年），
+随后在纽约大学（NYU）攻读深度学习博士学位，
+导师为 Yann LeCun 和 Rob Fergus——
+这意味着他是在``深度学习三巨头''之一的门下完成的训练。
+在博士期间，他还在 Google Brain 和 Facebook AI Research（FAIR）做过研究。
+
+2016年博士毕业后，Zaremba 成为 OpenAI 的联合创始人之一。
+他最初领导了 OpenAI 的机器人团队，
+创造了能够解魔方的机器人手臂——一项令人印象深刻的灵巧操作成就。
+2020年，当机器人团队被解散后，
+Zaremba 转向领导 GPT 模型、GitHub Copilot 和 Codex 的开发团队。
+
+他也是 o1 推理模型的领导团队成员之一，
+继续在 OpenAI 的核心研究中发挥重要作用。
+
+
+\subsection{Szymon Sidor \& Filip Wolski —— 强化学习基石}
+\label{subsec:sidor-wolski}
+
+Szymon Sidor 和 Filip Wolski 是 OpenAI 强化学习基础设施的核心构建者。
+Sidor 是 o1 模型的领导团队成员之一，
+在 OpenAI 已工作多年，专注于强化学习算法和系统。
+
+Filip Wolski 则是 PPO 论文（``Proximal Policy Optimization Algorithms''，2017年）
+的共同作者之一——这一算法成为了 RLHF 的标准工具。
+
+
+\subsection{Rewon Child —— Sparse Transformer 的创造者}
+\label{subsec:rewon-child}
+
+Rewon Child（日文名：石井興元）是日美混血研究者，
+2018--2020年在 OpenAI 的算法团队工作。
+他的最重要贡献是 \textbf{Sparse Transformer}（2019年4月）——
+将标准 Transformer 的 $O(N^2)$ 注意力复杂度降低到 $O(N\sqrt{N})$，
+使模型能够处理数万个时间步的长序列。
+这篇论文与 Alec Radford 和 Ilya Sutskever 共同署名。
+
+Child 还参与了 GPT-2、GPT-3 和 Image GPT 等项目。
+离开 OpenAI 后，他在 Google Brain/Search 工作了两年，
+然后成为 Inflection AI 的创始团队成员。
+2024年，当 Microsoft 收购了 Inflection AI 的核心团队后，
+Child 转入 Microsoft AI 部门。
+
+
+\subsection{Sandhini Agarwal —— AI部署安全的实践者}
+\label{subsec:sandhini-agarwal}
+
+Sandhini Agarwal 自2020年1月加入 OpenAI，
+担任 AI Policy Researcher，是公司最重要的安全部署实践者之一。
+她的工作职责包括：
+\begin{itemize}[noitemsep]
+  \item 领导 GPT-3 的偏见分析
+  \item 构建 OpenAI 的第一个内容过滤器
+  \item 领导 CLIP 多模态模型的部署影响研究与策略制定
+  \item 为大规模语言模型构建安全导向的评估体系
+\end{itemize}
+
+她是 GPT-3、CLIP、GPT-4 和 GPT-4o 技术报告的共同作者，
+在将安全考量融入模型部署流程方面发挥了关键作用。
+截至2026年初，她仍在 OpenAI 工作。
+
+
+\subsection{Girish Sastry —— 评估与政策}
+\label{subsec:girish-sastry}
+
+Girish Sastry 是 OpenAI 的研究者，
+专注于AI政策、评估和能力测量。
+他是 GPT-3、CLIP、Codex 和 GPT-4 等多个里程碑项目技术报告的共同作者，
+在定义如何衡量和评估大语言模型的能力方面做出了重要贡献。
+
+
+\subsection{Alex Nichol —— 扩散模型的先行者}
+\label{subsec:alex-nichol}
+
+Alex Nichol 是 OpenAI 扩散模型研究的核心人物之一。
+他与 Prafulla Dhariwal 共同发表了两篇奠基性论文：
+\begin{itemize}[noitemsep]
+  \item ``Improved Denoising Diffusion Probabilistic Models''（2021年）：
+        改进了扩散模型的采样质量和效率
+  \item ``Diffusion Models Beat GANs on Image Synthesis''（2021年）：
+        首次证明扩散模型可以超越 GAN
+\end{itemize}
+
+他还参与了 GLIDE（text-guided 扩散模型）和 DALL$\cdot$E 2 的开发。
+这些工作奠定了 OpenAI 在图像生成领域的技术基础。
+
+
+% ============================================================
+\section{董事会与治理：非营利的困境}
+\label{sec:openai-board}
+% ============================================================
+
+OpenAI 的治理结构——一个非营利董事会控制着一家估值数千亿美元的公司——
+是其历史上最大的张力来源。
+
+\subsection{Helen Toner —— 点燃导火索的人}
+\label{subsec:helen-toner}
+
+Helen Toner 1992年出生于澳大利亚墨尔本，
+父母均为医生。她在 University of Melbourne 获得化学工程学士学位（2014年），
+后在 Georgetown University Walsh School of Foreign Service
+获得安全研究硕士学位（2021年）。
+
+Toner 的早期职业生涯与有效利他主义（Effective Altruism）运动密切相关。
+大学期间，她接触了这一运动，之后在 Open Philanthropy Project 担任研究分析师。
+2018年，她在北京度过九个月，
+为 Oxford University 的 Centre for the Governance of AI 研究中国的AI发展。
+之后加入 Georgetown University 的 Center for Security and Emerging Technology（CSET），
+担任战略总监。
+
+2021年9月，Toner 加入 OpenAI 的非营利董事会。
+2023年11月，她与其他三位董事会成员一起投票解雇了 Sam Altman。
+
+后来 Toner 公开阐述了她的理由：她指控 Altman
+未向董事会披露与 OpenAI 创业基金相关的利益冲突，
+提供了关于 OpenAI 安全流程的``不准确信息''，
+并对其他董事会成员撒谎以试图将她排挤出局。
+特别是，Altman 曾试图因为她发表了一篇比较 OpenAI 和 Anthropic
+安全实践的学术论文而将她从董事会中移除。
+
+危机解决后，Toner 离开了 OpenAI 董事会，
+返回 CSET 继续她的AI政策研究工作。
+2024年，\emph{TIME} 杂志将她评为``AI领域100位最具影响力人物''。
+
+
+\subsection{Adam D'Angelo —— 唯一的幸存者}
+\label{subsec:adam-dangelo}
+
+Adam D'Angelo 1984年出生，是 Facebook（现 Meta）的前 CTO
+（2006--2008年）和 Quora 的创始人兼 CEO（2009年至今）。
+他在 Caltech 获得计算机科学学士学位。
+
+D'Angelo 是 OpenAI 董事会中在2023年11月危机中
+唯一保住席位的原始成员。他投票支持解雇 Altman，
+但在谈判中又支持了他的复职，
+并在新董事会中继续担任董事。
+这种``两面下注''的策略使他成为了危机后 OpenAI 治理结构中的关键桥梁人物。
+
+在 OpenAI 之外，D'Angelo 通过 Quora 的 Poe 平台
+（一个允许用户与多个AI模型互动的聚合平台）
+保持着对AI应用层的直接参与。
+
+
+\subsection{Bret Taylor —— 新时代的董事长}
+\label{subsec:bret-taylor}
+
+Bret Taylor 在2023年11月危机解决后加入 OpenAI 董事会，
+担任主席——被视为稳定公司治理的关键人选。
+
+Taylor 的职业履历极为亮眼：
+他曾是 Google Maps 的联合创造者，
+创立了社交协作工具 Quip（被 Salesforce 收购），
+在 Salesforce 升任联合 CEO（2021--2023年），
+并担任 Twitter 的董事会主席。
+
+在 OpenAI 之外，Taylor 于2023年联合创立了 Sierra——
+一家开发企业级AI代理（AI agents）的公司。
+他在 OpenAI 的角色是确保董事会的独立性和专业性，
+为公司的营利化转型提供治理保障。
+
+
+\subsection{Larry Summers —— 经济学家的AI注脚}
+\label{subsec:larry-summers}
+
+Larry Summers 是前美国财政部长（1999--2001年）、
+前 Harvard 大学校长（2001--2006年）和前奥巴马政府
+国家经济委员会主任（2009--2010年）。
+2023年11月，他与 Bret Taylor 一起加入 OpenAI 的新董事会，
+为这家AI公司带来了政府关系和宏观经济方面的专业知识。
+
+
+\subsection{Reid Hoffman —— 硅谷连接者}
+\label{subsec:reid-hoffman}
+
+Reid Hoffman，LinkedIn 的联合创始人和 Greylock Partners 的合伙人，
+是 OpenAI 的早期董事会成员之一。
+他在 OpenAI 的早期发展中提供了资金支持和硅谷关系网络。
+2023年3月，为了避免与 Microsoft（LinkedIn 的母公司）
+投资 OpenAI 之间的利益冲突，Hoffman 辞去了 OpenAI 的董事会席位，
+但继续作为观察员参与。
+
+
+\subsection{Tasha McCauley}
+\label{subsec:tasha-mccauley}
+
+Tasha McCauley 是一位机器人学家和企业家，
+曾任 GeoSim Systems 的 CEO 和 Fellow Robots 的联合创始人。
+她是 RAND Corporation 的兼职研究员，
+同时也是演员 Joseph Gordon-Levitt 的妻子。
+McCauley 在2021年前后加入 OpenAI 董事会，
+并在2023年11月投票支持解雇 Altman，
+之后随 Toner 一起离开了董事会。
+
+
+% ============================================================
+\section{悲剧与争议}
+\label{sec:openai-controversies}
+% ============================================================
+
+\subsection{Suchir Balaji —— 吹哨人之死}
+\label{subsec:suchir-balaji}
+
+2024年11月26日，26岁的前 OpenAI 研究员 Suchir Balaji
+被发现在旧金山的公寓中去世。
+旧金山法医办公室确认其死因为自杀，警方表示未发现他杀证据。
+
+Balaji 1998年11月21日出生于佛罗里达州的一个印度裔美国家庭，
+在加州库比蒂诺（Cupertino）长大——
+这座城市也是 Apple 总部所在地，他的父母都在科技行业工作。
+他从11岁开始用儿童编程工具 Scratch 编写程序，
+13岁就组装了自己的第一台电脑。
+他就读于 Monta Vista High School，
+是2015--16赛季 USA Computing Olympiad 的决赛选手。
+2017年，他在一项由 TSA 赞助的 Kaggle ``旅客筛查算法挑战''中
+获得第七名，赢得了10万美元奖金——当时他还只是一名大学生。
+他在 UC Berkeley 完成了计算机科学的学业。
+
+2020年，Balaji 加入 OpenAI，
+参与了 ChatGPT 背后AI系统的训练工作。
+一位联合创始人后来称他是``OpenAI 最强的贡献者之一，
+对我们一些产品的开发至关重要''。
+然而，随着对 OpenAI 数据使用实践的深入了解，
+Balaji 的信念开始动摇。
+
+2024年8月，他从 OpenAI 辞职。
+2024年10月，《纽约时报》刊登了对他的深度采访，
+其中他公开指控 OpenAI 在开发 ChatGPT 时违反了美国版权法——
+大规模使用受版权保护的互联网内容来训练模型，
+而未获得内容创作者的许可或提供补偿。
+他在个人网站上详细阐述了他的法律分析，
+认为 OpenAI 的训练数据实践不符合``合理使用''（fair use）的法律标准。
+他的证词随后成为了针对 OpenAI 的多起版权侵权诉讼的关键证据，
+包括《纽约时报》自身对 OpenAI 提起的诉讼。
+
+仅仅一个月后，2024年11月26日——距他26岁生日只过了五天——
+Balaji 被发现在旧金山公寓中去世。
+他的去世在科技界引发了震动。
+他的家人公开质疑官方的自杀结论，
+表示正在寻求有关他死亡的更多答案，
+并聘请了一名私人调查员。
+这一事件在社交媒体上引发了广泛的争论和阴谋论猜测，
+尽管警方的调查结论保持不变。
+
+一位 OpenAI 联合创始人在公开悼念中称他为
+``一个快乐、聪明和勇敢的年轻人''。
+
+\begin{warnbox}[吹哨人困境：AI伦理辩论的人性代价]
+Balaji 的故事触及了AI行业一个深层问题：
+当一个年轻研究者从内部看到了他认为的违法行为，
+他面临的不仅是法律和职业上的风险，
+还有巨大的心理压力——
+与曾经的同事和导师对立，
+在世界上最有权势的科技公司面前孤身作战。
+无论人们对版权法的具体解读有何分歧，
+Balaji 的去世都是一个提醒：
+AI伦理辩论不仅仅是抽象的哲学讨论，
+它涉及真实的人和真实的代价。
+\end{warnbox}
+
+
+% ============================================================
+\section{OpenAI 的现在与未来}
+\label{sec:openai-present-future}
+% ============================================================
+
+截至2026年初，OpenAI 的面貌与2015年成立时已经完全不同。
+从创始团队的11位联合创始人中，仅有3人留下——
+Sam Altman、Greg Brockman 和 Wojciech Zaremba。
+在过去两年间（2024--2025），超过一半的高管团队已经离职，
+包括 CTO Mira Murati、首席科学家 Ilya Sutskever、
+首席研究官 Bob McGrew、研究副总裁 Barret Zoph、
+联合创始人 John Schulman 以及安全负责人 Jan Leike 等。
+
+然而，OpenAI 的组织韧性令人惊讶。
+每一次重大离职后，新一代领导者迅速补位：
+Jakub Pachocki 接任首席科学家，
+Mark Chen 晋升为首席研究官，
+新的安全和工程团队不断组建。
+
+\begin{corebox}[OpenAI 2026年领导层]
+\begin{itemize}[noitemsep]
+  \item \textbf{CEO}：Sam Altman
+  \item \textbf{President}：Greg Brockman（新角色，聚焦技术挑战）
+  \item \textbf{Chief Scientist}：Jakub Pachocki
+  \item \textbf{Chief Research Officer}：Mark Chen
+  \item \textbf{Technical Fellow}：Prafulla Dhariwal（Head of Multimodal）
+  \item \textbf{Board Chair}：Bret Taylor
+  \item \textbf{Key Board Members}：Adam D'Angelo, Larry Summers
+  \item \textbf{Core Researchers}：Wojciech Zaremba, Szymon Sidor,
+        Noam Brown, Sandhini Agarwal 等
+\end{itemize}
+\end{corebox}
+
+在商业层面，OpenAI 在2025年10月完成了里程碑式的营利化重组。
+OpenAI Foundation（非营利）持有 OpenAI Group PBC（公益公司）约26\%的股权
+（价值约1300亿美元），Microsoft 持有约27\%（约1350亿美元），
+其余47\%由现任和前任员工及投资者持有。
+公司整体估值约5000亿美元。
+
+在技术层面，OpenAI 继续在多个前沿方向推进：
+GPT 系列语言模型、o 系列推理模型、DALL$\cdot$E 图像生成、
+Sora 视频生成，以及 Stargate 基础设施项目
+（与 SoftBank 合资的5000亿美元AI数据中心计划）。
+
+\begin{whybox}[OpenAI 对AI产业的根本影响]
+回顾 OpenAI 的十年历程，
+它对AI产业的影响至少体现在三个层面：
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{技术范式}：GPT 系列确立了 ``scale is all you need'' 的路线，
+        RLHF 定义了后训练的标准流程，
+        o1 开创了 test-time compute scaling 的新方向
+  \item \textbf{人才扩散}：OpenAI 培养的人才流向了整个行业——
+        Anthropic 的七位联合创始人中有六位来自 OpenAI，
+        SSI、Thinking Machines Lab、xAI 等新公司的核心团队中
+        也充满了 OpenAI 的校友
+  \item \textbf{治理实验}：从非营利到有限营利再到公益公司，
+        OpenAI 的治理探索——无论成功与否——
+        为整个AI行业提供了关于如何平衡使命与资本的宝贵教训
+\end{enumerate}
+\end{whybox}
+
+OpenAI 的故事远未结束。
+无论是追求 AGI 的技术竞赛、
+与 Google、Anthropic 和 Meta 的市场竞争、
+还是关于AI安全和伦理的持续辩论，
+OpenAI 都将继续处于AI时代最中心的位置。
+而那些塑造了它的人——无论是留下的还是离开的——
+都已经深刻改变了人类与技术的关系。

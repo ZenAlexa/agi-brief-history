@@ -17,3 +17,8 @@ __pycache__/
 *.run.xml
 *.toc
 *.xdv
+*-SAVE-ERROR
+
+# Claude Code internal files
+**/.claude/
+NEW_SESSION_INSTRUCTION.md
