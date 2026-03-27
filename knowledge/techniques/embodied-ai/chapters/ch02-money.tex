@@ -1,0 +1,129 @@
+\chapter{资金链}
+\label{ch:money}
+
+\section{全球融资轨迹}
+
+\begin{table}[htbp]
+\centering
+\caption{Global humanoid robot funding trajectory (humanoid-only scope).}
+\label{tab:funding}
+\begin{tabular}{llr}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Year} & \textbf{Funding} & \textbf{YoY Growth} \\
+\midrule
+2023 & \$277M & --- \\
+2024 & \$1.05B & +280\% \\
+2025 & \$2.65B & +152\% \\
+2026 Q1 & \$5.8B+ YTD & Accelerating \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+中国市场的增速更为惊人。开源证券统计显示，2025 年前 10 个月中国具身智能融资总额超过 500 亿元人民币，较 2024 年全年翻 2.5 倍\cite{kaiyuan2025embodied}。2026 年仅 3 月单月就发生了 40 起融资事件\cite{kaiyuan2026q1}。
+
+\section{谁在投资}
+
+资金来源可以追溯到五条链路：
+
+\subsection{科技巨头交叉持仓}
+
+NVIDIA 是最积极的战略投资者，同时持有 Figure AI、Skild AI 和 Apptronik 的股份。Microsoft 和 OpenAI 共同投资了 Figure AI 的 Series B（6.75 亿美元，2024 年 2 月）。Amazon 通过 Industrial Innovation Fund 投资 Agility Robotics\cite{agility2024seriesb}。在中国，美团以 9.65\% 的持股比例成为宇树科技第二大股东\cite{unitree2026ipo}；腾讯领投了智元机器人数亿元融资\cite{agibot2025tencent}。
+
+\subsection{超级 GP 全球布局}
+
+SoftBank 是全球最大的单一投资者，仅在 Skild AI 一家就投入 14 亿美元领投 Series C\cite{skild2026seriesc}。红杉中国、高瓴创投和 IDG 资本几乎投资了中国所有头部公司。
+
+\subsection{中东主权基金}
+
+卡塔尔投资局（QIA）参与了 Apptronik 的 5.2 亿美元融资\cite{apptronik2026}。沙特阿拉伯 Aramco 旗下 Prosperity7 领投傅利叶智能 E 轮近 8 亿元\cite{fourier2025erround}。这是中东在新能源之后的又一个大规模技术赌注。
+
+\subsection{中国国家级基金}
+
+\begin{keybox}[国资入场信号]
+2026 年 3 月，银河通用机器人完成 A+ 轮 25 亿元融资，投资方阵容包括：\textbf{国家人工智能产业基金}（大基金三期）、中国石化、中信集团、中国银行、中国移动链长基金、中金资本\cite{galbot2026aplus}。这是国资体系对具身智能最大规模的集中下注。
+\end{keybox}
+
+\subsection{产业资本绑定}
+
+比亚迪投资了优必选\cite{ubtech2025byd}。宁德时代系晨道资本领投松延动力 B 轮近 10 亿元\cite{songyan2026b}。博世/博原资本与银河通用成立合资公司\cite{galbot2025bosch}。丰田与银河通用建立合作关系。这些不是财务投资——而是制造业巨头在为「机器人进工厂」的未来做产业布局。
+
+\section{头部公司估值}
+
+\begin{table}[htbp]
+\centering
+\caption{Top funded embodied AI companies, March 2026.}
+\label{tab:topfunded}
+\begin{tabularx}{\textwidth}{lXrrr}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Company} & \textbf{Total Raised} & \textbf{Valuation} & \textbf{Revenue (2025)} & \textbf{Profitable?} \\
+\midrule
+Figure AI (US) & >\$2.6B & \$39.5B & \textasciitilde\$0 & No \\
+Skild AI (US) & >\$2B & \$14B & N/A & No \\
+Apptronik (US) & \$935M & \$5B & Pre-revenue & No \\
+Phys. Intelligence (US) & >\$1B & \$5.6B & \$0 & No \\
+\midrule
+Unitree 宇树 (CN) & >15亿元 & 420亿元 & 17亿元 & \textbf{Yes} \\
+Galbot 银河通用 (CN) & >60亿元 & >300亿元 & Undisclosed & No \\
+Agibot 智元 (CN) & 11 rounds & \textasciitilde150亿元 & \textasciitilde10亿元 & No \\
+UBTECH 优必选 (CN) & Public & \textasciitilde500亿HKD & \textasciitilde12亿元 & No \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Figure AI 的估值从 2024 年 2 月的 26 亿美元飙升到 2025 年 9 月的 395 亿美元——18 个月翻了 15 倍\cite{figure2025seriesc}。而这期间，该公司\textbf{没有产生任何经常性收入}。Physical Intelligence 成立仅两年，没有产品，估值已达 56 亿美元\cite{pi2025seriesb}。
+
+\section{钱花在哪里}
+
+宇树科技 IPO 招股书提供了行业内最清晰的资金用途披露\cite{unitree2026ipo}：
+
+\begin{table}[htbp]
+\centering
+\caption{Unitree IPO fund allocation (42 billion yuan raise).}
+\label{tab:unitree-allocation}
+\begin{tabular}{lrr}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Purpose} & \textbf{Amount (亿元)} & \textbf{Share} \\
+\midrule
+Embodied foundation model R\&D (GPU compute) & 20.22 & 48\% \\
+Robot body hardware R\&D & 11.10 & 26\% \\
+New product development & 4.45 & 11\% \\
+Manufacturing base (75K humanoid + 115K quadruped/yr) & 6.24 & 15\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{近半数资金用于 AI 算力基础设施}，而非机器人本体。这反映了整个行业的共同特征：GPU 集群是最大的单一成本项。
+
+\section{收入从哪来}
+
+\begin{warnbox}[收入的真相]
+宇树科技 2025 年前三季度人形机器人收入分布\cite{unitree2026ipo}：
+\begin{itemize}
+  \item 科研教育：73.6\%
+  \item 商业消费（展览、商演）：17.4\%
+  \item 行业应用（工业等）：9.0\%
+\end{itemize}
+在这 9\% 的行业应用中，真正用于智能制造的收入仅约 1,570 万元——占人形机器人总收入的\textbf{不到 3\%}。宇树是行业唯一盈利的公司（2025 年扣非净利约 6 亿元），但盈利高度依赖 2025 年春晚效应带来的品牌爆发和四足机器人存量业务。
+\end{warnbox}
+
+IDC 数据更加直接：2025 年全球人形机器人市场需求的 61.4\% 由文娱商演和教育科研驱动\cite{idc2025humanoid}。超过 50\% 的「商业化订单」本质上是公关展示和数据采集\cite{ubs2026humanoid}。
+
+\section{投资链的循环结构}
+
+整个行业的资金循环可以概括为：
+
+\begin{enumerate}
+  \item 政府政策释放「未来产业」信号 $\to$ 国家级基金入场
+  \item VC 竞相抬高估值 $\to$ 企业以 100 倍以上 P/S 融资
+  \item 资金流向：GPU 算力（48\%）+ 硬件研发（26\%）+ 产能建设（15\%）
+  \item 收入来源：教育/科研（74\%）+ 娱乐展示（17\%）
+  \item 工业生产力替代收入：\textless{}9\%
+  \item 收入不足以覆盖运营 $\to$ 回到步骤 2，再次融资
+\end{enumerate}
+
+\begin{whybox}[为什么这个循环还没有崩溃？]
+三个因素维持着这个循环：（1）中国政府的政策信号极强——十五五规划将具身智能列为六大未来产业之一\cite{fifteenfive2026}，地方政府千亿级引导基金持续涌入；（2）Tesla Optimus 的「百万台」叙事为全球估值提供锚定；（3）劳动力短缺是真实的结构性趋势，为长期需求故事提供合理性。但循环能持续多久取决于哪个先到：技术突破，还是资本耐心耗尽。
+\end{whybox}

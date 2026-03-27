@@ -1,0 +1,152 @@
+\chapter{技术供给瓶颈}
+\label{ch:technology}
+
+\section{硬件不是软件}
+
+具身智能最根本的挑战在于：\textbf{它的瓶颈不在比特（bits），而在原子（atoms）}。
+GPU 算力遵循摩尔定律，模型能力以月为单位跃迁。但执行器的加工精度、触觉传感器的循环寿命、电池的能量密度——这些物理量的改善速度是 5--8\% 每年，而非 100\% 每年。
+
+\begin{corebox}[硬件 vs 软件迭代周期]
+\begin{itemize}
+  \item \textbf{软件}（基础模型、控制策略）：周级更新。NVIDIA GR00T 从 N1 到 N2 用了约 6 个月。
+  \item \textbf{硬件}（机械本体）：传统 18--24 个月/代。仿真加速可压缩到 7--10 个月\cite{humanoid2026hmnd}，但物理验证（加工、装配、测试）不可压缩到 6 个月以下。
+  \item \textbf{关键零部件}（精密执行器、传感器）：合格认证周期 12--18 个月。
+\end{itemize}
+\end{corebox}
+
+\section{执行器：51\% 的 BOM}
+
+执行器（电机 + 减速器 + 驱动器）占人形机器人硬件物料成本的约 51\%\cite{techticker2026harmonic}。这是最关键也是最受制的单一环节。
+
+\begin{table}[htbp]
+\centering
+\caption{Actuator types for humanoid robots.}
+\label{tab:actuators}
+\begin{tabularx}{\textwidth}{lXrll}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Type} & \textbf{Key Suppliers} & \textbf{Cost/Unit} & \textbf{Pros} & \textbf{Cons} \\
+\midrule
+Harmonic drive & Harmonic Drive (JP), Green Harmonic (CN) & \$2K--5K & Ultra-precise & Expensive, supply constrained \\
+Quasi-direct drive & Tesla, Unitree & \$200--800 & Backdrivable, fast & Lower precision \\
+Planetary gear & Schaeffler, others & \$500--2K & Robust, high torque & Large, heavy \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+每个人形机器人需要 10--40 个精密执行器。按谐波减速器计算，仅执行器成本就达 \textbf{8 万--12 万美元/台}\cite{techticker2026harmonic}。日本控制全球约 70\% 的精密减速器产能。中国绿的谐波（Green Harmonic/Leaderdrive）占全球约 12\% 份额、国内约 60\%，年研发投入超过 2,000 万元，正在追赶但距离规模化平价仍需 3--5 年\cite{designnews2026supply}。
+
+行业共识是执行器单价需要降至\textbf{数百美元}才能支撑商业化。Tesla 的策略是：行走关节用 QDD（便宜、可反驱动），精密操作关节用谐波减速器——这是当前最务实的折中方案。
+
+\section{灵巧手：65 年未解的挑战}
+
+Rodney Brooks（iRobot 联合创始人、MIT 教授）的核心论点\cite{brooks2025dexterity}：
+
+\begin{quote}
+人手拥有约 17,000 个触觉传感器。你不能通过观看视频来学习触觉——这是纯粹的幻想思维。
+\end{quote}
+
+\begin{table}[htbp]
+\centering
+\caption{State of the art in dexterous robot hands (March 2026).}
+\label{tab:hands}
+\begin{tabular}{llrl}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Hand} & \textbf{DOF} & \textbf{Price (est.)} & \textbf{Status} \\
+\midrule
+Shadow DEX-EE & 20+ & >\$100K & Research platform \\
+Allegro Hand L5 & 16 & \$15--20K & Commercial (CES 2026) \\
+LEAP Hand & 16 & \textasciitilde\$2K (DIY) & Open-source \\
+GR-Dexter (ByteDance) & 21/hand & R\&D & Paper Jan 2026 \\
+Linker Hand L20 & 20 & Undisclosed & Early commercial \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Elon Musk 本人也承认灵巧手的制造难度「比设计难 100 倍」\cite{musk2025hand}。当前 BMW 工厂中 Figure 02 的实际工作内容是「将金属板插入夹具」——没有后空翻，没有跳舞，只有一个极其受限的重复性任务\cite{figure2026bmw}。
+
+\section{触觉传感器：脆弱、昂贵、难以集成}
+
+Nathan Lepora 在 IJRR 2026 综述中指出\cite{lepora2026tactile}：触觉机器人领域在 1995--2010 年经历了长达 15 年的「冬天」。2010 年后确实有实质性进展（GelSight、XELA 等），但当前\textbf{没有任何传感器同时具备空间分辨率、力敏感度、耐久性和成本四个维度的商业化要求}。
+
+\begin{itemize}
+  \item \textbf{GelSight Mini}：视觉基触觉，已获 US Air Force SBIR Phase II 合同（2026.3），但仍为研究级\cite{gelsight2026sbir}。
+  \item \textbf{XELA uSkin}：3D 力 + 接近觉，商业订单始于 2026 Q1\cite{xela2026orders}。
+  \item \textbf{SuperTac}（Nature Sensors, 2026.1）：仿生多模态，1mm 厚，但仍处于研究阶段。
+\end{itemize}
+
+\section{训练数据：差五到六个数量级}
+
+\begin{warnbox}[The Data Gap]
+一位机器人学从业者的估计\cite{reddit2025roboticsdata}：``We are probably 5--6 orders of magnitude short of the real robotic data we will need to train a foundational model for robotics.'' 这个数字被学术界广泛引用，尚未被任何严肃的反驳推翻。
+\end{warnbox}
+
+数据采集成本结构\cite{gello2025,teleop2025costs}：
+
+\begin{itemize}
+  \item 高端遥操作（外骨骼、动捕服）：\$200--500+/小时
+  \item 中端（VR 控制器、ALOHA 主从臂）：\$50--150/小时
+  \item 低端（GELLO 开源方案，\$300 搭建成本）：取决于操作员时间
+\end{itemize}
+
+即使硬件成本降到零，\textbf{人类操作员的时间}才是真正的瓶颈。每个任务-环境组合需要 20--100+ 次演示，而真实世界的泛化需要覆盖不同物体、场景和条件。
+
+替代数据源正在探索中——仿真数据（Isaac Sim, MuJoCo）、互联网视频、自主探索——但每种都有根本性局限。清华大学 ICLR 2025 论文\cite{tsinghua2025datascaling}表明数据扩展确实有效，但演示质量远比数量重要。
+
+\section{Sim-to-Real：行走已解决，操作仍是鸿沟}
+
+ETH Zurich/NVIDIA/UW 的综合综述\cite{aljalbout2026realitygap}将 sim-to-real gap 分解为五类失配：动力学（质量、惯量、摩擦）、接触（粘滑、微弹跳）、感知（延迟、噪声）、执行（力矩限制、热降额）、环境（光照、杂物）。
+
+\begin{keybox}[Sim-to-Real 现状分级]
+\begin{itemize}
+  \item \textbf{已解决}：双足行走/跑步。Domain randomization + system identification 对刚体运动效果良好。Unitree、Agility、Boston Dynamics 均已实现稳健的 sim-to-real 行走\cite{aljalbout2026realitygap}。
+  \item \textbf{改善中}：刚性物体抓取。ByteDance 2026 年 1 月论文实现了基于密集触觉反馈的零样本 sim-to-real 灵巧抓取\cite{bytedance2026simtoreal}。
+  \item \textbf{根本性困难}：柔性物体（布料、绳索、食物）的物理仿真计算成本极高且不精确。接触丰富的精细操作（穿针引线、装配）——接触仿真精度不够。长时序任务——误差在多步决策中累积。
+\end{itemize}
+\end{keybox}
+
+\section{基础模型：短时域操作有效，通用能力遥远}
+
+\begin{table}[htbp]
+\centering
+\caption{Robot foundation models, March 2026.}
+\label{tab:foundation}
+\begin{tabularx}{\textwidth}{llXl}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Model} & \textbf{Developer} & \textbf{Capability} & \textbf{Limitation} \\
+\midrule
+GR00T N2 & NVIDIA & Cross-task generalization, sim-trained & Per-hardware fine-tuning needed \\
+$\pi$0 / $\pi$0.5 & Physical Intelligence & ``Generalist policy'', laundry, cleanup & Manipulation only, short-horizon \\
+RT-2 / RT-X & Google DeepMind & Pioneered VLA paradigm & Superseded \\
+Octo & UC Berkeley & Cross-robot transfer & Limited task complexity \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Physical Intelligence 自己的评估\cite{pi2024frontier}：``The frontiers of robot foundation model research include long-horizon reasoning and planning, autonomous self-improvement, robustness, and safety.'' 翻译成工程语言就是：这些核心问题一个都没解决。
+
+宇树科技创始人王兴兴的判断更为直接\cite{unitree2025gptmoment}：「具身智能的 GPT 时刻仍需 2--3 年。」
+
+\section{瓶颈严重度排序}
+
+\begin{table}[htbp]
+\centering
+\caption{Technology bottleneck severity ranking.}
+\label{tab:bottlenecks}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Bottleneck} & \textbf{Severity} & \textbf{Key Constraint} \\
+\midrule
+Actuator cost \& supply & CRITICAL & 51\% of BOM, Japan controls 70\% of supply \\
+Training data gap & CRITICAL & 5--6 orders of magnitude short \\
+Dexterous manipulation & HIGH & 17K tactile sensors vs. near-zero in robots \\
+Sim-to-real for contact-rich tasks & HIGH & Physics simulation fidelity \\
+Tactile sensing & MEDIUM & Fragile, expensive, hard to integrate \\
+Battery life & MEDIUM & 2--4 hrs vs. human 8--12 hr shifts \\
+Vision / compute hardware & LOW & Solved (automotive/smartphone spillover) \\
+\bottomrule
+\end{tabularx}
+\end{table}

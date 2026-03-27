@@ -1,0 +1,107 @@
+\chapter{企业图谱}
+\label{ch:landscape}
+
+\section{全球格局}
+
+\subsection{第一梯队：有真实工厂部署数据}
+
+\textbf{Figure AI}（美国）。\$39.5B 估值，Series C 融资超 10 亿美元。Figure 02 在 BMW Spartanburg 工厂完成了 11 个月试点，记录超过 1,250 小时运行、移动超过 9 万个零件\cite{figure2026bmw}。BMW 因此将计划扩展到德国莱比锡工厂。这是全球范围内人形机器人在真实工厂环境中最长的连续试点数据。但公司\textbf{没有经常性收入}。
+
+\textbf{Agility Robotics}（美国）。Digit 机器人在 Amazon 仓库和 GXO 物流中有实际部署\cite{agility2025amazon}，执行搬运和堆叠任务。首创人形机器人 Robotics-as-a-Service (RaaS) 模式。是目前\textbf{商业化进度最扎实}的公司之一。单价约 25 万美元。
+
+\textbf{Boston Dynamics}（美国/韩国）。2026 年 1 月 CES 发布量产版全电动 Atlas\cite{bd2026atlas}。首批承诺给 Hyundai RMAC 和 Google DeepMind。2028 年计划 3 万台/年产能。数十年研发积累，技术最成熟，但\textbf{价格最高}（>25 万美元）。
+
+\subsection{高估值但无产品收入}
+
+\textbf{Skild AI}（美国）。\$14B 估值，SoftBank 领投 \$1.4B Series C\cite{skild2026seriesc}。专注机器人基础模型而非硬件。定位类似「机器人领域的 OpenAI」。
+
+\textbf{Physical Intelligence}（美国）。\$5.6B 估值，成立仅两年。$\pi$0 基础模型已开源。团队来自 Google DeepMind 和 Berkeley。\textbf{无产品、无收入、无时间表}\cite{pi2025seriesb}。
+
+\textbf{Apptronik}（美国）。\$5B 估值，\$935M 总融资。Apollo 机器人在 Mercedes-Benz 工厂和 GXO 仓库测试中\cite{apptronik2026}。仍处于测试阶段。
+
+\subsection{NVIDIA：卖铲子的人}
+
+NVIDIA 不造机器人，做基础设施和平台\cite{nvidia2026gtc}：Isaac Sim 仿真、GR00T 基础模型、Jetson Thor 边缘计算。合作方覆盖 ABB、FANUC、Figure、KUKA、Agility、Skild AI、Universal Robots。无论哪家机器人公司胜出，NVIDIA 都受益。Jensen Huang 将此定位为「1 万亿美元 DSX 基础设施」机会。
+
+\section{中国生态}
+
+\subsection{唯一盈利者：宇树科技}
+
+2025 年营收 17 亿元，扣非净利约 6 亿元——\textbf{行业唯一盈利样本}\cite{unitree2026ipo}。
+人形机器人出货 5,500 台（全球第二），四足机器人累计超 3 万台（全球市占 69.75\%）。
+2026 年 3 月 20 日递交科创板 IPO，拟募资 42 亿元，冲击「人形机器人第一股」。
+
+但需要注意：盈利高度依赖 2025 年春晚效应和四足机器人存量业务。人形机器人核心买家仍是高校和科研机构。IPO 招股书自认春晚对业绩有重大推动\cite{unitree2026ipo}。
+
+\subsection{出货量冠军：智元机器人}
+
+Omdia 报告显示 2025 年出货超 5,168 台，以 39\% 全球市场份额排名第一\cite{agibot2025omdia}。
+创始人邓泰华（华为前副总裁）和彭志辉（「稚晖君」，华为天才少年出身）。
+通过资本运作控股 A 股上纬新材上市，市值一度突破 600 亿元\cite{agibot2025listing}。
+销售收入有望超 10 亿元，但\textbf{尚未盈利}。产品多流向文娱商演、导览和科研教育场景。COO 王闯承认：机器人搬运效率约为人类的 0.7 倍。
+
+\subsection{估值最高的未上市公司：银河通用}
+
+估值 211 亿元（国内未上市最高），总融资约 8 亿美元\cite{galbot2026aplus}。
+北京大学王鹤教授创立。产品 Galbot G1/S1 已在汽车工厂进行搬运测试。
+但\textbf{未披露营收数据}。产品主要处于应用测试和展会演示阶段。估值与商业化成熟度之间的落差\textbf{是所有公司中最大的}。
+
+\subsection{持续亏损的上市公司：优必选}
+
+港股 9880.HK，市值约 498 亿港元\cite{ubtech2025hk}。
+Walker S2 进入比亚迪、极氪等汽车工厂。2025 年全年人形机器人订单近 14 亿元。
+但 2023--2025 上半年累计亏损逼近 30 亿元。Walker S2 在工厂的效率仅达人类的 45\%\cite{ubtech2025efficiency}。
+2025 年初核心研发负责人赵明国因路线分歧离职。
+
+\subsection{第二梯队}
+
+\begin{table}[htbp]
+\centering
+\caption{China second-tier embodied AI companies.}
+\label{tab:cn-tier2}
+\begin{tabularx}{\textwidth}{llXl}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Company} & \textbf{Valuation} & \textbf{Differentiation} & \textbf{Status} \\
+\midrule
+Star Robotics 星动纪元 & >100亿元 & Dexterous hands (1K shipped, 50\% overseas) & Hands shipping; full robot limited \\
+Fourier 傅利叶 & \textasciitilde80亿元 & Rehab robotics heritage; GR-2 research platform & Research-grade sales \\
+X Square 智平方 & >100亿元 & 12 rounds in 1 year (fastest ever) & Early stage \\
+LimX 逐际动力 & Undisclosed & Locomotion focus, strong motion control & Tech-oriented, limited deployment \\
+Kepler 开普勒 & Undisclosed & K2 hybrid architecture, 8hr battery & SAIC-GM factory test \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{谁在出货 vs 谁在做 Demo}
+
+\begin{keybox}[出货量排名 2025]
+\textbf{规模出货}（>1,000台/年）：智元 \textasciitilde5,168 台、宇树 \textasciitilde5,500 台（人形）、优必选 \textasciitilde1,000 台（累计）。
+
+\textbf{小批量/研究级}：傅利叶、开普勒、星动纪元（灵巧手出货近千，整机有限）。
+
+\textbf{原型/演示/预量产}：银河通用、小鹏 IRON、逐际动力、Physical Intelligence、1X Technologies。
+\end{keybox}
+
+但出货量数字本身可能有误导性。IDC 数据显示 2025 年 61.4\% 的需求由文娱商演和教育科研驱动\cite{idc2025humanoid}。真正用于工业生产线的比例极低。多位行业分析师指出：超过 50\% 的「商业化订单」本质上是\textbf{公关展示和数据采集}。
+
+\section{中美对比}
+
+\begin{table}[htbp]
+\centering
+\caption{China vs. US embodied AI comparison.}
+\label{tab:cnvsus}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Dimension} & \textbf{China} & \textbf{United States} \\
+\midrule
+Shipment volume (2025) & \textasciitilde90\% of global output & Tesla/Figure/Agility each \textasciitilde150 units \\
+Unit price floor & \$16K (Unitree G1) & >>\$50K \\
+Profitability & Only Unitree & None \\
+Industrial deployment & Auto factory tests, 45--70\% human efficiency & Same: pilot stage \\
+Core advantage & Supply chain, cost & AI models / algorithms (OpenAI, DeepMind) \\
+Shared problem & \multicolumn{2}{l}{Neither has passed industrial proof-of-concept at scale} \\
+\bottomrule
+\end{tabularx}
+\end{table}
