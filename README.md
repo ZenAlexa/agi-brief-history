@@ -8,10 +8,17 @@
 
 *An ever-evolving knowledge system for the AGI era — tracking open-source LLM infrastructure, techniques, and frontier research*
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<br>
+
+![visitors](https://visitor-badge.laobi.icu/badge?page_id=ZenAlexa.llm-observatory)
 [![GitHub stars](https://img.shields.io/github/stars/ZenAlexa/llm-observatory?style=social)](https://github.com/ZenAlexa/llm-observatory/stargazers)
-[![Last Commit](https://img.shields.io/github/last-commit/ZenAlexa/llm-observatory)](https://github.com/ZenAlexa/llm-observatory/commits/main)
+[![GitHub forks](https://img.shields.io/github/forks/ZenAlexa/llm-observatory?style=social)](https://github.com/ZenAlexa/llm-observatory/network/members)
+[![MIT License](https://img.shields.io/github/license/ZenAlexa/llm-observatory)](LICENSE)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ZenAlexa/llm-observatory)](https://github.com/ZenAlexa/llm-observatory/commits/main)
+[![GitHub pull request](https://img.shields.io/badge/PRs-welcome-blue)](https://github.com/ZenAlexa/llm-observatory/pulls)
 [![ArXiv Digest](https://img.shields.io/badge/ArXiv_Digest-daily-orange)](knowledge/tracking/arxiv/)
+
+<br>
 
 [中文](#概览) | [English](#overview)
 
@@ -25,7 +32,7 @@
 
 这是一个**系统性的 AGI 知识工程**：5 本原创书籍/报告（98,000+ 行 LaTeX），覆盖技术演进、商业版图、关键人物与行业泡沫分析；结构化知识库横跨 LLM 全生命周期 7 大领域；16 个核心开源项目作为 Git 子模块实时追踪；GitHub Actions 自动化每日论文摘要与每周排行榜快照。
 
-> 记录 AGI 时代最不可思议的十年。
+> 记录 AGI 时代最不可思议的五年。
 
 ---
 
@@ -41,7 +48,7 @@
 | 4 | **Embodied AI** | 6 章 | 具身智能与人形机器人 — 资本泡沫、技术瓶颈、投资链条与现实时间线 | [📥 下载](knowledge/techniques/embodied-ai/embodied-ai.pdf) |
 | 5 | **LLM Techniques Report** | — | 核心技术速查 — MoE、量化、长上下文、测试时计算、合成数据 | [📥 下载](knowledge/techniques/llm-techniques-report/llm-techniques-report.pdf) |
 
-> 所有书籍源码（`.tex`）均在仓库中，欢迎 PR 改进。
+> 所有书籍源码（`.tex`）均在仓库中，欢迎 [PR 改进](CONTRIBUTING.md)。
 
 ---
 
@@ -133,9 +140,38 @@ See the [books section](#-原创书籍) for PDF downloads, [knowledge base](#️
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
-Contributions welcome! Whether it's fixing a typo in the books, adding a new technique article, or improving the tracking scripts — PRs are appreciated.
+We welcome all contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+**Quick ways to contribute:**
+- 📝 Fix typos or improve content in books and knowledge articles
+- 📚 Add new technique articles or knowledge entries
+- 🔧 Improve automation scripts
+- 🌐 Help with English translations
+- ⭐ Star this repo to help others discover it
+
+---
+
+## Contributors
+
+<a href="https://github.com/ZenAlexa/llm-observatory/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ZenAlexa/llm-observatory" />
+</a>
+
+---
+
+## Star History
+
+<a href="https://star-history.com/#ZenAlexa/llm-observatory&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZenAlexa/llm-observatory&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZenAlexa/llm-observatory&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ZenAlexa/llm-observatory&type=Date" />
+  </picture>
+</a>
+
+---
 
 ## License
 
@@ -145,6 +181,6 @@ Contributions welcome! Whether it's fixing a typo in the books, adding a new tec
 
 <div align="center">
 
-*Built with curiosity and Claude Code. Observing the most extraordinary decade in AI.*
+*Observing the most extraordinary five years in AI.*
 
 </div>

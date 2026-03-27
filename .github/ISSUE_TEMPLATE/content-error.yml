@@ -1,0 +1,51 @@
+name: "\U0001F41B Content Error / 内容错误"
+description: Report factual errors, outdated information, or incorrect data
+title: "[Content]: "
+labels: ["bug", "content"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping us maintain accuracy! / 感谢帮助我们保持内容准确！
+  - type: dropdown
+    id: area
+    attributes:
+      label: Content Area / 内容领域
+      options:
+        - "Books / 书籍 (Emergence, AI Startup Landscape, AI Figures, Embodied AI)"
+        - "Knowledge Base / 知识库 (inference, pretraining, post-training, data, models)"
+        - "Technique Articles / 技术专题 (MoE, quantization, long-context, etc.)"
+        - "Tracking / 追踪 (ArXiv digest, leaderboard, papers)"
+        - "Other / 其他"
+    validations:
+      required: true
+  - type: input
+    id: file-path
+    attributes:
+      label: File Path / 文件路径
+      description: Which file contains the error?
+      placeholder: "e.g., knowledge/techniques/moe.md or knowledge/techniques/emergence/chapters/ch06-moe.tex"
+    validations:
+      required: true
+  - type: textarea
+    id: current-content
+    attributes:
+      label: Current (Incorrect) Content / 当前错误内容
+      description: Quote the incorrect text
+    validations:
+      required: true
+  - type: textarea
+    id: correct-content
+    attributes:
+      label: Correct Content / 正确内容
+      description: What should it say instead?
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source / 来源
+      description: Link to authoritative source supporting the correction
+      placeholder: "Paper URL, official docs, etc."
+    validations:
+      required: false

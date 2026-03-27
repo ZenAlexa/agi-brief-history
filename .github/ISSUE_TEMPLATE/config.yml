@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "\U0001F4AC Discussions / 讨论区"
+    url: https://github.com/ZenAlexa/llm-observatory/discussions
+    about: Ask questions, share ideas, or discuss AGI topics / 提问、分享想法或讨论 AGI 话题

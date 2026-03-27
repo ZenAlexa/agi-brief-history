@@ -1,0 +1,46 @@
+name: "\U0001F4DA Content Request / 内容建议"
+description: Suggest new topics, articles, or book chapters
+title: "[Content Request]: "
+labels: ["enhancement", "content"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a topic you'd like to see covered? Tell us! / 有想看到的主题？告诉我们！
+  - type: dropdown
+    id: type
+    attributes:
+      label: Request Type / 请求类型
+      options:
+        - "New technique article / 新技术专题文章"
+        - "New book chapter / 新书籍章节"
+        - "New book topic / 新书主题"
+        - "Knowledge base expansion / 知识库扩展"
+        - "New submodule tracking / 新增追踪项目"
+        - "Other / 其他"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description / 描述
+      description: What topic should be covered and why?
+      placeholder: |
+        Topic: ...
+        Why it matters: ...
+        Key references: ...
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References / 参考资料
+      description: Papers, repos, articles that could be useful
+    validations:
+      required: false
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Willingness to Contribute / 是否愿意贡献
+      options:
+        - label: I'm willing to write this content and submit a PR / 我愿意撰写内容并提交 PR
