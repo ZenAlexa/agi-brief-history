@@ -852,6 +852,39 @@ FA3 在 H100 上达到了约 740\,TFLOPS 的实际 BF16 注意力吞吐，
 在一个“非纯矩阵乘法”的计算中
 达到这个利用率，体现了极致的硬件感知优化。
 
+\textbf{Flash Attention 4}（FA4）~\cite{fa4_2026}
+于 2026 年 3 月发布（Princeton + Meta + NVIDIA 联合），
+是首个针对 \textbf{Blackwell} 架构非对称缩放
+（计算扩展远快于内存与 MUFU）做硬件-软件\textbf{协同设计}的注意力 kernel。
+FA4 的核心技术包括：
+（1）\textbf{Tensor Memory（TMEM）直接累加}，
+在前向 dQ 路径中将累加器直接放在 TMEM 上，
+彻底消除 RMEM↔SMEM 的中间往返；
+（2）\textbf{compute rebalancing}，
+针对 MUFU-heavy 路径（softmax 的 exp）
+通过算子重排把指数计算与张量核矩阵乘法\textbf{深度交错}；
+（3）\textbf{多级流水}，
+把异步全局加载、TMEM 计算、SMEM 写回
+组成 5 级以上 pipeline，
+让 SM100 的 5th-gen Tensor Core 几乎不空闲。
+B200 实测 \textbf{1{,}605 TFLOPS}（BF16），
+达到\textbf{理论峰值的 71\%}，
+比 NVIDIA cuDNN 9.x 快 \textbf{1.3$\times$}，
+比 NVIDIA Triton 实现快 \textbf{1.4$\times$}。
+NVIDIA 在 \textbf{cuDNN 9.14} 中已将 FA4 技术回植，
+SGLang 和 vLLM 主线在 2026 年 4 月也已支持
+\texttt{flash\_attn>=4.0.0.beta} 作为 Blackwell prefill 后端。
+
+\textbf{FA4-FP4}~\cite{fa4fp4_2026}
+更进一步：在 FA4 基础上为 Q/K/V 与即时 softmax 分数（P）
+都启用 NVFP4 块缩放 MMA（CuTe DSL 实现），
+在 B200 上达到 \textbf{1{,}801 TFLOPS}，
+比 BF16 FA4 再快 \textbf{1.39$\times$}。
+这意味着 NVFP4 W4A4 + FP4 注意力的
+端到端推理吞吐相对 H100 BF16 可达 \textbf{4--5$\times$}量级，
+2026 年下半年的 Blackwell 部署
+将以 FA4-FP4 + NVFP4 dense 为默认组合。
+
 值得注意的是，Flash Attention 对\textbf{推理}的加速
 主要体现在\textbf{prefill 阶段}和\textbf{长序列场景}。
 在 decode 阶段（每次只有一个 query token），
@@ -1633,6 +1666,21 @@ SWE-bench 任务上准确率 +20.5\%。
 spec decoding 让目标模型的"未激活专家空闲算力"
 被推测验证消化掉，反而 high-QPS 受益更显著。
 
+Red Hat 同实验也给出了\textbf{草稿 token 数量}（$\gamma$）的精细 sweep：
+\textbf{$\gamma=2$ 实现 acceptance 45.4\%}（最高）、
+TTFT/ITL 也最优（比 $\gamma=3$ 低 3--4\%）；
+\textbf{$\gamma=3$ acceptance 35.6\%}，
+但在高并发下吞吐略优；
+\textbf{$\gamma=4$ acceptance 跌到 28.3\%}，
+\textbf{额外的草稿 token 被拒概率超过 70\%}，
+反而 -8\% 吞吐 / -7.6\% ITL。
+"$\gamma$ 越大越好"的直觉是错的——
+最优 $\gamma$ 是 acceptance 与 verification 开销的\textbf{鞍点}，
+对 gpt-oss-120B 这种已 MXFP4 量化的 MoE 目标
+鞍点稳定在 $\gamma=2$ 或 $\gamma=3$，
+继续往上拉只会浪费验证算力。
+这是把"草稿越长越快"这个误区第一次用 200 并发数据钉死。
+
 \textbf{P-EAGLE}~\cite{peagle2026}（vLLM Blog 2026-03-13）
 在 B200 上把 EAGLE 的自回归 drafting 改为\textbf{并行 drafting}：
 一次 forward 出 K 个 draft，
@@ -2106,13 +2154,30 @@ HMA + NIXL connector 进入主线。
   \item ViT full CUDA graph
   \item \textbf{CPU KV cache offload + 可插拔 eviction}（PR \#37160、\#37874）
   \item \textbf{Gemma 4} 全家族支持
-  \item v0.19.1（04-18）补 CVE-2026-0994
+  \item v0.19.1（04-08）补 \textbf{CVE-2026-0994}
+        （Completions API 处理 \texttt{prompt\_embeds} 时
+        \texttt{torch.load} 反序列化漏洞，
+        v0.10 起所有版本受影响——生产环境必须立即升级）
+        + zero-bubble async + spec decode 同时启用时的 hotfix
+  \item v0.19.2（04-14）：MXFP8 在 Llama-shape 模型上的
+        数值边界修复
 \end{itemize}
 
 但 v0.19 也带来一个已知回归：
 spec-decode + Eagle3 路径相对 v0.18 出现退化
-（issue \#39940：Eagle3 加速从 16\% 降到 8.4\%），
+（issue \#39940~\cite{vllm_eagle3_regression}：
+基准实测 Eagle3 TPOT 加速从 \textbf{v0.18 的 16.0\%（3.12$\to$2.62 ms）}
+降到 \textbf{v0.19 的 8.4\%（3.10$\to$2.84 ms）}，
+acceptance rate 与 acceptance length 完全不变（≈31\% / 1.93），
+说明问题在调度路径而非草稿模型质量），
 这个问题的修复是 v0.20 路线的优先级 1 项。
+另一个已观察到的 trade-off 是
+\textbf{spec decode 提升 TPOT 的同时显著抬高 TTFT}：
+issue \#39790~\cite{vllm_ttft_regression} 在 V100 上
+报告 EAGLE3 配置下 mean TTFT +114\%、p99 TTFT +331\%——
+推测解码对延迟分布是
+\textbf{TPOT 受益 / TTFT 受损}的非对称交易，
+对话式交互（看重 TTFT）需要权衡。
 对生产部署的建议是：
 \textbf{不依赖 Eagle3 的工作负载升 v0.19}（async + spec 终于可组合），
 \textbf{依赖 Eagle3 的工作负载暂留 v0.18 直到回归修复}。
@@ -3042,3 +3107,7 @@ Disaggregated serving 是“通信换优化”——
 % NEW REF: redhatNvfp42026 = Red Hat. "8B-400B+ NVFP4 model suite." 2026-02-04.
 % NEW REF: mxfp4overflow2026 = "MXFP4 Overflow-Aware closes gap to NVFP4." arXiv:2603.08713, 2026.
 % NEW REF: anthropic2026context1m = Anthropic. "1M Context GA, no premium." 2026-03-13.
+% NEW REF: fa4_2026 = Shah, Jay, et al. "FlashAttention-4: Hardware-Software Co-Design for Blackwell." Princeton/Meta/NVIDIA, March 2026 (Dao-AILab/flash-attention fa4-v4.0.0.beta release).
+% NEW REF: fa4fp4_2026 = Hao AI Lab. "FlashAttention-4 NVFP4 Fork on B200." 2026 (github.com/hao-ai-lab/flash-attention-fp4, 1801 TFLOPS, 1.39x BF16 FA4).
+% NEW REF: vllm_eagle3_regression = vLLM Project. "Eagle3 speculative decoding latency regression in v0.19 vs v0.18." Issue #39940, 2026-04-15.
+% NEW REF: vllm_ttft_regression = vLLM Project. "Significant TTFT Regression with Speculative Decoding (EAGLE3)." Issue #39790, 2026-04-14.

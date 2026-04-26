@@ -90,8 +90,11 @@ SEO 垃圾、色情内容和机器生成的胡言乱语。
         propella-1 标注器对 FineWeb-2 全集做了 18 维结构化标注，
         是目前对该数据集最丰富的可用元信息。
         % NEW REF: penedo2025fineweb2 = Penedo, Guilherme and Kydlicek, Hynek and Sabolcec, Vinko and Messmer, Bettina and Foroutan, Negar and Kargaran, Amir Hossein and Raffel, Colin and Jaggi, Martin and Von Werra, Leandro and Wolf, Thomas. FineWeb2: One Pipeline to Scale Them All. arXiv preprint arXiv:2506.20920, 2025 (ICLR 2026).
-  \item \textbf{Nemotron-CC}（NVIDIA，2025 年 1 月）：
-        NVIDIA 构建的万亿 token 级英文预训练数据集。
+  \item \textbf{Nemotron-CC}（NVIDIA，arXiv:2412.02595，2024 年 12 月首发，
+        2025 年 1 月公开发布；
+        2025 年 8 月推出 v2.1 扩展，2025 年 12 月再扩）：
+        NVIDIA 构建的\textbf{6.3T token 级}英文预训练数据集
+        （4.4T 全局去重的真实 token + 1.9T 合成 token）。
         Nemotron-CC 的独特之处在于其
         \textbf{分类器集成 + 合成数据改写}的双重策略：
         首先使用多个质量分类器的集成
@@ -99,12 +102,18 @@ SEO 垃圾、色情内容和机器生成的胡言乱语。
         然后对中等质量的文档使用 LLM 进行\textbf{改写}
         （rephrasing），将其提升为高质量版本。
         实验显示，在 Nemotron-CC 上训练的 8B 参数模型
-        在多项任务上超越了 LLaMA 3.1 8B。
+        （15T token 训练，其中 7.2T 来自 Nemotron-CC）
+        在 MMLU 上比 LLaMA 3.1 8B 高 5 分，
+        在 ARC-Challenge 上高 3.1 分。
         这种「改写提质」的策略
         为数据质量工程提供了一个新的维度：
         \textbf{不只是过滤掉低质量数据，
         还可以主动改善数据质量}。
-        % NEW REF: nvidia2025nemotroncc = Su, Dan and others. Nemotron-CC: Transforming Common Crawl into a Refined Long-Horizon Pretraining Dataset. arXiv preprint arXiv:2501.05046, 2025.
+        Nemotron-CC v2.1（2025 年末）进一步加入了
+        新的代码语料、2.5T 的英文新增 web token
+        和专门的 STEM 推理数据，
+        与原始 Nemotron-CC 配合使用而非替代。
+        % NEW REF: nvidia2024nemotroncc = Su, Dan and Kong, Kezhi and Lin, Ying and Jennings, Joseph and Norick, Brandon and Kliegl, Markus and Patwary, Mostofa and Shoeybi, Mohammad and Catanzaro, Bryan. Nemotron-CC: Transforming Common Crawl into a Refined Long-Horizon Pretraining Dataset. arXiv preprint arXiv:2412.02595, 2024.
 \end{itemize}
 
 \subsection{书籍：长文本的稀缺宝藏}
@@ -435,8 +444,23 @@ SlimPajama 通过更激进的 MinHash 去重
 作为该语料的训练样本。
 Common Corpus 已被
 \textbf{ICLR 2026 接受为 oral}，
-完整技术报告与详细方法学
-将随 oral 发布同步释出。
+完整的 ICLR 论文（arXiv:2410.22587）
+详细记录了数据汇聚、过滤与策展方法学。
+
+\textbf{Common Corpus 2.5}（2026 年 2 月，
+为印度 Impact Summit 配套发布）
+首次系统性地补充了非西方内容：
+新增 270B token，其中 53\% 来自中国、日本、韩国、巴西、印度、
+非洲与东南亚等非西方地区。
+这次更新让 Common Corpus 从「西方公共领域语料」
+正式升级为「全球开放语料」。
+PleIAs 同时披露了一个值得深思的统计：
+当前主流的 crawl 型数据集（如 FineWeb）
+与 Common Corpus 的内容\textbf{重合率不到 2\%}。
+也就是说，「公开的可用数据」与「实际被用来预训练的数据」
+是两个差异巨大的集合：
+开放数据的真正瓶颈不是“被版权遮蔽”，
+而是“没有被指引到爬虫的视野范围”。
 
 Common Corpus 在历史脉络中的位置很特殊：
 它既不是「在合理使用边缘游走」的网页爬取
@@ -1102,7 +1126,8 @@ propella-1 让数据团队能够在
 
 多语言数据的质量过滤一直被视为
 比英语更难的开放问题。
-EPFL 与 Apple 在 2026 年 4 月发表的工作~\cite{aroca2026crosslingual}
+EPFL 团队（Yassine Turki、Vinko Sabolčec、Bettina Messmer、Martin Jaggi）
+在 2026 年 4 月发表的工作~\cite{aroca2026crosslingual}
 首次在 1B 模型 + 103B token 的实验设定上
 系统量化了「跨语言池化训练」的收益。
 
@@ -1208,6 +1233,8 @@ LLaMA 3    & 15T  & 50\% & 25\% & 15\% & 5\%  & 5\%  \\
 DeepSeek-V3 & 14.8T & 40\% & 30\% & 10\% & 10\% & 10\% \\
 Qwen3      & 36T  & --   & 大量 & --   & 大量 & --   \\
 LLaMA 4    & 40T  & --   & 大量 & --   & --   & 多模态 \\
+DeepSeek-V4-Flash & 32T & --   & 大量 & --   & 大量 & 长上下文 \\
+DeepSeek-V4-Pro   & 33T & --   & 大量 & --   & 大量 & 长上下文 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1224,6 +1251,21 @@ LLaMA 4 在 40T token 中包含了 200 种语言的数据，
 而 LLaMA 4 的 40T token 训练数据中覆盖了 200 种语言：
 这是迄今为止语言覆盖最广的 frontier 模型，
 反映了 Meta 的全球化部署策略。
+
+DeepSeek-V4 系列~\cite{deepseekv4}（2026-04）
+则展示了\textbf{为「百万级上下文」量身定做的数据组合}。
+V4-Flash 用 32T token 训练，V4-Pro 用 33T token，
+两者的数据大量倾向于
+长文档（书籍、长篇报告、整库代码）和长链推理样本——
+其目的是让模型在 1M token 的原生上下文窗口中
+仍然保持稳定的注意力分布与推理能力。
+这与早期模型「先训短上下文、再外推」的策略形成对比：
+DeepSeek-V4 把长上下文能力\textbf{下沉到了数据层}。
+从这个意义上看，
+2026 年的数据工程不再只服务「让模型懂语言」，
+还在服务「让模型守得住长上下文」——
+两个目标对应着完全不同的数据混合策略。
+% NEW REF: deepseekv4 = DeepSeek-AI. DeepSeek-V4 Technical Report. arXiv preprint, 2026.
 
 \subsection{经典数据集的领域组成}
 

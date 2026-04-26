@@ -1094,6 +1094,18 @@ Mixtral 的这个经验教训，
 就像不改变公司的部门结构，
 只给每个部门配备更多更强的员工。
 
+Mistral 在 Mixtral 8x22B 之后\textbf{长达 20 个月没有发布新的 MoE 模型}，
+直到 2025 年 12 月才以 \textbf{Mistral Large 3}
+（675B / 41B，细粒度 MoE）回归——
+具体细节见后文 \ref{sec:mistral-large3}。
+这一缺席期间，"Mixtral 8 个大专家 + Top-2"的配方
+被 DeepSeek 的"256 个细粒度小专家 + Top-8"
+和 Qwen3 的 "128 个专家 + Top-8"
+逐步证明在 frontier 规模下并非最优；
+Large 3 的回归直接采用了细粒度配置，
+也意味着 Mixtral 风格的"少而大专家"路线
+在 frontier 旗舰中基本退场。
+
 \subsection{DeepSeek-V3：MoE 的巅峰}
 
 DeepSeek-V3~\cite{deepseekv3} 将 MoE 推向了新的高度：
@@ -1224,16 +1236,28 @@ Scout 支持 \textbf{10M token 上下文窗口}，
 \subsection{Qwen3-235B：阿里巴巴的 MoE 实践}
 
 Qwen3-235B-A22B 是阿里巴巴 Qwen 团队% NEW REF: qwen3 = Qwen3 Technical Report, Qwen Team, arXiv 2025
-发布的旗舰 MoE 模型，采用了与 DeepSeek 相似但不同的设计选择：
+2025 年 4 月 29 日发布的旗舰 MoE 模型，
+采用了与 DeepSeek 相似但不同的设计选择：
 
 \begin{itemize}[noitemsep]
   \item \textbf{总参数}：235B，\textbf{活跃参数}：22B。
   \item \textbf{128 个路由专家，Top-8 路由}，
         与 DeepSeek-V3 的 256 专家 + Top-8 相比，
         专家数减半但每个专家更大。
-  \item \textbf{94 层}，使用 GQA（64 头，4 KV 头）。
+  \item \textbf{94 层}，使用 GQA（64 Q 头，4 KV 头）。
   \item 支持 128K token 上下文，通过 YaRN 位置编码外推。
+  \item \textbf{显式取消共享专家}（与 Qwen2.5-MoE 的不同之处）：
+        Qwen3-MoE 技术报告明确说明放弃了 Qwen2.5-MoE 沿用的共享专家设计，
+        改用\textbf{全局 batch 负载均衡损失}（global-batch load balancing loss）
+        鼓励专家专精化。
 \end{itemize}
+
+Qwen3 同系列还有 \textbf{Qwen3-30B-A3B}（30B 总参数 / 3B 活跃，
+48 层、32 Q 头 / 4 KV 头、128 专家 Top-8），
+是把 Qwen3-235B 的相同 MoE 配比缩小到 1/8 规模的版本，
+适合单 GPU 部署。
+两个模型都引入了\textbf{思考预算}（thinking budget）机制，
+允许用户在调用时显式控制推理链的长度。
 
 Qwen3 的一个独特创新是\textbf{思考/非思考双模式}，
 模型可以在“思考模式”（生成内部推理链）和
@@ -1327,6 +1351,46 @@ LLaMA 4 的 MoE 与 \textbf{iRoPE} 注意力（每 4 层 1 层 NoPE 全局注意
 结合到工业级长上下文（10M）的尝试，
 也因此成为"Top-1 路由 + 蒸馏"路线的旗舰参照。
 
+\subsection{Mistral Large 3：Mixtral 之后的 MoE 回归}
+\label{sec:mistral-large3}
+
+2025 年 12 月 2 日，Mistral AI 发布了
+\textbf{Mistral Large 3}~\cite{mistralLarge3}：
+\textbf{675B 总参数 / 41B 活跃参数}的细粒度 MoE 模型，
+是 Mistral 自 Mixtral 8x22B（2024 年 4 月）之后
+\textbf{首个 MoE 旗舰}，
+也是欧洲玩家在中国 MoE 浪潮中的回应。
+
+Large 3 的架构与配套生态有几个值得记住的点：
+\begin{itemize}[noitemsep]
+  \item \textbf{激活率 6.07\%}（41B / 675B）——
+        与 DeepSeek-V3 的 5.5\% 同档，
+        但比 Qwen3-Next 的 3.75\% 保守。
+        Mistral 选择"中等稀疏度"换取
+        每 token 更高的活跃容量。
+  \item \textbf{原生 256K 上下文}与原生多模态。
+  \item 在 3000 块 \textbf{H200} 上从零训练
+        （而非从 Mixtral 衍生），
+        与 NVIDIA / vLLM / Red Hat 联合发布
+        \textbf{NVFP4 量化检查点}：
+        可在单块 GB200 NVL72 系统、
+        或单节点 8$\times$A100/8$\times$H100 上跑通推理。
+  \item NVIDIA 同步交付了 \textbf{TensorRT-LLM Wide Expert Parallelism}
+        和 \textbf{Dynamo}（disaggregated prefill/decode 推理框架）支持。
+        Wide-EP 的设计目标是在 NVL72
+        coherent memory domain 内做高效的专家并行，
+        为 Large 3 这类"专家数比 DeepSeek-R1 少一半"的中等专家配置
+        也保持 NVLink 全互联的低延迟。
+\end{itemize}
+
+Mistral Large 3 的发布在某种意义上确认了一个行业格局：
+\textbf{中等稀疏度 + 中等专家数 + 长上下文 + NVFP4 量化}
+正在成为"非中国阵营"开源 MoE 的标准配方。
+与 DeepSeek-V4 的 1.6T 总参数旗舰相比，
+Large 3 选择 675B 是一个明显的"成本/能力"折中——
+2025 年下半年开始，开源 MoE 出现了
+"中国阵营冲规模、欧美阵营做工程化"的分工。
+
 \begin{keybox}[2025--2026 主要 MoE 模型对比]
 \begin{center}\small
 \renewcommand{\arraystretch}{1.3}
@@ -1337,13 +1401,16 @@ LLaMA 4 的 MoE 与 \textbf{iRoPE} 注意力（每 4 层 1 层 NoPE 全局注意
   & \textbf{专家数} & \textbf{Top-K} & \textbf{共享专家} \\
   \midrule
   Mixtral 8x7B & 47B & 13B & 8 & 2 & 无 \\
+  Mixtral 8x22B & 141B & 39B & 8 & 2 & 无 \\
   DeepSeek-V3 & 671B & 37B & 256 & 8 & 1 \\
   LLaMA 4 Maverick & 400B & 17B & 128 & 1 & 无$^\dagger$ \\
   LLaMA 4 Behemoth & $\sim$2T & 288B & 16 & 2 & 无$^\dagger$ \\
-  Qwen3-235B & 235B & 22B & 128 & 8 & 未公开 \\
+  Qwen3-235B-A22B & 235B & 22B & 128 & 8 & 无$^\ddagger$ \\
+  Qwen3-30B-A3B & 30B & 3B & 128 & 8 & 无$^\ddagger$ \\
   Kimi K2 & 1.04T & 32B & 384 & 8 & 有 \\
   Kimi K2.6 & $\sim$1T & $\sim$32B & 384 & 8 & 有 \\
   GLM-4.5 & $\sim$355B & -- & -- & -- & -- \\
+  Mistral Large 3 & 675B & 41B & -- & -- & 有 \\
   DeepSeek V4-Flash & 284B & 13B & -- & -- & 有 \\
   DeepSeek V4-Pro & 1.6T & 49B & -- & -- & 有 \\
   \bottomrule
@@ -1351,6 +1418,8 @@ LLaMA 4 的 MoE 与 \textbf{iRoPE} 注意力（每 4 层 1 层 NoPE 全局注意
 \end{center}
 
 \small $^\dagger$\,LLaMA 4 未明确公开共享专家设计。
+$^\ddagger$\,Qwen3-MoE 技术报告显式说明放弃了 Qwen2.5-MoE 的共享专家，
+改用 global-batch load balancing loss 鼓励专家专精化。
 \end{keybox}
 
 从表中可以看到一个清晰的趋势：
@@ -2433,3 +2502,5 @@ MoE 在 2026 年的地位可以用一句话概括：
 % NEW REF: raschka2026hybridcommentary = Sebastian Raschka. "The 3:1 Hybrid Layer Convergence." Ahead of AI Newsletter, 2026.
 % NEW REF: mamba32026 = Albert Gu, Tri Dao et al. "Mamba-3: A Reasoning-Inspired SSM." ICLR 2026 Oral. arXiv:2603.15569.
 % NEW REF: mamba3hybridtogether2026 = Together AI. "Mamba-3: Beyond the Limits of Transformers." Blog, 2026-03-17.
+%% --- ADDED 2026-04-26 (triple-check pass, agent-A) ---
+% NEW REF: mistralLarge3 = Mistral AI. "Mistral Large 3: Granular MoE at 675B/41B." 2025-12-02. https://docs.mistral.ai/models/mistral-large-3-25-12

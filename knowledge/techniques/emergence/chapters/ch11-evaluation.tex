@@ -223,7 +223,7 @@ PCH 的实践含义是：
 都会被找到压缩漏洞。
 
 围绕 PCH 出现了\textbf{检测方法的进步}。
-GRIFT~\cite{grift2604}（arXiv:2604.16242）
+GRIFT~\cite{grift2026}（arXiv:2604.16242）
 利用 CoT 条件下的梯度压缩表示
 作为\textbf{梯度指纹}，
 检测 reward hacking 相对 CoT Monitor 与 TRACE
@@ -881,12 +881,17 @@ SWE-bench 经历了三个版本的演进：
 \end{itemize}
 
 SWE-bench 的演进揭示了一个重要模式：
-截至 2026 年 3 月，SWE-bench Verified 的最高分
-已达到约 \textbf{79.2\%}（Claude Opus 4.6 Thinking），
+截至 2026 年 4 月，SWE-bench Verified 的最高分
+已达到 \textbf{87.6\%}（Claude Opus 4.7，2026-04-16 发布），
+比同期 GPT-5.3-Codex（85.0\%）领先 2.6 个百分点，
+比 Gemini 3.1 Pro（80.6\%）领先 7 个百分点~\cite{tokenmix2026swebench}。
 但学界已普遍认为 Verified 版本存在\textbf{部分污染}——
 一些模型可能在训练数据中接触过测试用例的讨论和解决方案。
 SWE-bench Pro 的推出正是对这一问题的直接回应。
-同一模型在 Verified 上 $\sim$79\%、在 Pro 上 $\sim$44\% 的巨大落差，
+在更严格的 Pro 版本上，Opus 4.7 仍保持领先（64.3\%），
+但绝对分数下降了 23.3 个百分点；
+GPT-5.4 在 Pro 上降至 57.7\%，Gemini 3.1 Pro 降至 54.2\%~\cite{buildfast2026opus47}。
+同一模型在 Verified 上 $\sim$87\%、在 Pro 上 $\sim$64\% 的巨大落差，
 生动说明了\textbf{基准测试的污染程度直接影响评估结论的可靠性}。
 
 \textbf{其他代码智能体基准}也在快速发展：
@@ -1225,6 +1230,11 @@ OSWorld 目前是 Agent 评估中最难的基准之一，
 不仅是写代码，还包括使用 shell 命令、
 管理文件系统、配置环境等。
 这更接近真实开发者的日常工作流。
+2026-04-23 leaderboard 顶部为
+GPT-5.5（Codex）82.7\%、Claude Mythos Preview（私榜）82\%、
+GPT-5.3-Codex 77.3\%、Claude Opus 4.7 69.4\%、
+Gemini 3.1 Pro 60--65\%~\cite{benchlm2026terminal2,tbench2026leaderboard}——
+2026 年首个真正区分前沿 agent 的硬基准。
 
 \textbf{BrowseComp}（OpenAI）
 评估模型通过浏览器进行信息检索和操作的能力。
@@ -1908,17 +1918,36 @@ Yang et al.\ (2025)~\cite{yang2025beyond}
 
 \begin{itemize}[noitemsep]
   \item \textbf{AIME 2024/2025}：
-        美国数学邀请赛真题是评估推理模型数学能力的标准基准。
-        题目需要创造性的多步推理，而非模式匹配。
-        o3 在 AIME 2024 上的得分超过 90\%，
-        接近人类数学竞赛选手的顶尖水平。
+        美国数学邀请赛真题曾是评估推理模型数学能力的标准基准，
+        但已于 2026 年趋于饱和——
+        2026-03 leaderboard 顶部已挤满 96--99\% 的模型：
+        GPT-5.2 Pro 99.0\%、GPT-5 Codex 98.7\%、
+        DeepSeek V3.2 Speciale 96.7\%、Doubao Seed 2.0 Pro 98.3\%、
+        Step 3.5 Flash 97.3\%~\cite{ppt2026aime25}。
+        在前沿层 AIME 已不再具备区分度，
+        社区正以 \textbf{AIME 2026}、HMMT 与 Putnam 2025 接替~\cite{morphllm2026deepseekv4}。
   \item \textbf{GPQA Diamond}：
         198 道博士级科学问题（见~\ref{subsec:chatbot-arena}~节）。
         推理模型在此基准上的准确率
-        已从 2024 年初的约 50\% 提升到 2026 年初的约 90\%。
+        已从 2024 年初的约 50\% 提升到 2026 年 4 月的约 94\%——
+        Opus 4.7、GPT-5.4 Pro、Gemini 3.1 Pro 三家分别为 94.2\%、94.4\%、94.3\%，
+        差距落入统计噪声内~\cite{buildfast2026opus47}。
+        GPQA 在前沿层已实质饱和，区分度迁移到 SWE-bench Pro 与 HLE。
+  \item \textbf{Humanity's Last Exam (HLE)}：
+        Scale AI 与 Center for AI Safety 主导的 2,500 题最终版~\cite{hle2026final}。
+        2026-04-23 公开榜：Gemini 3.1 Pro Preview 46.4\%、Opus 4.7 46.9\%、
+        GPT-5.4 Pro 44.3\%、Muse Spark 40.6\%；
+        Anthropic 私榜的 Claude Mythos Preview 已达 64.7\%~\cite{ppt2026hle}。
+        是替代 GPQA 的新一代「未饱和」前沿基准。
   \item \textbf{FrontierMath Tier 4}：
         研究级数学问题（见上文）。
-        目前唯一仍对推理模型构成真正挑战的数学基准。
+        目前仍对推理模型构成真正挑战的少数数学基准之一。
+  \item \textbf{ARC-AGI-2}：
+        2026-04-05 leaderboard：
+        Gemini 3.1 Pro 77.1\%、GPT-5.4 73.3\%、Claude Opus 4.6 68.8\%；
+        Gemini 3.1 Deep Think 在高计算变体下达到 85\%~\cite{benchlm2026arcagi2}。
+        从 2024 年仅个位数到 2026 年 70\%+ 的跨年度跃迁，
+        反映抽象推理能力在推理时计算 scaling 加持下的快速进步。
   \item \textbf{EpochAI Frontier Probes}：
         专门设计来测量推理能力边界的题目集。
 \end{itemize}
@@ -1929,74 +1958,100 @@ Yang et al.\ (2025)~\cite{yang2025beyond}
 为了呈现 2025--2026 年 LLM 能力格局的全貌，
 我们汇总了主要前沿模型在核心基准上的表现%
 \footnote{数据来源综合自各模型的技术报告、
-Chatbot Arena 排行榜和独立评测平台。
-数据截止到 2026 年 2 月。
-注意不同来源的评测条件可能存在差异。}。
+Chatbot Arena 排行榜与独立评测聚合平台
+（BenchLM、PricePerToken、TokenMix、LMCouncil 等）。
+快照时间为 2026 年 4 月 23--26 日，
+覆盖刚发布的 GPT-5.5（4 月 23 日）、
+DeepSeek V4-Pro Preview（4 月 24 日）和
+Claude Opus 4.7（4 月 16 日）。
+注意不同来源的评测条件可能存在差异，
+推理模型分数为 high/xhigh effort 下的最佳值。}。
 
 \begin{table}[H]
 \centering\small
 \renewcommand{\arraystretch}{1.3}
-\caption{2025--2026 年前沿模型基准测试对比}
+\caption{2026-04 前沿模型基准测试对比快照}
 \label{tab:model-benchmarks}
 \begin{tabular}{@{}llcccc@{}}
 \toprule
 \rowcolor{figLightGray}
 \textbf{模型} & \textbf{类型} & \textbf{MMLU-Pro} & \textbf{GPQA-D}
-  & \textbf{SWE-bench V} & \textbf{Arena Elo} \\
+  & \textbf{SWE-bench V} & \textbf{HLE} \\
 \midrule
-\multicolumn{6}{@{}l}{\textit{推理模型（Reasoning Models）}} \\
-GPT-5.2 Pro       & 推理  & 88.7\% & 93.2\% & 65.8\% & 1402 \\
-Claude Opus 4.6   & 混合  & 88.2\% & 89.0\% & 72.5\% & 1504 \\
-DeepSeek V3.2-S   & 推理  & 85.9\% & 85.3\% & 77.8\% & 1361 \\
-Grok 4 Heavy      & 推理  & 86.4\% & 88.9\% & 61.0\% & 1375 \\
+\multicolumn{6}{@{}l}{\textit{闭源前沿（Closed Frontier）}} \\
+Claude Opus 4.7        & 混合  & 88.5\% & 94.2\% & 87.6\% & 46.9\% \\
+GPT-5.5                & 推理  & 89.5\% & 94.4\% & 85.0\% & --     \\
+GPT-5.4 Pro            & 推理  & 89.0\% & 94.4\% & 79.2\% & 44.3\% \\
+Gemini 3.1 Pro Preview & 推理  & 91.0\% & 94.3\% & 80.6\% & 46.4\% \\
+Claude Opus 4.6        & 混合  & 87.5\% & 89.0\% & 80.8\% & 38.2\% \\
+Grok 4.20              & 推理  & 86.4\% & 88.9\% & 64.0\% & 27.5\% \\
 \midrule
-\multicolumn{6}{@{}l}{\textit{标准模型（Standard Models）}} \\
-Gemini 3.1 Pro      & 标准  & 89.8\% & 87.5\% & 63.2\% & 1485 \\
-Claude Opus 4.5   & 标准  & 87.1\% & 86.5\% & 68.4\% & 1370 \\
-GPT-5.2           & 标准  & 86.3\% & 88.0\% & 58.2\% & 1380 \\
-Qwen 3.5          & 标准  & 84.6\% & 82.1\% & 62.5\% & 1342 \\
+\multicolumn{6}{@{}l}{\textit{私榜参考（Closed Internal）}} \\
+Claude Mythos Preview  & 混合  & --     & --     & 93.9\% & 64.7\% \\
 \midrule
-\multicolumn{6}{@{}l}{\textit{开源模型（Open-Weight Models）}} \\
-Llama 4 Maverick  & 标准  & 83.2\% & 78.5\% & 55.8\% & 1320 \\
-DeepSeek R1       & 推理  & 90.8\% & 71.5\% & 49.2\% & 1310 \\
-Qwen 3.5          & 标准  & 84.6\% & 82.1\% & 62.5\% & 1342 \\
-Mistral 3         & 标准  & 82.8\% & 79.3\% & 54.1\% & 1315 \\
+\multicolumn{6}{@{}l}{\textit{开源 / 开权重（Open-Weight）}} \\
+DeepSeek V4-Pro        & 推理  & 87.5\% & 90.1\% & 80.6\% & 37.7\% \\
+Qwen3.6 Plus           & 混合  & 86.0\% & 84.2\% & 78.8\% & --     \\
+Meta Muse Spark        & 推理  & --     & --     & 77.4\% & 40.6\% \\
+Kimi K2.5              & 混合  & 84.9\% & 82.7\% & 71.8\% & 24.4\% \\
+GLM-5                  & 标准  & 83.0\% & 80.5\% & 65.6\% & 8.3\%  \\
+DeepSeek V3.2-Speciale & 推理  & 85.9\% & 85.3\% & 77.8\% & --     \\
 \bottomrule
 \end{tabular}
 
 \vspace{4pt}
 {\footnotesize
-\textit{注}：GPQA-D = GPQA Diamond; SWE-bench V = SWE-bench Verified;
-Arena Elo 数据来自 Chatbot Arena 排行榜，截至 2026 年 2--3 月。
-“推理” 类型指使用 thinking tokens 的模型；
-“混合” 指同时支持标准和推理模式。
-同一模型在不同评测条件下可能给出不同分数。}
+\textit{注}：GPQA-D = GPQA Diamond；
+SWE-bench V = SWE-bench Verified（500 题人工核验子集）；
+HLE = Humanity's Last Exam 2,500 题最终版（无工具）。
+\textit{Mythos Preview} 为 Anthropic 仅向 Project Glasswing 联盟开放的私榜模型，
+为闭源真实能力上限的参考线。
+DeepSeek V4-Pro 数据取自 Hugging Face 模型卡评测 PR%
+~\cite{iscoop2026deepseekv4}。
+其他来源参见~\cite{tokenmix2026swebench,buildfast2026opus47,techplained2026compare,morphllm2026deepseekv4,benchlm2026terminal2,ppt2026hle,joaoqueiros2026opus47,lmcouncil2026benchmarks}。
+推理模型分数对应 high/xhigh reasoning effort。
+未填写「--」表示该来源未公开或评测条件不可比。}
 \end{table}
 
-从表~\ref{tab:model-benchmarks} 可以观察到几个值得注意的模式：
+从表~\ref{tab:model-benchmarks} 可以观察到几个 2026-04 才显现的模式：
 
-\textbf{推理模型在 GPQA 上优势巨大}：
-推理模型在需要深度科学推理的 GPQA Diamond 上
-普遍超过 85\%，部分超过 90\%，
-远高于标准模型的 78--88\%。
-这证实了 thinking tokens 在复杂推理任务上的价值。
+\textbf{GPQA Diamond 的「饱和聚类」}~\cite{buildfast2026opus47}：
+Opus 4.7 (94.2\%)、GPT-5.4 Pro (94.4\%)、Gemini 3.1 Pro (94.3\%)
+三家差距已经落入统计噪声的范围内。
+GPQA 在前沿层失去区分度，
+模型选择必须迁移到 SWE-bench Pro、HLE、Terminal-Bench 2.0
+这些尚未饱和的维度上。
 
-\textbf{SWE-bench 上开源模型追赶迅速}：
-DeepSeek V3.2-Speciale 在 SWE-bench Verified 上达到 77.8\%，
-超过了多数闭源模型。
-这得益于其在代码相关的后训练数据上的大量投入。
+\textbf{SWE-bench Verified 的「Opus 4.7 拐点」}~\cite{tokenmix2026swebench}：
+Opus 4.7 是 2026 年首个突破 87\% 的公开模型，
+比 GPT-5.3-Codex（85.0\%）和 Gemini 3.1 Pro（80.6\%）
+分别领先 2.6 和 7 个百分点。
+更值得注意的是它在更难的 SWE-bench Pro 上达到 64.3\%，
+比 GPT-5.4（57.7\%）领先 6.6 个百分点——
+\textbf{Pro 上的领先幅度}比 Verified 更能反映真实工程能力差距。
 
-\textbf{Arena Elo 与基准分数并不完全一致}：
-Gemini 3.1 Pro 在 MMLU-Pro 上得分最高（89.8\%），
-但其 Arena Elo 低于 MMLU-Pro 分数较低的 Claude Opus 4.6。
-这说明\textbf{基准测试和真实用户偏好衡量的是不同的东西}——
-用户满意度取决于指令跟随、风格、一致性等
-基准测试不一定覆盖的维度。
+\textbf{开源 vs 闭源差距首次被开源方量化}~\cite{morphllm2026deepseekv4}。
+DeepSeek V4 技术报告自评：V4-Pro-Max 超过 GPT-5.2 / Gemini-3.0-Pro，
+但仍稍逊 GPT-5.4 / Gemini-3.1-Pro，
+官方表述为「落后 SOTA frontier 大约 3 到 6 个月」。
+V4-Pro 在 SWE-bench Verified 上 80.6\% 已与 Opus 4.6（80.8\%）持平，
+但在 SWE-bench Pro（55.4\% vs 64.3\%）和 HLE（37.7\% vs 46.9\%）
+两条更难的维度上差距依然显著。
 
-\textbf{开源与闭源的差距在缩小}：
-Llama 4 Maverick 和 Qwen 3.5 等开源模型
-在 MMLU-Pro 上已接近闭源前沿模型（差距 $<$5\%）。
-在某些特定任务上，开源模型甚至有竞争力。
+\textbf{HLE 才是真正未饱和的前沿尺度}~\cite{ppt2026hle,aictrl2026reasoning}。
+Gemini 3.1 Pro Preview 以 46.4\% 领先公开模型，
+GPT-5.4 Pro 44.3\%、Opus 4.7 46.9\%、Muse Spark 40.6\%。
+人类专家约 70--80\%，
+私榜上 Claude Mythos Preview 已达 64.7\%——
+HLE 正在替代 GPQA 成为「区分前沿模型」的新标尺。
+
+\textbf{Mythos Preview 提供的能力上限参考线}。
+Anthropic 仅向 Project Glasswing 开放的内部模型
+SWE-bench Verified 93.9\%、HLE 64.7\%、Terminal-Bench 2.0 82\%，
+是「闭源实验室手中真正的最强模型」与
+「公开发布的最强模型」之间差距的首次量化披露。
+对外部研究者而言，
+公开排行榜的 SOTA 数字\textbf{系统性低估了}最强 AI 系统的真实能力。
 
 \section{安全对齐}
 

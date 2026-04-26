@@ -84,6 +84,25 @@ Google 的 Gemini 2.5 Pro（内置 “thinking” 模式，
 Grok 3（xAI，2025 年 2 月，内置 “Big Brain” 推理模式）；
 Qwen-QwQ（阿里巴巴，开源的推理专用模型）。
 
+\textbf{2026 年的“六周节奏”：GPT-5.x 与 Claude 的对决}。
+2026 年 4 月 23 日 OpenAI 发布 \textbf{GPT-5.5}~\cite{openai_gpt55_2026}——
+\textbf{自 GPT-4.5 以来首个完全从零训练的基模}：
+不再是 GPT-5 / 5.1 / 5.2 / 5.3 / 5.4 共享的同一基底，
+而是新的架构、新的训练语料与新的目标函数。
+GPT-5.5 提供 Thinking 与 Pro 双档，
+支持文本与图像输入，约 920K 上下文（Codex 中为 400K，API 1M），
+内置自适应推理预算（模型自行决定一次响应需要多深的内部思考）。
+GPT-5.4 于 2026 年 3 月 5 日发布，与 GPT-5.5 仅相隔 7 周——
+2025 年 12 月之后 OpenAI 切入约 6 周一次的快速迭代节奏，
+被广泛解读为对 Anthropic 类似密度发布的直接竞争响应。
+同期 Anthropic 于 4 月 16 日发布 \textbf{Claude Opus 4.7}~\cite{anthropic_opus47_release_2026}：
+更稳健的多步 agentic 表现、
+图像分辨率提升至 2,576px、新增 Cyber Verification Program；
+紧随其后的 \textbf{Claude Mythos Preview} 是 Anthropic 当前最强的 coding/agentic 模型，
+其能力之强迫使 Anthropic 同步收紧 Responsible Scaling Policy 的执行%
+~\cite{anthropic_mythos_2026}。
+推理模型的竞争自此从“季度迭代”加速到“双月迭代”。
+
 \subsection{2026 年春季：中国推理模型的「集体爆发」}
 
 2025 年 12 月至 2026 年 2 月，中国 AI 实验室掀起了一波前所未有的推理模型发布潮。
@@ -100,16 +119,27 @@ AIME 2025 达到 96.0\%，超越了 GPT-5-High 的表现。
 这些成绩标志着 LLM 的推理能力已经在最严苛的竞赛环境中
 达到了人类顶尖选手的水平。
 
-\textbf{DeepSeek V4}（预计 2026 年 4 月发布）
-是 DeepSeek 的下一代旗舰模型，目前仍在开发中。
-据接近 DeepSeek 的消息源透露，V4 预计将实现多项突破：
-万亿参数级 MoE 架构（约 1T 总参数，$\sim$320B 活跃参数），
-原生多模态（文本/图像/视频/音频的统一理解与生成），
-100 万 token 上下文窗口，
-以及基于 Engram 论文的长期记忆（LTM）机制。
-特别值得关注的是，V4 据报道针对华为昇腾 910B/C 进行了专门优化，
-并在预发布阶段刻意未向 NVIDIA 和 AMD 提供预览访问，
-这被视为中国 AI 芯片独立路线的重要信号。
+\textbf{DeepSeek V4}（2026 年 4 月 24 日发布~\cite{deepseek_v4_release_2026}）
+以双模型形态正式推向市场，
+彻底改写了「中国 AI 仅追赶 GPT-4」的叙事：
+\textbf{V4-Pro}（1.6T 总参数 / 49B 活跃，世界最大开源 MoE）
+与 \textbf{V4-Flash}（284B / 13B，面向 at-scale 服务）
+均以 MIT 许可证开源、原生 1M token 上下文，
+统一支持 Thinking 与 Non-Thinking 双模式。
+架构核心是
+\textbf{token-wise compression（逐 token 自适应压缩）}
+与 \textbf{DSA（DeepSeek Sparse Attention）}，
+将 KV 缓存压缩至 V3.2 的约 10\%、FLOPs 降至 27\%。
+最具地缘意义的是，V4-Flash 的部分训练运行在
+\textbf{华为 Ascend 950 超节点集群}上%
+~\cite{deepseek_v4_huawei_2026}，
+华为发布数小时后官方确认其全 Ascend 产品线已支持 V4 系列。
+DeepSeek 在预发布阶段刻意未向 NVIDIA 与 AMD 提供预览访问，
+而向国产芯片厂商提供了优先适配窗口，
+是\textbf{首个 at-scale 跑在非 NVIDIA 硬件上的主流开源旗舰模型}。
+V4 在保持纯文本输出的同时（暂未开放音视频生成）
+支持 1M 上下文与极致长上下文压缩，
+被定位为“给 Agent 时代的基模”。
 
 \textbf{豆包 Seed 2.0 Pro}（2026 年 2 月 14 日，字节跳动）
 在数学推理和代码能力上全面超越同期竞品：
@@ -314,14 +344,18 @@ Sora 展现了一些令人惊讶的“涌现”物理理解，
 这引发了一个深刻的争论：
 \textbf{视频生成模型是否在隐式地学习物理？}
 
-\textbf{Sora 2}（2025 年 9 月发布）
+\textbf{Sora 2}（2025 年 9 月 30 日发布~\cite{sora2_release_2025}）
 在初代基础上做了重大升级：
-支持 1080p 视频生成（初代仅为 720p），
-最长 1 分钟的连续视频（初代约 10--20 秒），
-并加入了\textbf{同步音频生成}能力，
-模型可以为生成的视频自动配上环境音效和背景音乐。
-Sora 2 的另一个重要进步是\textbf{角色一致性}：
-在多个连续镜头中保持同一角色的外观一致，
+首次实现\textbf{视频与音频的统一生成}（包括对白、环境音、配乐），
+对真实世界物理（碰撞、反弹、流体）的模拟更加稳健，
+能够在单次生成中维持多镜头叙事的连贯性。
+Sora 2 同步上线了独立的 \textbf{Sora iOS App}（TikTok 风格的社交流），
+ChatGPT Pro 用户可使用更强的 \textbf{Sora 2 Pro} 模型（1920$\times$1080）。
+2026 年 4 月 23 日，OpenAI 全球开放 \textbf{Sora 2 / Sora 2 Pro 与 GPT Image 2}，
+API 上线 6 小时内即生成 50 万视频，
+VFX 与库存视频公司股价盘前下跌约 18\%。
+Sora 2 的另一个重要进步是\textbf{角色一致性}——
+在多个连续镜头中保持同一角色的外观一致——
 这是初代 Sora 的主要弱点之一。
 
 \subsubsection{世界模型的理论之争}
@@ -499,9 +533,12 @@ Qwen3-Omni（2025 年 Q3）进一步将开源模型
 2026 年初，多模态模型出现了几个值得关注的新方向：
 
 \textbf{原生多模态成为标配}。
-DeepSeek V4（预计 2026 年 4 月）将是 DeepSeek 首个
-原生多模态模型，文本、图像、视频、音频的统一理解与生成
-不再通过外挂编码器实现，而是在预训练阶段联合学习。
+2026 年 4 月 24 日发布的 DeepSeek V4（V4-Pro 1.6T/49B、V4-Flash 284B/13B）
+以原生 1M token 上下文与 DSA 注意力压缩
+重新定义了开源前沿~\cite{deepseek_v4_release_2026}。
+V4 当前仅开放文本输出（暂未释出图像/视频生成），
+但其架构在预训练阶段即支持视觉与音频理解的统一处理，
+为后续多模态扩展奠定了基础。
 这标志着中国开源模型在多模态技术路线上
 追上了 GPT-4o 和 Gemini 3 的原生多模态范式。
 
@@ -847,7 +884,8 @@ AlphaFold 3 的架构变化值得注意：
 
 \textbf{Boltz-2}~\cite{boltz2_2026}
 是 AlphaFold 3 之后最受关注的开源继任者。
-Boltz-2 由 MIT 团队开发并以 MIT 许可证发布，
+Boltz-2 由 \textbf{MIT 与 Recursion Pharmaceuticals 联合开发}，
+2025 年 6 月以 MIT 许可证发布于 bioRxiv，
 NVIDIA NIM 已完成包装，PyPI v2.2.1 在 2025 年 9 月 8 日上线。
 其统一架构\textbf{联合预测 3D 结构与 binding affinity}，
 覆盖蛋白质、DNA/RNA、小分子与修饰残基；
@@ -1499,15 +1537,22 @@ Sim-to-Real 的核心挑战是 \textbf{Reality Gap}——
 
 2026 年是\textbf{具身智能首次实现真正商业化部署}的元年。
 
-\textbf{Figure 03}（2026-04-13 发布）~\cite{figure_03_bmw_2026}
+\textbf{Figure 03}（2026 年发布）~\cite{figure_03_bmw_2026}
 设定了人形机器人的新工程基准：
-170cm/60kg、50 DoF（手部 22 DoF、力感知 3g 量级）、
-搭载 Helix VLA 模型与双 NVIDIA GPU。
-约 150 台已部署，
-\textbf{BMW Spartanburg 工厂已运行 10 个月并完成 30,000+ 辆 X3 的生产}——
-这是首个有公开第三方验证、持续 10 个月以上的人形机器人量产部署。
-Figure 03 相比 Figure 01 实现约 90\% 的成本下降，
-公司估值 \$39B、累计融资 \$2.6B+，
+约 167cm 身高、60cm 宽、50cm 深、约 45kg 重，
+4.2 km/h 步行速度、约 3 至 5 年电池寿命，
+搭载 \textbf{Helix VLA} 视觉-语言-动作模型，
+通过 mmWave 数据卸载实现\textbf{机队级共同学习}
+（一台机器人的成功经验可即时上传给整个机队）。
+其前代 Figure 02 在 \textbf{BMW Spartanburg} 工厂
+连续运行 10 个月，
+为超过 30,000 辆 BMW X3 装配钣金件——
+1,250+ 运行小时、90,000+ 部件搬运、约 1.2M 步——
+是首个有公开第三方验证、持续 10 个月以上的人形机器人量产部署%
+~\cite{bmw_figure02_2026}。
+基于此成功，Figure 03 已开始评估在更多 BMW 产线扩展部署。
+Figure AI 估值 \$39B（2025 年 9 月）、累计融资 \$1.7B+，
+投资方包括 OpenAI、Microsoft、NVIDIA、Jeff Bezos、Amazon、Intel Capital，
 目标 4 年内量产 10 万台。
 
 其他主要力量同步推进：
@@ -1657,6 +1702,18 @@ HBM4 内存，单 GPU 提供 50 PFLOPS FP4 推理算力
 推理 throughput/watt 提升 10$\times$，
 每 token 成本降至 1/10——
 这是\textbf{推理经济学的相位变迁}。
+
+同期亮相的 \textbf{Rubin CPX}~\cite{nvidia_rubin_cpx_2025}
+是 NVIDIA 历史上首颗\textbf{专为长上下文推理设计}的 GPU：
+基于 GDDR7（而非 HBM）以追求每美元的 token 吞吐，
+与 Vera CPU + Rubin R100 一同集成到 \textbf{Vera Rubin NVL144 CPX} 平台，
+单机柜提供 8 ExaFLOPS AI 算力、100TB 高速内存、
+1.7 PB/s 内存带宽，
+比 GB300 NVL72 高 7.5$\times$ AI 性能。
+NVIDIA 给出的“token 经济学”指标：
+每投入 \$100M，可产生 \$5B 的 token 收入。
+Rubin CPX 预计 2026 年底上市，
+专门服务于百万 token 级的代码、视频与长文档推理负载。
 
 配套的 \textbf{DSX AI Factory}~\cite{nvidia_dsx_factory_2026}
 引入两个工程创新：
@@ -1865,15 +1922,21 @@ NVIDIA 仍然占据 AI 训练市场约 80\%+ 的份额，
 
 \subsection{DeepSeek V4 + Ascend：中国首个端到端模型—芯片主权 stack}
 
-2026 年 4 月发布的 \textbf{DeepSeek V4}
-是首个完整支持华为 Ascend 芯片栈的主流前沿大模型%
-~\cite{ascend_deepseek_v4_2026}，
+2026 年 4 月 24 日发布的 \textbf{DeepSeek V4}~\cite{deepseek_v4_release_2026}
+是首个完整支持华为 Ascend 芯片栈的主流前沿大模型，
 也是首个 \textbf{at-scale} 跑在非 NVIDIA 硬件上的主流通用 LLM。
-DeepSeek 在 910C 上实测到的推理性能约为 H100 的 60\%，
-但配合 CANN 软件栈与算子级别的优化，
+关键事实：V4-Flash 的部分训练直接运行在
+\textbf{华为 Ascend 950 超节点集群}上%
+~\cite{deepseek_v4_huawei_2026}——
+这是 Ascend 平台首次承担 frontier 级模型的训练负载。
+DeepSeek 在 V4 推理上配合 CANN 软件栈与算子级别优化，
 端到端性价比已具备替代 NVIDIA 推理部署的现实可行性。
+DeepSeek 表示 V4-Pro 当前定价较 V4-Flash 高约 12$\times$，
+受“高端算力供应紧张”制约，
+预计 2026 下半年 Ascend 950 超节点大规模部署后会显著回落。
 910C 本身集成 53B 晶体管（SMIC N+2 工艺），
-下一代 \textbf{Ascend 920C} 已锁定 Blackwell B200 为对标目标。
+其后续型号 \textbf{Ascend 950PR / 950DT / 960 / 970}
+已锁定 Blackwell B200 / Rubin 为对标目标。
 
 中国 AI 算力栈自此首次具备
 \textbf{“模型层 + 芯片层 + 软件栈”}三位一体的端到端主权能力：

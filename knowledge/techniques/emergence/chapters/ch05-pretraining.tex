@@ -1116,14 +1116,22 @@ veScale-FSDP 通过结构感知的分片策略保留了参数的原始形状，
 使得 Muon 等矩阵级优化器可以与 FSDP 无缝集成：
 这对于 Kimi K2、Gemini 等使用 Muon 优化器的前沿模型尤为重要。
 
-\textbf{NVIDIA Megatron Core MoE}（arXiv:2603.07685，2026 年 3 月）% NEW REF: yan2026megatronmoe
-专门针对 MoE 架构的训练提出了\textbf{全栈协同设计}方案。
+\textbf{NVIDIA Megatron Core MoE Parallel Folding}（arXiv:2504.14960，2025 年 4 月）% NEW REF: liu2025megatronmoe
+专门针对 MoE 架构的训练提出了\textbf{五维异构并行}方案：
+Tensor Parallelism × Expert Parallelism × Context Parallelism ×
+Data Parallelism × Pipeline Parallelism。
 MoE 训练中内存、通信和计算三者之间存在强耦合约束：
 增大专家数量会增加内存和通信开销，
 减小专家粒度会改变计算特性。
-Megatron Core MoE 通过统一的抽象层
-将专家并行、张量并行和流水线并行的交互形式化，
-为大规模 MoE 训练提供了系统化的工程解决方案。
+Liu 等人提出的 \textbf{MoE Parallel Folding}
+将 attention 层与 MoE 层的并行化\textbf{解耦}，
+让两类层各自采用最优的并行配置。
+配合一个支持 token-dropping 与 token-dropless 共存的灵活 dispatcher，
+该方案在 H100 上把 Mixtral 8$\times$22B 的 MFU 推到 49.3\%、
+Qwen2-57B-A14B 推到 39.0\%，
+并扩展到 1024 块 GPU、128K 序列长度。
+代码已合入 Megatron-Core 主线，
+是 2025 年开源 MoE 训练栈的重要里程碑。
 
 \subsection{十万卡级别的训练集群}
 \label{sec:100k-gpu}
@@ -1496,9 +1504,18 @@ FP4 仅用 4 位表示一个浮点数：
 这保证了梯度估计的无偏性，是收敛的关键。
 
 \textbf{NVFP4} 是 NVIDIA 为 Blackwell 架构设计的
-专有 FP4 格式。% NEW REF: nvfp4_2026 = Pretraining Large Language Models with NVFP4, NVIDIA, arXiv 2026
+专有 FP4 格式。% NEW REF: nvfp4_2025 = NVIDIA, "Pretraining Large Language Models with NVFP4", arXiv:2509.25149, 2025
 与标准 E2M1 不同，NVFP4 使用了优化后的编码方案，
 在相同的 4 位预算下提供更好的精度分布。
+NVIDIA 在 2025 年 9 月发布的官方技术报告~\cite{nvfp4_2025}
+首次公开了\textbf{完整的 NVFP4 预训练配方}：
+（1）\textbf{Random Hadamard 变换}（RHT）压制 block 级 outlier；
+（2）前向与反向\textbf{二维量化}保持表示一致；
+（3）\textbf{随机舍入}（stochastic rounding）保证梯度的无偏估计；
+（4）选择性高精度层。
+他们用这套配方训练了一个 12B 参数模型、消耗 10T token，
+\textbf{是公开记载中最长的 FP4 精度训练运行}，
+最终 loss 与下游任务精度均与 FP8 baseline 持平。
 在 MLPerf Training v5.1 的 LLaMA 3.1 405B 基准测试中，
 使用 NVFP4 的 Blackwell GPU 实现了
 相比 FP8 Hopper 进一步 $1.5\times$--$2\times$ 的训练加速，
@@ -3522,7 +3539,7 @@ AI 基础设施的“操作系统”。
 % NEW REF: vescale2026 = veScale-FSDP: Flexible and High-Performance FSDP at Scale, Wang et al., arXiv 2026
 % NEW REF: narayan2025munit = mu-nit Scaling: Simple and Scalable FP8 LLM Training, Narayan et al., 2025
 % NEW REF: quartet2025 = Quartet: Native FP4 Training Can Be Optimal for Large Language Models, Castro et al., NeurIPS 2025
-% NEW REF: nvfp4_2026 = Pretraining Large Language Models with NVFP4, NVIDIA, arXiv 2026
+% NEW REF: nvfp4_2025 = NVIDIA, "Pretraining Large Language Models with NVFP4", arXiv:2509.25149, 2025
 % NEW REF: mx2025 = An Empirical Study of Microscaling Formats for Low-Precision LLM Training, Yang et al., Meta, 2025
 % NEW REF: tseng2025mxfp4 = Training LLMs with MXFP4, Tseng et al., AISTATS 2025
 % NEW REF: muon2025 = Muon is Scalable for LLM Training, Jordan et al., arXiv 2025
@@ -3532,4 +3549,4 @@ AI 基础设施的“操作系统”。
 % NEW REF: aynetdinov2025mtp = Pre-Training Curriculum for Multi-Token Prediction in Language Models, Aynetdinov & Akbik, ACL 2025
 % NEW REF: glm5_2026 = GLM-5 Technical Report, Zhipu AI, 2026
 % NEW REF: glmimage_2026 = GLM-Image: First SOTA Multimodal Model on Domestic Chips, Zhipu AI, 2026
-% NEW REF: yan2026megatronmoe = NVIDIA Megatron Core MoE: Full-Stack System Co-Design for MoE Training, NVIDIA, arXiv:2603.07685, 2026
+% NEW REF: liu2025megatronmoe = Liu et al., "MoE Parallel Folding: Heterogeneous Parallelism Mappings for Efficient Large-Scale MoE Model Training with Megatron Core", arXiv:2504.14960, 2025

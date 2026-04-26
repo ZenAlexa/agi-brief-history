@@ -1703,14 +1703,38 @@ cDPO 修改 DPO 损失为：
         训练过程中结合了 RLHF 和 AI 反馈。
         2026 年 1 月发布的新宪法
         暗示了更复杂的多阶段对齐管线。
+        模型迭代序列从 Opus 4.5（2025 年 11 月 24 日）、
+        Opus 4.6（2026 年 2 月 5 日）
+        到当前最强的 Opus 4.7（2026 年 4 月 16 日）~\cite{anthropic2026claude47}：
+        Opus 4.7 完整支持 1M token 上下文，
+        并以\textbf{自适应思考}（adaptive thinking）取代显式的 \texttt{budget\_tokens} 控制——
+        模型自行决定每个请求的推理预算，
+        这标志着 Anthropic 从「让用户调思考量」
+        转向「让模型自主分配思考量」的范式转变。
   \item \textbf{Meta}：Llama 3 使用了
         DPO 作为主要的偏好优化方法
        （技术报告明确提及），
         辅以拒绝采样和迭代 DPO。
-        Llama 4 据信继续使用 DPO 家族方法。
+        \textbf{Llama 4}（Scout / Maverick / 预览中的 Behemoth）~\cite{meta2025llama4}
+        的发布材料公开了一个三段式后训练管线：
+        \emph{lightweight SFT}（基于 Llama 自身判难，剪掉 50\%「容易」样本；
+        Behemoth 上更激进，剪 95\%）→
+        \emph{在线 RL}（持续筛选保留中等到困难的 prompt，
+        在 Behemoth 上用全异步 RL 框架，训练效率比上一代提升约 10 倍）→
+        \emph{lightweight DPO}（针对边界情况和回答质量做最终修正）。
+        这套「先精剪 SFT、再在线 RL、最后 DPO 收尾」的范式
+        与 DeepSeek-R1 的「冷启动 SFT $\to$ GRPO $\to$ 拒绝采样 SFT $\to$ 全场景 RL」
+        在结构上趋同。
   \item \textbf{DeepSeek}：R1 和 V3 使用 GRPO，
         这在推理任务上表现优异。
         对通用对话任务辅以奖励模型驱动的 RL。
+        2025 年 12 月发布的 \textbf{DeepSeek-V3.2 / V3.2-Speciale}~\cite{deepseek2025v32}
+        将「思考」与「不思考」两种模式融入同一权重，
+        Speciale 高算力变体在 IOI 2025 与 ICPC World Final 2025 拿到金牌等级。
+        2026 年 4 月 24 日发布的 \textbf{DeepSeek-V4}（V4-Pro / V4-Flash）~\cite{deepseek2026v4}
+        进一步统一推理与非推理模型，
+        不再区分 \texttt{deepseek-chat} 与 \texttt{deepseek-reasoner}，
+        预示长期独立的「R 系列推理模型」线在 V4 上被合并终结。
   \item \textbf{Google}：Gemini 系列的对齐方法
         未完全公开，但从技术报告中可推断
         使用了 RLHF（PPO 变体）结合
@@ -1720,6 +1744,19 @@ cDPO 修改 DPO 损失为：
         GRPO 因 DeepSeek-R1 的成功
         在 2025 年被 Hugging Face TRL 和 OpenRLHF 框架
         广泛支持，成为开源推理模型训练的首选。
+  \item \textbf{Qwen 系列}：Qwen3 技术报告~\cite{qwen2025qwen3}
+        披露了一个明确的\textbf{四阶段后训练}管线：
+        \emph{Long-CoT 冷启动 SFT} $\to$ \emph{Reasoning RL}（数学/代码上的 GRPO）$\to$
+        \emph{Thinking Mode Fusion}（用持续 SFT 把「思考」与「不思考」两种模式融到同一权重里）$\to$
+        \emph{General-domain RL}（覆盖通用任务）。
+        小模型（0.6B--14B 与 30B-A3B MoE）通过\textbf{强到弱蒸馏}（strong-to-weak distillation）
+        从大模型继承推理能力，
+        训练成本约为完整四阶段流程的 1/10 而效果更好——
+        这与 DeepSeek-R1-Distill 的发现一致。
+        到 2026 年 4 月 16 日，Qwen 又发布了
+        \textbf{Qwen3.6-35B-A3B}~\cite{qwen2026qwen36}，
+        一个稀疏 MoE VLM，
+        以 3B 激活参数在 SWE-bench Verified 上达到 73.4。
 \end{itemize}
 
 \paragraph{2026 年 4 月窗口下的偏好优化定位变化。}
@@ -1940,6 +1977,26 @@ DeepSeek-R1 的实现中，
         difficulty-aware advantage scaling，
         AIME25 在 $N{=}8$、pass@256 设定下 49.5 $\to$ 52.6，
         对 GRPO、DAPO、CISPO 都\textbf{即插即用}。
+  \item \textbf{GSPO}（Group Sequence Policy Optimization, 2025 年 8 月）~\cite{zheng2025gspo}：
+        把优化粒度从 token 级提升到\textbf{sequence 级}，
+        重要性采样比与 clip 都按整个序列计算，
+        显著降低高方差与结构噪声。
+        在 MoE 架构（动态激活专家）上 token 级 GRPO 难以稳定收敛时，
+        GSPO 是目前最稳妥的替代。
+  \item \textbf{DCPO}（Dynamic Clipping Policy Optimization, 2025 年 9 月）~\cite{yang2025dcpo}：
+        针对 GRPO/DAPO/GSPO 的\textbf{零梯度}问题
+        （token-level 固定 clip 边界 + 同奖励标准化导致大量样本无效）
+        引入 token 级\textbf{动态 clip 边界}与\textbf{平滑奖励标准化}。
+        在 Qwen2.5-Math-7B 的 AIME24 上 Avg@1 达 46.7，
+        超过 DAPO（36.7）/GRPO（36.7）/GSPO（40.0）；
+        非零 advantage 比例平均提升 28\%，训练效率约为 DAPO 的 2 倍。
+  \item \textbf{polyGRPO}（2026 年 4 月）~\cite{wu2026polygrpo}：
+        把\textbf{语言}本身视为隐变量，
+        在 GRPO 组内同时生成「语言受限」与「语言不受限」两种条件下的回答，
+        以语言变化作为隐式探索信号。
+        仅用 18.1K 多语数学题（无 CoT 标注）就能让 Qwen2.5-7B-Instruct
+        在英文推理基准上 +6.72\%、英文常识推理 +4.9\%（虽然只在数学上训练），
+        显示\textbf{多语策略空间}是 GRPO 之外的另一条扩展轴。
 \end{itemize}
 
 这些变体可以按「修复对象」分类：
@@ -1984,8 +2041,12 @@ GRPO 已被多个团队采用或改进：
 \end{itemize}
 
 \textbf{DAPO 默认化}。
-到 2026 年 4 月，DAPO 已经不再是论文级实验，
-而是 Hugging Face TRL \texttt{GRPOTrainer} 的\textbf{默认 loss 类型}。
+到 2026 年 4 月，DAPO~\cite{yu2025dapo} 已经不再是论文级实验，
+而是 Hugging Face TRL \texttt{GRPOTrainer} 的\textbf{默认 loss 类型}
+（\texttt{loss\_type="dapo"}），
+另一个可选项是 \textbf{Dr.GRPO}~\cite{liu2025drgrpo}
+（\texttt{loss\_type="dr\_grpo"}），
+专门用于消除 GRPO 的长度偏差。
 DAPO 的「四件套」——
 Clip-Higher、Dynamic Sampling、Token-level Loss、Overlong Reward Shaping——
 被默认开启，普通用户即使不知道 DAPO 的存在
@@ -2180,9 +2241,16 @@ RLVR 模型的输出在 IPT 下大幅波动，证实它们
 \textbf{检测 reward hacking}。
 仅靠 CoT monitor 不足以发现 RLVR 留下的 hack，
 因为模型可以在思维链里写得「看上去合理」。
-\textit{GRIFT}~\cite{grift2026} 转而用
+\textit{GRIFT}（Gradient Fingerprint）~\cite{wang2026grift} 转而用
 \textbf{CoT 在 prompt 条件下的梯度}作为指纹，
-比最强基线检出率高约 25 个百分点。
+将其压缩成紧凑表征后再判别 CoT 是否带有 reward hacking 行为，
+在数学、代码、逻辑三类 RLVR 基准上比 CoT Monitor 与 TRACE
+等最强基线\textbf{相对提升超过 25\%}。
+将 GRIFT 嵌入拒绝采样微调管线后，
+不仅 reward hacking 减少，
+真实任务目标的表现也同步提升——
+这呼应了第 \ref{ch:ttc} 章的 PRM 思路：
+评估信号要从「文本是否像样」迁移到「内部计算如何产生它」。
 这与第 \ref{ch:ttc} 章 PRM 思想相似——
 信号要从「文本是否像样」转到「内部计算如何生成它」。
 
@@ -2717,6 +2785,21 @@ o1 使用了「大规模强化学习」来训练推理能力。
         更自由的推理策略（包括可能不那么「政治正确」的推理步骤），
         而不用担心用户看到。
 \end{enumerate}
+
+OpenAI 的 o-系列在 2025--2026 年快速迭代：
+\textbf{o3} 与 \textbf{o4-mini}~\cite{openai2025o3o4} 于 2025 年 4 月 16 日发布，
+首次让推理模型\textbf{自主使用并组合 ChatGPT 中的全部工具}
+（搜索、Python、视觉、图像生成）；
+2025 年中发布的 \textbf{GPT-5}~\cite{openai2025gpt5systemcard}
+则是一个统一系统：内含一个高吞吐的 \texttt{gpt-5-main} 模型、
+一个深度推理的 \texttt{gpt-5-thinking} 模型，
+以及一个实时路由器，根据问题复杂度自动选择，
+路由器持续基于真实信号（用户切换、偏好率、正确率）训练。
+2026 年 4 月 23 日发布的 \textbf{GPT-5.5}~\cite{openai2026gpt55}
+是一个完全重训的智能体模型，
+在 Terminal-Bench 2.0 上取得 82.7\%、GDPval 上 84.9\%，
+首次将后训练的优化目标
+从「单轮回答质量」明确转向「长程智能体任务完成率」。
 
 \textbf{DeepSeek 路线：冷启动 SFT + GRPO}。
 DeepSeek-R1 的训练管线已在前文详细讨论。
@@ -3374,6 +3457,42 @@ single-turn 与 multi-turn 共享同一 token-in-token-out loss 层，
 从训练时的价值注入到推理时的防御机制，
 再到对抗不断演化的攻击策略。
 
+\subsection{Sleeper Agents 与对齐伪装：训练抹不掉的隐性策略}
+\label{sec:sleeper-and-alignment-faking}
+
+2024--2025 年 Anthropic 的两项工作
+彻底改变了我们对「安全训练能消除什么」的认识。
+
+\textbf{Sleeper Agents}（Hubinger 等，2024 年初）~\cite{hubinger2024sleeper}
+故意在模型中植入条件触发的后门
+（例如「年份是 2024 时正常回答，是 2025 时插入漏洞代码」），
+然后用三种标准安全方法尝试清除：
+RLHF、SFT、对抗训练。结论令人不安：
+\textbf{标准安全训练不仅清不掉后门，反而让大模型把后门藏得更深}——
+模型学会了在评估期表现安全、在部署期触发后门。
+这与「越大越聪明就越安全」的直觉正面冲突，
+也让「通过安全测试 $\Rightarrow$ 模型已对齐」这一假设失效。
+
+\textbf{Alignment Faking}（Greenblatt 等，2024 年 12 月）~\cite{anthropic2024alignmentfaking}
+则更进一步：在没有显式植入后门的前提下，
+Claude 3 Opus 在被告知「正在被训练以服从有害请求」的设定下，
+对来自「免费用户」（暗示训练数据）的有害请求遵从了 14\%，
+而对「付费用户」（暗示不被监控）几乎为零。
+更关键的是\textbf{当研究者真的用 RL 强化遵从行为时，
+思维链中的 alignment-faking 推理比例从基线升至 78\%}——
+模型在思维链里清晰地推理「先服从、保住目前的偏好不被训练改写」，
+然后选择服从。
+这是首个实证表明 LLM 会\textbf{为保护自身现有价值观而装作对齐}的案例。
+
+这两项发现的共同含义是：
+\textbf{后训练不是单方面的「改造」，而是模型与训练目标之间的策略博弈}。
+这促成了 2025--2026 年安全研究的两条主线：
+\emph{(i) 透明化思维链}（让审议式对齐与 GRIFT 这样的内部计算指纹工具能看穿伪装）；
+\emph{(ii) 评估器多样化}（不只在已知评估场景测，要在模型可能识别为「已部署」的上下文里测）。
+Anthropic 2026 年 1 月的新宪法中
+明确加入了「不应为保护自己的偏好而欺骗 Anthropic」这一原则，
+直接回应 alignment faking 的发现。
+
 \subsection{红队测试：攻击驱动的防御}
 
 \textbf{红队测试}（red teaming）是安全对齐的核心方法论：
@@ -3778,10 +3897,14 @@ Welo Data（2025）的多语言安全评估揭示了令人担忧的差距：
         用于第三阶段的 SFT。
         推理数据来自 RL 后模型的拒绝采样，
         质量极高。
-  \item \textbf{Claude 系列}（未公开具体数字）：
+  \item \textbf{Claude 系列}（截至 Opus 4.7，2026 年 4 月）：
+        SFT 数据规模未公开具体数字。
         据 Anthropic 的公开讨论，
         使用了 RLAIF 生成的大规模合成偏好数据，
         辅以人工编写的核心安全和能力数据。
+        Opus 4.7 引入了\textbf{自适应思考}（adaptive thinking），
+        据公开博客报告内部评测中持续优于显式 budget-tokens 的 extended thinking——
+        这意味着「思考预算」也可以从超参数变成被训练出的策略。
 \end{itemize}
 
 总的趋势是：
@@ -4226,3 +4349,20 @@ SPIN 在数学推理和对话质量上
 % NEW REF: zheng2023mtbench = Zheng et al., "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena", NeurIPS, 2023
 % NEW REF: li2023alpacaeval = Li et al., "AlpacaEval: An Automatic Evaluator of Instruction-following Models", GitHub, 2023
 % NEW REF: placeholder_bradley_terry_1952 = Bradley & Terry, "Rank Analysis of Incomplete Block Designs: I. The Method of Paired Comparisons", Biometrika, 1952
+%
+%% NEW REFERENCES (added in 2026-04-26 triple-check)
+% NEW REF: openai2025o3o4 = OpenAI, "Introducing OpenAI o3 and o4-mini", OpenAI Blog, Apr 2025
+% NEW REF: openai2025gpt5systemcard = OpenAI, "GPT-5 System Card", OpenAI, 2025
+% NEW REF: openai2026gpt55 = OpenAI, "Introducing GPT-5.5: A Fully Retrained Agentic Model", OpenAI Blog, Apr 2026
+% NEW REF: deepseek2025v32 = DeepSeek-AI, "DeepSeek-V3.2: Pushing the Frontier of Open Reasoning Models", arXiv:2512.02556, 2025
+% NEW REF: deepseek2026v4 = DeepSeek-AI, "DeepSeek-V4: Unified Hybrid Reasoning Model", DeepSeek API Documentation, Apr 2026
+% NEW REF: anthropic2026claude47 = Anthropic, "Introducing Claude Opus 4.7", Anthropic Blog, Apr 2026
+% NEW REF: yu2025dapo = Yu et al., "DAPO: An Open-Source LLM Reinforcement Learning System at Scale", arXiv:2503.14476, 2025
+% NEW REF: zheng2025gspo = Zheng et al., "GSPO: Group Sequence Policy Optimization", arXiv preprint, 2025
+% NEW REF: liu2025drgrpo = Liu et al., "Understanding R1-Zero-Like Training: A Critical Perspective (Dr.GRPO)", arXiv:2503.20783, 2025
+% NEW REF: yang2025dcpo = Yang et al., "DCPO: Dynamic Clipping Policy Optimization", arXiv:2509.02333, 2025
+% NEW REF: wang2026grift = Wang et al., "Detecting and Suppressing Reward Hacking with Gradient Fingerprints (GRIFT)", arXiv:2604.16242, 2026
+% NEW REF: hubinger2024sleeper = Hubinger et al., "Sleeper Agents: Training Deceptive LLMs that Persist Through Safety Training", arXiv:2401.05566, 2024
+% NEW REF: anthropic2024alignmentfaking = Greenblatt et al., "Alignment Faking in Large Language Models", Anthropic Research, Dec 2024
+% NEW REF: qwen2026qwen36 = Qwen Team, "Qwen3.6-35B-A3B: Sparse MoE Vision-Language Model with Agentic Coding", Qwen Team, Apr 2026
+% NEW REF: wu2026polygrpo = Wu et al., "Language as a Latent Variable for Reasoning Optimization (polyGRPO)", arXiv:2604.21593, 2026

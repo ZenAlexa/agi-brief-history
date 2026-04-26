@@ -20,9 +20,11 @@
 LLaMA 4 Scout     & 10M tokens  & iRoPE       & 2025.04 \\
 Gemini 2.5 Pro    & 1M tokens   & 未公开       & 2025.03 \\
 Gemini 3 Pro/Flash & 1--2M tokens & 未公开      & 2025--2026 \\
+Claude Opus 4.6 / Sonnet 4.6 & 1M tokens (GA) & 未公开 & 2026.03 \\
 Claude Sonnet 4.5 / Opus 4.5 & 200K--1M tokens & 未公开 & 2025--2026 \\
 GPT-5 系列        & 400K tokens & 未公开       & 2025--2026 \\
-DeepSeek-V3.2     & 1M tokens   & YaRN + MLA   & 2026.02 \\
+DeepSeek-V4 (Pro/Flash) & 1M tokens & CSA+HCA+SWA + MLA & 2026.04 \\
+DeepSeek-V3.2-Exp & 128K tokens & DSA (Lightning Indexer) + MLA & 2025.09 \\
 Kimi K2.5          & 256K tokens & RoPE 变体    & 2026.01 \\
 Qwen3-Next        & 262K--1M tokens & YaRN 变体 & 2026 \\
 GLM-4.7           & 200K tokens & RoPE 变体    & 2025.12 \\
@@ -42,9 +44,13 @@ Anthropic 的 Claude 系列在 2025--2026 年
 OpenAI 的 GPT-5 系列达到了 400K token。
 
 值得注意的是，\textbf{1M token 上下文在 2026 年初已成为事实上的标准}。
-DeepSeek 在 2026 年 2 月 11 日悄然将 V3.2 的上下文窗口
-从 128K 升级到 1M，没有发布公告，
-用户在使用中自行发现了这一变化。
+Anthropic 于 2026 年 3 月 13 日把 Claude Opus 4.6 / Sonnet 4.6 的 1M context
+正式 GA，同时\textbf{取消 long-context premium}~\cite{anthropic2026context1m}。
+DeepSeek 于 2026 年 4 月 24 日发布 V4-Pro/V4-Flash~\cite{deepseekv4}，
+通过 CSA + HCA + SWA 三层混合注意力把 1M 上下文做成默认配置：
+相比 V3.2 的 128K，V4 在 1M 上 per-token 推理 FLOPs $-73\%$、
+KV cache $-90\%$，
+是首个把"1M 上下文 = 经济默认"落地的开源旗舰。
 Kimi K2.5 支持 256K 原生上下文，
 Qwen3-Next 原生支持 262K 并可扩展至 1M，
 GLM-4.7 支持 200K 上下文和 128K 最大输出长度。

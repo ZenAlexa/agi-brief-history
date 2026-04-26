@@ -265,7 +265,7 @@ Apple 2025 年提出的「reasoning collapse」论点
 在 2026 年 4 月得到了一系列\textbf{独立复制}，
 把现象从单一论文升级为可重复的经验律。
 
-arXiv:2604.13371~\cite{reasoningcollapse2604}
+arXiv:2604.13371~\cite{complexitylimits2026}
 在\textbf{9 个经典推理任务}上系统证实
 \textbf{phase-transition} 行为：
 任务复杂度低于阈值时模型保持高准确率，
@@ -297,6 +297,34 @@ arXiv:2604.06268 的 RAGEN-2~\cite{ragen2_2604}
 「Apple 论文中的一个观察」
 升级为
 「跨任务、跨架构、跨 RL 范式的稳定现象」。
+
+\textbf{光谱几何视角}~\cite{spectralthought2604}（arXiv:2604.15350，2026-04-03）
+提供了第三条独立证据。
+作者跨\textbf{11 个模型 / 5 个架构家族}（Qwen、Pythia、Phi、Llama、DeepSeek-R1）
+对隐藏激活空间做系统光谱分析，发现
+\textbf{推理} vs.\ \textbf{事实回忆} 之间存在
+\emph{spectral phase transition}：
+推理任务的幂律指数 $\alpha$ 显著低于事实任务（9/11 模型 $p < 0.05$），
+instruction tuning 后这一关系\textbf{反转}，
+而 reasoning step 边界与光谱跳变\textbf{对齐}——
+最戏剧性的发现是：
+仅用光谱 $\alpha$ 一个标量
+可在\emph{答案生成之前}\textbf{预测正确性}，
+Qwen2.5-7B 后期层 \textbf{AUC = 1.000}，
+跨 6 个模型平均 AUC = 0.893。
+这把「reasoning 是 phase transition 现象」
+从行为层证据
+推进到了\textbf{可观测的内部几何特征}——
+phase transition 不只是输出准确率上的悬崖，
+而是隐藏空间几何结构的真实跳变。
+\textbf{Logical Phase Transitions}~\cite{logicalphase2026}（arXiv:2601.02902）
+更进一步证明：
+逻辑深度跨过临界值后准确率\textbf{骤崩}（如水冰相变），
+并提出 Neuro-Symbolic Curriculum Tuning 在 CoT 上获得 +3.95 平均增益。
+四份独立工作（行为基准 + RL trace + 光谱几何 + 逻辑符号）
+\textbf{从四个不同角度}收敛到同一结论，
+是 reasoning collapse 在 2026 年 4 月被升级为
+\emph{LLM 推理领域的经验律}的标志。
 
 \subsubsection{架构修改有限有效，课程学习无效}
 
@@ -625,6 +653,26 @@ CoT 推理链可能\textbf{不反映模型的实际内部计算}——
 模型可能在``为既定结论编造合理论证''。
 换句话说，即使推理模型``展示了思考过程''，
 这个外化的过程也不一定是真实的内部计算路径。
+2026 年 4 月 17 日发表的立场论文
+\emph{LLM Reasoning Is Latent, Not the Chain of Thought}~\cite{latentreasoning2604}
+（arXiv:2604.15726）
+把这一观察推向了更激进的位置——
+作者把三种竞争假说形式化：
+（H1）推理主要由\textbf{潜在状态轨迹}承载；
+（H2）推理主要由\textbf{显式 surface CoT}承载；
+（H0）大部分「推理收益」其实只是
+通用的 serial compute 增加。
+通过 compute-audited worked exemplars，
+作者得出
+当前证据\textbf{最支持 H1}——
+推理研究的「主要研究对象」
+应当从「surface CoT 的忠实度」
+切换到「潜在状态动力学」。
+这与第~\ref{ch:limitations}章前文提到的
+LEPO / OneVL latent reasoning 路线
+在哲学上完全一致：
+不再让模型「先想再答」，
+而是把「想」直接放到 hidden state 流形上。
 
 \textbf{安全性的根本限制}。
 Neel Nanda（2025 年 5 月）直言不讳：
@@ -1058,24 +1106,34 @@ Meta FAIR 同时发布了三个新的物理推理基准，
 \subsubsection{V-JEPA 2.1 与世界模型评估基准}
 
 2026 年 3 月 16 日发布的 V-JEPA 2.1
-\cite{vjepa21_2603}（arXiv:2603.14482，3 月 17 日）
+\cite{vjepa21_2603}（arXiv:2603.14482）
 推进了四个关键设计：
-（1）masking-based dense prediction loss；
-（2）全 token 监督；
-（3）Deep Self-Supervision；
-（4）模态特定容量。
-模型规模从 ViT-B 到 ViT-G/16，
-参数量覆盖 1B--2B 系列。
-SOTA 体现在长时间物体交互预测：
-在 EpicKitchens 长时段 anticipation 上
-达到 Recall@5 \textbf{40.8}。
-LeCun 仍出现在共同作者列表中，
+（1）\textbf{Dense Predictive Loss}——
+masking-based 自监督目标，
+\textbf{所有 token}（可见 + 被遮罩）都贡献训练信号；
+（2）\textbf{Deep Self-Supervision}——
+在编码器的多个中间层级联施加自监督目标；
+（3）\textbf{Multi-Modal Tokenizers}——
+同时支持图像与视频的统一训练；
+（4）\textbf{Model + data scaling}——
+模型规模从 ViT-B/16（80M）、ViT-L/16（300M）、ViT-g/16（1B）到 \textbf{ViT-G/16（2B）}。
+SOTA 全景：
+Ego4D 短期物体交互预测 \textbf{7.71 mAP}、
+EPIC-KITCHENS 高层动作 anticipation \textbf{Recall@5 40.8}、
+Something-Something-V2 \textbf{77.7\%}、
+NYUv2 深度估计（线性 probe）\textbf{0.307 RMSE}、
+TartanDrive 机器人导航 5.687 ATE，
+真实机器人抓取成功率\textbf{相对 V-JEPA 2 AC 提升 20pp}。
+LeCun 出现在共同作者列表中，
 表明 JEPA 路线在 Meta FAIR 的工程化继续推进。
 配合前序 V-JEPA 2 已实现的
 zero-shot 机器人 pick-and-place 65--80\% 成功率，
 V-JEPA 路线
 首次在视频自监督学习与机器人控制之间
-建立了\textbf{可被基准量化}的桥梁。
+建立了\textbf{可被基准量化}的桥梁——
+\textbf{2B 参数级别的世界模型}
+在四类感知-控制基准上同时刷新 SOTA，
+是 LeCun 路线在 2026 年最具体的工程化成果。
 
 但同期出现的两项世界模型基准
 揭示了 LeCun 路线\textbf{尚未}解决的核心挑战。
@@ -1314,7 +1372,7 @@ CTM 展现了\textbf{涌现式的逐步推理}——
 
 \subsection{Hybrid Transformer-RNN 在 reasoning primitives 上的鲁棒性}
 
-arXiv:2604.21454~\cite{olmo3primitives2604}
+arXiv:2604.21454~\cite{reasoningprimitives2026}
 首次在受控实验中
 评估 Olmo3 transformer 与 hybrid 模型
 在两个 reasoning primitive 上的表现：

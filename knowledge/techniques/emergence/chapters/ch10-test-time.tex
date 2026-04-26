@@ -1200,7 +1200,7 @@ DeepSeek-R1 和 OpenAI 的 o1/o3 系列
 \textbf{开源} & 模型权重完全开源，训练方法论在论文中详细公开。 & 完全闭源，仅通过 API 提供服务。 \\
 \textbf{基础架构} & 671B MoE（37B 活跃参数），基于 DeepSeek-V3。 & 未公开。推测基于 GPT-4 级别架构。 \\
 \textbf{蒸馏} & 提供 1.5B 到 70B 的完整蒸馏系列。 & 无官方蒸馏，o3-mini 作为轻量版本。 \\
-\textbf{性能（AIME 2024）} & 79.8\% & o1: 83.3\%, o3-mini (high): 87.3\% \\
+\textbf{性能（AIME 2025，no tools）} & 79.8\%（V3.2-Speciale 96.0\%） & o1: 83.3\%；o3-high: 88.9\%；o4-mini-high: 92.7\%；GPT-5-high: 94.6\%；GPT-5 pro（parallel TTC）：GPQA 88.4\% SOTA \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1218,6 +1218,43 @@ o3 和 o4-mini 引入了\textbf{工具使用}能力，
 搜索网页、执行代码、分析图像，
 将工具调用和推理无缝结合。
 这代表了从「纯思考」到「思考 + 行动」的范式转变。
+
+\textbf{GPT-5 全家族（2026-08）}~\cite{openaigpt5_2026}
+将「统一推理 + 自适应思考预算」推到产品级。
+GPT-5 是 OpenAI 首个\textbf{统一推理-非推理}的模型——
+模型自己决定什么时候快答、什么时候深入思考，
+不再需要在 GPT-4o 与 o1/o3 之间手动路由。
+关键基准（high reasoning effort，无工具）：
+\textbf{AIME 2025 94.6\%}（GPT-5）、
+\textbf{91.1\%}（GPT-5 mini）、\textbf{85.2\%}（GPT-5 nano）；
+HMMT 2025 \textbf{93.3\%}；
+GPQA Diamond \textbf{85.7\%}；
+SWE-bench Verified \textbf{74.9\%}（GPT-5），
+Aider Polyglot \textbf{88.0\%}。
+对照旧旗舰：o3-high AIME 2025 \textbf{88.9\%}、
+o4-mini-high AIME 2025 \textbf{92.7\%}（AIME 2024 \textbf{93.4\%}），
+GPT-4.1 仅 46.4\%。
+o4-mini 在数学上的水平已逼近 GPT-5 mini，
+显示\textbf{“小推理模型 + 工具”路线}与
+\textbf{“大统一模型”路线}在 2026 年仍是双线竞争。
+
+\textbf{GPT-5 pro} 用一个值得专门记录的机制：
+\textbf{scaled but efficient parallel test-time compute}。
+不是简单 Best-of-N，
+而是\textbf{并行多链推理 + 动态聚合}——
+多条 thinking chain 共享前缀 KV cache，
+通过内部 verifier 做步骤级聚合，
+每条链探索不同的解题路径，
+最后由一个轻量级聚合器合成最终答案。
+GPT-5 pro 在 GPQA Diamond 上达到 \textbf{88.4\%}（无工具），
+是无工具 GPQA 的当前 SOTA。
+"parallel TTC"将是 2026--2027 推理时缩放的下一条主线，
+它在工程上对应 SGLang/vLLM 的
+\textbf{多链 prefix caching + 共享 verifier}架构，
+为支撑 GPT-5 pro 量级的部署，
+推理基础设施需要在
+"单链长 thinking" 之外
+原生支持"多链 thinking + 跨链 KV 共享"。
 
 \subsection{“Learning to Think”：训练模型学会思考}
 
@@ -2028,6 +2065,55 @@ Google 的 Gemini 2.5 Flash 原生支持动态推理深度，
 模型可以在推理链长度减少 60\% 的前提下
 保持 95\% 以上的原始准确率。
 
+\textbf{Latent reasoning 在 2026 年第二季度的实质突破}
+让"在隐空间里思考"从概念走向可训练。
+Coconut（2024）提出了思想——
+用连续 hidden state 替代离散 thinking tokens，
+但实操上一直存在两个问题：
+（1）失去随机性后所有 rollout 收敛成同一条链，无法做 RL 探索；
+（2）latent CoT 的下游精度始终低于显式 CoT。
+2026 年 4 月的两篇工作分别针对这两点给出方案。
+
+\textbf{LEPO}~\cite{lepo2026}（arXiv:2604.17892，2026-04-20）
+通过 \textbf{Gumbel-Softmax} 把可控随机性注入 latent reasoning，
+恢复 LLM 的探索能力，
+并在 rollout 阶段维持随机性、
+在优化阶段对连续 latent 与离散 token 构造\textbf{统一梯度估计}。
+这是首个能直接把 RL 应用到 latent reasoning 的框架，
+显著超过既有的离散与 latent RL baseline。
+
+\textbf{OneVL}~\cite{onevl2026}（arXiv:2604.18486，2026-04-20）
+则在自动驾驶 VLA 场景上
+首次让 \textbf{latent CoT 超过 explicit CoT}：
+通过\textbf{双辅助解码器}监督
+（语言解码器重建文本 CoT + 视觉世界模型解码器预测未来帧 token），
+强迫 latent 空间内化"道路几何、agent 运动、环境演化"
+的因果动力学。
+推理时丢弃辅助解码器，
+所有 latent token 在\textbf{单步并行} prefill 中得出，
+速度等同于 answer-only 预测。
+关键洞察是：纯语言 latent 压缩的是"符号抽象"，
+而世界模型监督让 latent 编码"因果动力学"——
+后者的可压缩性更高，
+因此 latent CoT 的"信息密度天花板"
+可以高于显式 token CoT。
+
+把 LEPO 和 OneVL 放一起看，
+latent reasoning 的 2026 路线图变得清晰：
+\textbf{Gumbel-Softmax 注入随机性 + 任务相关的世界模型监督}
+是把 latent CoT 推到\textbf{优于}显式 CoT 的两个关键。
+这条路线的极限收益是\textbf{推理算力下降一个数量级}——
+显式 CoT 每步消耗一个完整 forward，
+latent CoT 在隐空间累计多步只需一个 forward，
+对 thinking-token-heavy 的推理模型
+（R1、o3、Gemini Deep Think）经济意义巨大。
+但仍有未解的硬问题：
+如何在 latent 空间中验证推理的正确性？
+没有可读的 thinking tokens，
+PRM、self-consistency、self-verification 都失去了文本依托，
+2026 年下半年的研究焦点很可能是
+为 latent reasoning 设计\textbf{隐空间 verifier}。
+
 \textbf{推理链压缩}（Reasoning chain compression）
 从推理链本身的结构入手。
 许多推理链中包含大量\textbf{冗余内容}：
@@ -2383,3 +2469,6 @@ SWE-bench、AIME、ARC-AGI
 % NEW REF: hooper2024fp8 = Hooper, Coleman, et al. "KVQuant: Towards 10 Million Context Length LLM Inference with KV Cache Quantization." NeurIPS 2024.
 % NEW REF: chowdhery2022palm = Chowdhery, Aakanksha, et al. "PaLM: Scaling Language Modeling with Pathways." JMLR 2023.
 % NEW REF: penedo2023refinedweb = Penedo, Guilherme, et al. "The RefinedWeb Dataset for Falcon LLM." NeurIPS 2023 (Datasets Track).
+% NEW REF: lepo2026 = Zhou, Yuyan, et al. "LEPO: Latent Reasoning Policy Optimization for Large Language Models." arXiv:2604.17892, 2026-04-20.
+% NEW REF: onevl2026 = Lu, Jinghui, et al. "OneVL: One-Step Latent Reasoning and Planning with Vision-Language Explanation." arXiv:2604.18486, 2026-04-20.
+% NEW REF: openaigpt5_2026 = OpenAI. "Introducing GPT-5: Unified reasoning, parallel test-time compute (GPT-5 pro)." 2026-08.
