@@ -2,13 +2,16 @@
 \label{ch:agent-wars}
 %% ============================================================
 
-2025 年 12 月至 2026 年 3 月，
+2025 年 12 月至 2026 年 4 月，
 LLM 领域经历了有史以来最密集的技术迭代。
-在不到 100 天的时间里，
+在大约 150 天的时间里，
 至少 15 个 frontier 级模型密集发布，
 三大 Agent SDK 先后开源，
-MCP 从 Anthropic 的内部协议成长为由 Linux 基金会治理的行业标准，
-代码 Agent 从辅助工具进化为半自主的工程伙伴。
+MCP 从 Anthropic 的内部协议成长为由 Linux 基金会治理的行业标准
+（月 SDK 下载 9700 万、>10K servers、八家创始白金会员），
+代码 Agent 从辅助工具进化为半自主的工程伙伴，
+旗舰模型在 4 月底出现 Claude Opus~4.7、GPT-5.4、Gemini~3.1~Pro
+\textbf{三方并列 AAII 57 分}的局面——没有「单一最强」，只有「按任务选模型」。
 这不是一个线性渐进的故事，
 而是多条技术路线同时达到临界点后引发的\textbf{链式反应}。
 
@@ -79,6 +82,18 @@ Cloudflare、Google、Microsoft、OpenAI，
 \textbf{竞争对手选择在协议层面合作}——
 正如 TCP/IP 和 HTTP 的历史所证明的，
 标准化协议的价值大于任何单一厂商的差异化优势。
+
+进入 2026 年，AAIF 把治理结构正式落地为
+\textbf{Lead Maintainers (BDFL) → Core Maintainers → Maintainers}
+三级，规范提案（SEP）改以 PR 形式提交至 \texttt{seps/} 目录~\cite{aaif2026foundation}，
+Roadmap 三个方向同步推进：
+（1）Governance Maturation——SEP-1302 工作组/兴趣小组制度、
+SEP-2085 维护者继任流程；
+（2）Protocol Evolution——下一版规范的特性立项；
+（3）Adoption——企业部署模式与培训认证。
+\textbf{Block Goose} 与 \textbf{OpenAI AGENTS.md}
+也明确归入 AAIF 协调范围，
+让 MCP 从「Anthropic 的协议」正式升级为「AI 时代的 USB-C」。
 
 \subsection{全行业采纳的 90 天}
 
@@ -219,10 +234,11 @@ CLI 工具链（\texttt{fastmcp list/call/discover}）、
 
 \subsection{生态规模与增长}
 
-截至 2026 年 3 月，MCP 生态系统的规模已经令人瞩目：
+截至 2026 年 4 月，MCP 生态系统的规模已经令人瞩目~\cite{aaif2026foundation}：
 \begin{itemize}[noitemsep]
   \item \textbf{SDK 下载量}：月度 SDK 下载量突破 9,700 万次
-        （2025 年 12 月捐赠时数据）
+        （2025 年 12 月捐赠时数据，截至 2026-03 仍持续增长）；
+        Anthropic 官方表态\textbf{每个主流 AI 提供商现在都原生支持 MCP}
   \item \textbf{MCP Registry}：约 2,000 个注册条目，
         自 2025 年 9 月以来增长 407\%
   \item \textbf{活跃服务器}：10,000+ 个公共 MCP 服务器
@@ -675,6 +691,28 @@ Opus 4.6 的默认上下文窗口在 Max、Team 和 Enterprise 计划上
 简化为 low/medium/high 三级，
 让用户在推理深度和响应速度之间精确权衡。
 
+\textbf{v2.1.108--117 4 月密集迭代}~\cite{claudecodev21x}。
+4 月一个月内 Claude Code 又连发约十个版本，
+节奏接近\textbf{每 1--2 天一个 release}：
+v2.1.108（4/14）引入 \texttt{ENABLE\_PROMPT\_CACHING\_1H} 把 cache TTL 拉长到 1 小时，
+新增 \texttt{/recap}，slash command 改为通过 Skill tool \textbf{自动发现}，
+\texttt{/undo} 增加 \texttt{/rewind} 别名；
+v2.1.110（4/15）实现\textbf{flicker-free} \texttt{/tui fullscreen}，
+新增 Push Notification 工具与 scheduled tasks 的 \texttt{--resume}/\texttt{--continue}；
+v2.1.111（4/16）随 Opus 4.7 一起上线了介于 high 与 max 之间的
+\texttt{xhigh} reasoning effort、\texttt{/effort} 交互滑块、
+\texttt{/less-permission-prompts} skill，以及在云端跑多 Agent 代码审查的
+\texttt{/ultrareview}——这是\textbf{三 Agent 模式（Planner/Generator/Evaluator）
+首次以一级斜杠命令的形式落到产品层}；
+同版本 Auto mode 对 Max 订阅者免去 \texttt{--enable-auto-mode} 标志。
+v2.1.117（4/22）放弃通过 Glob/Grep 的隐式调用，
+改用\textbf{原生 macOS/Linux build 内嵌的 \texttt{bfs} + \texttt{ugrep}}，
+并通过 \texttt{CLAUDE\_CODE\_FORK\_SUBAGENT=1} 暴露 fork-style 子代理实验入口。
+4 月 14 日同步发布的桌面应用重设计
+把 sidebar 多会话、drag-and-drop workspace、
+内置 terminal + file editor 与 \textbf{macOS SSH}（此前仅 Linux）
+合并到一个原生窗口，把 Claude Code 从「终端工具」推到了「IDE 替代品」的边界。
+
 Anthropic 报告 Claude 4 发布后收入增长 4.5 倍，
 Claude Code 已成为 Anthropic 增长最快的产品线。
 
@@ -724,6 +762,20 @@ AI 编程工具的并购整合正在加速。
 2025 年 9 月 8 日，Cognition 完成 4 亿美元融资，
 估值 102 亿美元。
 
+\textbf{Manus 的中美拉锯}~\cite{manusmeta2025}。
+通用 agent 这一支由蝴蝶效应（Butterfly Effect）的 \textbf{Manus} 代表。
+2025 年 12 月，\textbf{Meta 以 \$2--3B 收购了蝴蝶效应母公司}，
+Manus 创始人肖弘改任 Meta VP，
+中国市场的 Monica 助手被同步下线。
+2025-12-15 发布的 \textbf{Manus 1.6 Max} 与 2026-03-16 发布的
+\textbf{Manus Desktop}（macOS / Windows）
+通过「My Computer」让 agent 直接操作本地文件，
+GAIA 自报领先 Operator / Computer Use / Deep Research。
+但 2026-03 中国监管启动对 Manus 高管的出境审查，
+让 Meta 的整合时间表至今没有完全落地——
+从「中国 agent 之星」到「Meta 子公司」再到「跨境合规风险」，
+Manus 是 2026 年中美 AI 产业格局最具象的注脚。
+
 \textbf{终端级}（高自主性，命令行交互）。
 Claude Code 和 Codex CLI 是这个层级的双雄，
 但开源社区同样贡献了重要的终端 Agent。
@@ -763,6 +815,28 @@ Goose 的独特优势是 \textbf{LLM 无关性}：
 独立的专业化 Agent 在主 Agent 控制下并行运行。
 Cursor 的三种模式（Plan/Ask/Agent）
 提供了渐进式的自主性控制。
+2026 年 3 月 19 日发布的 \textbf{Composer 2}~\cite{cursor3composer2}
+是 Cursor 自研模型路线的重大升级，
+CursorBench 从 Composer 1.5 的 44.2 跃升至 61.3，
+Terminal-Bench 2.0 上\textbf{首次有非 Anthropic / 非 OpenAI 模型超越 Opus 4.6}；
+Standard 档定价 \$0.50/\$2.50 per MTok（比 Composer 1.5 便宜 86\%），
+Fast 档默认 \$1.50/\$7.50。
+4 月 2 日发布的 \textbf{Cursor 3} 把多仓库布局、
+本地↔云端 agent 切换合并到统一 workspace，
+4 月 15 日 \textbf{Canvases} 让 Agent 任务以画布形态并行可视化。
+
+\textbf{Windsurf 2.0 + Devin in Windsurf}（2026-04-15）~\cite{windsurf2devin}。
+被 Cognition 收购后的 Windsurf 在 4 月 15 日发布 2.0：
+新增 \textbf{Agent Command Center}（Kanban 风格的多 Agent 调度面板）
+并把 \textbf{Devin 直接嵌入 Windsurf} 编辑器。
+同一天 OpenAI Agents SDK、Cursor Canvases 与 Windsurf 2.0
+\textbf{三家同时升级}，社交媒体把这一天称为
+「Agent IDE 进入哥本哈根时刻」——
+多个独立团队在同一天朝同一方向推进，
+是技术范式真正成形的标志。
+此前 4 月 7 日 Cognition 还发布了 \textbf{SWE-1.6}~\cite{cognitionswe16}：
+接管 SWE-1.5 在 Cerebras 上跑出 950 tok/s，
+SWE-bench Pro 较前代提升 10pp，对 Pro 订阅者免费 3 个月。
 
 \textbf{Cline}（VS Code 扩展，Apache 2.0）
 是 IDE 集成级中的开源标杆，
@@ -920,6 +994,8 @@ SWE-bench Verified（经人工验证的高质量子集）
   2025 年底 & Claude Opus 4.5 & $\sim$75\% \\
   2026 年初 & Claude Opus 4.6 Thinking & 79.2\% \\
   2026 年 2 月 & MiniMax M2.5 & 80.2\% \\
+  2026 年 4 月 & Claude Opus 4.7 & 87.6\% \\
+  2026 年 4 月（内部） & Claude Mythos Preview & 93.9\% \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -932,9 +1008,13 @@ SWE-bench 官方已扩展出多个变体以应对这一问题：
 和 \textbf{SWE-bench Lite}（轻量子集）。
 更严格的 \textbf{SWE-bench Pro}
 （包含 1,865 个多语言问题）
-显示当前最优系统的解决率仅为 $\sim$44\%，
-Augment Code 的 Auggie（基于 Opus 4.5）
-在 Agent Systems 排行榜得分 51.8\%。
+更能反映真实 frontier 差距：
+2026 年 4 月 16 日发布的 \textbf{Claude Opus 4.7}
+以 \textbf{64.3\%} 占据公开模型第一（较 Opus 4.6 的 53.4\% 暴涨 11pp，
+是自 Sonnet 3.5 以来最大单代 coding 跃升），
+GPT-5.4 紧随其后 57.7\%、Gemini 3.1 Pro 54.2\%；
+更早一代的 Augment Auggie（基于 Opus 4.5）在 Agent Systems 排行榜上
+得分 51.8\%。
 SWE-bench Pro 的分数之所以远低于 Verified，
 原因在于三个方法论差异：
 （1）问题来源从 Python 单语言扩展到多语言，
@@ -1339,6 +1419,33 @@ API 定价仅为 GPT-5 的 1/10--1/20，
 Qwen3.5-9B 在多项基准上超越了前代 Qwen3-30B，
 展示了训练方法论进步对小模型质量的杠杆效应。
 
+\textbf{4 月 17 日——Qwen3.6-35B-A3B}（阿里巴巴）~\cite{qwen36moe}。
+35B 总 / 3B 活跃的稀疏 MoE，Apache 2.0 协议；
+是 4 月开源阵营中性价比最优的「办公本可跑」级别模型，
+也是 Qwen 系列首次把 MoE 推到 30B 这个端云交界的甜点段。
+
+\textbf{4 月 24 日——DeepSeek V4 Preview}（DeepSeek）~\cite{deepseekv4}。
+Q1 期间所有「抢跑」的最终目标 V4 终于到来：
+\textbf{V4-Pro}（1.6T 总 / 49B 活跃）
+\textbf{一举成为最大的开源权重模型}，
+超过 Kimi K2.6 1.1T 与 GLM-5 754B；
+\textbf{V4-Flash}（284B / 13B）面向高吞吐推理；
+原生 1M 上下文，MIT 协议。
+架构上以 \textbf{Compressed Sparse Attention（CSA）+
+Heavily Compressed Attention（HCA）层间交错}
+取代 V3.2 的 DSA，
+在 1M 上下文下相对 V3.2 的 per-token FLOPs 仅 27\%、
+KV cache 仅 10\%（V4-Flash 更降至 10\% / 7\%）。
+V4 还首次完整支持华为 Ascend 芯片栈，
+是首个 at-scale 跑在非 NVIDIA 硬件上的主流大模型，
+\textbf{DeepSeek V4 + Ascend} 因此构成了
+中国第一个端到端模型-芯片主权 stack。
+DeepSeek 在 V4 技术报告里给出了精确的自评：
+V4-Pro-Max 超过 GPT-5.2 / Gemini-3.0-Pro，
+但稍逊于 GPT-5.4 / Gemini-3.1-Pro，
+官方原话「落后 SOTA frontier 模型大约 3 到 6 个月」——
+首次有开源团队以「月」为单位明确量化与闭源 SOTA 的差距。
+
 \subsection{竞争动态与战略分析}
 
 这波密集发布不仅仅是技术进步的自然结果，
@@ -1425,11 +1532,21 @@ OpenAI 工程师使用 GPT-5.3 来调试 GPT-5.3 的训练流程，
 当 Agent 的能力足够强大时，
 将 Agent 用于自身的研发流程是自然的工程选择。
 
-\textbf{GPT-5.4}（2026 年 3 月）
+\textbf{GPT-5.4}（2026 年 3 月 5 日）~\cite{openaigpt54}
 在推理基准上持续刷新纪录，
-进一步巩固了 GPT-5 系列在闭源模型中的领先地位。
-GPT-5 的统一架构，
-内置智能路由器自动判断何时快速响应、何时调用深度推理，
+进一步巩固了 GPT-5 系列在闭源模型中的领先地位：
+1M 上下文、OSWorld-Verified \textbf{75.0\%}（首次越过 72.4\% 的人类基线）、
+GDPval 83\%、SWE-bench Pro 57.7\%、
+\textbf{BrowseComp 89.3\%}（领先 Opus 4.7 的 79.3\% 达 10pp）、
+Terminal-Bench 2.0 75.1\%。
+配套的 \textbf{tool search} 大幅减少 prompt 中工具 schema 的 token 占用。
+4 月 22 日 OpenAI 发布 \textbf{ChatGPT Workspace Agents}：
+Codex 驱动、组织内共享，覆盖 ChatGPT Business / Enterprise / Edu / Teachers 四档，
+是 GPTs 的下一代形态——把 agent 产品下沉到企业协同。
+4 月 23 日 \textbf{GPT-5.5} 发布，把 Terminal-Bench 2.0 推至 \textbf{82.7\%}；
+Codex CLI 同步升级到 0.121.0，Agents SDK 支持 sandbox 内 inspect/run/edit。
+GPT-5 的统一架构——
+内置智能路由器自动判断何时快速响应、何时调用深度推理——
 已经从概念验证走向成熟，
 实质上将 GPT 系列和 o 系列合二为一。
 
@@ -1448,11 +1565,40 @@ Claude Opus 4.6 在 SWE-bench Verified 上
 使推理时缩放从“全有或全无”
 变成了连续可调的维度。
 
+\textbf{Claude Opus 4.7}（2026 年 4 月 16 日）~\cite{anthropicopus47}
+是 4.6 之后的下一代旗舰，model ID \texttt{claude-opus-4-7}，
+同日 GA 上 Anthropic API、Bedrock、Vertex AI 与 Microsoft Foundry。
+SWE-bench Verified \textbf{从 80.8\% 跃升至 87.6\%}，
+SWE-bench Pro \textbf{从 53.4\% 跃升至 64.3\%}（公开模型第一），
+OSWorld-Verified 78\%、Terminal-Bench 2.0 69.4\%、MCP-Atlas 77.3\%。
+Anthropic 自己评价这是「自 Sonnet 3.5 以来最大单代 coding 跃升」。
+4.7 引入了三个产品级特性：
+（1）介于 high 与 max 之间的 \texttt{xhigh} reasoning effort——
+让推理时缩放从三档变成四档；
+（2）\textbf{task budgets} beta（HTTP header \texttt{task-budgets-2026-03-13}），
+开发者可在单一 API 调用中设置「该任务最多花多少 token / 多少美元」，
+是 thinking budget 思路从「单次推理」延伸到「整个 agent 任务」的版本；
+（3）重构 tokenizer，对相同输入 token 数会比 4.6 多出 0\% 到 35\%——
+官方建议在算成本时按 1.0--1.35 的系数估算。
+图像分辨率上限也从 4.6 的 1568 px 提升到 \textbf{2576 px / 3.75 MP}。
+定价维持 \$5/\$25 per MTok，1M 上下文。
+
+更引人注目的是 Anthropic 同期透露了内部模型
+\textbf{Claude Mythos Preview}~\cite{anthropicmythos}：
+SWE-bench Verified 93.9\%、Terminal-Bench 2.0 82\%、OSWorld-Verified 79.6\%，
+仅对 Project Glasswing 联盟成员开放。
+Anthropic 评估它「过于强大、暂不公开发布」，
+为外界第一次提供了一条真正的 frontier 上限参考线——
+公开 GA 与内部最强之间的 gap，约相当于 6\%--10\% 的 SWE-bench Verified 分数。
+
 Anthropic 在 Agent 领域的领先
 不仅体现在模型能力上，
 更体现在工具生态上：
 Claude Code + Agent SDK + MCP 构成了
-目前最完整的 Agent 开发技术栈。
+目前最完整的 Agent 开发技术栈，
+4 月一个月内 Claude Code 又连发了约十个版本（v2.1.108--117，详见前节），
+\texttt{/ultrareview}（云端多 Agent 代码审查）
+是\textbf{三 Agent 模式（Planner/Generator/Evaluator）首次以一级斜杠命令形态落到产品层}。
 
 \subsection{Google：推理优先的 Gemini 3.1}
 
@@ -1471,6 +1617,47 @@ Google 在 Agent 领域的独特优势是
 全栈由 Google 自研。
 这种整合在企业级 Agent 部署中
 提供了竞争对手难以匹配的端到端体验。
+
+\subsection{2026-04 季度终结的 SOTA 一览}
+
+到 4 月 26 日为止，旗舰对照可以汇成一张表。
+最显眼的两个事实：
+（1）Claude Opus~4.7、GPT-5.4、Gemini~3.1~Pro 在 AAII 上\textbf{并列 57}~\cite{datalearner2026aaii}，
+GPQA Diamond 三方都在 94.2--94.4\% 区间饱和；
+（2）Anthropic 内部的 Claude Mythos Preview~\cite{anthropicmythos}
+比公开 GA 高出 6--10pp，
+是当前可量化的「frontier 真实上限 vs 公开上限」差距。
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.3}
+\caption{2026-04-26 主要 benchmark SOTA}\label{tab:sota-2026-04}
+\begin{tabularx}{\linewidth}{l l l l}
+\toprule
+\rowcolor{figLightGray}
+\textbf{Benchmark} & \textbf{SOTA} & \textbf{模型} & \textbf{日期} \\
+\midrule
+SWE-bench Verified（内部） & 93.9\% & Claude Mythos Preview & 2026-04-07 \\
+SWE-bench Verified（公开 GA） & 87.6\% & Claude Opus 4.7 & 2026-04-16 \\
+SWE-bench Pro & 64.3\% & Claude Opus 4.7 & 2026-04-16 \\
+Terminal-Bench 2.0（内部） & 82\% & Claude Mythos Preview & -- \\
+Terminal-Bench 2.0（公开） & 82.7\% & GPT-5.5 & 2026-04-23 \\
+OSWorld-Verified（内部） & 79.6\% & Claude Mythos Preview & -- \\
+OSWorld-Verified（公开） & 78.0\% & Claude Opus 4.7 & 2026-04-16 \\
+BrowseComp & 89.3\% & GPT-5.4 & 2026-03-05 \\
+MCP-Atlas & 77.3\% & Claude Opus 4.7 & 2026-04-16 \\
+GPQA Diamond & 94.4\% & GPT-5.4 (≈Opus 4.7 94.2 / Gemini 3.1 94.3) & 2026 \\
+Aider Polyglot & 89.4\% & Claude Opus 4.5 & -- \\
+CursorBench & 61.3 & Composer 2 & 2026-03-19 \\
+AAII（综合） & 57 & Opus 4.7 / GPT-5.4 / Gemini 3.1 Pro 三方并列 & 2026-04 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{超越人类基线的 OSWorld}：4 月底，OSWorld-Verified 的人类基线 72.4\%
+已被 GPT-5.4（75\%）和 Opus 4.7（78\%）双双越过。
+Computer-Use agent 在桌面级别第一次出现「平均强于人类」的旗舰模型，
+这是 SWE-bench 80\% 之后第二个真正越界的 agent 基准。
 
 
 \section{多 Agent 系统的成熟}
@@ -2670,15 +2857,34 @@ MCP 的 Elicitation URL 模式
 自动检测的准确率远低于 100\%。
 
 
-\section{结语：100 天改变了什么}
+\section{结语：150 天改变了什么}
 
-从 2025 年 12 月到 2026 年 3 月 20 日，
-这 100 天改变了 AI 行业的几个基本假设。
+从 2025 年 12 月到 2026 年 4 月 26 日，
+这 150 天改变了 AI 行业的几个基本假设。
+
+\textbf{2026 年 4 月时间轴补遗}。
+3 月之后这一个月的节奏并未减速，反而加快：
+\textbf{4-2} Cursor 3 + Cognition SWE-1.6 预热（4-7 正式发布）；
+\textbf{4-7} Claude Mythos Preview 内部上线（93.9\% SWE-bench Verified 数据流出）~\cite{anthropicmythos}；
+\textbf{4-8} Meta Muse Spark；
+\textbf{4-13} Figure 03 在 BMW Spartanburg 部署满 10 个月、生产 30K+ X3~\cite{figure032026}；
+\textbf{4-14} Claude Code 桌面应用重设计 + v2.1.108；
+\textbf{4-15}「Agent IDE 哥本哈根时刻」——
+OpenAI Agents SDK 升级、Cursor Canvases 与 Windsurf 2.0（含 Devin in Windsurf）同日发布；
+\textbf{4-16} Claude Opus 4.7~\cite{anthropicopus47} + Claude Code v2.1.111（\texttt{/ultrareview}、\texttt{xhigh}）；
+\textbf{4-17} Qwen3.6-35B-A3B 开源~\cite{qwen36moe}；
+\textbf{4-22} Claude Code v2.1.117 + ChatGPT Workspace Agents~\cite{openaigpt54}；
+\textbf{4-23} GPT-5.5（Terminal-Bench 2.0 82.7\%）；
+\textbf{4-24} DeepSeek V4 Preview 发布~\cite{deepseekv4}——
+Q1 一切「抢跑」的目标终于亮相，
+1.6T / 49B 活跃成为最大的开源权重模型，
+官方自评落后 frontier 闭源 3--6 个月。
 
 \textbf{Agent 不再是未来技术}。
 Claude Code 的 80,200+ GitHub stars、
 每周百万级的 Codex CLI 用户、
-SWE-bench 接近 80\% 的解决率，
+SWE-bench Verified \textbf{87.6\% 公开 / 93.9\% 内部}的解决率
+（Claude Opus 4.7 / Mythos Preview），
 这些数字表明 Agent 已经从实验室走向了
 开发者的日常工作流。
 
@@ -2705,10 +2911,11 @@ MoE 架构的效率革命、
 这些力量共同将 frontier 级推理
 推入了“商品化”区间。
 
-这 100 天只是开始。
-DeepSeek V4 预计于 2026 年 4 月发布，
-MCP Dev Summit 定于 4 月 2--3 日在纽约举行，
+这 150 天只是开始。
+DeepSeek V4 已于 4 月 24 日如期发布，
+MCP Dev Summit 已在 4 月 2--3 日于纽约举行，
 NVIDIA Vera Rubin 将在年内量产，
+旗舰阵营出现 AAII 三方并列 57 的局面，
 竞争的烈度只会继续加剧。
 
 \textbf{基础设施层的整合正在加速}。
@@ -2788,7 +2995,7 @@ EU AI Act 的 GPAI 条款
 这个愿景距离完全实现还很远，
 可靠性差距、安全挑战和信任建设
 都是需要数年工程积累才能克服的障碍。
-但 2025 年 12 月到 2026 年 3 月这 100 天的进展
+但 2025 年 12 月到 2026 年 4 月这 150 天的进展
 已经证明了一件事：
 \textbf{这个方向是正确的}。
 

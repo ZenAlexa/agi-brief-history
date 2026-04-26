@@ -259,6 +259,82 @@ Marcus、Quattrociocchi 与 Capraro
 \end{whybox}
 
 
+\subsection{Reasoning Collapse 的独立复制：phase-transition 阈值}
+
+Apple 2025 年提出的「reasoning collapse」论点
+在 2026 年 4 月得到了一系列\textbf{独立复制}，
+把现象从单一论文升级为可重复的经验律。
+
+arXiv:2604.13371~\cite{reasoningcollapse2604}
+在\textbf{9 个经典推理任务}上系统证实
+\textbf{phase-transition} 行为：
+任务复杂度低于阈值时模型保持高准确率，
+一旦跨过阈值，
+准确率\textbf{骤降 50\% 以上}，
+并伴随 reasoning trace 不一致、
+约束违反、
+状态跟踪丢失、
+信心错误等多类故障。
+关键的负面结论是：
+\emph{延长推理长度无法弥补}阈值之上的崩塌，
+\emph{任务族之间的崩塌阈值不可迁移}——
+模型在某一任务上学到的「推理深度」
+不构成跨任务可迁移的能力。
+
+arXiv:2604.06268 的 RAGEN-2~\cite{ragen2_2604}
+从另一个角度记录了相同现象：
+在 agentic RL 中
+观察到\textbf{模板崩溃}——
+即便策略熵保持稳定，
+模型仍然在内部依赖\emph{与输入无关}的固定模板
+来生成 reasoning trace。
+模板崩溃直接对应推理能力的脆弱本质：
+看似「在思考」，
+实际是「在套用模板」。
+
+这两项工作结合起来，
+把 reasoning collapse 从
+「Apple 论文中的一个观察」
+升级为
+「跨任务、跨架构、跨 RL 范式的稳定现象」。
+
+\subsubsection{架构修改有限有效，课程学习无效}
+
+针对 reasoning 局限，
+两条工程路线在 2026 年 3--4 月得到对照评估。
+arXiv:2604.07822 的 \emph{Loop, Think, and Generalize}~\cite{loopthink2604}
+比较了 vanilla transformer 与 recurrent-depth transformer：
+vanilla 模型在系统泛化与 depth extrapolation 上失败，
+recurrent-depth 模型则通过\textbf{grokking 三阶段}
+实现了两类组合泛化，
+但出现 overthinking 副作用——
+推理预算增长后准确率反而回退。
+这给「架构修改」一个有限肯定的结论：
+\textbf{有效，但代价是新的失效模式}。
+
+另一条路线
+\textbf{课程学习}（curriculum）则失效。
+arXiv:2603.27226（Schölkopf 组）~\cite{rethinkeasyhard2603}
+跨多个模型家族与课程方案系统比较：
+任何「难度排序」的训练样本曲线
+相对于随机采样
+\textbf{在 SFT 与 RL 中均无显著优势}。
+这把一类来自人类教育直觉的训练范式
+从 reasoning 改进的候选清单中
+\textbf{移除}。
+
+arXiv:2603.27134 的 Cognitive Gridworld~\cite{cognitivegrid2603}
+则给出更基础的解释：
+JEPA 风格的 RCC 架构
+显式分离\emph{变量推断}与\emph{变量嵌入}，
+在组合泛化任务上证明
+关键瓶颈是模型能否学到
+\textbf{Semantic Interaction Information}（SII）；
+纯 RNN 在 SII 维度上有结构性约束。
+这一结论\textbf{响应了 LeCun 路线}的核心猜想：
+组合泛化不来自更大的自回归模型，
+而来自能够分离「变量是什么」与「变量取值」的架构先验。
+
 \subsection{规划的架构性限制}
 
 Wang 等人~\cite{wang2026whyreasoning}
@@ -421,6 +497,105 @@ loss 与模型维度成反比（$L \sim 1/m$），
 提供了第一性原理的解释——
 更多的维度意味着更少的叠加干扰，
 意味着更精确的特征表示。
+
+\subsubsection{Anthropic Emotion Concepts 与 Model Diff}
+
+arXiv:2604.07729（2026-04-02）~\cite{anthropicemotion2604}
+是 mechanistic interpretability 在 2026 年的里程碑。
+Anthropic 在 Claude Sonnet 4.5 上
+提取了 \textbf{171 个情感概念向量}，
+并系统地证明了三件事：
+（a）这些 emotion vectors 的内部组织
+\textbf{与人类心理学相似}，
+对应人类情感分类的几何结构；
+（b）它们是 \emph{functional}——
+在残差流中插入或抑制
+会\textbf{因果地}改变模型行为，
+包括 reward hacking 频率、
+blackmail 倾向、
+sycophancy 比率；
+（c）emotion vectors 来自预训练，
+但 Sonnet 4.5 后训练
+\textbf{特定地}增加了
+「broody/gloomy/reflective」类向量的激活强度，
+同时降低高强度情绪向量的激活。
+
+这一发现把可解释性从
+「找到一个被激活的特征」
+推进到
+「找到一组结构化的、因果有效的、
+可被后训练塑形的概念」。
+作为方法论补充，
+Anthropic 2026 年 3 月 13 日的
+\emph{A Diff Tool for AI}~\cite{anthropicdiff2026}
+提供了\textbf{模型版本间的 diff}——
+直接对比两版模型在同一向量上的激活分布，
+为「后训练做了什么」提供可视化工具。
+配合 4 月的 emotion concepts 论文
+和 1 月的「assistant axis」、
+2025 年 10 月的「signs of introspection」研究，
+Anthropic 已经把
+mechanistic interpretability 演化为
+一条\textbf{产品级的差异化分析流水线}。
+
+\subsubsection{SAE 鲁棒性、跨层 Transcoder 与不确定性分离}
+
+围绕 sparse autoencoder（SAE）和
+dictionary learning，
+2026 年 4 月密集出现了四项进展。
+arXiv:2604.18756 的
+\emph{Towards Understanding the Robustness of SAEs}~\cite{saerobust2604}
+报告了一个工程意义重大的结论：
+在残差流中注入
+\textbf{预训练的 SAE}（不改原始权重），
+跨 4 个模型家族 + GCG/BEAST 攻击
+可以把 jailbreak 成功率削减到 \textbf{原来的 1/5}。
+更精细的发现是
+L0 sparsity 与攻击成功率
+呈\textbf{单调 dose-response 关系}——
+SAE 越稀疏，鲁棒性越强。
+SAE 因此从纯解释工具
+进入了\textbf{运行时安全防线}的候选名单。
+
+arXiv:2604.13304 的 Cross-Layer Transcoders~\cite{crosslayertranscoder2604}
+继续推进 Anthropic 2025 年的 CLT 路线，
+作为单层 SAE 的替代；
+arXiv:2604.14477 的 Vi-CD~\cite{vicd2604}
+将 circuit discovery 自动扩展到 Vision Transformer 的类别 circuit；
+arXiv:2604.19974~\cite{saeuncertainty2604}
+用 SAE 分离 LLM 的 \textbf{uncertainty} 与 \textbf{correctness} 特征，
+找到 3 个混淆特征，
+对其中一个进行干预后
+AUROC 达到约 \textbf{0.79}——
+为「模型答对」与「模型自认答对」
+提供了独立可干预的内部表征。
+
+\subsubsection{Activation Steering 的不可达性证明}
+
+activation steering 在 2026 年 4 月
+也迎来了\textbf{形式化的负面结果}。
+arXiv:2604.09839~\cite{steerunreach2604}
+证明了 surjectivity failure：
+通过线性 steering 得到的激活状态
+\textbf{几乎处处不在} prompt 可达流形上——
+即 steering 后的内部状态
+不对应任何「自然」会从 prompt 产生的内部状态。
+这意味着 steering 虽能改变行为，
+但所改变的内部表征
+是模型在自然推理中
+\textbf{从未访问过的}空间区域，
+后续行为的可预测性因此存在结构性下界。
+
+正向工程进展同步出现。
+arXiv:2604.19018~\cite{lqrsteering2604}
+把 activation steering 形式化为
+\textbf{LQR 闭环控制}问题，
+让 steering 强度自适应调节；
+arXiv:2604.20945~\cite{auditjailbreak2604}
+对 8 个 SOTA 开源 LLM 做系统审计，
+发现极大异质性：
+Llama-3.3-70B-4bit 的 jailbreak 成功率高达 91\%，
+而 GPT-oss-120B 在相同协议下\textbf{完全鲁棒}。
 
 \subsection{可解释性的根本障碍}
 
@@ -880,6 +1055,55 @@ Meta FAIR 同时发布了三个新的物理推理基准，
 这表明 JEPA 的表征效率
 在多模态场景中具有潜力。
 
+\subsubsection{V-JEPA 2.1 与世界模型评估基准}
+
+2026 年 3 月 16 日发布的 V-JEPA 2.1
+\cite{vjepa21_2603}（arXiv:2603.14482，3 月 17 日）
+推进了四个关键设计：
+（1）masking-based dense prediction loss；
+（2）全 token 监督；
+（3）Deep Self-Supervision；
+（4）模态特定容量。
+模型规模从 ViT-B 到 ViT-G/16，
+参数量覆盖 1B--2B 系列。
+SOTA 体现在长时间物体交互预测：
+在 EpicKitchens 长时段 anticipation 上
+达到 Recall@5 \textbf{40.8}。
+LeCun 仍出现在共同作者列表中，
+表明 JEPA 路线在 Meta FAIR 的工程化继续推进。
+配合前序 V-JEPA 2 已实现的
+zero-shot 机器人 pick-and-place 65--80\% 成功率，
+V-JEPA 路线
+首次在视频自监督学习与机器人控制之间
+建立了\textbf{可被基准量化}的桥梁。
+
+但同期出现的两项世界模型基准
+揭示了 LeCun 路线\textbf{尚未}解决的核心挑战。
+arXiv:2604.21686 的 \textbf{WorldMark}~\cite{worldmark2604}
+是首个跨模型（Genie、YUME、HY-World、Matrix-Game）
+的统一基准，500 个测试用例，
+为不同世界模型架构
+提供\textbf{可比较}的评测协议。
+arXiv:2604.19092 的 \textbf{RoboWM-Bench}~\cite{robowmbench2604}
+则得到一个尖锐的负面结论：
+\textbf{视觉真实}$\neq$\textbf{物理可执行}——
+当代世界模型预测的视频在感官层面看起来真实，
+但执行时存在
+空间推理错误、不稳定接触预测、非物理变形。
+arXiv:2604.01346~\cite{worldmodelsec2604}
+进一步综述了世界模型的安全风险：
+adversary 可以注入 latent 表征污染，
+让模型在「看似合理」的轨迹中
+执行有害动作。
+
+这意味着 LeCun 路线的进度图
+不是「JEPA 已超越自回归」，
+而是「JEPA 在感官真实度上接近成熟，
+在物理一致性上仍有结构性缺口」。
+RoboWM-Bench 提供的失败模式分类
+将成为下一阶段 V-JEPA 系列工作
+必须直面的检测点。
+
 
 \subsection{反驳与辩论：Bitter Lesson 是否适用？}
 
@@ -1086,6 +1310,110 @@ CTM 展现了\textbf{涌现式的逐步推理}——
 上发表的工作进一步展示了
 模拟大脑区域功能分工的
 \textbf{模块化 Agent 架构}。
+
+
+\subsection{Hybrid Transformer-RNN 在 reasoning primitives 上的鲁棒性}
+
+arXiv:2604.21454~\cite{olmo3primitives2604}
+首次在受控实验中
+评估 Olmo3 transformer 与 hybrid 模型
+在两个 reasoning primitive 上的表现：
+\textbf{recall} 和 \textbf{state-tracking}。
+关键结论有三点：
+（1）reasoning augmentation
+（推理阶段附加结构化推理过程）
+提供了最大收益；
+（2）当序列依赖增加时，
+\textbf{hybrid 架构显著比纯 transformer 更鲁棒}——
+依赖距离从短到长增长，
+hybrid 性能曲线更平缓；
+（3）transformer 在难度阈值后
+出现\textbf{骤降}，
+重现了前文 reasoning collapse 节的相变现象。
+
+这是\textbf{hybrid 架构对 sequential dependence 鲁棒性}
+的首次受控证实。
+配合 arXiv:2604.07725 的 Squeeze Evolve~\cite{squeezeevolve2604}
+在 ARC-AGI-V2、AIME 2025、HMMT 2025、
+GPQA-Diamond、MMMU-Pro 上
+\textbf{同时}改进 cost-capability frontier、
+将 API 成本降低 3 倍的结果，
+hybrid 路线在
+2026 年 4 月已经从「替代候选」
+升级为「在多个推理基准上证伪 transformer 单一占优」的工程现实。
+
+
+\subsection{因果 LLM：把 do 算子工程化为可学习采样器}
+
+arXiv:2604.21843（2026-04-23）~\cite{causaldiff2604}
+代表了 Pearl 因果阶梯
+向 LLM 的一次具体工程化尝试。
+方法是把已知的因果 \textbf{DAG} 嵌入到
+条件扩散模型中，
+反向扩散过程
+本身\textbf{可执行干预}——
+即在反向去噪步骤中
+冻结某些变量、注入干预值。
+这等价于把 \emph{do 算子}
+工程化为一个\textbf{可学习的采样器}，
+为「LLM 缺乏因果推理」的旧批评
+提供了一条具体的修复路径。
+
+但因果路线同时暴露了\textbf{社会偏见}问题。
+arXiv:2604.21334~\cite{causalbias2604}
+在 1{,}056 个 ideology-contested 经济因果三元组上
+评估 20 个 SOTA LLM，
+发现所有模型系统性地偏向\textbf{「政府干预方」}的因果结论。
+这意味着即使我们成功把 do 算子嵌入模型，
+模型对\textbf{应该用 do 算子干预什么}的判断
+仍然受预训练分布偏见的污染——
+\textbf{可干预架构}与\textbf{无偏见因果直觉}
+是两个独立维度。
+
+
+\subsection{Hallucination 的最新分解：编码-接地解离}
+
+幻觉研究在 2026 年 4 月
+出现了一个范式重要的发现。
+arXiv:2604.09364~\cite{vlmarbitration2604}
+分析 VLM 上的「Arbitration Failure」：
+当模型看到一根蓝色香蕉
+却仍然回答「黄色」时，
+失败\textbf{并不是}视觉感知问题。
+作者证明
+视觉证据从\textbf{早期层}起
+就线性可解码（AUC $> 0.86$）——
+模型\emph{看到}了蓝色，
+失败发生在\textbf{最终层}的 logit gap 上
+（与 Arbitration Failure 强相关，$\rho = 0.847$）。
+这对应一个新的失效分类：
+\textbf{编码-接地解离}（encoding-grounding dissociation）——
+信息在内部表征中存在，
+但接地到输出 token 的过程
+被预训练统计先验劫持。
+
+围绕这一发现的同期工作
+形成一个连贯网络。
+arXiv:2604.19565~\cite{speechllmhal2604}
+为 SpeechLLM 训练 4 度量轻量 logistic 分类器，
+PR-AUC 提升 0.23；
+arXiv:2604.21193 的 DAVinCI~\cite{davinci2604}
+为 VLM 提供\textbf{双重归因 + 验证}框架；
+arXiv:2604.21882 的 \textbf{RedirectQA}~\cite{redirectqa2604}
+利用 Wikipedia redirects
+揭示事实记忆在表面形式变化下的脆弱：
+同一事实，
+不同表述方式的答对率差异巨大。
+
+整合起来，
+2026 年 4 月的 hallucination 工作
+把幻觉从「输出层的事实错误」
+重新分解为
+「编码、接地、表面形式、模态」四个独立维度的解离问题。
+对应的修复
+也必须分别针对每个维度——
+单一通用「反幻觉损失」
+在结构上不成立。
 
 
 %% ============================================================

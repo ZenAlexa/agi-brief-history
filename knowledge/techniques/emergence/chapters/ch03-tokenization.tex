@@ -818,6 +818,42 @@ Chinese-LLaMA~\cite{cui2024llama} 是这种方法的典型案例。它在 LLaMA 
 
 这种方法的局限性在于：追加的 token 的嵌入质量取决于 continual pre-training 的数据量和质量。如果 continual pre-training 的数据量不够大，新 token 的嵌入可能不够稳定，这实际上就是 glitch token 问题的一种温和形式。经验法则是：每个新增 token 至少需要在 continual pre-training 中出现 $10^5$ 次以上才能形成稳定的嵌入。
 
+\subsubsection{KazByte：哈萨克语的「tokenizer tax」与字节级适配}
+
+低资源语言被多语言分词器征收的「税」
+往往要等到一个具体语言的 fertility 被定量测量出来才会被严肃对待。
+2026 年 3 月发表的 \textbf{KazByte}~\cite{tursynbek2026kazbyte}
+是其中一个典型样本。
+研究者发现 Qwen2.5-7B
+把哈萨克语切成的 token 数
+\textbf{远超英语等价文本}：
+同样信息量的段落，
+哈萨克语版本比英语版本多消耗数倍 token，
+推理成本、上下文窗口利用率
+都因此承受额外的「tokenizer tax」。
+
+KazByte 的方案是
+\textbf{冻结 Qwen 主体不动}，
+在前面接一个小型 adapter：
+adapter 把哈萨克语字节流
+重新映射到 Qwen 的内部表示空间，
+然后只对 attention 层做轻量微调。
+整个流程不重训分词器、不扩词表，
+也不需要大规模的哈萨克语预训练语料。
+对哈萨克语用户来说，
+这相当于在保留 Qwen 全部英语/中文能力的同时
+取消了多语言分词器对哈萨克语的隐性歧视。
+
+KazByte 的更广义启示是：
+当多语言 tokenizer 对某个低资源语言天然不友好时，
+最现实的修复路径不一定是「重训一个公平的分词器」
+（这往往要求该语言社区拿出 frontier 级别的算力），
+而是\textbf{在字节层接一个轻量适配器}，
+让模型绕开 tokenizer 的偏见去重新读取该语言。
+这与本章前文讨论的字节级建模思路在精神上完全一致：
+字节是所有语言的公约数，
+任何 tokenizer 偏见都可以在字节层被回滚。
+
 \subsection{如何构建多语言友好的分词器}
 
 面对上述挑战，现代多语言分词器采用了几种关键策略：
@@ -1626,6 +1662,50 @@ BLT 证明了字节级模型的可行性不再是理论上的。
 这个方向值得密切关注。
 \end{corebox}
 
+\subsubsection{ByteFlow Net：第二代字节级模型}
+
+2026 年 3 月 Amazon 发布的 \textbf{ByteFlow Net}~\cite{amazon2026byteflow}
+把字节级建模推向了真正端到端的形态。
+BLT 的 patch 边界由独立训练的字节级熵模型给出，
+是一种「先训熵模型、再用全局阈值切分」的两阶段流水线；
+ByteFlow Net 则取消了这个外部依赖，
+直接在原始字节流上学习语义有意义的分块边界。
+
+ByteFlow Net 的核心创新是
+用\textbf{潜在表示的 coding rate}
+（描述一组向量在嵌入空间中所占的「编码体积」）
+作为分块准则：
+当连续若干字节的潜在表示已经
+能被一个紧凑的子空间充分覆盖时，
+就在该位置切分，开始新的 patch。
+为了保持静态计算图，
+ByteFlow Net 在每一步用 Top-K 选择
+而非阈值比较来决定边界——
+这避免了动态形状带来的工程复杂度，
+让字节级 patch 机制可以直接复用现有的 Transformer 编译器栈。
+
+BLT 与 ByteFlow Net 的关键差异在于：
+BLT 的熵模型是\textbf{静态}的（训练完即冻结），
+全局阈值在数据分布漂移时未必最优；
+ByteFlow Net 的 coding rate 信号
+完全由当前模型的内部表示给出，
+对输入自适应、对训练动态自适应。
+在公开的 FLOP 控制对比中，
+ByteFlow Net 同时超过了
+基于 BPE 的标准 Transformer
+和 BLT 风格的两阶段字节级 baseline，
+且差距在长尾、罕见模式上最显著。
+
+ByteFlow Net 的意义并非又一次单点性能提升，
+而是把字节级模型的工程门槛压低到了
+与基于 token 模型可比的水平：
+没有独立的熵模型要训练、
+没有需要调的全局阈值、
+没有需要兼容动态形状的特殊编译器。
+若这条路线得到验证，
+\textbf{字节级模型可能在 2026--2027 年间
+首次具备替代 BPE 的实用条件}。
+
 \subsubsection{字节级模型的前景评估}
 
 截至 2026 年 3 月，字节级模型仍处于「概念验证」到「早期实用」的过渡阶段。以下几个因素将决定它们能否在未来取代 BPE：
@@ -1730,6 +1810,45 @@ UniTok 的核心创新是在训练视觉分词器时
 而是用一个统一的分词器覆盖所有需求。
 % NEW REF: ma2025unitok = Ma, Chuofan and Jiang, Yi and Wu, Junfeng and Yang, Jihan and Yu, Xin and Yuan, Zehuan and Peng, Bingyue and Qi, Xiaojuan. UniTok: a Unified Tokenizer for Visual Generation and Understanding. In NeurIPS, 2025.
 
+\subsubsection{LongCat-Next：DiNA 与 dNaViT 的统一离散空间}
+
+2026 年 4 月美团开源的 \textbf{LongCat-Next}~\cite{meituan2026longcatnext}
+把统一 tokenizer 路线推进到了一个新阶段。
+它建立在 \textbf{DiNA}（Discrete Native Autoregressive）框架之上：
+文本、视觉、音频被映射到同一个离散 token 空间，
+所有模态共用同一个 next-token prediction 目标进行训练。
+
+LongCat-Next 的核心组件是 \textbf{dNaViT}——
+一个支持任意分辨率的视觉 tokenizer 与 de-tokenizer。
+传统 ViT 系列的视觉编码器
+要么把输入压成固定 patch 网格、
+要么把图像缩放到训练分辨率，
+两种做法都会对长宽比和细节分布造成失真。
+dNaViT 直接处理原生分辨率的视觉信号，
+将其编码为\textbf{分层离散 token}：
+全局结构用稀疏的低层 token 表示，
+细节区域用密集的高层 token 表示，
+然后由同一个 Transformer 在 token 级别解释它们。
+
+LongCat-Next 试图解决统一 tokenizer 此前的两个长期痛点。
+第一是\textbf{离散视觉建模在理解任务上的性能上限}。
+Chameleon 等早期工作虽然实现了文本与图像的统一离散建模，
+但在视觉理解基准上长期落后于 CLIP/SigLIP 风格的连续编码器；
+dNaViT 的分层离散设计在不放弃统一空间的前提下
+重新拉近了与连续编码器的差距。
+第二是\textbf{理解与生成之间的内在冲突}。
+理解偏好语义抽象的 token，
+生成偏好像素重建保真的 token，
+UniTok 通过双目标训练做了一种妥协；
+LongCat-Next 则通过分层 token 自然地把两种需求分配到不同层级。
+
+把这条路线放到历史脉络中看：
+Chameleon（2024）证明了文本与图像可以共享离散空间，
+AnyGPT（2024）把这个空间扩展到了音频，
+LongCat-Next 是这条路线在 2026 年最重要的延续，
+它标志着「统一 tokenizer」
+从概念验证走向了工程上可复现的开源基线。
+
 \subsubsection{音频和视频的分词}
 
 音频和视频的分词也在快速发展。
@@ -1763,6 +1882,71 @@ SPHINX（2024）和 LLaVA-Next 等工作开始探索
 信息密度低的区域分配更少 token。
 这种做法与 BLT 在文本上的动态 patch 策略异曲同工：
 \textbf{计算资源应该根据内容复杂度动态分配}。
+
+\subsubsection{音乐 tokenizer 的个性化：Suno v5.5}
+
+音乐生成长期被视作多模态 tokenizer 的一个独立分支。
+2026 年 3 月 26 日发布的 \textbf{Suno v5.5}~\cite{suno2026v55}
+把这个分支的产品形态推到了一个新阶段。
+v5.5 的三项核心更新都直接作用在「音乐 token 的个性化」上。
+\textbf{Voices} 允许 Pro/Premier 用户上传自己的声音作为生成条件，
+为防止滥用，
+开放使用前需要朗读一段验证短语。
+\textbf{Custom Models} 让每位 Premier 用户最多保留 3 个个性化的 v5.5 实例，
+每个实例都可以在自己的训练样本上微调音乐 tokenizer 与生成头。
+\textbf{My Taste} 则是一个偏好学习层，
+通过用户对生成结果的隐性反馈
+持续调整解码策略。
+
+时长约束同样在演进。
+单次生成的最长时长在 v5 上是 8 分钟，
+Premier 订阅可通过链式扩展把单首作品延长到 12 分钟以上。
+版权方面，
+Warner Music 已在 2025 年 11 月与 Suno 和解，
+Sony 与 Universal 仍在诉讼中——
+这意味着「音乐 tokenizer 的训练数据是否合法」
+仍是一个未决问题。
+
+把 Suno v5.5 放到本章脉络中看，
+它示范了「tokenizer 个性化」的工程含义：
+当一个模态的离散 token 空间
+已经稳定到可以做产品化时，
+下一阶段的差异化竞争
+不再发生在 tokenizer 本身的算法层，
+而发生在「让 tokenizer 学会用户偏好」的接口层。
+这条规律对未来的图像、视频生成产品同样适用。
+
+\subsubsection{ByteDance Omni 与 Context Unrolling：五模态联合预训练}
+
+2026 年 4 月 23 日 ByteDance 发布的 \textbf{Omni}~\cite{bytedance2026omni}
+把「统一离散空间」的范畴推到了五种模态：
+text、image、video、3D-geometry、hidden-representation。
+最后一项尤其值得注意——
+模型自身的隐藏表示也被视作一种可被 tokenize 的模态，
+这意味着上一轮推理的中间状态
+可以作为下一轮推理的条件输入，
+而无需写回自然语言。
+
+Omni 的方法学贡献是 \textbf{Context Unrolling}。
+传统多模态模型在产生预测前
+通常只做一次前向传播，
+跨模态推理被压缩进单层注意力的隐式过程；
+Context Unrolling 则强制模型在产生预测前
+\textbf{显式地、多步地跨多个模态表征做推理}，
+每一步推理都会把当前结论以新 token 的形式追加到上下文。
+这种「思考链发生在 token 层」的设计
+让多模态推理的中间过程可观察、可复用、可被外部工具介入。
+
+把 LongCat-Next 与 Omni 放到一起，
+2026 年的统一 tokenizer 路线已经分化为两条主线。
+LongCat-Next 强调
+\textbf{tokenizer 本身的统一}——
+让所有模态共享同一个离散字母表；
+Omni 强调
+\textbf{推理过程的统一}——
+让所有模态共享同一个 unrolled 推理协议。
+这两条路线并不互斥，
+预计未来 12--18 个月会出现把两者合并的工作。
 
 \subsection{VQ-VAE 的训练细节}
 
@@ -1911,6 +2095,51 @@ BLT 的动态 patch 分割是自适应分词的一种形式，它根据内容复
 而无需进行完整的重新训练：
 这对于需要持续跟踪前沿发展的应用场景
 （如科研助手、技术文档检索）尤其有吸引力。
+
+\subsubsection{字节级蒸馏：跨 tokenizer 的知识迁移}
+
+分词器一旦被 BPE 锁死，
+另一个长期被回避的问题是
+\textbf{跨 tokenizer 的知识蒸馏}。
+当教师模型（如 GPT-4 风格的 200K 词表）
+和学生模型（如 LLaMA 系列的 128K 词表）
+使用不同的分词器时，
+两者的输出 logits 不在同一个概率单形上，
+无法直接做 KL 散度对齐。
+过去的解决方案大多是
+在 token 序列层面做启发式对齐
+（动态规划匹配公共子串、
+近似投影到学生词表等），
+工程复杂且容易在边界 token 上失真。
+
+2026 年 4 月 MediaTek Research 与 UCL 提出的
+\textbf{Byte-Level Distillation}（BLD）~\cite{liu2026bld}
+给出了一个干净得多的方案：
+用\textbf{字节级接口}作为公共底层。
+具体做法是
+把教师模型在每一步输出的
+token 概率分布转换为字节级概率，
+然后给学生模型加一个轻量的字节级 decoder head，
+让学生在字节空间复现教师的字节级条件分布。
+教师的 token 化方案、词表大小、特殊 token 集合
+对学生完全透明——
+学生只需要看见「下一个字节的概率」。
+
+BLD 在 1B--8B 范围的实验中
+匹配甚至超过了
+此前最复杂的启发式 token 对齐基线，
+而代码量、超参数数量都大幅下降。
+更重要的是它给出了一个简洁的概念结论：
+\textbf{字节级是跨 tokenizer 知识迁移的天然公约数}。
+任何两个 UTF-8 兼容的语言模型，
+不论词表如何，
+都共享同一个字节空间；
+只要愿意把对齐目标下沉到这一层，
+跨 tokenizer 的训练信号就总能流通。
+对开源社区而言，
+这意味着不再被「教师与学生必须共用 tokenizer」
+这一隐性约束绑住手脚——
+任何强模型都可以作为蒸馏来源。
 
 \subsection{可学习的分词}
 

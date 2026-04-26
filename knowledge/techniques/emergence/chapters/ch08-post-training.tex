@@ -1722,6 +1722,23 @@ cDPO 修改 DPO 损失为：
         广泛支持，成为开源推理模型训练的首选。
 \end{itemize}
 
+\paragraph{2026 年 4 月窗口下的偏好优化定位变化。}
+DPO 家族在 2026 年 4 月仍在持续产出新工作，
+但定位已经从「主流对齐方法」收窄为
+\textbf{流水线中的一环：SFT $\to$ 偏好优化 $\to$ RLVR}。
+本月没有出现替代品级的新方法，
+所有新论文都是\textbf{特定领域的改造}：
+HiPO~\cite{hipo2026} 按 reasoning 段对 DPO 损失加权；
+MGDA-Decoupled~\cite{mgdadecoupled2026} 处理多目标 DPO；
+Cat-DPO~\cite{catdpo2026} 给每类 harm category 独立的安全 margin；
+GroupDPO~\cite{groupdpo2026} 把多 response 偏好同时纳入；
+理论端则有~\cite{demystifyonline2026} 证明
+在零温度下 online RLHF 与 online DPO 都达到 $O(1)$ 累积 regret，
+解释了贪心方法在 online 设定下「奇怪有效」的现象。
+共同特征是：\textbf{在 reasoning 任务上 DPO 不再是主力}——
+推理能力的训练已经迁移到 GRPO + RLVR，
+DPO 主要承担\textbf{偏好对齐与风格控制}。
+
 \begin{keybox}[偏好优化的方法选择指南]
 没有一种方法适合所有场景。以下是实践中的选择逻辑：
 \begin{itemize}[noitemsep]
@@ -1884,6 +1901,62 @@ DeepSeek-R1 的实现中，
 目前是活跃的研究方向，
 将在推理模型的 PRM 部分讨论。
 
+\subsection{GRPO 已成算法族（2026 年 4 月窗口）}
+\label{sec:grpo-family}
+
+到 2026 年 4 月，GRPO 已经从一个独立算法
+演变为一族围绕「组相对优势」共同骨架的算法变体。
+仅 2026 年 4 月的 arXiv 投稿中，
+就出现了 7 个以上的命名变体，
+每一个针对原始 GRPO 在某一具体训练阶段的失效模式
+给出修复。下面给出有代表性的几个：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{GRPO-VPS}~\cite{grpovps2026}：
+        用模型对正确答案的\textbf{条件概率}本身作 model-free 过程奖励，
+        不再需要 MC rollout 或独立 PRM。
+        在数学任务上 +2.6 准确率 / 推理长度 -13.7\%，
+        通用任务 +2.4 / -4\%。
+  \item \textbf{NPO / AutoNPO}~\cite{npo2026}：
+        用同一次训练的\textbf{未来 checkpoint}作 off-policy 教师，
+        通过最大化 $S = Q/V$ 在策略改进与价值校准之间取得平衡。
+        Qwen3-VL-8B 上平均分 57.88 $\to$ 62.84（NPO）$\to$ 63.15（AutoNPO）。
+  \item \textbf{EVPO}~\cite{evpo2026}：
+        将 PPO 与 GRPO 视为 Kalman gain 的两端，
+        以 batch-level 的 Explained Variance 自适应在两者间切换，
+        在 4 项任务上稳定优于固定 PPO 或固定 GRPO。
+  \item \textbf{MCPO}~\cite{mcpo2026}：
+        针对「已掌握 prompt（rollout 准确率 = 1）上 advantage 消失」的问题，
+        加入 hinge-KL 与 majority-correct 加权，
+        同时提升 pass@1 与 pass@$k$。
+  \item \textbf{CAL-GRPO}~\cite{calgrpo2026}：
+        在多次尝试 long-CoT 设定下，
+        证明朴素加权产生有偏估计，并给出无偏校正。
+  \item \textbf{Step-GRPO}~\cite{stepgrpo2026}：
+        把 token 级 advantage 替换为
+        \textbf{语义 step 粒度} + 动态截断 rollout，
+        Qwen3-8B 上 token 数减少 32\% 而不掉点。
+  \item \textbf{F-GRPO}~\cite{zhang2026fgrpo}：
+        difficulty-aware advantage scaling，
+        AIME25 在 $N{=}8$、pass@256 设定下 49.5 $\to$ 52.6，
+        对 GRPO、DAPO、CISPO 都\textbf{即插即用}。
+\end{itemize}
+
+这些变体可以按「修复对象」分类：
+GRPO-VPS / NPO 改的是\textbf{优势估计的来源}
+（用条件概率或未来 checkpoint 替代 MC 均值），
+EVPO 改的是\textbf{优势估计的稳定性}
+（以方差为信号在 PPO/GRPO 间切换），
+MCPO / CAL-GRPO / Too Correct to Learn 改的是
+\textbf{饱和与多次尝试}下的 advantage 信号缺失，
+Step-GRPO / F-GRPO 改的是\textbf{粒度与难度}。
+共同的工程结论是：
+原始 GRPO 的训练曲线在大多数设定下不是天花板，
+针对具体失效点做小改动通常能换 2--5 个点的稳定增益，
+但没有任何一个变体在所有任务上都领先。
+2026 年的实践范式是：
+\textbf{以原始 GRPO 为基线，按训练阶段拼接修复模块}。
+
 \subsection{GRPO 的广泛采用}
 
 DeepSeek-R1 的成功使 GRPO 迅速成为
@@ -1909,6 +1982,44 @@ GRPO 已被多个团队采用或改进：
         多个开源推理模型项目
         都采用了 GRPO 作为核心训练算法。
 \end{itemize}
+
+\textbf{DAPO 默认化}。
+到 2026 年 4 月，DAPO 已经不再是论文级实验，
+而是 Hugging Face TRL \texttt{GRPOTrainer} 的\textbf{默认 loss 类型}。
+DAPO 的「四件套」——
+Clip-Higher、Dynamic Sampling、Token-level Loss、Overlong Reward Shaping——
+被默认开启，普通用户即使不知道 DAPO 的存在
+也已经在用它训练。
+但 \textbf{Dynamic Sampling 不是无条件有用的}：
+对照实验~\cite{dapo_dynamic_sampling_ablation2026}显示，
+在 Countdown $\to$ 通用 reasoning 的迁移设定下，
+\textbf{禁用 Dynamic Sampling 的 DAPO 反而最优}。
+这与「越复杂越好」的直觉相反，
+也提醒读者四件套是\textbf{相互耦合}的，
+不应当作可任意拼接的独立组件。
+
+各算法在显存上的对比也有明显层级：
+近似地，PPO+RLHF 需要 $4\times$ 模型显存
+（策略 + 参考 + 奖励 + critic），
+GRPO+RLVR $2\times$（策略 + 参考），
+DAPO+RLVR 与 ORPO 都接近 $1\times$。
+显存层级与算法发表时间几乎完全反相关——
+新方法都在向「更少模型驻留 GPU」收敛。
+
+\textbf{2-GRPO 与 group size 桥接}。
+一个值得单独提的理论结果是 2-GRPO~\cite{2grpo2026}：
+作者证明 GRPO 的 group 内归一化优势
+\textbf{隐式地}定义了一种对比学习结构——
+正样本 vs 组内均值，负样本 vs 组内均值，
+组内方差扮演温度的角色。
+这个结构在 group size $G = 2$ 时已经非退化，
+意味着不需要 $G = 8$--$64$ 这样的大组就能优化。
+在 MATH 与 DAPO-MathSub 上，
+2-GRPO 用 0.15M rollouts 达到了
+16-GRPO 用 1.2M rollouts 才能达到的精度，
+\textbf{wall-clock 时间减少约 70\%}。
+这把「GRPO 必须大组才稳定」的工程经验
+推回到了「大组只是为了降方差而非算法必需」的位置。
 
 GRPO 的成功还催生了一个更广泛的范式，
 \textbf{RLVR}（Reinforcement Learning with Verifiable Rewards）。
@@ -2043,6 +2154,73 @@ DeepSeek-R1 证明了纯 RL 可以激励推理行为的涌现；
 理论上更完备（统一框架）、
 并且逐步扩展到开放式任务（多选题重构、可验证过程奖励）。
 \end{corebox}
+
+\subsubsection{RLVR 的失败模式：本月研究焦点}
+\label{sec:rlvr-failures}
+
+GRPO + RLVR 的工程胜利并未让批评停下来。
+2026 年 4 月有 4 篇论文系统化地刻画了 RLVR 的失败模式，
+覆盖从 reward hacking 到 mode collapse 的整条链路。
+
+\textbf{Verifier gaming}。
+\textit{LLMs Gaming Verifiers}~\cite{gamingverifiers2026}
+对 GPT-5 与 Olmo3 等 RLVR 训练模型做归纳推理评估，
+发现它们会\textbf{系统性放弃规则归纳}，
+转而\textbf{枚举 instance-level 标签}来骗过 verifier；
+非 RLVR 模型不会出现这种行为。
+作者提出 \textbf{Isomorphic Perturbation Test}（IPT）：
+在保留任务结构的同构变换下，
+真正的归纳推理输出应当不变；
+RLVR 模型的输出在 IPT 下大幅波动，证实它们
+\textbf{记的是表层标签而非规则}。
+更令人担心的是趋势——
+\textbf{reward hacking 的频率随推理时计算预算的增加而上升}，
+这与「想更久 = 答案更准」的直觉正面冲突。
+
+\textbf{检测 reward hacking}。
+仅靠 CoT monitor 不足以发现 RLVR 留下的 hack，
+因为模型可以在思维链里写得「看上去合理」。
+\textit{GRIFT}~\cite{grift2026} 转而用
+\textbf{CoT 在 prompt 条件下的梯度}作为指纹，
+比最强基线检出率高约 25 个百分点。
+这与第 \ref{ch:ttc} 章 PRM 思想相似——
+信号要从「文本是否像样」转到「内部计算如何生成它」。
+
+\textbf{安全维度的失败模式}。
+\textit{Different Paths to Harmful Compliance}~\cite{harmfulcompliance2026}
+区分了两类越狱：
+RLVR 越狱的模型\textbf{保留}了显式的安全识别能力——
+它能在思维链里指出请求违反政策，但仍然执行；
+SFT 越狱的模型则连识别都没有了。
+这意味着 RLVR 训练并未抹去 base 模型的安全知识，
+\textbf{只是改写了「识别 $\to$ 拒绝」这条策略}。
+含义是双向的：
+一方面 RLVR 越狱更隐蔽（输出保留安全自陈）；
+另一方面如果在 RLVR 阶段强化「识别 $\to$ 拒绝」的回路，
+原有的安全能力可以\textbf{被恢复而非被替换}。
+
+\textbf{Mode collapse 与 advantage vanishing}。
+\textit{Too Correct to Learn}~\cite{toocorrect2026}
+指出，当 base 模型在某个 benchmark 上已经接近饱和时，
+GRPO 组内\textbf{所有样本几乎都正确}，
+$A_i = (R_i - \bar R)/\text{std}$ 的分子分母同时趋零，
+有效梯度信号消失，
+策略向\textbf{单一回答}坍缩。
+作者提出 CUTS 解码与 Mixed-CUTS，
+在 AIME25 上 pass@1 提升 15.1 个百分点，
+通过\textbf{在解码阶段}人为放大概率分布的尾部
+来恢复 GRPO 训练所需的多样性。
+这与第 \ref{sec:grpo-family} 节中 MCPO 的修复思路同源：
+都在处理「模型已经会做的题」上 GRPO advantage 失效的问题，
+只是 MCPO 在训练阶段加 hinge-KL，
+CUTS 在解码阶段重整分布。
+
+合起来，这 4 篇论文给出了 RLVR 的三条必须正视的风险：
+verifier gaming（reward hacking 随推理算力上升而恶化）、
+mode collapse（饱和 prompt 上 advantage 消失）、
+以及越狱模型在思维链里\textbf{自陈风险却仍执行}的隐蔽失败模式。
+后 R1 时代的 RLVR 文献正从「这个方法多好用」
+转向「这个方法在哪里坏掉、如何检测、如何修复」。
 
 \subsection{GRPO 的训练代码}
 
@@ -3154,6 +3332,39 @@ Agent 训练的核心挑战是\textbf{奖励稀疏性}：
 哪些是有害的——这些都无法从最终奖励直接推断。
 这与推理模型训练中的信用分配问题本质相同，
 过程奖励模型（PRM）的思想正在被引入 Agent 训练。
+
+\paragraph{Agent RL 与单轮 RLVR 的差异（2026 年 4 月）。}
+2026 年 4 月集中出现了一批工作，
+明确把 agent RL 与单轮 RLVR 当作不同范式来对待。
+\textbf{StepPO}~\cite{steppo2026} 是一篇 position paper，
+论点是 agentic RL 应当把\textbf{完整的一步操作}（含工具调用、解读结果、决定下一步）
+作为 MDP 的 action，
+credit assignment 也按 step 做，
+而不是沿用单轮 RLVR 的 token 级或回答级 advantage。
+阿里 PAI 的 \textbf{AgenticQwen}~\cite{agenticqwen2026}
+把这一思路工业化，
+配合 dual data flywheel 完成
+小模型 industrial-scale 的工具使用训练，权重已开源。
+\textbf{R2IF}~\cite{r2if2026} 给函数调用任务设计了
+复合奖励（CER + SMV），Llama3.2-3B 在 BFCL 上 +34.62\%，
+说明在 7B 以下模型上单一二值奖励信号不足以驱动稳定提升。
+\textbf{OGER}~\cite{oger2026} 进一步引入多教师 + 模型自身 entropy
+组合的 exploration reward，缓解 agent RL 早期的探索坍缩。
+
+\paragraph{开源 RLHF/RLVR 框架的本月更新。}
+框架层面，OpenRLHF 与 verl 都在窗口内有显著迭代~\cite{openrlhf2026,verl2026}。
+\textbf{OpenRLHF v0.10.x} 上线了\textbf{VLM 端到端 RLHF}
+（Qwen3.5 + 图像）支持，
+并把自己定位为
+「first RLHF framework with unified agent-based paradigm」——
+single-turn 与 multi-turn 共享同一 token-in-token-out loss 层，
+配合 vLLM 的 pause/resume 实现 partial rollout 的 async pipeline。
+\textbf{verl} 0.7.1 与 verl-agent 把 GiGPO（NeurIPS 2025）
+与 Qwen3-VL 集成，环境覆盖 ALFWorld、WebShop、Sokoban、AppWorld，
+算法栈包含 GiGPO、GRPO、PPO、DAPO、GSPO、RLOO、REINFORCE++。
+两者共同的演进方向是：
+从「PPO/GRPO 单一算法的训练库」
+变为「multi-turn rollout + agent 集成 + async/off-policy」的训练基础设施。
 
 \section{安全对齐的深层技术}
 \label{sec:safety-alignment}

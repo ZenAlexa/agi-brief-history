@@ -541,6 +541,29 @@ GQA 在质量和效率之间找到了最优平衡，
 LLaMA 3 使用 $h = 32, g = 4$（即 8 组 KV 头），
 DeepSeek-V2 则走得更远，采用了 MLA（下文详述）。
 
+\textbf{2025--2026 年的"可训练稀疏注意力"三件套}
+则把焦点从"减少 KV 头数"
+转向"减少参与计算的 KV token 数"。
+DeepSeek 的 NSA~\cite{yuan2025nsa}
+用粗粒度块压缩 + 块级选择 + 滑动窗口三分支，
+在 64K 序列上把 forward 加速 9$\times$、
+backward 加速 6$\times$。
+Moonshot 的 MoBA~\cite{moba2025}
+把 MoE 风格的无参 top-$k$ 门控直接搬到注意力上，
+让 query 自己挑选 KV 块——
+Llama-3.1-8B-1M-MoBA 实测稀疏度达到 95.31\%，
+是 Kimi 生产长上下文请求的实际后端。
+DeepSeek V3.2 的 DSA~\cite{dsa2025}
+则把这条路推到产品级：
+FP8 lightning indexer 给历史 token 打分，
+fine-grained 选 top-2048 KV，
+注意力复杂度从 $O(L^2)$ 降到 $O(Lk)$，
+vLLM 在发布日就完成 day-0 集成，
+直接拉低了 API 价格 50\% 以上。
+NSA、MoBA、DSA 三条路线
+共同把"稀疏注意力"从推理后端的工程 trick
+升级为预训练时即可学习的一等架构。
+
 \subsection{滑动窗口注意力}
 
 标准注意力让每个 token 关注序列中的所有 token，
@@ -616,6 +639,33 @@ $\phi(\cdot)$ 近似 softmax 中的指数函数：
 正是建立在线性注意力与 SSM 之间的数学对偶性上。
 从这个意义上说，线性注意力不是失败的尝试，
 而是通向高效序列建模的理论桥梁。
+
+\textbf{AdaSplash-2}~\cite{adasplash22026}（2026 年 4 月）
+在另一条"可微稀疏"路线上取得了关键进展：
+让 $\alpha$-entmax 注意力\textbf{首次在 wall-clock 上匹配}
+FlashAttention-2。
+$\alpha$-entmax 是 softmax 的一个广义化，
+通过控制熵参数可以让输出的注意力分布
+\textbf{严格稀疏}（精确为零，而非近似为零）：
+这使得稀疏度本身成为一个可微参数，
+模型可以\textbf{学到}该看哪些 token，
+而非靠固定块结构（如 NSA 的窗口）人为切。
+长期以来 entmax 因为求解归一化常数 $\tau$
+需要迭代，性能远不如 FA2，
+被局限在小规模研究。
+AdaSplash-2 的核心 trick 是
+\textbf{on-the-fly 直方图初始化}——
+利用上一步的解作为下一步的 warm start，
+把 $\tau$ 的迭代次数压到 1--2 次。
+当 block sparsity 超过 60\%
+（长上下文场景几乎总是如此）时，
+AdaSplash-2 的 per-step 时间
+匹配甚至优于 FlashAttention-2，
+把"输入相关的稀疏度"从理论玩具
+变成了生产级方案。
+它与 NSA 形成了清晰对照：
+NSA 是固定块结构 + 端到端训练，
+AdaSplash-2 是\textbf{学习得到的稀疏模式} + 可微归一化。
 
 \subsection{注意力变体的统一视角}
 
@@ -934,6 +984,67 @@ RoPE 的 $\theta_{\mathrm{base}}$ 选择是一个重要的超参数。
 然后在长上下文微调阶段通过 NTK-aware 或 YaRN 方法扩展。
 这种两阶段策略在 LLaMA 3 和 Qwen 2.5 中都被验证有效。
 \end{corebox}
+
+\subsubsection{RoPE 与 SSM 的等价性}
+
+2026 年 3 月发布的 Mamba-3~\cite{mamba32026}
+给出了一个重要的理论统一：
+\textbf{复值 SSM 等价于一种 data-dependent 的 RoPE}。
+具体而言，将 SSM 的状态转移矩阵 $\bar A$
+推广到复数域，
+并把每个频率分量对应的相位
+设为依赖于当前输入的函数，
+其离散递推的展开形式
+就还原为一个对 query/key 的旋转操作——
+只是旋转角度不再是 $m\theta_i$ 的固定形式，
+而是由输入动态决定的相位序列。
+
+这个等价性在两个方向上都很有启发。
+一方面，它解释了 RoPE 为什么有效：
+RoPE 实际上是\textbf{固定 $\bar A$ 的复值 SSM 的特例}，
+注意力中的位置编码可以看作一个被丢弃了状态变量、
+仅保留相位的"退化 SSM"。
+另一方面，它指出了 SSM 设计的新方向：
+把 RoPE 中精心调过的频率谱
+（如 LLaMA 3 的 $\theta_{\mathrm{base}}=500{,}000$、
+YaRN 的频率分段）
+直接迁移到 SSM 的初始化中，
+作为长程衰减的几何先验。
+
+Mamba-3 在 1.5B 参数规模下利用这种统一观点
+设计了 exponential-trapezoidal 离散化与 MIMO 更新，
+配合"5 层 Mamba-3 + 1 层 NoPE 注意力"的混合栈，
+在 H100 上跨 prefill 和 decode 全长序列区间
+都比纯 Transformer（vLLM 实现）和 Mamba-2 更快~\cite{mamba3hybridtogether2026}。
+SSM 中的 NoPE 注意力层不再需要显式位置编码，
+位置信息已经被 SSM 子层隐式编码进了状态轨迹。
+
+\subsubsection{RoPE 的位置鲁棒性}
+
+LLaMA-3-8B、Qwen-3-4B 等使用 RoPE 的开源模型
+在 RULER 等长上下文检索基准上有一个共同弱点：
+\textbf{对证据 token 的"绝对位置"高度敏感}。
+将同一段证据放在 32K 上下文的不同位置，
+答案的正确率可以相差几十个百分点。
+微软团队在
+\textit{Shuffle the Context}~\cite{ropePerturbedSelfDistill2026}
+中把这种现象归因于
+长上下文微调时模型只见过有限的位置-内容组合，
+RoPE 的旋转相位与训练样本的位置分布之间
+形成了过强的耦合。
+
+他们的解法是\textbf{RoPE-Perturbed Self-Distillation}：
+在训练时对同一段输入构造两个视图——
+原始 RoPE 索引与扰动后的 RoPE 索引——
+让模型在两种视图下的预测互为蒸馏目标，
+强迫输出对位置扰动保持一致。
+这只增加少量额外计算，
+但在 Llama-3-8B 上 RULER-64K 提升 12.04 个百分点，
+Qwen-3-4B 上 RULER-256K 提升 2.71 个百分点，
+同时改善了对超出训练长度的外推。
+位置鲁棒性因此被列为 PI/YaRN/LongRoPE 之后
+RoPE 外推的第四类方法：
+不再修改频率，而在训练侧加正则。
 
 \section{前馈网络与激活函数}
 
@@ -1709,6 +1820,76 @@ DeepSeek 的解决方案是对 RoPE 部分单独处理：
 但确保了位置信息的完整性。
 \end{warnbox}
 
+\subsection{MLA 之后：LCA / DSA / NSMLA / V4 的 CSA+HCA}
+
+MLA 给出了一个清晰的方向——
+把注意力计算搬到低维潜空间里去做——
+2025--2026 年沿这条路出现了一系列继任者，
+它们或者把 MLA 的潜空间与稀疏检索结合，
+或者把可训练的稀疏 indexer 加到 MLA 之外，
+或者干脆把"压缩"维度推到极致。
+
+\textbf{LCA}（Latent-Condensed Attention）
+~\cite{lca2026}
+保持 MLA 的低维 KV 不变，
+在 MLA 的潜空间内
+做一次\textbf{query-aware 的上下文凝聚}：
+用聚合分支收集语义内容、
+用 anchor 分支保留位置信息，
+理论上给出 length-independent 的误差界。
+128K 上下文中 prefill 提速 2.5$\times$、
+KV cache 再减 90\%，
+并且和 GQA 兼容。
+LCA 把 MLA 推进的方向是\textbf{进一步向下压}，
+而不是横向引入稀疏性。
+
+\textbf{DSA}（DeepSeek Sparse Attention，DeepSeek V3.2）~\cite{dsa2025}
+则正好相反：
+它保留 MLA，再叠加一层可训练的
+\textbf{lightning indexer}——
+一个 FP8、少头的轻量打分器，
+为每个 query 选 top-2048 KV。
+注意力复杂度从 $O(L^2)$ 降到 $O(Lk)$，
+vLLM 在发布日（2025-09-29）就完成 day-0 集成，
+是首个真正进入生产的可训练稀疏注意力。
+工程上的微妙之处是：
+DSA 的 indexer 与 MLA 主体使用\textbf{不同的 RoPE layout}，
+两者的 paged attention 缓存必须独立维护。
+
+\textbf{NSMLA}（Natively-Sparse MLA）~\cite{nsmla2026}
+解决 DSA 的另一半遗留问题——
+DSA 的 indexer 是\textbf{推理时}插入的稀疏头，
+不能从随机权重直接预训练。
+NSMLA 把 indexer 改写成原生形态加入预训练 forward，
+TileLang 写训练 kernel，
+训练完成后再"折叠"为推理用的 lightning indexer，
+这样 vLLM 推理路径完全不变。
+它把"trainable sparse attention 第一次产品化"
+进一步推到"trainable sparse attention 第一次预训练化"。
+
+到了 \textbf{DeepSeek V4}~\cite{deepseekv4preview2026}
+（2026 年 4 月预览：V4-Pro 1.6T/49B、V4-Flash 284B/13B），
+注意力被拆成层间交错的三种类型：
+\textbf{CSA}（Compressed Sparse Attention）
+先沿序列维压缩 KV，
+再在压缩后的表示上做 top-$k$ 稀疏选择；
+\textbf{HCA}（Heavily Compressed Attention）
+做更激进的全局压缩，
+近乎只保留语义骨架；
+配合滑动窗口层处理局部依赖。
+在原生 1M 上下文下，
+相对 V3.2 的 MLA+DSA 配置，
+V4-Pro 的 per-token 推理 FLOPs 降低 73\%、
+KV cache 降低 90\%；
+V4-Pro 也成为当前最大的开源权重模型
+（>Kimi K2.6 的 1.04T、>GLM-5.1 的 754B），
+权重以 MIT 协议放出。
+从 MLA 到 LCA、DSA、NSMLA、再到 CSA+HCA 的演进
+显示出同一个方向上的两个相互正交的进步：
+\textbf{压缩}（潜空间向下走）
+与 \textbf{稀疏}（KV token 数横向减少）
+正在被同时榨干。
+
 \section{mHC：流形约束超连接}
 \label{sec:mhc}
 
@@ -2364,27 +2545,46 @@ Nathan Lambert 在 2026 年 3 月的分析中指出：
 
 \subsubsection{Mamba-3：推理优先的 SSM}
 
-2026 年初，Tri Dao 和 Albert Gu 等人发表了 Mamba-3，
-获选 ICLR 2026 Oral 论文。
+2026 年 3 月，Tri Dao 和 Albert Gu 等人发表了
+Mamba-3~\cite{mamba32026}（ICLR 2026 Oral，arXiv:2603.15569）。
 Mamba-3 提出了“推理优先”（inference-first）的 SSM 设计哲学，
 围绕三项关键改进重新设计了 SSM 的核心计算：
 
 \begin{itemize}[noitemsep]
-  \item \textbf{改进的离散化}（improved discretization）：
-        更精确地将连续时间动力系统映射到离散递归形式，
-        减少了离散化引入的近似误差
-  \item \textbf{复数动力学}（complex dynamics）：
-        在复数域上定义状态转移矩阵 $\bar{A}$，
-        使模型能够捕捉振荡模式和周期性依赖：
-        这在实数域中难以高效表达
+  \item \textbf{exponential-trapezoidal 离散化}：
+        改进梯形数值积分方案，
+        把连续时间动力系统更精确地映射到离散递推，
+        减少 zero-order hold 等老式离散化的累计误差
+  \item \textbf{复值 SSM = data-dependent RoPE}（重大理论统一）：
+        当状态转移矩阵 $\bar{A}$ 取值于复数域、
+        各特征值相位由当前输入动态生成时，
+        SSM 等价于一种数据相关的 RoPE，
+        \textbf{把注意力的位置编码与 SSM 的状态演化}统一在同一个数学框架下
   \item \textbf{MIMO 更新}（Multiple-Input Multiple-Output）：
         允许多个输入通道同时更新多个输出通道，
-        突破了 Mamba-1/2 中 SISO 结构的表达瓶颈
+        提升 decoding 的 arithmetic intensity，
+        突破 Mamba-1/2 中 SISO 结构的表达瓶颈
 \end{itemize}
 
-Mamba-3 保持了 SSM 的核心优势：
-\textbf{线性计算复杂度和恒定内存占用}，
-同时在语言建模质量上进一步缩小了与 Transformer 的差距。
+实测层面，Mamba-3 在 1.5B 规模上
+比 Gated DeltaNet 平均提升 0.6 个百分点，
+MIMO 再额外贡献 1.2 个百分点（合计 +1.8pp），
+parity 任务正确率达到 100\%（Mamba-2 完全失败），
+state size 减半仍维持 Mamba-2 的困惑度。
+mamba 仓库已合并 \texttt{mamba3.py}。
+
+更值得注意的是它确立的\textbf{混合栈范式}：
+Together AI 与论文同期的博文~\cite{mamba3hybridtogether2026} 报告，
+"\textbf{每 5 层 Mamba-3 + 1 层 NoPE 自注意力}"
+是当前最佳的混合配比——
+在 H100、batch=128、1.5B 配置下，
+跨 prefill 和 decode 的全 sequence 区间，
+该混合栈\textbf{快于 Mamba-2、Gated DeltaNet，
+甚至快于 vLLM 上的纯 Transformer}，
+且在真实 retrieval 与 needle-in-a-haystack 上
+同时优于纯 Transformer 与纯 SSM。
+这是"5+1 hybrid"作为继 Jamba 1:7 和稍后 3:1 之后
+的又一个独立收敛点（参见 Ch06）。
 其“推理优先”的设计理念意味着
 架构选择从一开始就面向高效推理场景优化，
 而非先追求训练性能再做推理适配。
@@ -2797,6 +2997,17 @@ SwiGLU 的三个矩阵配合门控机制工作。
 %% --- ADDED 2026-03-12 ---
 %% mhc2025 = DeepSeek-AI. "Manifold-Constrained Hyper-Connections." arXiv:2512.24880, December 2025.
 %% nexus2025 = Huawei. "Nexus: Higher-Order Attention via Recursive Framework." arXiv:2512.03377, December 2025.
+%%
+%% --- ADDED 2026-04-26 (monthly update) ---
+%% deepseekv4preview2026 = DeepSeek-AI. "DeepSeek V4 Preview: CSA + HCA at 1.6T/49B and 284B/13B." DeepSeek API release notes, April 2026. https://api-docs.deepseek.com/news/news260424
+%% mamba32026 = Gu, Albert; Dao, Tri; et al. "Mamba-3: A Reasoning-Inspired State Space Model." ICLR 2026 Oral. arXiv:2603.15569.
+%% mamba3hybridtogether2026 = Together AI. "Mamba-3: Beyond the Limits of Transformers." Together AI Blog, 2026-03-17.
+%% lca2026 = Anonymous. "Latent-Condensed Attention: Length-Independent Long-Context Inference." arXiv:2604.12452, 2026.
+%% ropePerturbedSelfDistill2026 = Microsoft Research. "Shuffle the Context: RoPE-Perturbed Self-Distillation for Long-Context Robustness." arXiv:2604.14339, 2026.
+%% adasplash22026 = AdaSplash-2 Authors. "AdaSplash-2: alpha-entmax Sparse Attention Matching FlashAttention-2." arXiv:2604.15180, 2026.
+%% moba2025 = Moonshot AI. "MoBA: Mixture of Block Attention for Long-Context LLMs." arXiv:2502.13189, 2025.
+%% dsa2025 = DeepSeek-AI. "DeepSeek V3.2-Exp Technical Report (DSA: Lightning Indexer + top-2048 KV)." 2025-09-29.
+%% nsmla2026 = Anonymous. "NSMLA: Natively-Sparse MLA from Scratch." OpenReview r9xDZJgIKk, 2026 (under review).
 %%
 %% --- ADDED in ch02 expansion ---
 %% sanford2023representational = Sanford, Clayton et al. "Representational Strengths and Limitations of Transformers." NeurIPS 2023.

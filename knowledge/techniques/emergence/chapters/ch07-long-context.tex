@@ -534,6 +534,52 @@ Dynamic NTK 几乎不影响前 $L$ 个 token 的表示质量，
 位置编码扩展方法，
 尽管它在极端扩展比例下效果不如 YaRN。
 
+\subsection{训练侧正则化：Shuffle the Context 与 Phase-wise RoPE 缩放}
+\label{sec:rope-train-reg}
+
+PI、YaRN、LongRoPE 这条线本质上是\textbf{推理时的频率操控}，
+不改变训练目标。
+2026 年第二季度出现的两项工作
+把视角从推理侧转回\textbf{训练侧}，
+通过正则化和阶段化训练
+让模型本身就具备更好的长度外推能力。
+
+\textbf{Shuffle the Context}（RoPE-Perturbed Self-Distillation）
+~\cite{shuffle2026}（arXiv:2604.14339，Microsoft，2026-04-15）
+的关键 trick 是\textbf{用 RoPE 扰动构造两个视图}：
+对同一段长文本，分别用原始 RoPE 和扰动后的 RoPE
+（如随机偏移 base 频率、或对部分维度做 shuffle）
+跑两次前向，
+然后用自蒸馏 loss 强迫两个视图的输出 logits 一致。
+这个设计的直觉是：
+\textbf{如果模型真正"理解"了内容，
+那么任何合理的位置编码扰动都不应改变它的回答}。
+扰动一致性约束让模型把推理能力从特定 RoPE 角度中解耦。
+实测：Llama-3-8B 在 RULER-64K 上
+\textbf{+12.04\%}；Qwen-3-4B 在 RULER-256K 上 \textbf{+2.71\%}。
+
+\textbf{Short Data, Long Context}~\cite{shortdatalongctx2026}
+（arXiv:2604.06070，Meta，2026-04-07）
+解决的是另一个工程痛点：
+\textbf{真长样本稀缺且昂贵}。
+长文档训练数据的获取成本远高于短样本，
+且大部分长样本是低质量拼接。
+论文提出 \textbf{Phase-wise RoPE scaling}——
+每个训练阶段最大化对应频率段的 rotational spectrum 利用率，
+配合 logit-based KD（用强短上下文模型作 teacher）
+\textbf{仅用打包短样本}就能迁移长上下文检索能力。
+论文还首次给出可视化：
+位置扰动如何通过 q/k → 后续 transformer layer
+→ output logits 系统传播。
+这一发现让"短数据训长上下文"
+从经验技巧变为可量化的训练策略。
+
+两条工作给 RoPE 外推带来一个新的思路框架：
+PI/YaRN/LongRoPE 通过\textbf{推理时频率重映射}让模型勉强外推，
+Shuffle/Short-Data 通过\textbf{训练时正则化}
+让模型从一开始就对长度具有鲁棒性。
+两者正交可叠加。
+
 \section{iRoPE：Meta 的交替架构}
 
 LLaMA 4 引入了更激进的方案，iRoPE（interleaved RoPE）。
@@ -624,11 +670,23 @@ Scout 的 10M token 上下文窗口（约 15,000 页文本）
 NoPE 层提供了「免费」的上下文扩展空间，
 RoPE 层通过频率调整处理位置敏感的注意力模式。
 
-在 LLaMA 4 的具体实现中~\cite{meta2025llama4}，
+在 LLaMA 4 的具体实现中~\cite{meta2025llama4,llama4irope2026}，
 iRoPE 的交替模式并非简单的 1:1 交替。
 Meta 发现不同的交替比例适合不同的模型规模，
 Scout 和 Maverick 使用了针对各自专家数量和模型规模
 优化的交替策略。
+Scout 的具体配置是\textbf{每 4 层中前 3 层为 RoPE + chunked attention}
+（每个 token 仅看本地 8192 token 的窗口），
+\textbf{第 4 层为 NoPE + full causal attention}（看完整序列），
+循环堆叠——75\% 的层只看 8K 局部窗口，
+25\% 的层周期性扫全文。
+为防止极长序列下 softmax 分布塌缩，
+NoPE 层在推理时采用 \textbf{Scalable Softmax}
+（SSMax）~\cite{nakanishi2025ssmax} 的温度缩放策略，
+让注意力权重在 1M+ 序列长度下仍保持合理的尖锐度。
+这一组合（NoPE + SSMax + chunked RoPE）
+将 NoPE 论文（Kazemnejad 2023）~\cite{kazemnejad2023nope}
+从研究 curiosity 推到了工业模型的首个大规模实现。
 
 iRoPE 还与 LLaMA 4 的其他架构创新协同工作：
 \begin{itemize}[noitemsep]
@@ -704,10 +762,179 @@ LLaMA 4 在发布后收到了一些社区反馈：
 虽然 10M token 的上下文窗口在 NIAH 等检索测试上表现优秀，
 但在需要\textbf{深度推理}的长上下文任务上，
 实际有效利用的上下文长度远低于标称值。
+2026 年的多项独立评测显示~\cite{llama4irope2026}，
+Scout 在大约 \textbf{300K token} 的综合任务上即出现明显退化，
+所谓“10M 上下文”更多是 NIAH 级别的“硬塞得下”，
+远未达到“读得懂”。
 这再次验证了「标称上下文长度 $\neq$ 有效上下文长度」的原则。
 此外，Behemoth 模型截至 2026 年初仍未正式发布，
 社区对其实际性能持审慎态度。
 \end{warnbox}
+
+\section{NoPE 路线：从研究 curiosity 到主流配置}
+\label{sec:nope-route}
+
+NoPE 在 2023 年提出时~\cite{kazemnejad2023nope}
+被视为一个反直觉的研究 curiosity：
+Kazemnejad 等证明了
+\textbf{decoder-only 模型仅靠 causal mask 就能学到位置},
+不需要任何显式的位置编码（不需要 RoPE，不需要 ALiBi，不需要任何东西）。
+原因在于 causal mask 本身就携带顺序信息——
+位置 $t$ 的 token 知道自己只能看见 $1$ 到 $t-1$ 的 token，
+这种"可见性梯度"足以让自注意力学到隐式的相对位置。
+
+2025--2026 年的工业实践证明，
+NoPE 不仅可行，而且在长上下文外推上反而\textbf{更优}。
+原因是显式位置编码（如 RoPE）在外推到训练分布之外时
+会产生角度漂移，
+而 NoPE 没有这种漂移源。
+两个旗舰应用同时把 NoPE 推向主流：
+\begin{itemize}[noitemsep]
+  \item \textbf{Llama 4 Scout/Maverick 的 iRoPE}~\cite{llama4irope2026}：
+        每 4 层中第 4 层用 NoPE + full causal attention，
+        前 3 层用 RoPE + chunked attention，
+        在 8K 局部 + 周期性全局之间寻得平衡
+  \item \textbf{Mamba-3 hybrid}~\cite{mamba3hybrid2026}：
+        每 5 层 SSM 插 1 层 NoPE Self-Attention。
+        SSM 的递归状态已经隐式编码顺序，
+        attention 层只需做内容匹配，不需要位置信号
+\end{itemize}
+
+NoPE 在长序列上的一个工程问题是 softmax 塌缩：
+随序列长度增加，注意力权重被稀释到接近均匀，
+任何一个 token 都拿不到足够的注意力质量。
+\textbf{Scalable Softmax}（SSMax，Nakanishi 2025）
+~\cite{nakanishi2025ssmax}
+通过推理时温度缩放
+（softmax 分母乘以 $\log_n s$ 形式的因子）
+把注意力分布重新拉回尖锐区间，
+成为 NoPE 在 1M+ 序列上的标准稳定剂。
+SSMax 的存在让"NoPE 在 10M 序列上仍能正常 attend"
+从理论可能变为生产现实。
+
+NoPE 的产业意义远不止"少做一件事"。
+它把\textbf{位置编码的扩展难题}（PI、YaRN、LongRoPE 这条线）
+从工业模型的关键路径上移除：
+只要 NoPE 层占足够比例，
+模型就天然支持任意长度外推，
+不再需要为每个新长度调整 RoPE base 频率。
+2026 年初，多个前沿团队的内部实验已证实
+\textbf{纯 NoPE 也可训}（小规模上 NoPE 与 RoPE 性能持平甚至更优），
+唯一限制是缺少大规模 SOTA 验证——
+而 Llama 4 + Mamba-3 已经从两个不同方向给出了肯定答案。
+
+\section{DeepSeek 稀疏注意力演进：NSA $\to$ MoBA $\to$ DSA $\to$ NSMLA $\to$ V4}
+\label{sec:deepseek-sparse-attention}
+
+如果说 RoPE 外推是长上下文的"位置编码主线"，
+那么稀疏注意力就是\textbf{算力主线}：
+注意力的 $O(n^2)$ 是 KV cache 之外的另一只"长上下文野兽"，
+1M token 在密集 attention 上意味着 $10^{12}$ 次 dot product。
+2025 年初到 2026 年中，DeepSeek 沿着稀疏注意力一条线走了 5 步，
+从 NSA 的"训练-推理一致稀疏"
+到 V4 的"CSA + HCA + SWA 三层混合"，
+把可训练稀疏注意力从论文推进到旗舰生产。
+
+\textbf{NSA}（Native Sparse Attention，arXiv:2502.11089）
+~\cite{nsa2025} 是 2025 年 2 月的奠基之作，
+也是首个在大规模训练中证明
+\textbf{稀疏注意力可以端到端训练}的工作。
+NSA 的设计三件套：
+（1）\textbf{coarse-grained token 压缩}——
+用一个轻量小网络把每个块的 token 压缩成单一表示，
+全局 attention 在压缩表示上做；
+（2）\textbf{块级选择}——
+对每个 query，从压缩表示中选 top-$k$ 块，
+把这些块还原为原始 token 参与精细 attention；
+（3）\textbf{sliding window}——
+保证局部强连接不丢失。
+NSA 在 27B/260B token 训练规模下，
+64K 序列 forward 加速 \textbf{9$\times$}、backward 加速 \textbf{6$\times$}，
+质量持平甚至超过 full attention，
+是 ACL 2025 最佳长论文之一。
+
+\textbf{MoBA}（Mixture of Block Attention，arXiv:2502.13189）
+~\cite{moba2025} 几乎同期由 Moonshot 提出。
+MoBA 的洞察是把\textbf{MoE 的 gating 思想搬进 attention}：
+对每个 query，用 parameter-less 的 top-$k$ gating
+从 KV 块中选最相关的几块。
+关键是 gating 完全不引入新参数，
+只是对块内 key 的均值与 query 做点积排序，
+"接管"了 NSA 的块级选择步骤但更轻量。
+Moonshot 已把 MoBA 用在 Kimi 的生产长上下文请求上；
+基于 Llama-3.1-8B 的 MoBA 长上下文版本
+在 100B token 激活规模下达到 \textbf{95.31\%} 的注意力稀疏度，
+仅用 5\% 的 attention 计算就能保持质量。
+
+\textbf{DSA}（DeepSeek Sparse Attention，V3.2）
+~\cite{deepseekv32dsa} 在 2025 年 9 月把可训练稀疏 attention
+推进到\textbf{产品级}。
+DSA 的核心是 \textbf{Lightning Indexer}：
+一个 FP8 精度的少头小网络，
+对历史 token 打分，
+然后在每个 query 上做 \textbf{Fine-Grained Top-2048 KV} 选择。
+这把每个 query 的 KV 访问从 $O(L)$ 降到 $O(k=2048)$，
+注意力总复杂度从 $O(L^2)$ 降为 $O(Lk)$。
+vLLM 在 V3.2 发布日（2025-09-29）即原生支持：
+\textbf{prefill 与 decode 分别处理 indexer}，
+paged attention 缓存布局相应分离；
+DeepGEMM 提供 \texttt{fp8\_mqa} 和 paged indexer kernel；
+FlashMLA 提供稀疏 attention kernel。
+工程坑在于 indexer 与 MLA 用不同的 RoPE layout，
+任何同时使用 DSA 和 MLA 的实现都必须同步两套位置编码。
+
+\textbf{NSMLA}（OpenReview r9xDZJgIKk，2026 ICLR/NeurIPS 评审中）
+~\cite{nsmla2026} 是 DSA 的训练范式补全。
+DSA 的局限是 lightning indexer 通过\textbf{蒸馏}从 full attention 训练出来——
+意味着仍然需要完整 attention 的预训练阶段。
+NSMLA 改造 DSA 让其\textbf{从零可预训练}：
+indexer 在原生形态下与 MLA 联合训练，
+推理时再转换为 lightning 形态。
+工程实现使用 TileLang 写训练 kernel、
+复用 vLLM 推理基础设施。
+正是 NSMLA 把训练成本一次性降下来后，
+DeepSeek 在 2026 年 1 月把 \textbf{API 价格降低 ≥50\%}，
+首次让百万 token 服务化在经济上变得可行。
+
+\textbf{DeepSeek-V4}~\cite{deepseekv4}（2026-04-24）
+是这条主线的当前终点：
+V4-Pro（1.6T 总参 / 49B 活跃）
+和 V4-Flash（284B 总参 / 13B 活跃）
+原生支持 1M 上下文，
+注意力被设计为\textbf{三种层间交错}：
+\begin{itemize}[noitemsep]
+  \item \textbf{CSA}（Compressed Selective Attention）：
+        先沿序列维压缩 KV，
+        再在压缩表示上做 top-$k$ 稀疏选择
+  \item \textbf{HCA}（Hierarchical Compressed Attention）：
+        更激进的全局压缩，
+        牺牲局部精度换全局视野
+  \item \textbf{SWA}（Sliding Window Attention）：
+        保证最近 token 的强连接，
+        弥补 CSA/HCA 的局部稀疏
+\end{itemize}
+V4 vs V3.2 在 1M 上下文：
+\textbf{per-token 推理 FLOPs 降低 73\%、KV cache 降低 90\%}。
+配合 Muon 优化器和 on-policy 蒸馏后训练，
+V4 是首个把"1M 上下文 = 经济默认"
+落到\textbf{开源旗舰}的模型。
+DeepSeek 自评 V4-Pro-Max（扩展 reasoning tokens 版本）
+"trails state-of-the-art frontier models by approximately 3 to 6 months"——
+首次官方量化开源-闭源差距。
+
+\begin{keybox}[NSA $\to$ MoBA $\to$ DSA $\to$ NSMLA $\to$ V4 的工程线索]
+\begin{itemize}[noitemsep]
+  \item \textbf{NSA}：证明 trainable sparse attention 在大规模上可行
+  \item \textbf{MoBA}：用 MoE-style gating 替代 NSA 的块选择，更轻量
+  \item \textbf{DSA}：把 NSA 思路 + lightning indexer 推到产品级，vLLM Day-0 支持
+  \item \textbf{NSMLA}：让 indexer 从零可预训练，API 价格再降 ≥50\%
+  \item \textbf{V4 (CSA+HCA+SWA)}：三层混合，1M 上下文 -73\% FLOPs / -90\% KV
+\end{itemize}
+两条主线对照：
+NSA / DSA / V4 走"分层压缩 + 选择"路线，
+MoBA 走"MoE-style gating"路线。
+两者在 V4 中实质性融合（CSA = 压缩 + 选择 + gating）。
+\end{keybox}
 
 \section{上下文压缩：用更少的 token 表达更多的信息}
 \label{sec:context-compression}
@@ -847,6 +1074,67 @@ Landmark Attention 的一个独特优势是它支持\textbf{随机访问}，
 需要在长文档中精确定位特定信息的任务
 （如法律文档中的条款检索），
 而传统的注意力机制必须遍历所有位置才能完成这种检索。
+
+\subsection{2026 年的 KV-Cache 压缩：从散点压缩到时间分层}
+\label{sec:kv-compression-2026}
+
+2026 年第一季度，KV-cache 压缩一次性出了四篇高质量工作，
+覆盖了从\textbf{散点压缩}（DASH-KV、TriAttention）
+到\textbf{结构感知}（LCA）
+再到\textbf{时间分层}（TTKV）的完整谱系。
+这些方法共同把"长上下文 = KV 爆炸"
+从架构问题变为可分层调优的工程问题。
+
+\textbf{DASH-KV}~\cite{dashkv2026}（arXiv:2604.19351，2026-04-21）
+把注意力\textbf{重新表述为 KV 的 asymmetric deep hashing
+近邻搜索}：
+Q 和 K 各自学一个非对称的哈希函数，
+在哈希空间中对每个 query 只检索 top-$k$ 邻居。
+关键 token 仍以全精度回退保护，
+其余在低精度哈希空间内交互。
+LongBench 上 DASH-KV 匹配 full attention，
+但把 attention 复杂度从 $O(N^2)$ 降到 \textbf{$O(N)$}——
+首次让线性 attention 在生产场景下与 full attention 等质量。
+
+\textbf{TriAttention}~\cite{triattention2026}（arXiv:2604.04921，2026-04-06）
+源于一个被忽略的观察：
+\textbf{pre-RoPE 的 Q/K 高度集中在固定非零中心}。
+这个观察意味着 key 之间的"语义距离"
+可以用三角级数（trigonometric series）排序。
+TriAttention 用三角级数为每个 key 算重要性分数，
+在 AIME25 32K 生成下达到
+\textbf{与 Full Attention 持平的精度，
+吞吐 2.5$\times$ 或 KV 显存减少 10.7$\times$}（二选一）。
+
+\textbf{LCA}（Latent Context Anchoring）~\cite{lcakv2026}
+（arXiv:2604.12452）
+专门针对 \textbf{MLA latent space} 设计：
+在 MLA 的低秩潜空间内做 context condensation，
+辅以 anchor 位置 key 保留绝对定位能力。
+LCA 在 128K 上下文上实现
+\textbf{prefill 加速 2.5$\times$、KV cache 减少 90\%}，
+是与 DeepSeek MLA 架构最契合的压缩方案。
+
+\textbf{TTKV}~\cite{ttkv2026}（arXiv:2604.19769，2026-03-27）
+引入了 KV cache 的\textbf{时间分层}思想：
+近期 token 的 KV 留在 HBM 高精度，
+远期 token 的 KV 下沉到 DRAM 低精度，
+访问时按需提升精度。
+128K 任务上的实测：
+\textbf{跨层流量降低 5.94$\times$、延迟降低 76\%、吞吐 2$\times$}。
+TTKV 把 KV cache 管理从纯空间问题
+扩展到\textbf{时间-空间联合调度}，
+是 2026 年 KV cache 工程的新轴。
+
+\begin{keybox}[KV-Cache 压缩方法对照（2026 年）]
+\begin{itemize}[noitemsep]
+  \item \textbf{DASH-KV}：散点压缩 + 哈希近邻，$O(N)$ 等质量
+  \item \textbf{TriAttention}：pre-RoPE 集中性 + 三角级数排序，2.5$\times$ 吞吐
+  \item \textbf{LCA}：MLA 潜空间专用，128K prefill 2.5$\times$、KV -90\%
+  \item \textbf{TTKV}：时间分层，HBM/DRAM 协同，延迟 -76\%
+\end{itemize}
+四者正交，可叠加使用。
+\end{keybox}
 
 \section{Ring Attention：跨 GPU 处理超长序列}
 
@@ -1696,6 +1984,76 @@ Chroma 的研究还发现了一个有趣的模型间差异：
 后者可能更适合“尽量多放”的场景
 （即使性能有些下降也比不放好）。
 
+\subsection{2026 长上下文实测：MRCR v2 + RULER + LongBench v2 三件套}
+\label{sec:long-context-benchmarks-2026}
+
+到 2026 年，原始 NIAH 已被前沿模型刷到饱和，
+事实上失去区分能力。
+新的"三件套"取代了 NIAH 作为长上下文评估的工业基准：
+\textbf{RULER}（结构化检索 + 多跳推理 + 多点聚合 + 变量追踪）、
+\textbf{LongBench v2}（真实长推理任务，含中英文）、
+\textbf{MRCR v2}（Multi-Round Co-Reference Resolution，
+要求在 1M 上下文中跨多轮对话追踪指代）。
+
+\textbf{RULER}~\cite{hsieh2024ruler} 在
+llm-stats RULER 1M 排行榜由
+\textbf{MiniCPM-SALA}（9B）以 \textbf{0.863} 领跑，
+小模型 + 精巧训练再次证明可与百亿级模型在长上下文上正面竞争。
+大多数模型在 RULER 上 32K 处即跌破
+Llama-2-7B 4K 的 85.6\% 阈值，
+意味着\textbf{大多数标称 128K--200K 的模型，
+在 32K 之后就失去了基础检索质量}。
+
+\textbf{LongBench v2 长推理}方面，
+Gemini 3 Pro 达到 68.2\%、GPT-5.2 达到 54.5\%。
+arXiv:2604.07981~\cite{longbenchv2decomp2026} 的 decomposition 方法
+把 Loogle、Loong、LongBench-v2、BrowsecompLong、Ruler-qa2、MRCR
+六个基准的平均分从 46.3\% 提升到 54.0\%（+7.7 pp），
+说明\textbf{显式分解长推理}本身就是一个有效的元策略。
+
+\textbf{MRCR v2 8-needle 1M} 是 2026 年最硬的长上下文基准。
+Anthropic 在 2026-03-13 把 1M context GA、
+\textbf{取消 long-context premium}~\cite{anthropic2026context1m}：
+Opus 价格 \$5/\$25 per M、Sonnet \$3/\$15。
+Claude Opus 4.6 在该基准的成绩极其反常：
+\textbf{1M MRCR v2 8-needle 取得 76.0--78.3\%}（不同 run 区间），
+而它在 128K 上的成绩仅 71.9\%——
+\textbf{随上下文增加反而提升}，
+这是首次在公开基准上观察到的现象，
+来源于 Opus 4.6 的长上下文专项后训练。
+对比 Claude Sonnet 4.5 在 1M 仅 18.5\%
+（Opus 4.6 ≈ \textbf{4.2$\times$} 提升），
+GPT-5.4 从 256K 79.3\% 跌到 1M 36.6\%，
+Gemini 3 Pro 1M 仅 24.5\%。
+\textbf{256K 4-needle} 这个稍易的赛道上，
+GPT-5.2 ≈ \textbf{98\%} 首达近满分，
+Opus 4.6 ≈ 91.9--93.0\%。
+
+实测延迟同样揭示了 1M 上下文的真实代价。
+tokenmix.ai 2026-04-20 数据~\cite{tokenmix2026latency}：
+\textbf{1M tokens prefill latency 已是数十秒级常态}——
+Opus 4.6: 60--120 s；Sonnet 4.6: 45--90 s；
+Gemini 1.5 Pro: 2 分钟+；Gemini 3.1 Pro: 90--150 s。
+500K → 45--90 s；100K → 5--15 s。
+GPT-5.4 在 128K（extended 400K）段落保持 \textless 30 s，
+是延迟最优的旗舰。
+这一组数据意味着：
+\textbf{1M 上下文不是"按下回车 1 秒后就能聊天"的体验，
+而是"提交后去倒杯咖啡"}——
+任何依赖 1M 上下文的产品都需要为长 TTFT 重新设计 UX。
+
+\begin{warnbox}[Needle 已被 game：评估方法的代际更替]
+单 needle 的 NIAH 在 2026 年已经失去价值——
+所有前沿模型都能在 1M 长度下找到 needle。
+但找到 needle $\neq$ 理解上下文：
+MRCR v2 多 needle 1M 的成绩从 18.5\% 到 78.3\%
+横跨整整 4$\times$，
+而这 4 个数都对应"声称支持 1M 上下文"的模型。
+评估方法\textbf{必须}从 NIAH 升级到
+RULER + LongBench v2 + MRCR v2 三件套，
+否则模型选型时会基于失真的"满分错觉"做错决策。
+\end{warnbox}
+
 \subsection{Context Engineering：从「更长」到「更智能」}
 
 Anthropic 在 2025 年下半年
@@ -1742,6 +2100,114 @@ Anthropic 在 2025 年下半年
         效果通常优于直接将整个文档塞入 1M 上下文
 \end{itemize}
 \end{whybox}
+
+\section{Context Engineering 的信息论框架}
+\label{sec:context-engineering-theory}
+
+2026 年 3 月发表的
+"The Root Theorem of Context Engineering"
+~\cite{contextroottheorem2026}（arXiv:2604.20874）
+首次给 context engineering 提供了\textbf{严格的信息论基础}。
+论文将 context engineering 形式化为一个根本问题：
+\textbf{在有界有损通道内最大化 signal-to-token 比}。
+通道有界来自模型的上下文窗口，
+通道有损来自注意力分布的稀释（U 型效应、context rot）和
+softmax 的归一化竞争。
+
+定理给出了五条推论，构成 2026 年长上下文实践的理论基石：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{推论 1（质量单调下降）}：
+        质量函数 $F(P)$ 单调随注入 token 数 $|P|$ 下降。
+        \emph{推论}：每个不必要的 token 都\textbf{主动}降低其他 token 的注意力预算
+  \item \textbf{推论 2（独立优化）}：
+        signal（有效信息）与 token 数（容器大小）是\textbf{两个独立的优化变量}。
+        加更多 token 不等于加更多 signal，
+        signal 密度才是关键
+  \item \textbf{推论 3（fidelity gate 必要）}：
+        必须有一个由 fidelity 阈值触发的 gate，
+        在内容低于阈值时拒绝注入。
+        无门 = 信噪比单调下降
+  \item \textbf{推论 4（homeostatic persistence）}：
+        \textbf{积累-压缩-改写-丢弃}（accumulate-compress-rewrite-discard）
+        是\textbf{唯一}能持续维持理解的架构。
+        这正是 Anthropic 的 compaction 策略
+        和 Agent 记忆系统所做的事
+  \item \textbf{推论 5（外部验证必要）}：
+        压缩机制运行在它要压缩的通道内部，
+        因此\textbf{无法自我验证}——
+        必须由外部机制（如独立 evaluator agent）做 fidelity check
+\end{itemize}
+
+这五条推论解释了为什么"塞更多上下文"反而更糟、
+为什么 Agent 记忆需要主动遗忘、
+为什么 long-context inference 必须配合外部验证。
+Context engineering 从经验技艺正式升级为
+\textbf{有公理基础的工程学科}。
+
+\section{长上下文后训练：OPSDL / StructKV / LongAct}
+\label{sec:long-context-posttrain}
+
+2026 年第二季度，长上下文\textbf{后训练}方法集中成熟。
+此前的常规做法是：在长样本上做 SFT，
+让模型从短上下文模型继续学习处理长输入。
+但这种朴素 SFT 面临两个老问题：
+（1）长样本数据稀缺、质量参差；
+（2）长样本上的 token-level loss 信号被稀释，
+关键信息的梯度信号弱。
+2026 年三个工作分别从蒸馏、KV cache 结构、注意力 saliency 三个角度
+重新设计了长上下文后训练。
+
+\textbf{OPSDL}（On-Policy Self-Distillation for Long Context）
+~\cite{opsdl2026}（arXiv:2604.17535）
+解决"教师"问题。
+长上下文后训练的核心矛盾是：
+强短上下文的模型版本（teacher）已存在，
+但弱长上下文的同模型版本（student）需要训练；
+让一个不擅长长上下文的模型自己监督自己显然不合理。
+OPSDL 让\textbf{模型自身的强短上下文能力}充当 teacher：
+对每条训练样本，分别用短上下文路径（teacher）
+和长上下文路径（student）生成同一个 token 的分布，
+通过 \textbf{per-token reverse KL} 监督长上下文 generation
+向短上下文 generation 对齐。
+"教自己"的关键洞察是：
+模型在短上下文上知道正确答案，
+长上下文只是把这个知识用起来变难了，
+而非答案本身改变。
+
+\textbf{StructKV}~\cite{structkv2026}（arXiv:2604.06746）
+从 KV cache 结构入手。
+论文识别出 transformer 长序列中的
+\textbf{global information hubs}——
+少数 token 的 KV 在多层注意力中
+被显著高频地引用。
+这些"hub token"通常是长文档的标题、章节首段、
+关键命名实体等。
+StructKV 在 RULER/LongBench 长上下文 SFT 中
+显式保留这些 hub token 的 KV，
+而对其他 token 做更激进的压缩。
+该方法在不增加训练成本的前提下，
+让 SFT 后的模型在 hub-driven 检索任务上明显优于均匀处理基线。
+
+\textbf{LongAct}~\cite{longact2026}（arXiv:2604.14922）
+从 RL 信号出发。
+观察是：长上下文 RL 中，
+大多数 token 的梯度贡献接近零，
+只有少数"高幅值激活"（high-magnitude activations）
+真正驱动学习。
+LongAct 用注意力中的高幅值激活作为
+\textbf{saliency-guided 稀疏 RL 更新信号}，
+仅对这些 token 计算和应用梯度。
+LongBench v2 上 LongAct \textbf{+8\%}，
+是 2026 年第一个把 RL post-train
+应用到长上下文场景并取得显著提升的方法。
+
+三者正交：OPSDL 解决监督信号问题，
+StructKV 解决 KV 表征问题，
+LongAct 解决 RL 信号问题。
+它们共同把长上下文后训练
+从"用更多长样本继续训"
+推进到"用结构化策略重新设计训练目标"。
 
 \section{稀疏注意力的新进展}
 \label{sec:sparse-attention-2026}
@@ -2501,4 +2967,28 @@ Agent 大规模部署前必须解决的关键问题。
 %% mohtashami2023landmark = Mohtashami and Jaggi, "Landmark Attention: Random-Access Infinite Context Length for Transformers", arXiv:2305.16300, 2023
 %% hsieh2024ruler = Hsieh et al., "RULER: What's the Real Context Size of Your Language Models?", arXiv:2404.06654, 2024
 %% kwon2023vllm = Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention", SOSP 2023
+%%
+%% --- ADDED 2026-04-26 (window 2026-03-25 to 2026-04-26) ---
+%% deepseekv4 = DeepSeek-AI. "DeepSeek-V4 Technical Report: CSA + HCA + SWA Hybrid Attention for 1M Context." 2026-04-24.
+%% deepseekv32dsa = DeepSeek-AI. "DeepSeek-V3.2-Exp: Trainable Sparse Attention with Lightning Indexer." 2025-09-29.
+%% nsa2025 = Yuan et al. "Native Sparse Attention." arXiv:2502.11089, ACL 2025.
+%% moba2025 = Lu et al. "MoBA: Mixture of Block Attention." arXiv:2502.13189, 2025.
+%% nsmla2026 = Anonymous. "NSMLA." OpenReview r9xDZJgIKk, 2026.
+%% mamba3hybrid2026 = Together AI. "Mamba-3 hybrid (5 SSM + 1 NoPE Attention)." 2026-03-17.
+%% kazemnejad2023nope = Kazemnejad et al. "The Impact of Positional Encoding on Length Generalization." arXiv:2305.19466, 2023.
+%% nakanishi2025ssmax = Nakanishi. "Scalable-Softmax." arXiv:2501.19399, 2025.
+%% llama4irope2026 = Meta. "Llama 4 iRoPE 256K-to-10M." 2026-04 (with independent evaluations).
+%% shuffle2026 = Microsoft. "Shuffle the Context (RoPE-Perturbed Self-Distillation)." arXiv:2604.14339, 2026-04-15.
+%% shortdatalongctx2026 = Meta. "Short Data, Long Context." arXiv:2604.06070, 2026-04-07.
+%% dashkv2026 = "DASH-KV." arXiv:2604.19351, 2026-04-21.
+%% triattention2026 = "TriAttention." arXiv:2604.04921, 2026-04-06.
+%% lcakv2026 = "LCA: Latent Context Anchoring." arXiv:2604.12452, 2026.
+%% ttkv2026 = "TTKV: Time-Tiered KV Cache." arXiv:2604.19769, 2026-03-27.
+%% contextroottheorem2026 = "The Root Theorem of Context Engineering." arXiv:2604.20874, 2026-03-29.
+%% opsdl2026 = "OPSDL: On-Policy Self-Distillation for Long Context." arXiv:2604.17535, 2026.
+%% structkv2026 = "StructKV." arXiv:2604.06746, 2026.
+%% longact2026 = "LongAct." arXiv:2604.14922, 2026.
+%% anthropic2026context1m = Anthropic. "1M Context GA." claude.com/blog/1m-context-ga, 2026-03-13.
+%% tokenmix2026latency = tokenmix.ai. "1M Prefill Latency Benchmark." 2026-04-20.
+%% longbenchv2decomp2026 = "Long Reasoning Decomposition." arXiv:2604.07981, 2026.
 %% ============================================================

@@ -355,6 +355,8 @@ LLM 的历史本身就是一连串的苦涩教训。
 
 \textbf{搜索增强 vs 参数化知识}。2022 年，RAG（Retrieval-Augmented Generation）被视为解决 LLM 幻觉的关键技术。但到 2025 年，随着模型训练数据量达到数十万亿 token，参数化知识的覆盖面和准确度大幅提升。对于大多数常见问题，GPT-5 和 Claude Opus 4.6 不需要外部检索就能给出准确答案。RAG 仍然在需要实时信息的场景中有价值，但「先搜索再回答」的范式正在被「参数记忆 + 按需搜索」的混合模式取代。
 
+\textbf{2026 春季的共识：scaling 三轴分裂}。一年前业界还在争论「scaling 是否撞墙」，到 2026 年 3--4 月这个问题已经被重新框定。AAAI 对 475 位资深 AI 研究者的调查显示，76\% 受访者认为单纯继续扩大预训练规模\textbf{不足以}抵达 AGI~\cite{aaai2026survey}；同时 frontier 实验室没有一家因此停止 scaling，它们只是把 scaling 拆成了三条独立的轴：(a) 预训练效率（数据质量、架构、混合精度）、(b) 推理时计算（深度推理、采样、agent 多轮）、(c) 后训练优化（GRPO、RLVR、可验证奖励）。Llama 3 训到约 1875 tokens/param（远超 Chinchilla 20:1）是第一根轴的现身~\cite{roberts2026t2}；DeepSeek-R1 与 IsoCompute~\cite{shen2026isocompute} 是第二、三根轴的现身。Epoch AI 估计公开高质量文本将在 2026--2028 年间耗尽~\cite{epochai2026data}，这给第一根轴划出了清晰的天花板，但同时把第二、三根轴的边际价值进一步抬高。Bitter Lesson 在 2026 年的版本因此是：\textbf{规模仍然胜出，但「规模」一词本身已被重新定义}。
+
 \subsection{LLM 作为 Bitter Lesson 的极致体现}
 
 LLM 的成功正是这个教训的最新、最戏剧化的例证。
@@ -545,6 +547,18 @@ Chinchilla 定律虽然影响巨大，但它只是故事的开始。后续研究
 \textbf{数据质量的 Scaling}。2024--2025 年的研究表明，数据质量的影响可能与数据数量同等重要。在相同的 token 数下，经过精心清洗和去重的数据集可以带来等价于 2--5 倍数据量增加的性能提升~\cite{penedo2024fineweb}。这意味着 Chinchilla 定律中的 $D$ 不应该被简单地理解为 token 数，而应该是某种「有效数据量」——考虑了数据质量、多样性和去重程度。
 
 \textbf{后训练的 Scaling}。传统 Scaling Laws 只关注预训练损失。但 DeepSeek-R1~\cite{deepseekr1} 的成功表明，后训练（特别是强化学习）阶段也存在独立的 scaling 行为，更多的 RL 计算可以持续提升推理能力，即使预训练模型相同。这是一个全新的 scaling 维度，传统理论尚未完全覆盖。
+
+\subsection{推理时代的修正：T² 与 IsoCompute}
+
+2026 年春季，两篇论文为「推理时代」的 scaling law 给出了首次系统化表达，正式把 Chinchilla 推到下一阶段。
+
+\textbf{T² Scaling Law}（Roberts et al., 2026~\cite{roberts2026t2}）把 $N$、$D$ 与\textbf{推理时 pass@k} 联合纳入同一个幂律拟合。在固定 end-to-end 预算（训练 + 推理 + 多次采样）下，最优预训练严重偏向\textbf{过度训练区}，token-per-param 比远超 Chinchilla 的 20:1。8 个下游任务上的验证显示，Llama 3 训到约 1875 tokens/param 不是工程粗心，而是 T² 框架下的最优解：当推理需要在同一 query 上跑多次采样时，更小但训得更透的模型在 pass@k 上反而占优。这把 Chinchilla 的「单次推理最优」扩展为「采样次数感知的最优」。
+
+\textbf{RL Post-Training IsoCompute}（Shen et al., 2026~\cite{shen2026isocompute}）则给出了纯 on-policy RL 后训练的第一个 compute-optimal 配方：$C \propto B_p \cdot n \cdot M$，即总预算等于「每问题 batch」、「rollout 数」与「优化步数」三者乘积。最优 rollouts/problem 随预算先单调上升后饱和，背后机制随题目难度分裂——简单题靠 sharpening（把已经会做的解法概率提到接近 1），难题靠 interference 缓解（避免不同正解之间互相抵消）。结论是\textbf{RL scaling 不是预训练 scaling 的延伸}，而是一条独立的曲线：套用 Chinchilla 风格的直觉会系统性地低估 rollout 阶段的 compute 需求。
+
+\textbf{Looped LM 的 Iso-Depth 修正}（Schwethelm et al., 2026~\cite{schwethelm2026looped}）则从「深度 vs 参数」的角度补了一条。基于 116 次预训练 run，他们拟合出 recurrence-equivalence exponent $\varphi = 0.46$（$R^2 = 0.997$），即每多循环一次 $\approx 0.46$ 个独立 block。在循环 4 次的设置下，410M 参数的 looped 模型 loss 已等价于 580M 非循环模型，但训练成本接近 1B：循环训练换来的 quality 是有限的，但 inference 时可以以 410M 的内存占用跑 580M 的能力。这给「训练时计算」与「推理时容量」之间提供了一种新的 trade-off。
+
+把这三条放进同一张图：T² 改写了 $(N, D)$ 的最优分配，IsoCompute 把 $C_{\text{post}}$ 单列出来作为独立坐标，Looped 给 $N$ 与 $D$ 之外的「等效深度」加了个杠杆。Chinchilla 的简洁公式被替换为一个高维优化问题，但优化原理仍是同一个：在所有可调维度上，把每个边际美元花到边际收益最高的地方。
 
 \subsection{Scaling Laws 的统一视角}
 
@@ -1070,17 +1084,37 @@ Engram（Conditional Memory via Scalable Lookup，2026 年 1 月 12 日）
 
 进入 2026 年，迭代速度进一步加快。
 Anthropic 在 2 月连续发布 \textbf{Claude Opus~4.6} 和 \textbf{Sonnet~4.6}，
-首次为 Opus 级模型提供百万 token 上下文窗口（beta）。
-Google 推出 \textbf{Gemini~3.1~Pro}（2 月），
+首次为 Opus 级模型提供百万 token 上下文窗口（beta），
+4 月 16 日再发布 \textbf{Claude Opus~4.7}~\cite{anthropicopus47}：
+SWE-bench Verified 从 80.8\% 跃升至 87.6\%，
+SWE-bench Pro 从 53.4\% 涨到 64.3\%（公开模型第一），
+是自 Sonnet 3.5 以来最大的单代 coding 跃升。
+Google 推出 \textbf{Gemini~3.1~Pro}（2 月）~\cite{googlegemini31}，
 阿里巴巴发布 \textbf{Qwen3.5}（2 月），
-以 397B 旗舰模型和全系列小模型（0.8B--9B）覆盖从云端到边缘的全场景。
-OpenAI 则以 \textbf{GPT-5.3-Codex}（2 月）和 \textbf{GPT-5.4}（3 月）
-持续推进 agentic coding 的边界：
+以 397B 旗舰模型和全系列小模型（0.8B--9B）覆盖从云端到边缘的全场景；
+4 月 17 日 \textbf{Qwen3.6-35B-A3B}~\cite{qwen36moe} 以稀疏 MoE 接力开源，
+Apache 2.0 协议、35B 总 / 3B 活跃。
+OpenAI 则以 \textbf{GPT-5.3-Codex}（2 月）、\textbf{GPT-5.4}（3 月）和
+\textbf{GPT-5.5}（4 月 23 日）~\cite{openaigpt54} 三连发持续推进 agentic 边界：
+GPT-5.4 在 OSWorld-Verified 上首次以 75.0\% 越过 72.4\% 的人类基线，
+GPT-5.5 把 Terminal-Bench 2.0 推至 82.7\%，
 GPT-5.3-Codex 甚至参与了自身的训练调试和部署。
-DeepSeek-V4 预计将于 2026 年 4 月发布，
-以 mHC、Engram 等架构创新为基础，
-结合原生多模态和 LTM 突破，
-向闭源模型发起最强挑战。
+\textbf{DeepSeek-V4 Preview}（2026-04-24）~\cite{deepseekv4} 如期亮相：
+V4-Pro（1.6T 总 / 49B 活跃）成为当前最大的开源权重模型，
+超过 Kimi K2.6（1.1T）~\cite{kimik26} 与 GLM-5（744B），
+原生 1M 上下文、MIT 协议；架构上以
+Compressed Sparse Attention（CSA）+ Heavily Compressed Attention（HCA）
+取代 V3.2 的 DSA，相对 V3.2 在 1M 上下文下 per-token FLOPs 仅 27\%、
+KV cache 仅 10\%。Meta 的 \textbf{Llama 4 Scout} 则把上下文窗口推到 1000 万 token，
+在「上下文规模」这一独立轴上仍领先所有闭源模型。
+
+\textbf{DeepSeek 的自评：差距首次被量化}。V4 技术报告中罕见地给出了官方对比：
+V4-Pro-Max（扩展 reasoning tokens 后）超过 GPT-5.2 与 Gemini-3.0-Pro，
+但仍稍逊于 GPT-5.4 与 Gemini-3.1-Pro，
+官方原话是「落后 SOTA frontier 模型大约 3 到 6 个月」~\cite{deepseekv4}。
+这是开源 vs 闭源差距首次被开源方自己以「月」为单位明确量化，
+也是「开源已经追上闭源」的乐观叙事被首次精确校准——
+开源在快速逼近，但还未真正抹平差距。
 
 2026 年的另一个标志性事件是\textbf{端侧模型的实用化}。
 Step 3.5 Flash（196B 总参数，11B 活跃参数）
@@ -1181,18 +1215,28 @@ Qwen3 的混合推理模式让用户动态控制思考深度。
 
 \section{2026 年的格局}
 
-截至 2026 年 3 月，LLM 领域已经形成了多极竞争的格局，
+截至 2026 年 4 月底，LLM 领域已经形成了多极竞争的格局，
 闭源与开源的边界日益模糊。
+旗舰模型层面出现了一个几年来未见过的局面：
+Claude Opus~4.7、GPT-5.4 与 Gemini~3.1~Pro
+\textbf{三方在 Artificial Analysis Intelligence Index（AAII）上并列 57 分}~\cite{datalearner2026aaii}，
+GPQA Diamond 已稳定饱和在 94.2--94.4\%——
+没有「单一最强模型」，只有「按任务选模型」。
 
 \subsection{闭源阵营}
 
 \textbf{OpenAI} 在 2025 年完成了从 GPT 系列到统一模型的转型。
 GPT-5（2025 年 8 月）将生成模型（GPT 系列）和推理模型（o 系列）
 统一为单一系统，内置智能路由器自动分配计算资源。
-后续的 GPT-5.1、5.2（2025 年秋）、5.3-Codex（2026 年 2 月）
-和 GPT-5.4（2026 年 3 月）以每隔数周的节奏迭代，
-GPT-5.2/5.4 系列在推理基准上持续刷新纪录，
-GPT-5.3-Codex 甚至参与了自身的训练调试。
+后续的 GPT-5.1、5.2（2025 年秋）、5.3-Codex（2026 年 2 月）、
+GPT-5.4（2026 年 3 月）和 \textbf{GPT-5.5}（2026 年 4 月 23 日）
+以每隔数周的节奏迭代~\cite{openaigpt54}，
+GPT-5.4 在 BrowseComp 上以 89.3\% 领先 Opus 4.7（79.3\%）达 10pp，
+在 OSWorld-Verified 上以 75.0\% 首次越过 72.4\% 的人类基线，
+GPT-5.5 把 Terminal-Bench 2.0 推至 82.7\%。
+2026 年 4 月 22 日发布的 \textbf{ChatGPT Workspace Agents}
+（Codex 驱动、组织内共享，覆盖 Business / Enterprise / Edu / Teachers）
+是 GPTs 的下一代演化，标志 OpenAI 把 agent 产品下沉到企业协同层。
 此前的 o3/o4-mini（2025 年 4 月）开创了推理模型的工具调用能力，
 已在 GPT-5 发布后从 ChatGPT 主界面退役，但仍可通过 API 访问。
 
@@ -1200,19 +1244,33 @@ GPT-5.3-Codex 甚至参与了自身的训练调试。
 Claude~4（2025 年 5 月）率先展示了长时间自主编程能力，
 Claude Sonnet~4.5（2025 年 9 月）和 Opus~4.5（2025 年 11 月）持续领先，
 2026 年 2 月的 \textbf{Claude Opus~4.6} 和 \textbf{Sonnet~4.6}
-在 Terminal-Bench~2.0 和 Humanity's Last Exam 上取得最高分，
-首次为 Opus 级模型提供百万 token 上下文窗口。
-Claude Opus~4.6 在 SWE-bench Verified 上以 79.2\%（Thinking 模式）
-刷新了 agentic coding 的纪录，
-并引入了可配置的 thinking budget：
-用户可精确控制推理计算的预算，
-在通用模型中按需激活深度推理，而非训练独立的推理专用模型。
+首次为 Opus 级模型提供百万 token 上下文窗口；
+2026 年 4 月 16 日发布的 \textbf{Claude Opus~4.7}~\cite{anthropicopus47}
+则把 SWE-bench Verified 推到 87.6\%、SWE-bench Pro 推到 64.3\%（均为公开模型第一），
+OSWorld-Verified 78.0\%、Terminal-Bench 2.0 69.4\%、MCP-Atlas 77.3\%。
+Opus 4.7 引入了介于 high 与 max 之间的 \texttt{xhigh} reasoning effort、
+重构后的 tokenizer（同输入 token 数 $\times 1.0$--$1.35$）
+和 task budgets beta，定价维持 \$5/\$25 per MTok、1M 上下文。
+更引人关注的是只对 Project Glasswing 联盟开放的
+\textbf{Claude Mythos Preview}~\cite{anthropicmythos}：
+SWE-bench Verified 93.9\%、Terminal-Bench 2.0 82\%、OSWorld-Verified 79.6\%，
+是 Anthropic 评估为「过于强大、暂不公开发布」的内部模型，
+为闭源模型的真实能力上限提供了一条参考线。
 
 \textbf{Google} 以 Gemini~2.5~Pro（2025 年 3 月）重新加入竞争，
 Gemini~3（2025 年 11 月）引入原生 thinking 模式和原生多模态，
-\textbf{Gemini~3.1~Pro}（2026 年 2 月）
-以原生思维链推理进一步提升了复杂推理和 agentic 能力，
-以 1M token 上下文窗口覆盖代码库级别的分析任务。
+\textbf{Gemini~3.1~Pro}（2026 年 2 月）~\cite{googlegemini31}
+以原生思维链推理进一步提升复杂推理和 agentic 能力，
+SWE-bench Verified 80.6\%、MMMLU 92.6\%、GPQA Diamond 94.3\%，
+以 1M token 上下文窗口覆盖代码库级别的分析任务，
+\$2/\$12 per MTok（$\le$200K）/ \$4/\$18（>200K）的定价
+比 Opus 4.7 便宜约 60\%。
+最强的 \textbf{Deep Think} 模式仅 \$249.99/mo 的 Ultra 订阅可用，
+Gemini 3.1 Flash 与 Flash-Lite 同步发布；
+4 月 9 日 \textbf{Lyria 3 Pro}（最长 3 分钟音乐生成）
+扩展给所有 Workspace 层级，
+Android 自 2026-03 起把 Gemini 设为默认助手，全面替代 Google Assistant。
+xAI 的 \textbf{Grok 4.20}（2026-03）以 AAII 49 分位居第二梯队。
 
 \subsection{开源阵营的历史性追赶}
 
@@ -1224,11 +1282,20 @@ R1（2025 年 1 月）以纯 RL 训练达到 o1 水平~\cite{deepseekr1}；
 V3.2（2025 年 12 月）通过 Sparse Attention 和 scalable RL
 达到 GPT-5 水平，其高计算变体在 2025 年 IMO 和 IOI 中
 取得金牌级表现。
-备受期待的 \textbf{V4}（预计 2026 年 4 月）
-将聚焦于原生多模态、LTM（Long-Term Memory）突破
-以及国产芯片适配，
-以约 1T 总参数和百万 token 上下文，
-目标是成为开源模型对闭源的最强挑战。
+2026 年 4 月 24 日发布的 \textbf{V4 Preview}~\cite{deepseekv4}
+没有走 LTM 路线，而是把架构推到了 Compressed Sparse Attention（CSA）
++ Heavily Compressed Attention（HCA）层间交错的双稀疏方案：
+V4-Pro 1.6T 总 / 49B 活跃，V4-Flash 284B 总 / 13B 活跃，
+原生 1M 上下文，MIT 协议；
+V4-Pro 一举成为最大的开源权重模型，
+超过 Kimi K2.6（1.1T）~\cite{kimik26} 与 GLM-5（744B）。
+V4 还首次完整支持华为 Ascend 芯片栈——
+是首个 at-scale 跑在非 NVIDIA 硬件上的主流大模型。
+DeepSeek 在 V4 技术报告中给出的自评同样精确：
+V4-Pro-Max 超过 GPT-5.2 / Gemini-3.0-Pro，
+但稍逊于 GPT-5.4 / Gemini-3.1-Pro，
+官方原话是「落后 SOTA frontier 模型大约 3 到 6 个月」——
+是开源 vs 闭源差距首次被开源方自己以「月」为单位明确量化。
 
 \textbf{Meta} 的 Llama~4（2025 年 4 月）
 发布了 Scout 和 Maverick 两款 MoE 多模态模型，
@@ -1290,9 +1357,14 @@ SWE-bench Verified 的分数从 2024 年初的约 5\%
 跃升至 2026 年初的约 79\%（Claude Opus~4.6 Thinking），
 Agent 能力在两年内实现了质的飞跃。
 MCP（Model Context Protocol）已成为 Agent 工具交互的事实标准，
-累计下载量突破 9700 万次，
-由 Linux Foundation 接管治理，
-OpenAI、Google、Microsoft 等主要玩家全部采纳。
+\textbf{月度} SDK 下载量突破 9700 万次（2025-12 捐赠时数据），
+活跃公共 server 超过 10,000 个，
+由 Linux Foundation 旗下新成立的
+\textbf{Agentic AI Foundation（AAIF）}接管治理~\cite{aaif2026foundation}，
+创始八大白金会员涵盖 AWS、Anthropic、Block、Bloomberg、
+Cloudflare、Google、Microsoft 与 OpenAI——
+直接竞争对手在协议层面的合作，
+是 Agent 时代版本的 TCP/IP 时刻。
 
 \textbf{LTM（Long-Term Memory）崛起为 2026 年的「皇冠明珠」}。
 传统的上下文窗口扩展正在被更本质的记忆架构取代。

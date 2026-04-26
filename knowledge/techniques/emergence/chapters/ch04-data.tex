@@ -71,20 +71,25 @@ SEO 垃圾、色情内容和机器生成的胡言乱语。
         通过系统性的受控实验筛选最优的过滤策略，
         从 Common Crawl 中提取了 3T+ token 的高质量数据。
         % NEW REF: li2024dclm = Li, Jeffrey and others. DataComp-LM: In search of the next generation of training sets for language models. In NeurIPS, 2024.
-  \item \textbf{FineWeb-2}（HuggingFace，2024 年 12 月）：
+  \item \textbf{FineWeb-2}（HuggingFace，2024 年 12 月首发）：
         FineWeb 的多语言继任者。
-        FineWeb-2 将 FineWeb 的英文处理流水线
-        推广到 \textbf{1000+ 种语言}，
-        产生了约 3T 词（压缩后约 8TB）的多语言高质量数据。
-        其核心贡献在于解决了多语言数据处理中的独特挑战：
+        截至 2026 年初稳定在
+        \textbf{20TB / 5B 文档 / 1868 个 language-script 对}
+        （其中 1226 对超过 100MB），
+        覆盖 96 个 Common Crawl 快照（2013 年夏 -- 2024 年 4 月）。
+        Hugging Face 的数据 viewer 上次更新于 2025 年 10 月 27 日，
+        共 4.48B 行。
+        FineWeb-2 的论文 arXiv:2506.20920 已被 ICLR 2026 收录，
+        详细记录了多语言数据处理中的独特挑战：
         不同语言需要不同的质量过滤阈值、
         低资源语言的语言识别准确率较低、
         某些书写系统（如阿拉伯文、天城文）
         需要特殊的预处理规则。
-        FineWeb-2 的论文（2025 年 6 月）
-        详细记录了这些挑战和解决方案，
-        是构建多语言预训练数据的重要参考。
-        % NEW REF: penedo2025fineweb2 = Penedo, Guilherme and Kydlicek, Hynek and Sabolcec, Vinko and Messmer, Bettina and Foroutan, Negar and Kargaran, Amir Hossein and Raffel, Colin and Jaggi, Martin and Von Werra, Leandro and Wolf, Thomas. FineWeb2: One Pipeline to Scale Them All. arXiv preprint arXiv:2506.20920, 2025.
+        2025--2026 年间没有重大新版本发布；
+        与之配套的最新 metadata 层是 propella-annotations，
+        propella-1 标注器对 FineWeb-2 全集做了 18 维结构化标注，
+        是目前对该数据集最丰富的可用元信息。
+        % NEW REF: penedo2025fineweb2 = Penedo, Guilherme and Kydlicek, Hynek and Sabolcec, Vinko and Messmer, Bettina and Foroutan, Negar and Kargaran, Amir Hossein and Raffel, Colin and Jaggi, Martin and Von Werra, Leandro and Wolf, Thomas. FineWeb2: One Pipeline to Scale Them All. arXiv preprint arXiv:2506.20920, 2025 (ICLR 2026).
   \item \textbf{Nemotron-CC}（NVIDIA，2025 年 1 月）：
         NVIDIA 构建的万亿 token 级英文预训练数据集。
         Nemotron-CC 的独特之处在于其
@@ -415,6 +420,37 @@ SlimPajama 通过更激进的 MinHash 去重
 但在相同训练 FLOP 下，模型性能反而提升了 3--5\%。
 这再次印证了本章的核心论点：
 在预训练数据工程中，质量的价值远大于数量。
+
+\subsubsection{Common Corpus：完全许可的多语言基线}
+
+法国 \textbf{PleIAs} 团队发布的 \textbf{Common Corpus}~\cite{pleias2026commoncorpus}
+是 2026 年完全许可数据路线最重要的工作。
+其规模为
+\textbf{2,267,302,720,836 token（约 2.27 万亿）}，
+由六个商业可用的子集合成，
+覆盖 13 种以上的语言，
+新增了中文、日语、阿拉伯语、韩语和印地语。
+配套的 \textbf{Pleias-1.0} 模型族
+包含 0.4B 与 27B 两档，
+作为该语料的训练样本。
+Common Corpus 已被
+\textbf{ICLR 2026 接受为 oral}，
+完整技术报告与详细方法学
+将随 oral 发布同步释出。
+
+Common Corpus 在历史脉络中的位置很特殊：
+它既不是「在合理使用边缘游走」的网页爬取
+（如 The Pile、FineWeb），
+也不是「资金雄厚才能负担」的商业许可
+（如 OpenAI 的出版商协议），
+而是把现有公共领域、开放许可、可商用的所有可识别来源
+做了一次系统性的清单化整合。
+这个语料的存在使得
+「完全合法可商用」不再是一个仅限于 7B--13B 玩具规模的选项：
+2.27T token 已经达到
+LLaMA 2 (2T) 和 LLaMA 3 8B 早期阶段的训练数据规模，
+意味着完全合规的预训练
+首次具备了与主流开源模型同台竞争的可行性。
 
 \section{数据清洗流水线}
 
@@ -1027,6 +1063,68 @@ FineWeb~\cite{penedo2024fineweb} 的关键创新之一
 在多项基准测试上的训练效果
 甚至优于使用全量 15T token 的 FineWeb。
 这是「质量 $>$ 数量」的最有力的实证之一。
+
+\subsubsection{从单一分数到多维标注：propella-1}
+
+2026 年发布的 \textbf{propella-1}~\cite{propella2026}
+把质量过滤从「打一个分」推到了「打十八张标签」。
+propella-1 是一组 0.6B / 1.7B / 4B 参数的多语言 LLM 标注器，
+覆盖 57 种语言，
+为每篇文档输出结构化 JSON，
+包含\textbf{六大类共 18 个维度}：
+核心内容、分类、质量与价值、受众与目的、安全合规、地理相关性。
+
+propella-1 的关键发现是
+\textbf{4B 标注器对前沿商业 LLM 的一致率
+高于很多更大的通用模型}：
+专为标注任务训练的小模型
+在标签精度上可以胜过零样本调用的大模型，
+而推理成本低一到两个数量级。
+这让大规模重标注变得可行。
+配套的 \textbf{propella-annotations} 数据集
+对 30 亿+ 文档做了完整标注，
+覆盖 FineWeb-2、FinePDFs、HPLT 3.0、Nemotron-CC——
+这是当前最大、最系统的开放预训练数据 metadata 层。
+
+从工程角度看，
+propella-1 让数据团队能够在
+不重新清洗原始语料的前提下
+做\textbf{细粒度的混合实验}：
+想强化中文医疗内容、
+想压低低质 SEO、
+想给地理相关性高的文档加权——
+都可以在 metadata 层直接做配比策略，
+而无需重新跑过滤流水线。
+单维度的 perplexity / classifier 分数
+将逐渐被这种结构化多维标注取代。
+
+\subsubsection{跨语言质量分类器}
+
+多语言数据的质量过滤一直被视为
+比英语更难的开放问题。
+EPFL 与 Apple 在 2026 年 4 月发表的工作~\cite{aroca2026crosslingual}
+首次在 1B 模型 + 103B token 的实验设定上
+系统量化了「跨语言池化训练」的收益。
+
+核心结论是：
+\textbf{在多语言池上联合训练的质量分类器
+一致优于单语 baseline}。
+法语在聚合归一化下取得 +1.2pp 的下游提升，
+低资源语言则普遍达到或超过其单语 baseline——
+这意味着多语言池化对低资源语言尤其友好，
+因为它们能从相关高资源语言的标注信号中迁移收益。
+
+但研究者同时强调，
+\textbf{单纯扩大数据规模并不稳定}。
+多语言池化必须配合两种校正之一才能稳定生效：
+\textbf{Q3 采样}（按质量三分位采样以避免高质量段被低质量段稀释）
+或 \textbf{retention-rate tuning}
+（针对每种语言独立调优保留率）。
+缺少这两步时，
+跨语言分类器会在中等质量区间出现非单调行为，
+反而把一些有用文档过滤掉。
+这一发现把「跨语言质量过滤」从一个粗放的工程问题
+转变为一个有明确旋钮的可调优过程。
 
 \subsubsection{安全过滤}
 
@@ -1894,6 +1992,61 @@ Shumailov 等人将模型坍缩区分为两个阶段：
         使用统计检验（如 KL 散度、MMD）
         来量化偏离程度并及时干预。
 \end{itemize}
+
+\subsubsection{2026 年的三方共识：从「必然崩塌」到「可验证逆转」}
+
+Shumailov 2024 的「必然崩塌」论断
+在 2026 年得到了系统性的修正。
+两条独立路线在同一时间窗口给出了
+\textbf{可验证逆转坍缩}的方法学。
+
+\textbf{(a) 验证器路线}。
+芝加哥大学的
+《Escaping Model Collapse via Synthetic Data Verification》~\cite{uchicago2026verifier}
+（arXiv:2510.16657 v2，2026-03-05；
+ICLR 2026 poster，2026-04-25）
+提出在合成数据回训中
+\textbf{注入外部验证器}。
+当生成样本必须通过验证器
+（执行测试、形式化检查、事实匹配等）
+才能进入训练集时，
+合成 retraining 不再坍缩。
+但理论分析同时给出了一个
+不容易被实验直接看到的副作用：
+长期收敛点不是真实数据分布，
+而是\textbf{验证器的「知识中心」}。
+当验证器自身有偏时，
+收益会停滞甚至反转——
+即把模型坍缩问题
+从生成器搬到了验证器身上。
+
+\textbf{(b) 新鲜真数据路线}。
+arXiv:2602.10531 v2 (2026-02-17)~\cite{kazdam2026collapse}
+从统计学角度证明：
+只要每一轮训练都注入
+\textbf{新鲜的真实数据}，
+按 contamination-agnostic 的方式做训练
+（即不显式区分真实样本与合成样本），
+就足以避免坍缩，
+并在极限下恢复真实分布。
+这条路线的工程含义最为简洁：
+不需要验证器、不需要代际加权、
+不需要复杂的对比训练，
+只要持续供应新鲜的真实数据流即可。
+
+把 Shumailov 2024、
+UChicago 2026 验证器路线、
+以及 arXiv:2602.10531 三方放在一起，
+2026 年的共识收敛为三句话：
+\textbf{(1) 纯合成数据递归训练会必然坍缩}；
+\textbf{(2) 保留真实数据可以下界化测试误差}，
+长期不再退化；
+\textbf{(3) 验证器只是把坍缩点搬到验证器的知识中心}，
+收益与验证器质量同在。
+这把模型坍缩从一个
+「未来可能的、模糊的风险」
+转变为一个
+「已被定量分析、有可执行对策」的工程问题。
 
 \begin{warnbox}[避免模型坍缩的实践建议]
 (1) \textbf{始终混入真实数据}：

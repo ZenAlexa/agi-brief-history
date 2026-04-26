@@ -647,6 +647,152 @@ Claude Computer Use 需要的是
 \end{whybox}
 
 
+\section{多模态生成：视频、图像、音频与 3D 的统一前沿}
+\label{sec:multimodal-generation}
+
+2026 年春季是多模态生成模型集体进入消费级生产质量的转折点。
+视频、图像、音频、3D 的边界开始模糊，
+单一模型同时输出多种模态成为常态。
+
+\subsection{视频生成：Veo 4 / Sora 2 / Kling 3.0 三足鼎立}
+
+\textbf{Google Veo 双线齐发}。
+4 月 3 日 Veo 3.1 Lite 上线 Vertex AI，
+4 月 11--13 日 \textbf{Veo 4} 在 Google Flow 与 Gemini Ultra 同步开放%
+~\cite{veo4_2026}。
+Veo 4 的工程参数标志一次代际跳跃：
+2.8B 参数（约为 Veo 3 的 2.3$\times$），
+训练数据 25 亿视频—文本对（3$\times$ of Veo 3），
+原生 1080p 24/30/60fps，
+\textbf{48kHz 同步音频}且 \textbf{5.1 环绕首次出现}，
+单 prompt 最长 30 秒，延迟约 3 分钟。
+\textbf{Veo 3.1} 三档 Lite/Fast/Pro，
+Vertex AI 起价 \$0.10/秒，
+新增 1080p→4K 升采样%
+~\cite{veo31_lite_2026}。
+Veo 3.1 在 MovieGenBench 527 prompt T2VA 盲测中
+音视频同步性获得最高偏好率。
+
+\textbf{OpenAI Sora 2 / Sora 2 Pro 与 GPT Image 2}。
+\texttt{sora-2-2025-12-08} 是当前 GA 快照，
+Sora 2 与 Sora 2 Pro 两档同时在 \texttt{/v1/videos} 暴露，
+均支持 16/20 秒生成，Pro 输出 1920$\times$1080。
+4 月 23 日 OpenAI 宣布 \textbf{GPT Image 2 / Sora-v2 全球开放}，
+API 上线 6 小时内生成 50 万视频，
+VFX 与库存视频公司股价盘前下跌 18\%~\cite{sora2_pro_2026}。
+免费层 10 秒，Pro 25 秒，
+首次实现对话级 lip-sync 与多说话人音频。
+
+\textbf{中国阵营三雄}。
+快手 4 月 24 日上线 \textbf{Kling 3.0}，
+原生 4K（3840$\times$2160 @ 30fps）、
+diffusion-transformer 混合，无需后期 upscale~\cite{kling30_2026}。
+Kling 2.5 Turbo 在职业盲测中
+对 Seedance 1.0 mini / Veo3-fast / Seedance 1.0 的胜率
+分别为 285\% / 212\% / 160\%。
+阿里 \textbf{Wan 2.6}~\cite{wan26_2026}
+基于 MoE 升级，T2V-14B / R2V-14B / I2V-14B（24GB+ VRAM）
++ 5B 轻量版，Apache 2.0；
+前代 Wan 2.5（2025-09-24）已支持 5--10 秒输出、
+480/720/1080P 三档与原生音频 + lip-sync。
+腾讯 \textbf{HunyuanVideo 1.5}（2025-11）~\cite{hunyuan_video15_2025}
+以 8.3B 参数在 13.6GB VRAM 上即可生成 720p 121 帧，
+引入 SSTA（Sparse Spatio-Temporal Attention）。
+
+\textbf{Runway Gen-4.5 与 GWM-1}。
+Gen-4.5（2025-12-01）以 1247 Elo
+登顶 Artificial Analysis Text-to-Video 排行榜~\cite{runway_gen45_2026}；
+2026 年 1 月单日内从 Hopper 移植到 Vera Rubin NVL72，
+是 Vera Rubin 平台首批生产负载。
+\textbf{GWM-1（General World Model）}分 Worlds / Avatars / Robotics 三栈，
+配套 robotics SDK，把视频生成模型重构为可被机器人查询的世界模型。
+
+\subsection{图像生成：Midjourney V8 / Imagen 4 / Flux 2 Pro}
+
+\textbf{Midjourney V8 Alpha}（2026-03-17）~\cite{midjourney_v8_2026}
+原生 2K（\texttt{--hd}），
+速度约为 V7 的 5$\times$，最大长宽比 14:1。
+Google \textbf{Imagen 4}（Vertex AI / Gemini API）
+2K 输出与 10$\times$ 加速，
+价格约 \$0.03--0.12/张。
+Black Forest Labs \textbf{Flux 2 Pro} 在产品摄影与特征忠实度上领先；
+OpenAI \textbf{GPT-Image-1} 价格约 \$0.04--0.17/张，文字渲染最优。
+四模型形成清晰的差异化矩阵：
+艺术风格（Midjourney）、平台整合（Imagen 4）、
+工业摄影（Flux 2 Pro）、文字渲染（GPT-Image-1）。
+
+\subsection{音频与实时语音：ElevenLabs v3 与三巨头}
+
+\textbf{ElevenLabs v3}（2026-02-02 GA）~\cite{elevenlabs_v3_2026}
+覆盖 70+ 语言，inline audio tags 控制情感。
+模型矩阵：
+Flash v2.5（75ms TTFB）/ Multilingual v2 / v3，
+新增 Music Generation API 与 Sound Effects API。
+
+实时语音三巨头格局形成：
+（1）\textbf{OpenAI Realtime}——
+\texttt{gpt-realtime} GA，
+价格 \$32/M 输入音频 token、\$64 输出（比预览版 $-20\%$）；
+端到端 300--500ms，TTFB 120ms~\cite{gpt_realtime_ga_2026}。
+（2）\textbf{Gemini 3.1 Flash Live}——
+端到端 300--500ms，TTFT 960ms，
+输入 \$3/M tokens，原生 30+ 语音~\cite{gemini31_flash_live_2026}。
+（3）\textbf{ElevenLabs Conversational}——
+传统 STT→LLM→TTS pipeline 400--800ms，
+但盲测自然度 8.6/10 居首。
+工程取舍清晰：
+端到端模型胜在延迟，pipeline 模式胜在自然度。
+
+\subsection{3D 生成：Genie 3 与开闭源四强}
+
+\textbf{Genie 3}（2025-08 研究预览，
+2026-01-29 向 Google AI Ultra 美国订户开放）%
+~\cite{genie3_2026}
+是 auto-regressive 帧生成的世界模型代表，
+720p @ 24fps、\textbf{1 分钟世界记忆}、
+支持 promptable world events
+（用户可在生成中途注入“出现一只猫”等指令并保持物理一致性）。
+Genie 3 的意义在于
+把视频生成模型升级为
+\textbf{可交互的世界模拟器}——
+这是具身智能与游戏 AI 的共同上游。
+
+3D 生成商业 4 强：
+\textbf{Tripo H3.1}（2026-04-20）高保真 image-to-3D 与 PBR 纹理一致性%
+~\cite{tripo_h31_2026}；
+\textbf{Hunyuan3D 3.0 Pro / Multiview}；
+\textbf{Rodin Gen-2}（10B 参数，4$\times$ mesh 质量，独家 voice-driven 编辑）%
+~\cite{rodin_gen2_2026}。
+开源 4 强：
+TRELLIS.2-4B（MIT）、Hunyuan3D-2.1（最佳纹理）、
+Hi3DGen（最佳几何）、Stable Fast 3D（亚秒级）。
+
+\subsection{多模态理解 SOTA：Gemini 3 Pro 与 Qwen3-VL 全家族}
+
+\textbf{Gemini 3 Pro}~\cite{gemini3_pro_multimodal_2026}
+是 Sparse MoE Transformer，
+原生 text + vision + audio 输入，1M token 上下文；
+MMMU-Pro 81.0\%（领先 GPT-5.1 5pp）、
+Video-MMMU 87.6\%、
+ScreenSpot-Pro / OmniDocBench 1.5 / CharXiv Reasoning 同级 SOTA。
+新增 \textbf{pixel-precise pointing}、open-vocabulary 引用、
+\texttt{media\_resolution} 参数允许用户细粒度控制图像分辨率。
+
+\textbf{Qwen3-VL 全家族}~\cite{qwen3_vl_2025}
+从 2B/4B/8B（2025-10）扩展到
+30B-A3B、32B、235B-A22B（Instruct 与 Thinking 双版）。
+技术报告 2025-11-27 发布于 arXiv:2511.21631v2，
+三大升级：增强视觉编码器、改进文本—视觉对齐、Thinking 模式。
+Qwen3-VL-235B-A22B-Thinking 在 MathVista mini / MathVision / VisuLogic
+STEM SOTA。
+\textbf{Qwen3.5-Omni}（2026-03-30）~\cite{qwen35_omni_2026}
+采用 Thinker-Talker + Hybrid-Attention MoE，
+分 Plus（30B-A3B）/ Flash / Light 三档，
+256K 上下文、10+ 小时连续音频、
+400+ 秒 720p 视频、
+113 语种 ASR + 36 语种 TTS——
+是当前覆盖模态—语种最广的开源全模态模型。
+
 \section{AI for Science：LLM 技术向科学发现的延伸}
 \label{sec:ai-for-science}
 
@@ -698,6 +844,25 @@ AlphaFold 3 的架构变化值得注意：
 因“蛋白质结构预测和蛋白质设计”的贡献
 共同获得诺贝尔化学奖，
 这是 AI 技术首次直接促成诺贝尔奖级别的科学发现。
+
+\textbf{Boltz-2}~\cite{boltz2_2026}
+是 AlphaFold 3 之后最受关注的开源继任者。
+Boltz-2 由 MIT 团队开发并以 MIT 许可证发布，
+NVIDIA NIM 已完成包装，PyPI v2.2.1 在 2025 年 9 月 8 日上线。
+其统一架构\textbf{联合预测 3D 结构与 binding affinity}，
+覆盖蛋白质、DNA/RNA、小分子与修饰残基；
+关键突破在于：
+Boltz-2 是\textbf{首个深度学习模型在结合亲和力预测上接近物理 FEP 方法}，
+而运行速度快 1,000$\times$。
+Boltz-2 用 atomic composition 编码氨基酸身份，
+不再依赖纯序列 embedding，
+这使其在非自然氨基酸和修饰残基场景下保持稳健。
+配套的 \textbf{BoltzGen} 用于全新蛋白质生成，
+形成与 RFdiffusion + ProteinMPNN 平行的开源管线。
+这条 \textbf{“AlphaFold 3 → Boltz-2 → BoltzGen”} 演进
+使学术界与中小生物科技公司
+首次具备与 DeepMind/Isomorphic Labs 同级别的预测能力，
+是 AI for Science 民主化的重要节点。
 
 \subsection{材料科学与分子发现}
 
@@ -1071,6 +1236,21 @@ Devin 的设计理念指向这个阶段，
 AutoGen（Microsoft）、CrewAI、LangGraph 等。
 它们提供了 Agent 间通信、任务分配、
 结果汇聚等基础设施。
+2026 年初，三大框架的格局已经清晰：
+\textbf{LangGraph} 0.2.x（48K GitHub stars）以\textbf{显式 state machine}
+主导生产部署冠军~\cite{langgraph_orchestration_2026}；
+\textbf{AutoGen v0.4}（2026-01）由 Microsoft Research 主导大重写，
+转向 \textbf{async-native + event-driven} 架构~\cite{autogen_v04_2026}；
+\textbf{CrewAI 0.95+}（2026-02）以
+\textbf{Process-based + role-based} 范式
+新增 session 内 memory~\cite{crewai_095_2026}。
+当前主流编排范式可归纳为五类：
+Sequential、Parallel、Hierarchical、Pub-Sub 与 Blackboard，
+不同任务类型适配不同模式。
+\textbf{A2A protocol}~\cite{a2a_protocol_2026}
+已成为 CrewAI 与 AutoGen 的互通底座，
+意味着不同框架的 Agent 可以跨边界协作——
+这是多 Agent 生态走向\textbf{开放标准}的关键一步。
 
 多 Agent 系统的核心挑战是\textbf{协调成本}——
 Agent 之间的通信（通常以自然语言进行）
@@ -1315,6 +1495,108 @@ Sim-to-Real 的核心挑战是 \textbf{Reality Gap}——
 以及“Sim-to-Real-to-Sim”循环
 （在真实世界收集少量数据来校准模拟器参数）。
 
+\subsection{2026 年具身智能现状：从演示到 at-scale 部署}
+
+2026 年是\textbf{具身智能首次实现真正商业化部署}的元年。
+
+\textbf{Figure 03}（2026-04-13 发布）~\cite{figure_03_bmw_2026}
+设定了人形机器人的新工程基准：
+170cm/60kg、50 DoF（手部 22 DoF、力感知 3g 量级）、
+搭载 Helix VLA 模型与双 NVIDIA GPU。
+约 150 台已部署，
+\textbf{BMW Spartanburg 工厂已运行 10 个月并完成 30,000+ 辆 X3 的生产}——
+这是首个有公开第三方验证、持续 10 个月以上的人形机器人量产部署。
+Figure 03 相比 Figure 01 实现约 90\% 的成本下降，
+公司估值 \$39B、累计融资 \$2.6B+，
+目标 4 年内量产 10 万台。
+
+其他主要力量同步推进：
+\textbf{Tesla Optimus Gen 3} 在 Q1 2026 进入小规模量产，
+约 1,000+ 台部署，20 DoF 手部，
+共享 FSD 神经网络与数百万车辆数据，
+搭载 Tesla AI5 SoC，
+目标价 \$20--30K——
+但 Musk 承认“目前未在工厂以实质方式使用”。
+\textbf{Unitree G1} 售价 \$13.5--16K，
+2025 年出货 5,500 台，2026 年目标 10K--20K。
+\textbf{Boston Dynamics Atlas (electric)} 售价 \$140--150K，
+由现代汽车投资。
+\textbf{Agility Robotics} 已部署 100K+ 物流箱搬运任务；
+\textbf{Apptronik} 部署在 Mercedes-Benz Berlin；
+\textbf{1X NEO} 接受消费预订；
+\textbf{UBTECH Walker S2} 拿下 \$37M 边境巡逻合同。
+Figure 03 在 BMW 的 10 个月、30K 辆数据
+是\textbf{首个真正商业化部署}的标志，
+将“能演示”转化为“能生产”。
+
+\subsection{VLA 模型谱系与 \texorpdfstring{$\pi_{0.7}$}{pi-0.7} 的“GPT-3 时刻”}
+
+\textbf{Vision-Language-Action（VLA）}已成为机器人基础模型的主流范式，
+2026 年其架构光谱按 action head 类型分为三类：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Flow-matching}：
+        Physical Intelligence \textbf{$\pi_0$}（约 3B 参数，10K+ 小时专有数据）
+        以 flow-matching action head 为代表。
+  \item \textbf{Token-based}：
+        \textbf{OpenVLA}（7B，Apache 2.0，Stanford/Berkeley，
+        Open X-Embodiment 970K 轨迹）和 RT-2 把动作离散化为 token。
+  \item \textbf{Diffusion}：
+        \textbf{Octo}（93M，MIT）使用扩散 action head，
+        与图像生成共享去噪范式。
+\end{itemize}
+
+\textbf{SmolVLA}（HuggingFace，450M，Apache 2.0）
+代表轻量化方向，采用 chunked ACT-style action。
+\textbf{Helix}（Figure AI）保持闭源。
+近期论文也在推进新的耦合方式：
+arXiv:2604.21924 \textbf{LoHo-Manip} 将 trace-conditioning 引入 VLA 规划~\cite{loho_manip_2026}；
+arXiv:2604.21914 \textbf{VistaBot} 使用 4D 几何 + video diffusion 做世界模型~\cite{vistabot_2026}。
+
+\textbf{Physical Intelligence \texorpdfstring{$\pi_{0.7}$}{pi-0.7}}（2026-04-16）%
+~\cite{pi07_2026}
+被作者比喻为“机器人的 GPT-3 时刻”。
+$\pi_{0.7}$ 被定义为
+\textbf{“steerable model with emergent capabilities”}：
+通过语言指导组合不同情境学到的子技能，
+完成训练中从未见过的全新任务，
+匹配各项专门模型而无需任务特定训练。
+关键突破不在于参数规模，
+而在于\textbf{组合泛化}（compositional generalization）——
+$\pi_{0.7}$ 第一次让机器人具备了类似 LLM 的“in-context skill composition”能力。
+前一代 $\pi_{0.5}$（2025-04, arXiv:2504.16054）已展示初步迹象，
+$\pi_{0.7}$ 则是该路线的第一次成熟交付。
+
+\subsection{Helix 02、GR00T N1.7 与 Gemini Robotics-ER 1.6}
+
+2026 年 1--4 月，三套主流 VLA 平台的迭代节奏空前。
+
+\textbf{Figure Helix 02}（2026-01-27）~\cite{figure_helix02_2026}
+将原 Helix 1 的“VLM + 39,504 行 C++ 腿部控制”
+重构为单一神经网络的\textbf{三系统级联}：
+S2 = 7B VLM @ 7--10Hz 处理语义；
+S1 = 80M DiT @ 200Hz 控制全身关节；
+S0 = 10M @ 1kHz 维持平衡与接触。
+Helix 02 完成 4 分钟 dishwasher loading/unloading 演示，
+是\textbf{首个端到端 pixels-to-whole-body 长时序操作}的公开记录。
+
+\textbf{NVIDIA Isaac GR00T N1.7}（2026-04-17）~\cite{groot_n17_2026}
+是 3B 参数 VLA，采用 \textbf{Action Cascade} 双系统架构：
+System 2 = Cosmos-Reason2-2B 输出高层 token；
+System 1 = 32-layer DiT 解噪连续动作。
+N1.7 引入 20K 小时 EgoScale 人体视频做预训练，
+以 Apache 2.0 许可证发布、可商用——
+这是 NVIDIA 在机器人基础模型上对 Physical Intelligence 的第一次正面竞争。
+
+\textbf{Gemini Robotics-ER 1.6}（DeepMind，2026-04-14）%
+~\cite{gemini_robotics_er16_2026}
+强化了\textbf{视觉—空间推理 + 任务规划 + 成功检测}三件能力，
+可以读取复杂仪表盘和后视镜内容，
+内部 benchmark 错误率较前代下降 30\%。
+ER 1.6 的差异化在于把
+“成功/失败的语义判断”作为模型一等公民——
+这对机器人在开放环境中实现自我修正至关重要。
+
 \begin{corebox}[具身智能的“GPT 时刻”还有多远？]
 具身智能领域正在寻找自己的“GPT 时刻”：
 一个像 ChatGPT 一样彻底改变公众认知的突破。
@@ -1363,15 +1645,36 @@ B200 GPU 提供 9 PFLOPS 的 FP4 性能
 完全放入 GPU 显存中进行推理，
 消除了多机通信的延迟。
 
-\textbf{Vera Rubin 架构}（2026 年 1 月 CES 正式发布）
-是 NVIDIA 的下一代平台。
-Rubin GPU 采用 3nm 工艺（2025 年 8 月已 tape out），
-搭配 HBM4 内存（每 GPU 可能达到 256GB+，
-带宽超过 8 TB/s）。
-NVIDIA 声称 Vera Rubin 将实现推理成本降低至 Blackwell 的 1/10，
-性能提升 5 倍，这意味着推理经济学将发生根本性变化。
-Vera Rubin Ultra 将是完整平台版本，
-包含 CPU（Vera，基于 ARM 架构）和 GPU（Rubin）的集成。
+\textbf{Vera Rubin 架构}在 2026 年 3 月 16 日 GTC 上由黄仁勋正式发布，
+一次性公布 7 颗芯片、5 个 rack-scale 系统和 1 台超算~\cite{nvidia_vera_rubin_2026}。
+\textbf{Rubin R100 GPU}：TSMC 3nm（B200 使用 4NP）、
+336B 晶体管（B200 为 208B，+62\%）、
+HBM4 内存，单 GPU 提供 50 PFLOPS FP4 推理算力
+（约为 B200 的 2.75$\times$）。
+\textbf{Vera CPU} 集成 88 个 NVIDIA 自研 Olympus core（Arm 兼容）。
+\textbf{NVL72 rack} 装载 72 颗 Rubin + 36 颗 Vera，
+训练同等规模 MoE 仅需 1/4 数量的 GPU，
+推理 throughput/watt 提升 10$\times$，
+每 token 成本降至 1/10——
+这是\textbf{推理经济学的相位变迁}。
+
+配套的 \textbf{DSX AI Factory}~\cite{nvidia_dsx_factory_2026}
+引入两个工程创新：
+（1）\textbf{DSX Max-Q} 在同一供电预算下动态分配负载，
+可多部署 30\% 的算力；
+（2）\textbf{DSX Flex} 释放 100GW 闲置电网容量，
+通过电池缓冲器与可中断负载契约把 AI 数据中心
+塑造成可调度的电力资产。
+NVIDIA 同步公布 \textbf{Space-1 Vera Rubin} 轨道数据中心计划，
+将算力部署到近地轨道以利用宇宙背景的免费冷却。
+Q1 2026 进入 full production，
+H2 2026 partner 部署，
+\textbf{Rubin Ultra} 已 tape-out，
+计划 2027 年量产。
+Microsoft Azure 是首个上线 NVL72 的 hyperscaler。
+NVIDIA FY2026 数据中心营收 \$193.7B，
+占总营收 \$215.9B 的 90\%——
+AI 基础设施已成 NVIDIA 唯一的核心业务。
 
 \subsection{AMD：从追赶者到竞争者}
 
@@ -1398,10 +1701,22 @@ MI350 的关键卖点是
 （PyTorch、JAX、vLLM）原生支持 AMD GPU，
 降低了迁移成本。
 
-\textbf{MI400}（路线图上为 2026 年底--2027 年）
-将是 AMD 的下一个大跳跃，
-基于 2nm 工艺，目标是达到 yottaflops 级别的系统计算能力，
-这将是 AI 加速器领域有史以来最激进的性能目标。
+\textbf{MI400 与 Helios 双宽机架}（CES 2026 正式发布）%
+~\cite{amd_mi400_helios_2026}是 AMD 与 NVIDIA 正面对决的尝试。
+MI400 家族基于 CDNA 5 架构与 TSMC N2 工艺，
+分为 MI430X、MI440X、MI455X 三档。
+\textbf{Helios} 是 AMD 与 Meta 联合设计的 Open Rack Wide v3 双宽机架：
+72 颗 MI455X + 31TB HBM4 + 1.4 PB/s 总带宽，
+提供 2.9 ExaFLOPS FP4 推理 + 1.4 ExaFLOPS FP8 训练，
+机柜级别直接对标 NVIDIA NVL72。
+MI455X 的 UALoE72 工程样片在 H2 2026 出货，
+量产 Q2 2027。
+\textbf{MI450}（432GB HBM4）已被 \textbf{Oracle 下单 50,000 颗}，
+2026 年下半年部署~\cite{amd_mi450_oracle_2026}。
+AMD 与 Meta 共同推动的 Open Rack Wide v3 标准
+是\textbf{开放硬件生态对 NVIDIA 专有 NVL72 的首次正面挑战}——
+若开放标准能在 2027 年获得至少 30\% 的 hyperscaler 采用，
+AI 加速器市场的竞争格局将被改写。
 
 \subsection{Google TPU：垂直整合的典范}
 
@@ -1435,6 +1750,31 @@ Ironwood 的“推理优先”设计意味着
 Google 判断推理（而非训练）将成为
 未来 AI 计算资源消耗的主要场景——
 这与推理时计算（test-time compute）的趋势高度一致。
+
+\textbf{TPU v7x Ironwood} 在 2026 年 4 月正式 GA，
+提供 256-chip 与 9,216-chip 两档配置~\cite{google_tpu_ironwood_2026}：
+192GB HBM @ 7.4Tbps（Trillium 6$\times$）、
+ICI 1.2Tbps 双向，
+9,216-chip pod 提供 \textbf{42.5 ExaFLOPS}
+（El Capitan 1.742 EF 的 24$\times$），
+perf/watt 是 Trillium 2$\times$，
+FP8 首次进入 MXU；
+Carbon Compute Intensity 比 TPU v5p 改善 3.7$\times$。
+
+更激进的转向出现在 2026 年 4 月 22 日：
+Google 同时发布\textbf{第八代 TPU 8t（训练专用）和 TPU 8i（推理专用）}%
+~\cite{google_tpu_8t_8i_2026}，
+性价比比 Ironwood 提升 80\%。
+配套的 \textbf{Virgo Network} 将数据中心带宽提升 4$\times$，
+单训练集群可扩展至 100 万颗 TPU；
+\textbf{TPU Direct Storage} 将 TPU 与高速管理存储直连，
+绕过 CPU 中转。
+“训练专用 + 推理专用”的二元分裂
+是 Google 对“训练推理工作负载差异越来越大”的明确判断——
+推理需要低延迟与高吞吐，
+训练需要海量带宽与同步原语，
+两者的最优硬件设计正在分叉。
+
 TPU 的独特优势在于
 Google 可以端到端优化
 从编译器（XLA）到框架（JAX）到模型架构（Gemini）
@@ -1522,6 +1862,28 @@ NVIDIA 仍然占据 AI 训练市场约 80\%+ 的份额，
 特别值得关注的是 950PR 将首次采用华为自研 HBM，
 这意味着华为正在追求从芯片设计到封装存储的
 全栈自主可控，减少对 SK 海力士和三星的依赖。
+
+\subsection{DeepSeek V4 + Ascend：中国首个端到端模型—芯片主权 stack}
+
+2026 年 4 月发布的 \textbf{DeepSeek V4}
+是首个完整支持华为 Ascend 芯片栈的主流前沿大模型%
+~\cite{ascend_deepseek_v4_2026}，
+也是首个 \textbf{at-scale} 跑在非 NVIDIA 硬件上的主流通用 LLM。
+DeepSeek 在 910C 上实测到的推理性能约为 H100 的 60\%，
+但配合 CANN 软件栈与算子级别的优化，
+端到端性价比已具备替代 NVIDIA 推理部署的现实可行性。
+910C 本身集成 53B 晶体管（SMIC N+2 工艺），
+下一代 \textbf{Ascend 920C} 已锁定 Blackwell B200 为对标目标。
+
+中国 AI 算力栈自此首次具备
+\textbf{“模型层 + 芯片层 + 软件栈”}三位一体的端到端主权能力：
+DeepSeek 提供模型与训练范式，
+华为提供 Ascend 与 CANN，
+SMIC 提供制造，
+共同构成一条不依赖 NVIDIA、TSMC（先进节点）和 CUDA 的完整链条。
+这条链条在 2026 年仍存在弱项
+（先进制程仍落后 TSMC 两代、CANN 生态远未成熟），
+但已经从“概念演示”走向“at-scale 商用”。
 
 \subsection{“零 NVIDIA” 训练的里程碑}
 

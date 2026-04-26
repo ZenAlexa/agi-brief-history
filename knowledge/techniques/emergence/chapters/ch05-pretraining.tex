@@ -1440,6 +1440,39 @@ FP8 训练变得和 BF16 训练一样简单，
 它还支持跨模型宽度的超参数迁移（hyperparameter transfer），
 小模型上调好的超参数可以直接用于大模型。
 
+\paragraph{ECO：去除 master weights 的内存开销}
+DeepSeek-V3 之前的所有 FP8 / 量化训练方案
+都需要保留一份高精度（FP32 或 BF16）的
+\textbf{master weights} 用于累积更新——
+对稀疏 MoE 而言，这份 master weights
+可以轻易超过其他所有训练状态之和。
+\textbf{ECO}（Quantized Training without Full-Precision
+Master Weights）~\cite{eco2026}
+由 Google DeepMind 与 IST Austria（Alistarh）合作提出：
+直接对量化参数应用更新，
+把量化误差注入 optimizer 动量，
+形成无额外内存的\textbf{ error-feedback loop}。
+理论上他们证明了在 decaying LR 下
+ECO 收敛到一个常半径邻域；
+实证上从 30M--800M Transformer
+到 Gemma-3 1B、2.1B SMoE 在 FP8 下
+都几乎对齐 master-weight baseline，
+DeepSeek-MoE-16B 在 INT4 微调中同样对齐。
+ECO 是 DeepSeek-V3 之后 FP8 / 量化训练
+最重要的内存效率工程进步。
+
+\paragraph{AdamW 在 FP8 下的失稳：sign-based 救场}
+Tong Zhang 等人提出的 \textbf{StoSignSGD}~\cite{stosignsgd2026}
+明确指出：
+AdamW 在严格 FP8 端到端预训练下\textbf{灾难性失败}，
+原因是动量统计本身随 FP8 量化误差被破坏。
+StoSignSGD 把无偏的结构化随机性注入 sign 算子，
+在低精度下保持稳定，相对 baseline 取得
+$1.44\times$--$2.14\times$ 的加速；
+在 7B LLM 数学推理 fine-tune 上同样优于 AdamW 与 SignSGD。
+这条工作为“FP8 端到端训练为何不能简单照搬 AdamW”
+给出了清晰的诊断与一种可用的 mitigation 路径。
+
 \subsection{FP4：下一个精度前沿}
 \label{sec:fp4-training}
 
@@ -1470,6 +1503,54 @@ FP4 仅用 4 位表示一个浮点数：
 使用 NVFP4 的 Blackwell GPU 实现了
 相比 FP8 Hopper 进一步 $1.5\times$--$2\times$ 的训练加速，
 且模型质量与 BF16 基线无显著差异。
+
+\paragraph{CHON：把 NVFP4 与 BF16 的差距压到亚 1\%}
+NVFP4 与 BF16 之间一直存在一道
+难以弥合的 loss gap，使得 1B 以上规模真正切到 NVFP4
+仍存在风险。
+2026 年 4 月 Bo Li 团队联合港科大发表的
+\textbf{CHON}~\cite{chon_nvfp4_2026}
+首次系统拆解了这一差距的来源。
+他们沿训练时间纵向追踪 outlier，
+发现 NVFP4 下的 outlier 主要来自三处：
+Softmax（self-attention）、线性 attention 的门控、
+以及 FFN 中的 SwiGLU；
+其中\textbf{ post-QK 操作}对量化最敏感。
+随训练进行，outlier 的形态从早期的瞬时 spike
+演化为后期少数固定的“hot channels”。
+基于此观察，他们提出
+\textbf{Hot-Channel Patch（HCP）}：
+在线识别 hot channel，
+通过硬件高效的 kernel 把这些通道
+以原精度残差形式重新注入。
+在 GLA-1.3B / 60B token 的实验中，
+CHON 把 NVFP4 相对 BF16 的 loss gap
+从 $0.94\%$ 压到 $0.58\%$，
+下游精度无可见损失。
+这是 DeepSeek-V3 把 FP8 推到生产之后，
+精度“再降一档”的最重要实证之一：
+1B 级别已经达到了亚 1\% loss gap 的工程门槛。
+
+\paragraph{MX 不是越细越好：UE5M3 修补 scale 格式}
+MX（Microscaling）格式的直觉是
+“块越小、scale 越细、量化越精”，
+但 IBM 2026 年的研究
+“Is Finer Better?”~\cite{ibm_microscaling_2026}
+给出了一个反直觉结论：
+在某些张量上把块切到阈值以下后，
+模型输出反而\textbf{退化}。
+原因在于：当张量分布本身较窄时，
+用作 block scale 的 E8M0 已经无法
+精细表示真正需要的缩放比例，
+出现“分辨率断档”。
+作者据此提出
+\textbf{UE5M3}（FP8 unsigned E5M3）
+作为 FP4 microscaling 类型中 scale 的硬件友好新格式：
+性能与传统的 E4M3 等同，
+不再需要 weight/activation 的全局额外 scaling。
+教训是：MX 类格式并非越细越好，
+块大小、元素格式、scale 格式
+必须\textbf{联合设计}。
 
 \textbf{OCP Microscaling（MX）格式}是另一条重要路线。% NEW REF: mx2025 = An Empirical Study of Microscaling Formats for Low-Precision LLM Training, Yang et al., Meta, 2025
 Open Compute Project 定义了一组块级微缩放格式：
@@ -1504,6 +1585,31 @@ Tseng 等人~(2025) 在 AISTATS 上发表了% NEW REF: tseng2025mxfp4 = Training
 \small $^\dagger$\,需要原生 MXFP4 硬件支持（Blackwell），
 在 H100 上通过 fake-quantization 模拟则无加速。
 \end{center}
+
+\subsection{1-bit 与 sub-1-bit：从 BitNet 到 KV-cache 量化生态}
+\label{sec:onebit-survey}
+
+2026 年的一篇综述~\cite{onebit_survey_2026}
+把 1-bit / 1.58-bit 模型的最新版图整理为三层结构：
+\begin{itemize}[noitemsep]
+  \item \textbf{原生三值训练}：BitNet b1.58 在 3B$+$ 规模上
+        已经能匹配全精度 baseline。
+        2026 年 4 月窗口内 BitNet 主线无新主力工作，
+        但作为研究坐标系仍是 sub-1-bit 工作的对照。
+  \item \textbf{Sub-1-bit PTQ}：以 NanoQuant、LittleBit 为代表，
+        已经可以在消费级 GPU 上跑 70B 量级模型，
+        把 BitNet 的训练侧探索补成了部署侧的完整选项。
+  \item \textbf{KV-cache 量化}：TurboQuant、CommVQ 等方法
+        把 1-bit 思路拓展到 KV-cache，
+        支撑了百万 token 上下文场景的内存压缩。
+\end{itemize}
+
+落到本章语境：1-bit / 三值方向从 2024 年“训练侧奇观”
+演化为“训练 + 推理 + KV-cache”的完整低精度生态，
+但其在前沿训练规模上的份额仍受工程成熟度限制。
+真正的 2026 工业默认精度仍是 FP8，
+NVFP4 是“下一档目标”，
+1-bit / 三值更多服务于推理与超长上下文。
 
 \section{完整的训练循环}
 
@@ -1795,22 +1901,124 @@ Muon 则在参数的\textbf{矩阵空间}中工作：
 这解决了 Muon 在超大规模训练中偶尔出现的
 注意力分数爆炸问题。
 
+\subsection{Muon 进入工业基础设施期（2026）}
+\label{sec:muon-infra-2026}
+
+进入 2026 年，Muon 已经从“最有竞争力的研究优化器”
+升级为\textbf{大规模预训练的默认候选 \#1}。
+2026 年 3--4 月一个月窗口内就有至少 9 篇相关论文，
+覆盖了系统集成、生产模型、收敛理论与新变体四个层面。
+
+\textbf{系统层面：原生支持落地}。
+PyTorch 2.9 已经把 \texttt{torch.optim.Muon}
+作为内置单节点优化器发布~\cite{torch_muon_2026}，
+DeepSpeed 和 NVIDIA NeMo 紧随其后跟进。
+torchtitan 在 2026-03-05 开了 issue \#2494
+专门跟踪大规模分布式 Muon 集成~\cite{torchtitan_muon_issue}。
+Muon 自此进入“凡是新建预训练栈，都默认带它”的阶段。
+
+\textbf{生产模型清单（2026）}：
+\begin{itemize}[noitemsep]
+  \item Kimi K2~\cite{kimik2_2026}：1.04T 参数 MoE / 32B active / 15.5T token，
+        全程使用 MuonClip，零 loss spike。
+  \item Kimi K2.6（2026-04-20 发布）~\cite{kimik26_2026}：
+        1T 总参 / 32B active；公开演示中
+        连续 13 小时重写一个交易所撮合引擎、
+        发起超过 1000 次工具调用、改动逾 4000 行代码。
+  \item GLM-4.5~\cite{glm45_2026}：355B 参数，已采用 Muon。
+  \item INTELLECT-3~\cite{intellect3_2026}：106B 参数去中心化训练，
+        同样基于 Muon。
+  \item HyperCLOVA X 8B Omni（NAVER）~\cite{hyperclova_x_omni_2026}：
+        text/audio/vision 任意到任意，
+        全部走 next-token prediction 接口，
+        是 8B 量级 2026 最完整的 omni-modal 公开训练方案。
+\end{itemize}
+
+\textbf{Muon 的生产工程要点}（来自 Kimi K2 官方与社区复现）：
+\begin{enumerate}[noitemsep]
+  \item Newton--Schulz 多项式系数取 Keller Jordan 默认值
+        $(3.4445,\,-4.7750,\,2.0315)$，迭代步数 $k = 5$。
+  \item 学习率 $\eta_{\text{Muon}} \approx 0.02$，
+        约为同 batch 下 AdamW 学习率（$8 \times 10^{-4}$）的 $25\times$。
+  \item 动量 $\beta = 0.95$，使用 \textbf{Nesterov} 形式。
+  \item Muon 步骤明确禁用 FP8 GEMM：Newton--Schulz 迭代
+        对数值精度极敏感，必须保持 BF16 或更高精度。
+  \item $W_q$、$W_k$、$W_v$ 必须\textbf{分开}做 Muon，
+        不能融合成单个 QKV 矩阵——
+        这与“矩阵感知”这一基本前提直接相关。
+  \item Adam 仍保留用于 embedding、classifier head、
+        以及隐藏层的 gain/bias 等向量参数；
+        Muon 只替换\textbf{隐藏层的权重矩阵}部分。
+\end{enumerate}
+
+\textbf{理论端的关键进展}。
+2026 年 4 月一篇“Preconditioning Benefits of Spectral
+Orthogonalization in Muon”~\cite{spectra_muon2026}
+首次给出了 Muon 优于 GD 与 Adam 的严格证明：
+在矩阵分解和 in-context 线性 transformer 设定下，
+Muon 的线性收敛速率\textbf{独立于 condition number}，
+而 GD 与 Adam 的速率均随 condition number 退化。
+这把 Muon 的“为什么有效”从“经验观察 + 直觉”
+推进到了“可证明的预条件优化器”这一档。
+
+\textbf{2026 新变体一览}：
+\begin{itemize}[noitemsep]
+  \item \textbf{NuMuon}~\cite{numuon2026}：
+        用核范数（nuclear norm）约束替代谱范数约束，
+        在小模型上对低秩结构更友好。
+  \item \textbf{Muon-NSR / Muon-VS}~\cite{muonvs2026}：
+        variance-adaptive 变体，
+        LLaMA-1.2B 在达到目标 loss 时步数减少 $1.36\times$。
+  \item \textbf{NAMO / NAMO-D}~\cite{namo2026}：
+        把 Adam 的 norm-based noise 与 Muon 的正交化整合，
+        在小批量场景下更稳定。
+  \item \textbf{Newton-Muon}~\cite{newtonmuon2026}：
+        把 Newton--Schulz 迭代替换为更高阶多项式，
+        在 Modded-NanoGPT speedrun 上步数 $-6\%$、
+        墙钟时间 $-4\%$。
+  \item \textbf{NorMuon}~\cite{normuon2026}：
+        在 1.1B 规模上相对 Adam 加速 $21.74\%$。
+  \item \textbf{RMNP}~\cite{rmnp2026}：
+        用 row-wise $\ell_2$ 归一化替代 Newton--Schulz，
+        把单步复杂度从 $O(mn \cdot \min(m,n))$ 降到 $O(mn)$，
+        显著减小大矩阵的优化器开销。
+\end{itemize}
+
+\textbf{优化器 Scaling Law 的方法学修正}。
+Volkova、Alistarh 等人的
+“Towards Robust Scaling Laws for Optimizers”~\cite{volkova2026robustopt}
+指出：对每个优化器单独做 Chinchilla 风格的拟合
+是\textbf{ill-conditioned} 的——
+不同优化器的 loss 曲面斜率与饱和点都不同，
+单独拟合会把方差放大到难以做横向对比。
+他们提出共享指数 $+$ 优化器特定 rescale 因子的统一定律，
+首次让 Muon、Shampoo、SOAP 在同一坐标系下可直接对比，
+是 Muon 工业化背后被低估的“尺子”。
+
 \subsection{其他值得关注的优化器}
 
-\textbf{Sophia}（Second-order Clipped Stochastic Optimization）
-使用了廉价的 Hessian 对角线估计来设定逐参数的裁剪阈值。
-理论上它利用了二阶信息
-（参数更新的步长与该参数的损失曲率成反比），
-但避免了完整 Hessian 的巨大计算开销。
-早期实验声称训练速度是 Adam 的 $2\times$，
-但后续的大规模复现研究表明
-其优势在大模型上不如预期明显。
+2024--2025 年间另有几条探索路线，
+进入 2026 年生产话题中心已被 Muon 挤出。
+此处仅作要点记录。
 
-\textbf{SOAP}（Spectral-regularized Adam with Projection）
-和 \textbf{Shampoo} 属于\textbf{预条件}
+\textbf{Sophia} 使用廉价的 Hessian 对角线估计
+来设定逐参数的裁剪阈值，
+利用二阶信息但避免了完整 Hessian 的开销。
+早期实验声称对 Adam 加速 $2\times$，
+后续大规模复现表明优势在大模型上不及预期。
+2026 年窗口内未见新主力工作，
+也已基本被 Muon 挤出新生产案例。
+
+\textbf{SOAP} 和 \textbf{Shampoo} 属\textbf{预条件}
 （preconditioning）优化器家族，
-它们维护参数梯度的 Kronecker 积近似来逼近完整的 Fisher 信息矩阵。
-这类方法在理论上更优雅，但计算和内存开销较大。
+维护参数梯度的 Kronecker 积近似来逼近 Fisher 信息矩阵；
+理论优雅，工程上额外的矩阵分解开销限制了大规模采用，
+2026 年里多以 baseline 身份出现在 Muon 变体的对比表中。
+
+\textbf{AdEMAMix} 用双 EMA 缓冲取代 Adam 的单 $\beta_1$，
+在小规模上显示出收敛速度提升；
+2026 年同样未在大规模生产模型中扎根，
+当前定位是“2024--2025 探索路线”。
 
 Wen 等人~(2025) 在斯坦福的一项系统性基准测试中% NEW REF: wen2025optimizers = Fantastic Pretraining Optimizers and Where to Find Them, Wen et al., arXiv 2025
 评估了 11 种优化器在标准化的 LLM 预训练场景下的表现。
@@ -2247,6 +2455,76 @@ Google 的解决方案是：
 这得益于他们精心设计的训练基础设施
 （FP8 细粒度量化、无辅助损失的负载均衡、
 DualPipe 调度等）以及严格的数据质量控制。
+
+\section{参数化与归一化的新进展（2026）}
+\label{sec:parameterization-2026}
+
+\subsection{muP 升级：从手工乘子到可学习乘子}
+\label{sec:learnable-mup}
+
+\textbf{muP}（Maximal Update Parametrization）
+通过在权重矩阵上设置宽度相关的固定乘子，
+让训练超参数（学习率、初始化方差）
+可以从小模型平滑迁移到大模型。
+但这套乘子是\textbf{手工设计}的：
+设置目标是“每层激活、每层更新都保持 $O(1)$ 量级”，
+属于先验经验，而非数据驱动。
+
+TII（Falcon 团队，Hakim Hacid 等）2026 年 4 月的
+\textbf{Learnable Multipliers}~\cite{learnable_multipliers_2026}
+对此提出关键观察：
+权重衰减与 SGD 噪声共同决定了一个
+“WD-noise 平衡范数”，
+权重的实际尺度会被推到这个平衡值附近。
+这个平衡值是\textbf{训练副产物，不是最优解}。
+他们的做法是给每个权重矩阵 $W$ 引入
+一个\textbf{可学习的标量乘子}：
+\begin{equation}
+  W_{\text{eff}} = s \cdot W,\quad s \in \mathbb{R}_{>0}\ \text{learnable}.
+\end{equation}
+进一步可以扩展为 per-row、per-column 乘子，
+形成 muP 的更一般化、更具表达力的版本。
+
+实验上这套方案在 \textbf{Adam 与 Muon 两种优化器}下
+都超过精心调参后的 muP baseline，
+且下游评估的提升幅度
+与“从 Adam 切换到 Muon”相当。
+落点：muP 不再是“写死的最佳乘子”，
+而是一个\textbf{可被进一步学习}的初始化框架。
+
+\subsection{Normalization-Free Transformer 的临界性陷阱}
+\label{sec:dyt-warning}
+
+把 LayerNorm、RMSNorm 等归一化层完全替换成
+elementwise 激活（如 \textbf{DyT}：Dynamic Tanh、
+或 Dynamic erf）的“normalization-free Transformer”
+近一年获得不少关注。
+2026 年 4 月一篇“Subcritical Signal Propagation at
+Initialization in Normalization-Free
+Transformers”~\cite{subcritical_dyt_2026}
+对这类设计提出了明确的警告。
+
+作者使用\textbf{平均偏 Jacobian 范数（APJN）}
+分析初始化时的信号传播：
+\begin{itemize}[noitemsep]
+  \item pre-LayerNorm 架构的 APJN 随深度
+        呈\textbf{幂律}增长，处于“临界”状态——
+        梯度既不爆炸也不消失，
+        是已知最稳健的初始化区域。
+  \item DyT、Dynamic-erf 等 elementwise tanh-like 替代
+        的 APJN 则呈\textbf{拉伸指数}增长，
+        位于“亚临界”区域，
+        对初始化与优化器选择更敏感，
+        实际中需要更小心的超参数调节。
+\end{itemize}
+
+实践含义：DyT 类设计有可能减少归一化层的开销，
+但如果在大规模训练中替换 LayerNorm，
+必须把它当作“初始化敏感的非临界系统”来对待——
+通常意味着更窄的可行学习率窗口、
+更严格的预热曲线、
+以及与 Muon 等强自适应优化器的额外联调。
+本章后续介绍 DyT 时默认带这个警告。
 
 \section{训练数据调度策略}
 \label{sec:data-scheduling}

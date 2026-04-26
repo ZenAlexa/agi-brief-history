@@ -860,6 +860,118 @@ S1~\cite{muennighoff2025s1} 的研究发现，
 超过 2000 后准确率反而\textbf{下降}了 2--5\%。
 budget forcing 和 early exit 可以防止这种过度思考。
 
+\subsection{Overthinking：本月研究焦点（2026 年 4 月）}
+\label{sec:overthinking-focus}
+
+2026 年 4 月，overthinking 从「实践中观察到的现象」
+明确升格为\textbf{推理时计算研究的中心议题}——
+单月 arXiv 上量化分析 overthinking 与给出降量方案的论文超过 10 篇。
+研究焦点从「能否更长 = 能否更准」转向了
+「在保持准确率的前提下能省多少」。
+
+\textbf{现象的系统刻画}。
+\textit{When More Thinking Hurts}~\cite{whenmorehurts2026}
+系统地证实了 token budget 增加时\textbf{边际收益急剧下降}——
+不仅是准确率提升变慢，
+而且出现了「\textbf{放弃此前正确答案}」的具体行为模式：
+模型在更长的推理链里继续探索，
+反而把已经写出的正确答案改成错误的。
+这把 overthinking 从「浪费计算」升级为
+「直接\textbf{降低最终质量}」。
+
+\textbf{早停与自适应推理（节省 20--60\% token）}。
+本月密集出现了一批用不同启发式做 early-exit 的方法：
+
+\begin{itemize}[noitemsep]
+  \item \textbf{TRACE}~\cite{trace_steptag2026}：
+        基于 step tag 的自适应早停，
+        \textbf{节省 20\%--50\% token}，准确率掉幅控制在 1--2 点内。
+  \item \textbf{TRACE}（同名缩写）~\cite{trace_consistency2026}：
+        多步答案一致性 + 置信轨迹早出，
+        \textbf{节省 25\%--30\% token}。
+  \item \textbf{DTSR}~\cite{dtsr2026}：
+        Qwen3 上推理长度\textbf{减少 28.9\%--34.9\%}。
+  \item \textbf{STACK}~\cite{stack2026}：
+        step-wise CoT 压缩 + retrieval-augmented，
+        平均 response 长度\textbf{减少 59.9\%}，准确率反而 +4.8。
+  \item \textbf{SAT}~\cite{sat2026}：
+        FSM 状态机 + 轻量 PRM，
+        在 9 个 LRM × 7 个 benchmark 上一致地\textbf{节省约 40\% token}。
+  \item \textbf{TrACE}~\cite{trace_interrollout2026}：
+        把 inter-rollout agreement 作为\textbf{免费}的自适应信号，
+        匹配 SC-4 同样的精度，但 LLM 调用减少 33\%--65\%。
+\end{itemize}
+
+这一组工作呈现出明显的趋势：
+（1）信号源从「外部 PRM」迁移到\textbf{推理过程内部}的现成统计量
+（step tag、答案一致性、rollout 间一致性）；
+（2）减量幅度从早期工作的 10\%--20\%
+跳升到\textbf{30\%--60\% 甚至更高}；
+（3）减量与准确率的权衡曲线变陡——
+最好的方法在 \textbf{节省 60\% token 的同时还能让准确率上升}（STACK）。
+这表明过去推理模型默认输出的推理链
+有相当大比例是\textbf{冗余而非有信息量的},
+而不只是「次优分配」。
+overthinking 因此应当从「需要在边际成本上做权衡的优化空间」
+重新定义为「需要从默认输出中移除的失败模式」。
+
+\subsection{Test-Time Training（TTT）：在测试时用 RL 提升单题表现}
+\label{sec:ttt}
+
+「Test-Time Training」是 2026 年初新崛起的一条独立路线：
+在测试阶段用问题本身的反馈做 RL 更新，
+而不是只在训练阶段做一次。
+2025 年的 TTRL 是早期代表，
+2026 年 4 月窗口内出现了几篇把这一范式
+推到新性能高度的工作。
+
+\textbf{TEMPO}~\cite{tempo2026}
+把 TTT 形式化为带 critic recalibration 的
+expectation-maximization 过程：
+在未标注问题上交替做 policy refinement
+（用模型自己的多次采样生成伪标签），
+并\textbf{周期性地}用标注数据重新校准 critic，
+防止 policy 在自生成的伪标签上漂移。
+作者明确指出，TTRL 等早期工作\textbf{缺少 recalibration 步骤}——
+正是这个缺失导致它们的增益不稳定。
+TEMPO 在 AIME 2024 上的提升是窗口期内最显著的推理时改进：
+\begin{itemize}[noitemsep]
+  \item Olmo3-7B：\textbf{33.0\% $\to$ 51.1\%}（+18.1）
+  \item Qwen3-14B：\textbf{42.3\% $\to$ 65.8\%}（+23.5）
+\end{itemize}
+这两个数字都不是「稍微好一点」级别的提升，
+而是\textbf{改变模型梯队定位}的提升——
+Olmo3-7B 经过 TEMPO 后能与原始 Qwen3-14B 同台。
+
+\textbf{DDRL}~\cite{ddrl2026}
+对 TTRL 做了 debiased + denoised 两步处理：
+通过频率采样去除 ambiguity 区间，
+并用固定 advantage 估计代替组相对归一化。
+作者明确警告，
+\textbf{group-relative advantage 会放大 spurious 信号}——
+因为 TTRL 设定下没有 ground-truth 奖励，
+噪声标签经过组内归一化会被进一步放大。
+这是对「直接把 GRPO 当成 TTRL 用」的直接技术警告，
+也呼应了第 \ref{sec:rlvr-failures} 节中
+\textit{Too Correct to Learn} 在训练阶段观察到的 advantage 异常——
+两者都说明组相对优势的「除以 std」步骤
+在信号低或噪声大的设定下\textbf{不稳定}。
+
+\textbf{Adaptive Test-Time Compute Allocation}~\cite{adaptivettc2026}
+把 TTT 与推理预算自适应结合：
+warm-up 阶段先识别哪些题对当前模型是 easy 的，
+把节省下来的计算\textbf{重定向}给 unresolved 的难题，
+并把已解决的 easy 题作为 in-context demo 注入。
+这把「给所有题分配同等推理预算」的均匀策略
+进一步推到「跨题动态再分配」。
+
+TTT 路线的整体含义是：
+推理时计算不仅可以用来\textbf{多采样、长思考}，
+还可以用来\textbf{当场更新模型权重}。
+后者的极限是「每个 prompt 是一次微型训练」，
+TEMPO 与 DDRL 让这个极限第一次在 reasoning benchmark 上跑出
+非平凡且稳定的增益。
+
 
 \section{DeepSeek-R1：从零开始学会推理}
 
@@ -1244,6 +1356,69 @@ IMO 金牌（35/42 分）意味着模型的数学推理能力
 这些基准的天花板远高于 AIME，
 更能区分不同模型的实际推理水平。
 \end{warnbox}
+
+\subsection{Reasoning 局限性的本月研究}
+\label{sec:reasoning-limits-2026}
+
+「推理是不是真信号」这个问题
+在 Apple 2025 年「Illusion of Thinking」之后
+持续是 reasoning 领域的争议核心。
+2026 年 4 月窗口给出了三类\textbf{彼此互不抵消}的新证据，
+该读法是把它们叠在一起看，而不是任挑一篇下定论。
+
+\textbf{复杂度阈值之外，推理崩溃可被独立复制}。
+\textit{Empirical Evidence of Complexity-Induced Limits}~\cite{complexitylimits2026}
+在 9 个经典推理任务（SAT、Cryptarithmetic、River Crossing、Hanoi、Sudoku、Rubik 等）
+上对复杂度做\textbf{参数化}调控，
+观察到多款 LRM 在\textbf{超过任务特定阈值}后
+准确率\textbf{骤降 50 个百分点以上}——
+作者称之为「reasoning collapse」。
+更不利的发现是：
+\textbf{增加 reasoning 长度并不能可靠修复}，
+任务族之间也不能互相迁移。
+这是 Apple「Illusion of Thinking」之后
+\textbf{最系统的独立复制研究}，
+确认了高复杂度区间确实存在 reasoning 崩溃，
+而不是某一家模型的偶然现象。
+
+\textbf{架构差异决定有效操作范围}。
+\textit{Reasoning Primitives in Hybrid and Non-Hybrid LLMs}~\cite{reasoningprimitives2026}
+在同等训练设定下对比 Olmo3 transformer 与 Mamba hybrid，
+结论是：
+reasoning augmentation 拓宽了「有效操作范围」，
+但 transformer 在序列依赖增长时\textbf{超阈值急剧退化}，
+hybrid 架构对状态追踪类任务更鲁棒。
+这把「reasoning collapse」从
+「某一类模型的失败」细化为
+「序列依赖密度与架构选择的耦合失败」。
+含义是：要把推理时计算的有效区间往外推，
+仅靠更长的思维链不够，
+\textbf{架构本身需要支持更稳定的状态维护}。
+
+\textbf{推理是真信号的内部证据}。
+\textit{Reasoning Models Know What's Important}~\cite{reasoningknowimportant2026}
+用 probing 分析显示，
+reasoning 模型在\textbf{token 生成前}的内部激活中
+已经编码了 step importance——
+不是「先随便写一段，事后看哪句重要」，
+而是\textbf{生成前已经知道哪一步重要}。
+这一性质在多款模型上成立，
+为「reasoning 是真信号、不全是装饰」
+提供了内部表征层面的证据，
+也与 R1-Zero 训练曲线上推理长度自发增长的现象相互印证。
+
+把三篇放一起看，
+合理的综合是：
+\textbf{推理时计算在有效操作范围内是真信号}（第三篇），
+但\textbf{这个范围有结构性的边界}（第一篇），
+而\textbf{边界由架构而非单纯参数量或思维链长度决定}（第二篇）。
+这与 \ref{sec:overthinking-focus} 节的发现是同一硬币的两面——
+后者是「在范围内长不必更好」，
+本节是「范围本身有架构决定的天花板」。
+两者共同的工程结论是：
+推理时计算的下一个增益更可能来自
+\textbf{识别该不该思考}（什么时候停、什么时候 TTT 升级），
+而非\textbf{无差别地把 thinking budget 拉满}。
 
 
 \section{验证方法：如何知道推理是否正确}

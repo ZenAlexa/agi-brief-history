@@ -341,6 +341,89 @@ FP8 训练和 FP8 推理的关键区别在于\textbf{精度要求}：
 2026 年的推理工程师更多的时间花在选择正确的精度格式上，
 而不是调整量化超参数。
 
+\subsubsection{NVFP4 / MXFP4：FP4 时代真正落地}
+
+2026 年是 \textbf{FP4 在数据中心生产部署}成为现实的一年。
+之前的 INT4 只是"权重量化"——
+权重存为 INT4，激活仍为 FP16/BF16，
+计算时解量化回 FP16 再算。
+\textbf{FP4 的关键不同在于 W4A4}：
+权重和激活都是 FP4，矩阵乘法在 FP4 张量核上原生执行，
+省去整个解量化步骤。
+
+两种 FP4 格式并存~\cite{nvfp4spec2026}：
+\begin{itemize}[noitemsep]
+  \item \textbf{NVFP4}：FP4(E2M1) + per-16-element FP8 E4M3 scale
+        + per-tensor FP32 scale。
+        由 Blackwell SM100/SM120 \textbf{5th-generation Tensor Core}
+        原生加速。两级 scale 设计——
+        微块内用 FP8 scale 保留细粒度，
+        外层 FP32 scale 锚定全局动态范围
+  \item \textbf{MXFP4}：块大小 32、scale 为 \textbf{OCP 标准 E8M0}
+        （仅指数）。OCP 标准化让多家硬件厂商
+        （NVIDIA、AMD、Intel）可以统一支持
+\end{itemize}
+
+\textbf{NVFP4 W4A4 在 Blackwell 上比 INT4 weight-only 快 $\geq$ 2$\times$}——
+原因是 INT4 weight-only 必须把权重解量化到 FP16 后才能与 FP16 激活相乘，
+而 NVFP4 全程在 FP4 张量核上跑，省掉所有解量化开销。
+
+\textbf{TensorRT-LLM 1.2}~\cite{trtllm12}
+把 NVFP4 / MXFP4 + NVFP4 KV Cache 打成默认 PyTorch 后端：
+\texttt{--quant fp8 --kv\_cache\_quant nvfp4}
+就能在 B200 上同时享受 FP8 计算和 NVFP4 KV cache。
+\textbf{vLLM v0.11.0}~\cite{vllm011nvfp4} 也跟上：
+NVFP4 dense（PR \#25609）、Gemma3 NVFP4（\#22771）、
+Llama 3.1 405B NVFP4（\#25135）、
+FP8 paged attention 更新（\#22222）。
+\textbf{Red Hat 在 2026-02-04}~\cite{redhatNvfp42026}
+释放 8B 到 400B+ 全尺寸 NVFP4 量化模型组，
+直接 \texttt{vllm serve} 即可部署。
+
+但 FP4 不是免费午餐：
+传统 GPTQ 在 NVFP4 小 group size 下会失效，
+在 MXFP4 power-of-two scale 下也会失效。
+\textbf{MR-GPTQ}（QuTLASS v1.0，ICLR 2026 投稿）
+~\cite{mrgptq2026} 诊断了这两个失效模式
+并提出 \textbf{micro-rotated GPTQ + 专用 Blackwell kernel}：
+量化前对权重做精心选择的微旋转
+（micro-rotation），
+让旋转后的权重分布更适配 FP4 量化级别，
+配合 Blackwell 上手写的旋转-反旋转融合 kernel。
+
+\textbf{MXFP4 vs NVFP4 的精度差距}也在 2026 年被弥合。
+arXiv:2603.08713~\cite{mxfp4overflow2026}
+提出 MXFP4 Overflow-Aware 软件改进，
+通过精细的溢出检测和 scale 自适应，
+把 MXFP4 与 NVFP4 端到端精度差距
+\textbf{从 \textasciitilde{}10\% 压到 $<$1\%}
+（MXFP4 OCP 基线损失降低 62\%）。
+这意味着没有 NVIDIA 硬件的厂商（AMD、Intel）
+也能用 MXFP4 取得接近 NVFP4 的精度，
+只是缺少 NVFP4 那种两级 scale 的算力红利。
+
+\subsubsection{AWQ / GPTQ / SmoothQuant 退居 backwards-compat}
+
+FP4 时代并不意味着旧方法立刻退场。
+SmoothQuant 在 2026 年仍然有用——
+\textbf{SmoothQuant 与 NVFP4 完全兼容}~\cite{redhatNvfp42026}：
+SmoothQuant 解决的是"激活离群值"问题，
+NVFP4 解决的是"低位宽计算"问题，
+两者正交可叠加。
+Red Hat 释放的 NVFP4 模型组很多就是
+"SmoothQuant 平滑 + NVFP4 量化"组合。
+
+LMDeploy A100 INT4 仍是 SGLang/vLLM 之外
+\textbf{延迟最低}的快速选项，
+对没有 Blackwell 的存量部署仍然是优选。
+AWQ/GPTQ 在 Blackwell 之前的硬件
+（H100、A100、L40S）上仍是 INT4 量化的最佳实现。
+
+总结一句话：
+\textbf{Blackwell + NVFP4 W4A4 是 2026 后的新基线，
+AWQ/GPTQ/SmoothQuant 退居 backwards-compat 角色，
+仍是 Blackwell 之前硬件的最佳选择}。
+
 \subsection{Quantization-Aware Training（QAT）}
 
 QAT 在训练过程中模拟量化效果：
@@ -1516,6 +1599,172 @@ SSD 的核心洞察是：
 QSpec 在不损失推测解码数学无损性的前提下
 进一步提升了端到端速度。
 
+\subsection{2026 年 EAGLE-3 在生产环境的可持续加速}
+\label{sec:eagle3-production}
+
+EAGLE-3 在 2025 年发布时定位是"高质量轻量草稿"，
+但当时社区对它有两个怀疑：
+（1）需要专门训练草稿头、移植成本高；
+（2）只在 low-QPS 场景受益，high-QPS 下被吞吐挤垮。
+2026 年第一、二季度的三项独立工作
+\textbf{同时反驳了这两个判断}。
+
+\textbf{PayPal Commerce Agent}~\cite{paypalspec2026}
+（arXiv:2604.19767，2026-03-27）
+在生产环境部署 Llama3.1-Nemotron-Nano-8B + EAGLE3（vLLM）
+对照 NIM。
+2$\times$H100 横评：
+\textbf{$\gamma=3$ 时吞吐 +22--49\%、延迟 -18--33\%、acceptance ≈ 35.5\%}；
+$\gamma=5$ 退化到 \textasciitilde{}25\%（草稿越长 acceptance 越低）；
+\textbf{single H100 + spec decoding $\geq$ 2$\times$H100 NIM}——
+推测解码让 GPU 数量减半。
+"商务对话"这个传统认为非结构化的任务，
+EAGLE-3 仍能稳取 35\%+ acceptance。
+
+\textbf{Red Hat $\times$ gpt-oss-120B + EAGLE3}
+~\cite{redhatgptoss120spec2026}
+（developers.redhat.com，2026-04-16）
+是更具颠覆性的实验：
+\textbf{200 并发的 MoE 目标}下，
+EAGLE-3 仍稳取 +10--21\% 吞吐、E2E 延迟 -12--20\%、ITL -4--18\%。
+SWE-bench 任务上准确率 +20.5\%。
+这个数据\textbf{打破了"spec decoding 仅 low-QPS 受益"的旧叙事}：
+当目标是 MoE（每个 token 只激活少数专家），
+spec decoding 让目标模型的"未激活专家空闲算力"
+被推测验证消化掉，反而 high-QPS 受益更显著。
+
+\textbf{P-EAGLE}~\cite{peagle2026}（vLLM Blog 2026-03-13）
+在 B200 上把 EAGLE 的自回归 drafting 改为\textbf{并行 drafting}：
+一次 forward 出 K 个 draft，
+不再等草稿模型的串行展开。
+GPT-OSS 20B 上 MT-Bench / HumanEval / SpeedBench
+\textbf{比 vanilla EAGLE-3 加速 1.05$\times$--1.69$\times$}，
+已合并进 vLLM 主线。
+P-EAGLE 是 Blackwell 时代 spec decoding 的"原生形态"，
+利用 B200 极高的 SM 并行度和 NVFP4 算力，
+让草稿生成本身从串行变并行。
+
+\subsection{DeepSeek MTP：单请求 1.6--1.7$\times$ 加速 + vLLM 集成}
+\label{sec:deepseek-mtp}
+
+DeepSeek-V3 在论文中提出的
+\textbf{Multi-Token Prediction}（MTP）架构
+在 2026 年第一季度终于完成主流框架集成。
+MTP 不是 EAGLE 那样"额外训练一个草稿模型"，
+而是\textbf{在主模型架构内多预测几个未来 token}——
+原生 MTP head 与 backbone 联合训练，
+推理时 MTP head 输出的 $k$ 个 token 直接进入验证流程。
+
+DeepSeek MTP 的工程数据：
+额外 14B 参数（11.5B 独立 + 2.5B shared）。
+官方报告第二个预测 token acceptance \textbf{85--90\%}，TPS +1.8$\times$。
+
+\textbf{vLLM PR \#12755}~\cite{deepseekmtpvllm2026}
+在 8$\times$H200 上跑 DeepSeek-R1：
+\textbf{QPS=1 时 TPOT 55.47 → 32.64 ms（1.69$\times$）}，
+QPS=2 时 1.32$\times$，QPS$\geq$6 退化到 $\leq$1$\times$。
+MTP $k=1$ acceptance ≈ 81--82.3\%。
+\textbf{Nebius 用 LK loss 微调 MTP}~\cite{nebiusmtp2026}：
+MT-Bench 平均接受长度 3.20 → 4.83（K=7），
+说明即使原生 MTP 已训完，
+任务特定微调仍能再加 50\% acceptance。
+
+vLLM 文档已把 MTP 列为方法表中
+\textbf{"target 模型原生支持时最佳"}的推测策略。
+EAGLE-3 与 MTP 现在并列为
+\textbf{2026 SOTA spec decoding 双主线}：
+EAGLE-3 适用于"目标模型已发布、想加 spec decode"，
+MTP 适用于"训练时就规划了多 token 预测能力"。
+
+\subsection{训练免费的推测解码：anisotropic 树与检索增强}
+\label{sec:training-free-spec}
+
+EAGLE-3 / MTP 都需要训练或微调。
+2026 年第二季度涌现了一批
+\textbf{完全训练免费}的推测解码工作，
+让现有模型可以零成本启用。
+
+\textbf{GOOSE}~\cite{goose2026}（arXiv:2604.02047）
+是这条线的理论基石。
+论文证明了 n-gram 复制 vs 概率 draft 的 acceptance
+存在约 6$\times$ 的中位差距，
+更重要地是\textbf{证明最优推测树是 anisotropic 的}——
+高质 token 形成深链、低质 token 形成宽枝。
+此前所有方法都用对称（balanced）树，
+GOOSE 的 anisotropic 树在 5 个模型 5 个 benchmark 上
+取得 \textbf{1.9--4.3$\times$ lossless 加速}，
+比对称 balanced tree \textbf{+12--33\%}。
+
+\textbf{RACER}~\cite{racer2026}（arXiv:2604.14885）
+用\textbf{检索增强}做训练免费推测：
+融合 retrieval 精确匹配（n-gram lookup）
+与 logit-driven 未来线索，
+Spec-Bench / HumanEval / MGSM-ZH 上 \textbf{>2$\times$}。
+\textbf{ToolSpec}~\cite{toolspec2026}（arXiv:2604.13519）
+进一步引入 \textbf{schema-aware} 思路：
+tool-calling 场景下，
+FSM 在确定性 schema token 与 speculative generation 间切换，
+\textbf{最高 4.2$\times$}——
+schema 部分基本是 100\% acceptance，
+真正的不确定性只在自由文本部分。
+
+\textbf{CSD}~\cite{csd2026}（arXiv:2604.13634，
+Calibrated Speculative Decoding）
+用\textbf{频率引导候选 + 概率守卫接受}，
+峰值吞吐 2.33$\times$。
+\textbf{SpecGuard}~\cite{specguard2026}（arXiv:2604.15244）
+用模型内部 attention grounding + log-prob step-level 验证
+做关键候选过滤，
+准确率 +3.6\%、延迟 -11\%。
+\textbf{DIVERSED}~\cite{diversed2026}（arXiv:2604.07622）
+放松 verification，
+混合 draft 与 target 分布做 ensemble verifier，
+在 acceptance 与 verification 严格度之间寻新平衡。
+
+\subsection{MoE-aware 推测解码：自蒸馏与 3D 堆叠}
+\label{sec:moe-spec}
+
+MoE 模型在推理时只激活少数专家，
+"剩余的算力"是 spec decoding 的天然餐桌。
+2026 年的另一条线索是
+\textbf{MoE-aware spec decoding}。
+
+\textbf{ConfLayers}~\cite{conflayers2026}（arXiv:2604.14612）
+用 \textbf{confidence-driven layer skipping} 做自我 spec：
+推理时根据每层 confidence 决定是否跳过，
+被跳过的层等价于"draft"，
+完整 forward 等价于"verify"，
+平均 \textbf{1.4$\times$} 加速，零额外模型。
+
+\textbf{SpecMoE}~\cite{specmoe2026}（arXiv:2604.10152）
+针对 MoE 自蒸馏 spec：
+draft 路径只激活少量专家、
+verify 路径激活完整专家集。
+配合 CPU 专家 offload，
+吞吐 \textbf{+4.3$\times$}——
+4 倍提升对边缘 MoE 部署是质变。
+
+\textbf{ELMoE-3D}~\cite{elmoe3d2026}（arXiv:2604.14626）
+利用 3D-stacked 硬件 + MoE 内在弹性，
+batch 1--16 平均 \textbf{6.6$\times$} 加速、
+\textbf{4.4$\times$ 能效}。
+\textbf{DDTree}~\cite{ddtree2026}（arXiv:2604.12989）
+用 block diffusion drafter + 树验证，
+在 MoE backbone 上探索"非自回归 draft"路径。
+
+\begin{keybox}[2026 SOTA Speculative Decoding 选型]
+\begin{itemize}[noitemsep]
+  \item \textbf{有 EAGLE-3 头}：直接用，PayPal/Red Hat 验证生产可用
+  \item \textbf{Blackwell + EAGLE}：升 P-EAGLE，B200 上再快 1.05--1.69$\times$
+  \item \textbf{DeepSeek 系列}：MTP（原生支持时最佳，vLLM 一键启用）
+  \item \textbf{零训练成本}：GOOSE / RACER / ToolSpec
+  \item \textbf{MoE 模型}：ConfLayers（自蒸馏）/ SpecMoE（CPU offload）
+  \item \textbf{结构化输出}：ToolSpec（schema-aware FSM 切换）
+\end{itemize}
+"低 QPS 才有用"已是历史叙事——
+Red Hat 200 并发数据证明 high-QPS 也可受益。
+\end{keybox}
+
 
 \section{Continuous Batching：提升服务吞吐}
 
@@ -1819,6 +2068,214 @@ TGI 的主要优势在于与 Hugging Face 生态的深度集成，
 模型下载、tokenizer 处理、Inference Endpoints 托管服务
 都是开箱即用的。
 对于快速验证和中小规模部署，TGI 是入门门槛最低的选择。
+
+\subsection{vLLM v0.18 \& v0.19：async scheduling 与 spec decode 终于可组合}
+\label{sec:vllm-018-019}
+
+vLLM 在 2026 年第一、二季度的两次大版本更新
+解决了一个长期存在的核心矛盾：
+\textbf{async scheduling 与 spec decoding 历史上互斥}。
+async scheduling 把 GPU 计算与 Python 调度器解耦
+是 vLLM 高吞吐的关键，
+但它的事件驱动模型与 spec decoding 的多步验证流程
+长期不兼容，
+工程师只能二选一。
+
+\textbf{vLLM v0.18.0}~\cite{vllm018}（cut 2026-03-31）
+打开第一道门：
+\textbf{NGram GPU spec decode 与 async scheduler 兼容}（PR \#29184），
+意味着 prefix-history 的 n-gram 推测可以与高吞吐异步调度共存。
+同时引入 \textbf{KV cache offloading} 三件套
+（reuse-frequency-gated CPU stores PR \#35342、
+FlexKV backend PR \#34328、multi KV groups PR \#36610），
+让 KV cache 从纯 GPU 资源升级为
+GPU/CPU/远程多层结构。
+\textbf{PD disaggregation 调度器开销 -5\%}，
+HMA + NIXL connector 进入主线。
+
+\textbf{vLLM v0.19.0}~\cite{vllm019}（2026-04-03，
+448 commits / 197 contributors）
+完成了关键合并：
+\begin{itemize}[noitemsep]
+  \item \textbf{zero-bubble async scheduling 与 spec decoding 首次同时启用}
+        （PR \#32951），async scheduler 默认开启
+  \item \textbf{Model Runner V2}：piecewise CUDA graphs 支持 pipeline parallelism
+  \item \texttt{/v1/chat/completions/batch} 离线批接口
+  \item \textbf{B300/GB300（Blackwell Ultra）支持}
+  \item online \textbf{MXFP8} 量化（vs v0.11.0 仅支持 NVFP4 dense）
+  \item ViT full CUDA graph
+  \item \textbf{CPU KV cache offload + 可插拔 eviction}（PR \#37160、\#37874）
+  \item \textbf{Gemma 4} 全家族支持
+  \item v0.19.1（04-18）补 CVE-2026-0994
+\end{itemize}
+
+但 v0.19 也带来一个已知回归：
+spec-decode + Eagle3 路径相对 v0.18 出现退化
+（issue \#39940：Eagle3 加速从 16\% 降到 8.4\%），
+这个问题的修复是 v0.20 路线的优先级 1 项。
+对生产部署的建议是：
+\textbf{不依赖 Eagle3 的工作负载升 v0.19}（async + spec 终于可组合），
+\textbf{依赖 Eagle3 的工作负载暂留 v0.18 直到回归修复}。
+
+\subsection{推理引擎横评 (H100 SXM5)：差异化已迁到 orchestration overhead}
+\label{sec:engine-bench-2026}
+
+2026-04 几份独立横评~\cite{enginebench2026}
+给出了清晰的引擎排序：
+
+\textbf{Llama 3.3-70B、100 并发}（重负载）：
+\begin{itemize}[noitemsep]
+  \item \textbf{TensorRT-LLM v1.2 ≈ 2,780 tok/s}
+        （TTFT 680 / 1280 ms p50/p95，冷启动 \textasciitilde{}28 min）
+  \item \textbf{SGLang v0.5.9 ≈ 2,460 tok/s}
+        （TTFT 710 / 1380 ms，冷启动 58 s）
+  \item \textbf{vLLM v0.18 ≈ 2,400 tok/s}
+        （TTFT 740 / 1450 ms，冷启动 62 s）
+  \item LMDeploy A100 INT4 ≈ 700 tok/s（TTFT 最低）
+\end{itemize}
+
+\textbf{Llama 3.1 8B、H100}（轻负载）：
+\begin{itemize}[noitemsep]
+  \item SGLang ≈ 16,215 tok/s
+  \item LMDeploy ≈ 16,132 tok/s
+  \item vLLM (FlashInfer) ≈ 12,553 tok/s
+  \item \textbf{SGLang/LMDeploy 比 vLLM 高 29\%}
+\end{itemize}
+
+29\% 这个差距的来源\textbf{不是}数学 kernel——
+所有引擎都用同样的 FlashAttention / FlashInfer / cuBLAS。
+差距来自 \textbf{engine orchestration overhead}：
+SGLang 和 LMDeploy 把调度器放进 C++/Rust，
+vLLM 调度器仍主要在 Python。
+当 batch size 大、生成步数多时，
+Python 调度器的常数开销逐步放大为 29\% 量级的实测差距。
+这一观察意味着 vLLM 路线图上的
+"调度器 Rust 化"是必经之路。
+
+SGLang v0.5.10~\cite{sglang0510}（2026-04-01，
+PR a19ef3a）进一步集成
+\textbf{FlashInfer v0.6.7 + trtllm mxfp8 GEMM}，
+新增 deepgemm dsv3 router gemm Blackwell 基准、
+fused MoE Triton、fp4\_quant 系列 kernel。
+SGLang Production 文档（2026-04）给出
+\textbf{DeepSeek-V4 三种 serving recipe}
+（low-latency / balanced / max-throughput）
++ 长上下文专用 + PD disaggregation。
+SGLang 在长上下文 + PD disaggregation 上的差异化
+比"快 29\%"更具长期价值。
+
+\begin{keybox}[2026 Q2 推理引擎选型矩阵]
+\begin{itemize}[noitemsep]
+  \item \textbf{NVIDIA 高性能}：TRT-LLM 1.2 + Triton（最高吞吐，配置最复杂）
+  \item \textbf{长上下文 + DeepSeek}：SGLang 0.5.10
+        （Production recipe 完整、PD 默认）
+  \item \textbf{通用、生态、多模态}：vLLM 0.19
+        （但接受 29\% orchestration tax）
+  \item \textbf{量化极致}：LMDeploy（A100 INT4 仍是延迟最低选项）
+  \item \textbf{Apple Silicon / 边缘}：llama.cpp + GGUF
+\end{itemize}
+\end{keybox}
+
+\subsection{独立 KV-Cache 层：LMCache 与 AIBrix InfiniStore}
+\label{sec:kv-cache-layer}
+
+KV cache 在 2026 年从"附属于推理引擎的内存"
+升格为\textbf{独立的存储层}，
+拥有自己的网络协议、淘汰策略、跨节点拓扑。
+这一变化由两个项目推动。
+
+\textbf{LMCache}~\cite{lmcache2026}（arXiv:2510.09665 v2）
+是 vLLM 生态中最重要的 KV cache 中间件。
+2026 Q2 路线（GitHub issue \#2923，2026-03-31）
+把\textbf{MP（multi-process）mode 推向主线}，
+计划释放：
+CacheBlend、KV token-dropping 接口、
+CacheGen-style KV codec、
+SGLang MP mode、TRT-LLM KV caching 集成、
+PD-in-MP、TP=16 跨节点。
+\textbf{L2 prefetch controller}（PR \#2667，2026-03-02）
+通过事件驱动的两阶段状态机
+（\texttt{LOOKUP} $\to$ \texttt{PLAN\_AND\_LOAD}）
+实现透明的预取。
+LMCache 在 vLLM 上实测延迟节省 \textbf{3--10$\times$}，
+这一倍率不是来自单个优化，
+而是来自"把 KV cache 当作 first-class 资源"的整体重构。
+
+\textbf{AIBrix v0.3.0}~\cite{aibrix030}
+把 ByteDance 的 \textbf{InfiniStore}（RDMA KV cache server）
+作为 L2 backend，
+与 LRU / S3FIFO 淘汰策略组合，
+跨节点 KV 共享延迟降至微秒级。
+这意味着分布式 KV cache 不再受限于以太网或 InfiniBand 速率，
+RDMA 让远程 KV 与本地 KV 的访问代价接近。
+
+独立 KV cache 层的出现意味着推理服务的分层模型
+从两层（计算 + 存储）变为三层
+（计算引擎 + KV cache 层 + 物理存储），
+和数据库领域的发展轨迹高度相似。
+
+\subsection{KV-cache-aware routing：prefix 共享 + 分布式 KV 已商品化}
+\label{sec:kv-aware-routing}
+
+LMCache 推动的另一个实质性变化是
+\textbf{KV-cache-aware routing}成为多机推理的事实标准。
+传统 router 只看负载或随机分发，
+KV-aware router 知道每个 LMCache 实例上的 KV 命中情况，
+\textbf{把请求路由到命中前缀最多的实例}。
+
+机制描述（来自 LMCache tech report）：
+每个 LMCache 实例向中心 controller
+报 \texttt{admit}/\texttt{evict} 事件，
+controller 维护全局命中表。
+router 在请求到达时调用 \texttt{lookup(tokens)}，
+得到 \texttt{(instance, device, hit\_tokens)} 元组，
+按 hit\_tokens 最大化策略选择目标实例。
+该模式已在 \textbf{vLLM Production Stack、NVIDIA Dynamo、
+AIBrix、llm-d、KServe、SGLang OME} 集成。
+
+KV-aware routing 的产业意义远超工程优化：
+\textbf{Anthropic 在 Opus 4.6 GA 1M 时取消 long-context premium}
+~\cite{anthropic2026context1m}，
+定价反映的正是
+"prefix 共享 + 分布式 KV cache 已让百万 token 可服务化"。
+没有 KV-aware routing，
+1M 上下文每次请求都要重做百秒级 prefill；
+有了 KV-aware routing + prefix caching，
+重复前缀的边际成本接近零，
+长上下文 API 才在经济上可行。
+
+continuous batching、prefix caching、KV-aware routing
+是推理服务化的\textbf{三层标准}，
+2025 年还是论文，2026 年已是生产默认。
+
+\subsection{PD-Disaggregation 工业化：从论文到默认架构}
+\label{sec:pd-disagg-industrial}
+
+PD（Prefill / Decode）disaggregation 在 2024--2025 年
+还是 Mooncake、DistServe、Splitwise 等论文的对象，
+2026 年已成为 vLLM、SGLang、NVIDIA Dynamo、llm-d
+的\textbf{多节点部署默认架构}。
+
+vLLM v0.18 在 PD 上的工程改进：
+PD 调度器开销 -5\%、
+PD KV transfer 与 spec decode 修正、
+SSM-FA hybrid 的 PD via NIXL。
+NVIDIA Dynamo / SGLang / llm-d
+把 PD disaggregation + KV connector
+打包成多节点部署默认架构，
+开箱即用。
+NVIDIA Dev Blog 2026-04-24~\cite{deepseekv4nvidiarecipe2026}
+在 DeepSeek-V4 部署 recipe 中
+列出"multinode PD disaggregation 100+ GPU"
+为 vLLM 推荐路径。
+
+PD 工业化的另一面是\textbf{KV cache 跨节点传输}
+不再是瓶颈：
+LMCache + AIBrix InfiniStore 把跨节点 KV 访问
+做到了 RDMA 延迟（5--20 微秒）量级，
+小于 prefill 节点的单步计算延迟。
+KV transfer 与 prefill 计算可以重叠，
+PD 分离的传输代价被摊销到接近零。
 
 \subsection{Disaggregated Serving：分离 Prefill 和 Decode}
 
@@ -2554,3 +3011,34 @@ Disaggregated serving 是“通信换优化”——
 % NEW REF: miao2024specinfer = Miao, Xupeng, et al. "SpecInfer: Accelerating Generative Large Language Model Serving with Tree-based Speculative Inference and Verification." ASPLOS 2024.
 % NEW REF: zhong2024distserve = Zhong, Yinmin, et al. "DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving." OSDI 2024.
 % NEW REF: patel2024splitwise = Patel, Pratyush, et al. "Splitwise: Efficient Generative LLM Inference Using Phase Splitting." ISCA 2024.
+%
+% --- ADDED 2026-04-26 (window 2026-03-25 to 2026-04-26) ---
+% NEW REF: vllm018 = vLLM Project. "v0.18.0 release notes." 2026-03-31.
+% NEW REF: vllm019 = vLLM Project. "v0.19.0 release notes (zero-bubble async + spec decode co-enabled, B300/GB300, MXFP8)." 2026-04-03.
+% NEW REF: vllm011nvfp4 = vLLM Project. "v0.11.0 NVFP4 dense + Llama 3.1 405B NVFP4." 2026.
+% NEW REF: enginebench2026 = Spheron / IoT Digital Twin / Leetllm / Awesome Agents. "H100 SXM5 cross-bench April 2026." 2026-04.
+% NEW REF: sglang0510 = SGLang Team. "v0.5.10 (FlashInfer 0.6.7 + MXFP8 GEMM)." 2026-04-01.
+% NEW REF: lmcache2026 = Liu et al. "LMCache: KV-cache-aware routing." arXiv:2510.09665 v2; issue #2923 (2026-03-31); PR #2667.
+% NEW REF: aibrix030 = ByteDance. "AIBrix v0.3.0 with InfiniStore RDMA backend." 2026.
+% NEW REF: deepseekv4nvidiarecipe2026 = NVIDIA Dev Blog. "DeepSeek-V4 multinode PD recipe." 2026-04-24.
+% NEW REF: paypalspec2026 = PayPal. "EAGLE3 production." arXiv:2604.19767, 2026-03-27.
+% NEW REF: redhatgptoss120spec2026 = Red Hat. "EAGLE3 + gpt-oss-120B at 200 concurrency." 2026-04-16.
+% NEW REF: peagle2026 = vLLM Blog. "P-EAGLE parallel drafting on B200." 2026-03-13.
+% NEW REF: deepseekmtpvllm2026 = vLLM Project. "DeepSeek MTP integration (PR 12755)." 2026.
+% NEW REF: nebiusmtp2026 = Nebius. "LK loss MTP fine-tuning." 2026.
+% NEW REF: goose2026 = "GOOSE anisotropic spec tree." arXiv:2604.02047, 2026.
+% NEW REF: racer2026 = "RACER training-free spec." arXiv:2604.14885, 2026.
+% NEW REF: toolspec2026 = "ToolSpec." arXiv:2604.13519, 2026.
+% NEW REF: csd2026 = "Calibrated Spec Decoding." arXiv:2604.13634, 2026.
+% NEW REF: specguard2026 = "SpecGuard." arXiv:2604.15244, 2026.
+% NEW REF: diversed2026 = "DIVERSED." arXiv:2604.07622, 2026.
+% NEW REF: conflayers2026 = "ConfLayers." arXiv:2604.14612, 2026.
+% NEW REF: specmoe2026 = "SpecMoE." arXiv:2604.10152, 2026.
+% NEW REF: elmoe3d2026 = "ELMoE-3D." arXiv:2604.14626, 2026.
+% NEW REF: ddtree2026 = "DDTree." arXiv:2604.12989, 2026.
+% NEW REF: nvfp4spec2026 = NVIDIA. "NVFP4 spec (per-16 FP8 E4M3 + per-tensor FP32)." 2026.
+% NEW REF: trtllm12 = NVIDIA. "TensorRT-LLM 1.2 NVFP4/MXFP4 + NVFP4 KV." 2026.
+% NEW REF: mrgptq2026 = "MR-GPTQ (QuTLASS v1.0)." ICLR 2026 submission.
+% NEW REF: redhatNvfp42026 = Red Hat. "8B-400B+ NVFP4 model suite." 2026-02-04.
+% NEW REF: mxfp4overflow2026 = "MXFP4 Overflow-Aware closes gap to NVFP4." arXiv:2603.08713, 2026.
+% NEW REF: anthropic2026context1m = Anthropic. "1M Context GA, no premium." 2026-03-13.
