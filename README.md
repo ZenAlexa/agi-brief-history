@@ -1,3 +1,5 @@
+
+
 <div align="center">
 
 # AGI简史
@@ -10,12 +12,12 @@
 
 <br>
 
-![visitors](https://visitor-badge.laobi.icu/badge?page_id=ZenAlexa.llm-observatory)
-[![GitHub stars](https://img.shields.io/github/stars/ZenAlexa/llm-observatory?style=social)](https://github.com/ZenAlexa/llm-observatory/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/ZenAlexa/llm-observatory?style=social)](https://github.com/ZenAlexa/llm-observatory/network/members)
-[![MIT License](https://img.shields.io/github/license/ZenAlexa/llm-observatory)](LICENSE)
-[![GitHub last commit](https://img.shields.io/github/last-commit/ZenAlexa/llm-observatory)](https://github.com/ZenAlexa/llm-observatory/commits/main)
-[![GitHub pull request](https://img.shields.io/badge/PRs-welcome-blue)](https://github.com/ZenAlexa/llm-observatory/pulls)
+![visitors](https://visitor-badge.laobi.icu/badge?page_id=ZenAlexa.agi-brief-history)
+[![GitHub stars](https://img.shields.io/github/stars/ZenAlexa/agi-brief-history?style=social)](https://github.com/ZenAlexa/agi-brief-history/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/ZenAlexa/agi-brief-history?style=social)](https://github.com/ZenAlexa/agi-brief-history/network/members)
+[![MIT License](https://img.shields.io/github/license/ZenAlexa/agi-brief-history)](LICENSE)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ZenAlexa/agi-brief-history)](https://github.com/ZenAlexa/agi-brief-history/commits/main)
+[![GitHub pull request](https://img.shields.io/badge/PRs-welcome-blue)](https://github.com/ZenAlexa/agi-brief-history/pulls)
 [![ArXiv Digest](https://img.shields.io/badge/ArXiv_Digest-daily-orange)](knowledge/tracking/arxiv/)
 
 <br>
@@ -86,11 +88,11 @@ GitHub Actions 持续追踪 LLM 生态变化：
 
 ```bash
 # 克隆（含子模块浅克隆）
-git clone --recurse-submodules --shallow-submodules https://github.com/ZenAlexa/llm-observatory.git
+git clone --recurse-submodules --shallow-submodules https://github.com/ZenAlexa/agi-brief-history.git
 
 # 或先克隆再初始化子模块
-git clone https://github.com/ZenAlexa/llm-observatory.git
-cd llm-observatory
+git clone https://github.com/ZenAlexa/agi-brief-history.git
+cd agi-brief-history
 git submodule update --init --depth 1
 
 # 更新所有子模块到最新
@@ -155,19 +157,19 @@ We welcome all contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guideli
 
 ## Contributors
 
-<a href="https://github.com/ZenAlexa/llm-observatory/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ZenAlexa/llm-observatory" />
+<a href="https://github.com/ZenAlexa/agi-brief-history/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ZenAlexa/agi-brief-history" />
 </a>
 
 ---
 
 ## Star History
 
-<a href="https://star-history.com/#ZenAlexa/llm-observatory&Date">
+<a href="https://star-history.com/#ZenAlexa/agi-brief-history&Date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZenAlexa/llm-observatory&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZenAlexa/llm-observatory&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ZenAlexa/llm-observatory&type=Date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZenAlexa/agi-brief-history&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZenAlexa/agi-brief-history&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ZenAlexa/agi-brief-history&type=Date" />
   </picture>
 </a>
 
